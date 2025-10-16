@@ -1067,7 +1067,7 @@ Next on to TCON (timing controller) parameters. For the vertical timings,
 - tcon_hbp is generally 2 (It depends on the screen used. If the image is horizontally shifted for a few pixels, adjust this value)
 - tcon_hfp is euqal to hblk / 4 - tcon_hsync - tcon_hbp, which is 80 / 4 - 2 - 2 = 16 in this case 
 
-The VCOM voltage should be somewhere on your screen. It's a negative voltage between -3V to 0V. Enter either the value or it's absolute value here (eg. enter either 0.8 or -0.8 for -0.8V).
+The VCOM voltage should be somewhere on your screen. It's generally a negative voltage between -3V to 0V. The board is capable of outputting voltage from -2.67V to -0.01V.
 
 Finally, using setcfg command to save these settings to the board:
 
@@ -1243,6 +1243,7 @@ The adapter column refers to the adapter needed for this particular screen. Howe
 | ED078KH1   |              |            | 320          | 1872x1404   | Carta                       |       |        |       | TTL       | 40        | 40P-A   |         |
 | ED078KH3   |              |            | 320          | 1872x1404   | Carta 1.2                   |       |        |       | TTL       | 40        | 40P-A   |         |
 | ED078KH4   | VB3300-GHB   |            | 320          | 1872x1404   | Carta                       |       |        |       | TTL       | 40        | 40P-A   |         |
+| ES078KC3   |              | EQN        | 320          |             | Carta                       |       |        | <2017 | TTL       | 60        |         |         |
 | EC078KH3   | SC1452-GHA   |            |              | 1872x1404   | Kaleido Plus                |       |        |       | TTL       | 40        | 40P-A   |         |
 | EC078KH4   | SC1452-GHB   |            |              | 1872x1404   | Kaleido Plus ?              |       |        |       | TTL       | 40        | 40P-A   |         |
 | EC078KH5   | SC1452-GHC   |            |              | 1872x1404   | Kaleido Plus ?              |       |        |       | TTL       | 40        | 40P-A   |         |
