@@ -150,6 +150,8 @@ void adv7611_init(void) {
 
     adv7611_send_init_seq(adv7611_init_2, sizeof(adv7611_init_2) / 3);
 
+    gpio_put(HPD_EN, 1);
+
     syslog_printf("ADV7611 initialization done\n");
 }
 

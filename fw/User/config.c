@@ -114,8 +114,28 @@ void config_init(void) {
 //    config.tcon_hsync = 2;
 //    config.tcon_hbp = 1;
 //    config.tcon_hact = 260;
+
+//    config.pclk_hz = 162000000;
+//    config.hact = 1872;
+//    config.vact = 1404;
+//    config.hblk = 40;
+//    config.hfp = 8;
+//    config.hsync = 16;
+//    config.vblk = 6;
+//    config.vfp = 2;
+//    config.vsync = 2;
 //
-//    config.vcom = -2.45f;
+//    config.tcon_vfp = 1;
+//    config.tcon_vsync = 1;
+//    config.tcon_vbp = 2;
+//    config.tcon_vact = 1404;
+//    // HFP + HSYNC + HBP = Incoming HBLK / 4
+//    config.tcon_hfp = 7;
+//    config.tcon_hsync = 2;
+//    config.tcon_hbp = 1;
+//    config.tcon_hact = 468;
+//
+//    config.vcom = -2.17f;
 //    config.vgh = 22.0f;
 //
 //    config.mirror = 0;
@@ -143,8 +163,50 @@ void config_init(void) {
 //
 //    config.vcom = -0.8f;
 //    config.vgh = 22.0f;
+
+    // 2200x1648 @ 42
+//    config.pclk_hz = 160972000;
+//    config.hact = 2200;
+//    config.vact = 1648;
+//    config.hblk = 80;
+//    config.hfp = 8;
+//    config.hsync = 32;
+//    config.vblk = 33;
+//    config.vfp = 19;
+//    config.vsync = 8;
 //
-//    config.mirror = 1;
+//    config.tcon_vfp = 11;
+//    config.tcon_vsync = 1;
+//    config.tcon_vbp = 2;
+//    config.tcon_vact = 1648;
+//    config.tcon_hfp = 16;
+//    config.tcon_hsync = 2;
+//    config.tcon_hbp = 2;
+//    config.tcon_hact = 550;
+
+//    config.pclk_hz = 51500000;
+//    config.hact = 800;
+//    config.vact = 480;
+//    config.hblk = 80;
+//    config.hfp = 8;
+//    config.hsync = 32;
+//    config.vblk = 8;
+//    config.vfp = 2;
+//    config.vsync = 2;
+//
+//    config.tcon_vfp = 4;
+//    config.tcon_vsync = 1;
+//    config.tcon_vbp = 2;
+//    config.tcon_vact = 480;
+//    config.tcon_hfp = 4;
+//    config.tcon_hsync = 4;
+//    config.tcon_hbp = 12;
+//    config.tcon_hact = 200;
+
+    config.vcom = -2.30f;
+    config.vgh = 25.0f;
+
+    //config.mirror = 1;
 }
 
 void config_load(void) {

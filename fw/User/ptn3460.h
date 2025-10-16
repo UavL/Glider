@@ -25,3 +25,4 @@
 void ptn3460_early_init(void);
 void ptn3460_init(void);
 void ptn3460_set_aux_polarity(int reverse);
+void ptn3460_powerdown(void);

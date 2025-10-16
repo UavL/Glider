@@ -43,6 +43,8 @@
 #define DP_HPD          GPIOD, GPIO_PIN_7
 #define DEC_RST         GPIOD, GPIO_PIN_6
 
+#define HPD_EN          GPIOA, GPIO_PIN_9
+
 #define TYPEC_ORI       GPIOA, GPIO_PIN_10
 #define TCPC_INT        GPIOA, GPIO_PIN_15
 

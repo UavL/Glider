@@ -124,7 +124,7 @@ static font_t *load_font(const char *fn) {
     SPIFFS_clearerr(&spiffs_fs);
     spiffs_file f = SPIFFS_open(&spiffs_fs, fn, SPIFFS_O_RDONLY, 0);
     if (SPIFFS_errno(&spiffs_fs) != 0)
-        return;
+        return NULL;
     
     spiffs_stat s;
     SPIFFS_fstat(&spiffs_fs, f, &s);
@@ -133,7 +133,7 @@ static font_t *load_font(const char *fn) {
     uint8_t *buf = pvPortMalloc(size);
     if (!buf) {
         SPIFFS_close(&spiffs_fs, f);
-        return;
+        return NULL;
     }
 
     SPIFFS_read(&spiffs_fs, f, buf, size);
@@ -188,7 +188,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
 
     // Load font into memory
     font_t *font_24x40 = load_font("font_24x40.bin");
-    font_t *font_32x53 = load_font("font_32x53.bin");
+    //font_t *font_32x53 = load_font("font_32x53.bin");
 
     // First wait link establish
     bool tmds_mode = false;
@@ -212,16 +212,6 @@ portTASK_FUNCTION(ui_task, pvParameters) {
     syslog_printf("FPGA started with status %02x", fpga_write_reg8(CSR_STATUS, 0x00));
 
     while (1) {
-        // Check FPGA lost sync
-        if (fpga_write_reg8(CSR_ID0, 0x00) != 0x35) {
-            syslog_printf("Lost access to FPGA, attempt to restart...");
-            power_off_epd();
-            restart_fpga();
-            power_on_epd();
-            caster_init();
-            syslog_printf("FPGA restarted");
-        }
-
         // Check OSD timeout
         if ((osd_timeout != 0) && (((int32_t)xTaskGetTickCount() - (int32_t)osd_timeout) >= 0)) {
             osd_timeout = 0;
@@ -242,15 +232,16 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             autoclear_timeout = 0;
         }
 
-        // Detect loss of signal
-        if (tmds_mode && (!is_tmds_active())) {
-            // Stop and restart when TMDS is detected
+        // Detect loss of signal / lost access to FPGA
+        if ((tmds_mode && (!is_tmds_active())) || (fpga_write_reg8(CSR_ID0, 0x00) != 0x35)) {
+            // Stop and restart
             power_off_epd();
             NVIC_SystemReset();
         }
 
         // Detect signal mode
         // TODO: This should be implemented in FPGA
+#if 0
         if (tmds_mode) {
             uint16_t x, y;
             x = (uint16_t)(adv7611_read_reg(HDMI_I2C_ADDR, 0x07) & 0x1f) << 8;
@@ -263,6 +254,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                 fatal("Incorrect input resolution, detected %d x %d.", x, y);
             }
         }
+#endif
 
         // Key press logic
         btn_event_t btn_event;

@@ -162,7 +162,7 @@ void fpga_init(const char *fn) {
 #endif
 
     // Switch to lower frequency
-    board_switch_spi_freq(FPGA_SPI, 6000000);
+    board_switch_spi_freq(FPGA_SPI, 1000000);
 }
 
 void fpga_suspend(void) {
