@@ -237,11 +237,19 @@ void dump_phases(FILE* fp, uint8_t* buffer, int bpp, int phases, int phase_per_b
 
         for (i = 0; i < states; i++) {
             for (j = 0; j < states; j++) {
-                fprintf(fp, "%d,%d,", i, j);
+                // Dont dump empty lines
+                bool empty = true;
                 for (k = 0; k < phases; k++) {
-                    fprintf(fp, "%d,", luts[k][i][j]);
+                    if (luts[k][i][j] != 0)
+                        empty = false;
                 }
-                fprintf(fp, "\n");
+                if (!empty) {
+                    fprintf(fp, "%d,%d,", i, j);
+                    for (k = 0; k < phases; k++) {
+                        fprintf(fp, "%d,", luts[k][i][j]);
+                    }
+                    fprintf(fp, "\n");
+                }
             }
         }
     }
@@ -544,24 +552,21 @@ int main(int argc, char **argv) {
         size_t index = i * trt_entries + j;
         dump_phases(fp, derle_buffer, bpp, phases, phase_per_byte, uni);
         fclose(fp);
-        sprintf(fn, "%s_TB%d.bin", prefix, i);
-        fp = fopen(fn, "wb");
-        assert(fp);
-        fwrite(derle_buffer, idx, 1, fp);
-        fclose(fp);
     }
 
     sprintf(fn, "%s_desc.iwf", prefix);
     fp = fopen(fn, "w");
     assert(fp);
     fprintf(fp, "[WAVEFORM]\n");
-    fprintf(fp, "VERSION = 2.0\n");
+    fprintf(fp, "VERSION = 2.1\n");
     fprintf(fp, "PREFIX = %s\n", prefix);
     fprintf(fp, "NAME = %s\n", xwia_buffer);
     fprintf(fp, "BPP = %d\n", bpp);
     fprintf(fp, "MODES = %d\n", mode_count);
     fprintf(fp, "TEMPS = %d\n", trt_entries);
     fprintf(fp, "TABLES = %d\n", tables);
+    fprintf(fp, "OUTBPP = %d\n", mv ? 4 : 2);
+    fprintf(fp, "UNIDIR = %d\n", uni);
     fprintf(fp, "\n");
     for (int i = 0; i < trt_entries; i++) {
         fprintf(fp, "T%dRANGE = %d\n", i, temp_range_bounds[i]);
