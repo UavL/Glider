@@ -22,6 +22,10 @@
 //
 #pragma once
 
+#define INPUT_SEL_AUTO      0
+#define INPUT_SEL_TMDS      1
+#define INPUT_SEL_DP        2
+
 typedef struct {
     uint32_t pclk_hz; // pixel clock
     uint8_t hfp;
@@ -48,6 +52,8 @@ typedef struct {
     uint8_t tcon_hbp;
     uint16_t tcon_hact;
     uint8_t mirror;
+    // Input selection (0 - Auto, 1 - TMDS, 2 - DP)
+    uint8_t input_sel;
 } config_t;
 
 extern config_t config;

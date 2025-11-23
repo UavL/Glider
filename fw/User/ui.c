@@ -153,31 +153,17 @@ static bool is_dp_active(void) {
 }
 
 static void restart_fpga(void) {
-    bool fpga_up = false;
-    int retry = 3;
-    while (!fpga_up) {
-        fpga_init("fpga.bit");
-        int timeout = 10; // 1 sec
-        while (timeout) {
-            // Wait for PLL to lock
-            vTaskDelay(pdMS_TO_TICKS(100));
-            uint8_t result = fpga_write_reg8(CSR_ID0, 0x00);
-            if (result == 0x35) {
-                fpga_up = true;
-                break;
-            }
-            timeout--;
-            if (timeout == 0) {
-                syslog_printf("FPGA failed to start up (%02x), retrying...", result);
-            }
-        }
-        if (!fpga_up) {
-            retry--;
-            if (retry == 0) {
-                fatal("FPGA failed to start up, giving up.");
-            }
+    fpga_init("fpga.bit");
+    syslog_printf("Waiting for video signal to lock");
+    while (true) {
+        // Wait for PLL to lock
+        vTaskDelay(pdMS_TO_TICKS(100));
+        uint8_t result = fpga_write_reg8(CSR_ID0, 0x00);
+        if (result == 0x35) {
+            break;
         }
     }
+    syslog_printf("FPGA up");
 }
 
 portTASK_FUNCTION(ui_task, pvParameters) {
@@ -192,20 +178,35 @@ portTASK_FUNCTION(ui_task, pvParameters) {
 
     // First wait link establish
     bool tmds_mode = false;
-    while (1) {
-        // Check is DP on
-        if (is_tmds_active()) {
-            ptn3460_powerdown();
-            tmds_mode = true;
-            break;
-        }
-        else if (is_dp_active()) {
-            adv7611_powerdown();
-            tmds_mode = false;
-            break;
-        }
-        vTaskDelay(pdMS_TO_TICKS(100)); // Wait before next iteration
+
+    if (config.input_sel == INPUT_SEL_DP) {
+        tmds_mode = false;
+        syslog_print("Forced to use DP input");
     }
+    else if (config.input_sel == INPUT_SEL_TMDS) {
+        tmds_mode = true;
+        syslog_print("Forced to use TMDS input");
+    }
+    else {
+        while (1) {
+            // Check is DP on
+            if (is_tmds_active()) {
+                tmds_mode = true;
+                break;
+            }
+            else if (is_dp_active()) {
+                tmds_mode = false;
+                break;
+            }
+            vTaskDelay(pdMS_TO_TICKS(100)); // Wait before next iteration
+        }
+    }
+
+    if (tmds_mode)
+        ptn3460_powerdown();
+    else
+        adv7611_powerdown();
+
     restart_fpga();
     power_on_epd();
     caster_init(); // Start refresh
@@ -272,7 +273,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             if (mode >= mode_max) mode = 0;
             setmode = true;
         }
-        else if ((btn_event == BTN1_LONG_PRESSED) || (btn_event == BTN2_LONG_PRESSED) || (btn_event == BTN3_SHORT_PRESSED)) {
+        else if (btn_event == BTN3_SHORT_PRESSED) {
             // Clear screen
             caster_redraw(0,0,2400,1800);
         }
@@ -285,6 +286,15 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             osd_draw_string(font_24x40, 10, 60, autoclear ? "ON" : "OFF", 4, false);
             caster_osd_send_buf(osd_fb);
             caster_osd_set_enable(true);
+        }
+        else if (btn_event == BTN1_LONG_PRESSED) {
+            osd_clear(0xff);
+            osd_draw_string(font_24x40, 10, 10, "Turned Off", 10, false);
+            caster_osd_send_buf(osd_fb);
+            caster_redraw_blank();
+            caster_osd_set_enable(true);
+            sleep_ms(3000);
+            power_off();
         }
         if (setmode) {
             caster_setmode(0, 0, config.hact, config.vact, modes[mode].id);

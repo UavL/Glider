@@ -40,7 +40,8 @@ void power_on(void) {
 }
 
 void power_off(void) {
-
+    // TODO: Not actually implemented yet
+    fatal("Shutdown");
 }
 
 void power_on_epd(void) {

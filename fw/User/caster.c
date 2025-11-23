@@ -107,6 +107,16 @@ uint8_t caster_setinput(uint8_t input_src) {
     return 0;
 }
 
+void caster_redraw_blank(void) {
+    fpga_write_reg16(CSR_OP_LEFT, 0);
+    fpga_write_reg16(CSR_OP_TOP, 0);
+    fpga_write_reg16(CSR_OP_RIGHT, config.hact);
+    fpga_write_reg16(CSR_OP_BOTTOM, config.vact);
+    fpga_write_reg8(CSR_OP_LENGTH, get_update_frames());
+    fpga_write_reg8(CSR_ENABLE, 0x3); // Enable blanking
+    fpga_write_reg8(CSR_OP_CMD, OP_EXT_REDRAW);
+}
+
 uint8_t caster_osd_send_buf(uint8_t *buf) {
     fpga_write_reg16(CSR_OSD_ADDR, 0);
     fpga_write_bulk(CSR_OSD_WR, buf, 4096);

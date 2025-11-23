@@ -113,7 +113,8 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
         switch (cmd) {
         case USBCMD_RESET:
             // reset system
-            //iap_reset();
+            power_off_epd();
+            NVIC_SystemReset();
             break;
         case USBCMD_POWERDOWN:
             // TODO
@@ -122,7 +123,9 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
             // TODO
             break;
         case USBCMD_SETINPUT:
-            // TODO
+            config.input_sel = param;
+            config_save();
+            retval = 0;
             break;
         case USBCMD_REDRAW:
             retval = caster_redraw(x0, y0, x1, y1);
