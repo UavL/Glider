@@ -55,9 +55,9 @@ void board_late_init(void) {
     uint32_t elapsed_ms;
     do {
         volatile uint32_t x = iter_count;
-        uint32_t start = xTaskGetTickCount() / portTICK_PERIOD_MS;
+        uint32_t start = xTaskGetTickCount() * portTICK_PERIOD_MS;
         while (x--);
-        uint32_t end = xTaskGetTickCount() / portTICK_PERIOD_MS;
+        uint32_t end = xTaskGetTickCount() * portTICK_PERIOD_MS;
         elapsed_ms = end - start;
         if (elapsed_ms > 10)
             break; // At least 10ms elapsed
