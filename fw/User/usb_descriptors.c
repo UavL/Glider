@@ -27,8 +27,10 @@
 #include "platform.h"
 #include "board.h"
 
-#define USB_VID   0x0483
-#define USB_PID   0x5750 // Composite HID CDC
+#define USB_VID   0x1209
+// PID assigned to Modos Glider. You may use this PID only if you do not make
+// any changes to the USB descriptor (otherwise it might confuses OS)
+#define USB_PID   0xAE86
 #define USB_BCD   0x0200
 
 //--------------------------------------------------------------------+
@@ -69,6 +71,181 @@ uint8_t const * tud_descriptor_device_cb(void)
 // HID Report Descriptor
 //--------------------------------------------------------------------+
 
+#define FINGER_LOGICAL_COLLECTION   \
+  0x05, 0x0d,                     /*   USAGE_PAGE (Digitizers)            */ \
+  0x09, 0x22,                     /*   USAGE (Finger)                     */ \
+  0xa1, 0x02,                     /*     COLLECTION (Logical)             */ \
+  0x09, 0x42,                     /*       USAGE (Tip Switch)             */ \
+  0x25, 0x01,                     /*       LOGICAL_MAXIMUM (1)            */ \
+  0x75, 0x01,                     /*       REPORT_SIZE (1)                */ \
+  0x95, 0x01,                     /*       REPORT_COUNT (1)               */ \
+  0x81, 0x02,                     /*       INPUT (Data,Var,Abs)           */ \
+  0x75, 0x07,                     /*       REPORT_SIZE (7)                */ \
+  0x81, 0x03,                     /*       INPUT (Cnst,Ary,Abs)           */ \
+  0x09, 0x51,                     /*       USAGE (Contact Identifier)     */ \
+  0x25, 0x0a,                     /*       LOGICAL_MAXIMUM (10)           */ \
+  0x75, 0x08,                     /*       REPORT_SIZE (8)                */ \
+  0x95, 0x01,                     /*       REPORT_COUNT (1)               */ \
+  0x81, 0x02,                     /*       INPUT (Data,Var,Abs)           */ \
+  0x05, 0x01,                     /*       USAGE_PAGE (Generic Desktop)   */ \
+  0x09, 0x30,                     /*       USAGE (X)                      */ \
+  0xa4,                           /*       PUSH                           */ \
+  0x26, 0x7f, 0x0c,               /*       LOGICAL_MAXIMUM (3199)         */ \
+  0x75, 0x10,                     /*       REPORT_SIZE (16)               */ \
+  0x55, 0x0e,                     /*       UNIT_EXPONENT (-2)             */ \
+  0x65, 0x13,                     /*       UNIT(Inch,EngLinear)           */ \
+  0x34,                           /*       PHYSICAL_MINIMUM (0)           */ \
+  0x46, 0x29, 0x04,               /*       PHYSICAL_MAXIMUM (1065)        */ \
+  0x95, 0x01,                     /*       REPORT_COUNT (1)               */ \
+  0x81, 0x02,                     /*       INPUT (Data,Var,Abs)           */ \
+  0x09, 0x31,                     /*       USAGE (Y)                      */ \
+  0x26, 0x5f, 0x09,               /*       LOGICAL_MAXIMUM (2399)         */ \
+  0x46, 0x1e, 0x03,               /*       PHYSICAL_MAXIMUM (798)         */ \
+  0x81, 0x02,                     /*       INPUT (Data,Var,Abs)           */ \
+  0xb4,                           /*       POP                            */ \
+  0xc0,                           /*     END_COLLECTION                   */
+
+uint8_t const desc_hid_report[] =
+{
+  0x05, 0x0d,                     /* USAGE_PAGE (Digitizers)              */
+  0x09, 0x02,                     /* USAGE (Pen)                          */
+  0xa1, 0x01,                     /* COLLECTION (Application)             */
+  0x85, REPORT_ID_STYLUS,         /*   REPORT_ID (Pen)                    */
+  0x09, 0x20,                     /*   USAGE (Stylus)                     */
+  0xa1, 0x02,                     /*   COLLECTION (Physical)              */
+  0x35, 0x00,                     /*     PHYSICAL_MINIMUM (0)             */
+  0x45, 0x00,                     /*     PHYSICAL_MAXIMUM (0)             */
+  0x15, 0x00,                     /*     LOGICAL_MINIMUM (0)              */
+  0x25, 0x01,                     /*     LOGICAL_MAXIMUM (1)              */
+  0x09, 0x42,                     /*     USAGE (Tip Switch)               */
+  0x09, 0x44,                     /*     USAGE (Barrel Switch)            */
+  0x09, 0x5a,                     /*     USAGE (Second Barrel Switch)     */
+  0x09, 0x45,                     /*     USAGE (Eraser Switch)            */
+  0x09, 0x3c,                     /*     USAGE (Invert)                   */
+  0x09, 0x32,                     /*     USAGE (In Range)                 */
+  0x75, 0x01,                     /*     REPORT_SIZE (1)                  */
+  0x95, 0x06,                     /*     REPORT_COUNT (6)                 */
+  0x81, 0x02,                     /*     INPUT (Data,Var,Abs)             */
+  0x75, 0x02,                     /*     REPORT_SIZE (2)                  */
+  0x95, 0x01,                     /*     REPORT_COUNT (1)                 */
+  0x81, 0x03,                     /*     INPUT (Cnst,Var,Abs)             */
+  0x75, 0x08,                     /*     REPORT_SIZE (8)                  */
+  0x95, 0x01,                     /*     REPORT_COUNT (1)                 */
+  0x81, 0x03,                     /*     INPUT (Cnst,Var,Abs)             */
+  0xa4,                           /*     PUSH                             */
+  0x05, 0x01,                     /*     USAGE_PAGE (Generic Desktop)     */
+  0x09, 0x30,                     /*     USAGE (X)                        */
+  0x55, 0x0e,                     /*     UNIT_EXPONENT (-2)               */
+  0x65, 0x13,                     /*     UNIT (Inch,EngLinear)            */
+  0x35, 0x00,                     /*     PHYSICAL_MINIMUM (0)             */
+  0x46, 0x29, 0x04,               /*     PHYSICAL_MAXIMUM (1065)          */
+  0x26, 0xff, 0x3f,               /*     LOGICAL_MAXIMUM (16383)          */
+  0x15, 0x00,                     /*     LOGICAL_MINIMUM (0)              */
+  0x75, 0x10,                     /*     REPORT_SIZE (16)                 */
+  0x95, 0x01,                     /*     REPORT_COUNT (1)                 */
+  0x81, 0x02,                     /*     INPUT (Data,Var,Abs)             */
+  0x09, 0x31,                     /*     USAGE (Y)                        */
+  0x46, 0x1e, 0x03,               /*     PHYSICAL_MAXIMUM (798)           */
+  0x81, 0x02,                     /*     INPUT (Data,Var,Abs)             */
+  0xb4,                           /*     POP                              */
+  0x05, 0x0d,                     /*     USAGE_PAGE (Digitizers)          */
+  0x09, 0x30,                     /*     USAGE (Tip Pressure)             */
+  0x65, 0x00,                     /*     Units(None),                     */
+  0x15, 0x00,                     /*     LOGICAL_MINIMUM (0)              */
+  0x26, 0xff, 0x00,               /*     LOGICAL_MAXIMUM (255)            */
+  0x75, 0x08,                     /*     REPORT_SIZE (8)                  */
+  0x95, 0x01,                     /*     REPORT_COUNT (1)                 */
+  0x81, 0x02,                     /*     INPUT (Data,Var,Abs)             */
+  0xa4,                           /*     PUSH                             */
+  0x09, 0x3d,                     /*     USAGE (X Tilt)                   */
+  0x09, 0x3e,                     /*     USAGE (Y Tilt)                   */
+  0x55, 0x00,                     /*     UNIT_EXPONENT (0)                */
+  0x65, 0x14,                     /*     UNIT (Degree)                    */
+  0x35, 0xa6,                     /*     PHYSICAL_MINIMUM (-90)           */
+  0x45, 0x5a,                     /*     PHYSICAL_MAXIMUM (90)            */
+  0x15, 0x81,                     /*     LOGICAL_MINIMUM (-127)           */
+  0x25, 0x7f,                     /*     LOGICAL_MAXIMUM (127)            */
+  0x95, 0x02,                     /*     REPORT_COUNT (2)                 */
+  0x81, 0x02,                     /*     INPUT (Data,Var,Abs)             */
+  0xb4,                           /*     POP                              */
+  0xc0,                           /*   END_COLLECTION                     */
+  0xc0,                           /* END_COLLECTION                       */
+  // Report for touch screen
+  0x05, 0x0d,                     /* USAGE_PAGE (Digitizers)              */
+  0x09, 0x04,                     /* USAGE (Touch Screen)                 */
+  0xa1, 0x01,                     /* COLLECTION (Application)             */
+  0x85, REPORT_ID_TOUCH,          /*   REPORT_ID (Touch)                  */
+  0x09, 0xff,                     /*   USAGE (Reserved)                   */
+  0x15, 0x00,                     /*   LOGICAL_MINIMUM (0)                */
+  0x25, 0x7F,                     /*   LOGICAL_MAXIMUM (127)              */
+  0x95, 0x01,                     /*   REPORT_COUNT (1)                   */
+  0x75, 0x08,                     /*   REPORT_SIZE (8)                    */
+  0x81, 0x03,                     /*   INPUT (Cnst,Var,Abs)               */
+  0x09, 0x54,                     /*   USAGE (Contact count)              */
+  0x81, 0x02,                     /*   INPUT (Data,Var,Abs)               */
+  FINGER_LOGICAL_COLLECTION
+  FINGER_LOGICAL_COLLECTION
+  FINGER_LOGICAL_COLLECTION
+  FINGER_LOGICAL_COLLECTION
+  FINGER_LOGICAL_COLLECTION
+  FINGER_LOGICAL_COLLECTION
+  FINGER_LOGICAL_COLLECTION
+  FINGER_LOGICAL_COLLECTION
+  FINGER_LOGICAL_COLLECTION
+  FINGER_LOGICAL_COLLECTION
+  0x05, 0x0d,                     /*   USAGE_PAGE (Digitizers)            */
+  0x85, REPORT_ID_FEATURE,        /*   REPORT_ID (Feature)                */
+  0x09, 0x55,                     /*   USAGE(Contact Count Maximum)       */
+  0x95, 0x01,                     /*   REPORT_COUNT (1)                   */
+  0x25, 0x0a,                     /*   LOGICAL_MAXIMUM (10)               */
+  0xb1, 0x02,                     /*   FEATURE (Data,Var,Abs)             */
+  0xc0,                           /* END_COLLECTION                       */
+  0x05, 0x01,                     /* USAGE_PAGE (Generic Desktop)         */
+  0x09, 0x02,                     /* USAGE (Mouse)                        */
+  0xA1, 0x01,                     /* COLLECTION (Application)             */
+  0x85, REPORT_ID_MOUSE,          /*   REPORT_ID                          */
+  0x09, 0x01,                     /*   USAGE (Pointer)                    */  
+  0xA1, 0x00,                     /*   COLLECTION (Physical)              */
+  0x05, 0x09,                     /*     USAGE_PAGE (Button)              */
+  0x19, 0x01,                     /*     USAGE_MINIMUM (Button 1)         */  
+  0x29, 0x03,                     /*     USAGE_MAXIMUM (Button 3)         */  
+  0x15, 0x00,                     /*     LOGICAL_MINIMUM (0)              */
+  0x25, 0x01,                     /*     LOGICAL_MAXIMUM (1)              */  
+  0x75, 0x01,                     /*     REPORT_SIZE (1)                  */
+  0x95, 0x03,                     /*     REPORT_COUNT (3)                 */
+  0x81, 0x02,                     /*     INPUT (Data,Var,Abs)             */
+  0x75, 0x05,                     /*     REPORT_SIZE (5)                  */
+  0x95, 0x01,                     /*     REPORT_COUNT (1)                 */
+  0x81, 0x03,                     /*     INPUT (Cnst,Ary,Abs)             */
+  0x75, 0x08,                     /*     REPORT_SIZE (8)                  */
+  0x81, 0x03,                     /*     INPUT (Cnst,Ary,Abs)             */
+  0x05, 0x01,                     /*     USAGE_PAGE (Generic Desktop)     */
+  0x09, 0x30,                     /*     USAGE (X)                        */
+  0xa4,                           /*     PUSH                             */
+  0x26, 0x7f, 0x0c,               /*     LOGICAL_MAXIMUM (3199)           */
+  0x55, 0x0e,                     /*     UNIT_EXPONENT (-2)               */
+  0x65, 0x13,                     /*     UNIT(Inch,EngLinear)             */
+  0x34,                           /*     PHYSICAL_MINIMUM (0)             */
+  0x46, 0x29, 0x04,               /*     PHYSICAL_MAXIMUM (1065)          */
+  0x75, 0x10,                     /*     REPORT_SIZE (16)                 */
+  0x95, 0x01,                     /*     REPORT_COUNT (1)                 */
+  0x81, 0x02,                     /*     INPUT (Data,Var,Abs)             */
+  0x09, 0x31,                     /*     USAGE (Y)                        */
+  0x26, 0x5f, 0x09,               /*     LOGICAL_MAXIMUM (2399)           */
+  0x46, 0x1e, 0x03,               /*     PHYSICAL_MAXIMUM (798)           */
+  0x81, 0x02,                     /*     INPUT (Data,Var,Abs)             */
+  0xb4,                           /*     POP                              */
+  0x09, 0x38,                     /*     USAGE (Wheel)                    */
+  0x15, 0x81,                     /*     LOGICAL_MINIMUM (-127)           */
+  0x25, 0x7F,                     /*     LOGICAL_MAXIMUM (127)            */
+  0x75, 0x08,                     /*     REPORT_SIZE (8)                  */
+  0x95, 0x01,                     /*     REPORT_COUNT (1)                 */
+  0x81, 0x06,                     /*     INPUT (Data,Var,Rel)             */
+  0xC0,                           /*   END_COLLECTION                     */
+  0xC0,                           /* END_COLLECTION                       */
+  TUD_HID_REPORT_DESC_GENERIC_INOUT(CFG_TUD_HID_EP_BUFSIZE, HID_REPORT_ID(REPORT_ID_CONTROL))
+};
+
 uint8_t const desc_hid_report[] =
 {
   TUD_HID_REPORT_DESC_GENERIC_INOUT(CFG_TUD_HID_EP_BUFSIZE)
@@ -96,7 +273,8 @@ enum
 
 #define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + TUD_CDC_DESC_LEN)
 
-#define EPNUM_HID         0x01
+#define EPNUM_HID_OUT     0x01
+#define EPNUM_HID_IN      0x81
 #define EPNUM_CDC_NOTIF   0x83
 #define EPNUM_CDC_OUT     0x02
 #define EPNUM_CDC_IN      0x82
@@ -104,10 +282,10 @@ enum
 uint8_t const desc_fs_configuration[] =
 {
   // Config number, interface count, string index, total length, attribute, power in mA
-  TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
+  TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 200),
 
   // Interface number, string index, protocol, report descriptor len, EP Out & In address, size & polling interval
-  TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 4, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID, 0x80 | EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 2),
+  TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 4, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID_OUT, EPNUM_HID_IN, CFG_TUD_HID_EP_BUFSIZE, 2),
 
   // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
   TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 5, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),

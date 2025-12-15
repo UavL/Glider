@@ -36,6 +36,15 @@
 #define USBRET_CHKSUMFAIL   0x01
 #define USBRET_SUCCESS      0x55
 
+enum {
+    REPORT_ID_STYLUS = 1,
+    REPORT_ID_TOUCH = 2,
+    REPORT_ID_FEATURE = 3,
+    REPORT_ID_MOUSE = 4,
+    REPORT_ID_CONTROL = 5,
+    REPORT_ID_COUNT
+};
+
 void usbapp_term_out(char data, void *usr);
 int usbapp_term_in(int mode, void *usr);
 portTASK_FUNCTION(usb_device_task, pvParameters);

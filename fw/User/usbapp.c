@@ -81,6 +81,10 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
     (void) report_id;
     (void) report_type;
 
+    // Only process CONTROL report. Other reports should not have SET_REPORT
+    if (report_id != REPORT_ID_CONTROL)
+        return;
+
     // Process the request
     uint8_t cmd = buffer[0];
     uint16_t param = (buffer[2] << 8) | buffer[1];
