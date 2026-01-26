@@ -106,6 +106,7 @@ void power_on_epd(void) {
 
 void power_off_epd(void) {
     gpio_put(VCOM_EN, 1); // Disable
+    gpio_put(VCOM_MEN, 1); // Disable
 	sleep_ms(10);
 	gpio_put(EPD_POSEN, 0);
 	HAL_DAC_Stop(&hdac1, DAC_CHANNEL_2);
