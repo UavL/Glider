@@ -202,10 +202,19 @@ portTASK_FUNCTION(ui_task, pvParameters) {
         }
     }
 
-    if (tmds_mode)
+    if (tmds_mode) {
+        // Making sure video is active
+        while (!is_tmds_active()) {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
         ptn3460_powerdown();
-    else
+    }
+    else {
+        while (!is_dp_active()) {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
         adv7611_powerdown();
+    }
 
     restart_fpga();
     power_on_epd();
