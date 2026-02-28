@@ -946,8 +946,10 @@ To flash the firmware:
 
 - Make sure you have a Python 3 environment and you can install packages to it
 - Install `hidapi` Python package by running `pip3 install hidapi`
-- Change directory into `utils/flash_tool` and copy over compiled bitstream `fpga.bit` and firmware `glider_ec_rtos.bin`
+- Change directory into `utils/flash_tool` and copy over compiled bitstream `fpga.bit` and firmware `glider_ec_rtos.bin`. Pre-compiled binary are provided, but they may not be up to date.
 - Run the tool `python3 flash.py`
+
+As a bonus, the flash and test utility we used in the factory is also provided as utils/flash_tool/main.py.
 
 #### Method 2: Manual flashing
 
@@ -1036,6 +1038,8 @@ Rendering the grayscale requires the screen to be refreshed at 85Hz (85Hz is the
 
 #### Setting Configurations
 
+##### Option 1: Manual Calculation
+
 The board won't be able to automatically detect the resolution of connected screen. It need to be set manually through boards' shell. Here is a general guide for calculating these values.
 
 First, use the [video_timings_calculator](https://tomverbeure.github.io/video_timings_calculator) to calculate host timings. Enter the resolution and desired refresh rate in the calculator. Note the pixel clock cannot exceed 165MHz. If the result is higher than 165MHz, lower the refresh rate.
@@ -1092,6 +1096,10 @@ setcfg set tcon_hbp 2
 setcfg set tcon_hfp 16
 setcfg save
 ```
+
+##### Option 2: Use configuration generator
+
+There is a tool in utils/flash_tool/cfggen that can generate ```config.bin``` with specified screen size and resolution. The file can then be transferred on to the board with Xmodem or HID API similiar to the firmware upgrade process.
 
 ## References
 

@@ -22,6 +22,8 @@ USBRET_SUCCESS =        0x55
 PACKET_SIZE =           64
 PKT_DATA_SIZE =         PACKET_SIZE - 1
 
+
+
 def crc16(data: bytes):
     '''
     CRC-16 (CCITT) implemented with a precomputed lookup table
@@ -52,8 +54,8 @@ def crc16(data: bytes):
     return crc
 
 def open_dev():
-    vid = 0x0483
-    pid = 0x5750
+    vid = 0x1209
+    pid = 0xAE86
 
     h = hid.device()
     h.open(vid, pid)
@@ -67,7 +69,8 @@ def open_dev():
 def send_cmd(h, cmd, param, x0, y0, x1, y1, pid):
     byteseq = struct.pack('<bhhhhhh', cmd, param, x0, y0, x1, y1, pid)
     chksum = struct.pack('<H', crc16(byteseq))
-    byteout = b'\0' + byteseq + chksum + bytearray(48)
+    byteout = b'\x05' + byteseq + chksum + bytearray(48)
+    print(byteout)
     h.write(byteout)
     str_in = h.read(PACKET_SIZE)
     if (str_in[1] != USBRET_SUCCESS):
@@ -81,7 +84,7 @@ def send_buffer(h, bin):
     for i in range(pkts):
         if i % 16 == 0:
             print(f'\rSending {i // 16 + 1} of {pkts // 16} KB', end = '')
-        pkt = b'\0' + bin[i*PKT_DATA_SIZE:(i+1)*PKT_DATA_SIZE]
+        pkt = b'\x05' + bin[i*PKT_DATA_SIZE:(i+1)*PKT_DATA_SIZE]
         h.write(pkt)
     str_in = h.read(PACKET_SIZE)
     if (str_in[1] != USBRET_SUCCESS):
@@ -111,7 +114,9 @@ def send_files():
             time.sleep(5)
 
 def flash_mcu():
-    subprocess.run("dfu-util -a 0 -i 0 -s 0x08000000:leave -D glider_ec_rtos.bin", shell=True)
+    subprocess.run(
+        "dfu-util -a 0 -i 0 -s 0x08000000:leave -D glider_ec_rtos.bin",
+        shell=True)
 
 def main():
     flash_mcu()
