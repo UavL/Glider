@@ -138,6 +138,11 @@ const struct mode_name_lut_t mode_name_lut[] = {
         // Example: ES120MC1
         .versions = {0x48},
         .mode_strings = {"INIT", "DU", "GC16", "GL16", "GL16", "NULL", "A2"}
+    },
+    {
+        // Example: ED133KC1
+        .versions = {0x83},
+        .mode_strings = {"INIT", "DU", "GC16", "GL16", "A2", "GL16", "GL16"}
     }
 };
 #define MODE_NAME_LUTS  (sizeof(mode_name_lut) / sizeof(*mode_name_lut))
@@ -275,8 +280,9 @@ void dump_phases(FILE* fp, uint8_t* buffer, int bpp, int phases, int phase_per_b
 
 int main(int argc, char **argv) {
     fprintf(stderr, "Eink wbf waveform dumper\n");
+    bool dryrun = false;
 
-    if (argc != 3) {
+    if ((argc != 3) && (argc != 2)) {
         fprintf(stderr, "Usage: wbf_wvfm_dump input_file output_prefix\n");
         fprintf(stderr, "input_file: MXC EPDC firmware file, in .wbf format\n");
         fprintf(stderr, "output_prefix: Prefix for output file name, without extension\n");
@@ -285,7 +291,13 @@ int main(int argc, char **argv) {
     }
 
     char *fw = argv[1];
-    char *prefix = argv[2];
+    char *prefix = NULL;
+    if (argc == 3) {
+        prefix = argv[2];
+    }
+    else {
+        dryrun = true;
+    }
 
     FILE * fp;
     size_t file_size;
@@ -335,20 +347,39 @@ int main(int argc, char **argv) {
     printf("Number of modes: %d\n", header->mc + 1);
     printf("Number of temperature ranges: %d\n", header->trc + 1);
 
-    int bpp = ((header->luts & 0xC) == 0x4) ? 5: (header->luts == 0x1d) ? 5 : 4;
-    printf("BPP: %d (LUTS = 0x%02x)\n", bpp, header->luts);
+    int bpp;
     bool mv = false;
     bool uni = false;
-    if (header->luts == 0x15) {
+    if (header->luts == 0x00) {
+        bpp = 4;
+    }
+    else if (header->luts == 0x04) {
+        bpp = 5;
+    }
+    else if (header->luts == 0x05) {
+        bpp = 5;
+        mv = true;
+    }
+    else if (header->luts == 0x15) {
         printf("Looks like you've supplied a waveform for newer multi-voltage screens\n");
         printf("Expect the checksum for the header to fail.\n");
         bpp = 5;
         mv = true;
     }
     else if (header->luts == 0x1d) {
+        bpp = 5;
         mv = true;
         uni = true;
     }
+    else {
+        printf("WARNING: Unknown LUTS, the output table is probably incorrect.\n");
+        bpp = 4;
+    }
+    printf("BPP: %d (LUTS = 0x%02x)\n", bpp, header->luts);
+    if (mv)
+        printf("Multi-voltage LUT detected\n");
+    if (uni)
+        printf("Unidirectional LUT detected\n");
 
     // Compare checksum
     static unsigned int crc_table[256];
@@ -501,6 +532,9 @@ int main(int argc, char **argv) {
         }
     }
 
+    if (dryrun)
+        return 0;
+
     char* fn = malloc(strlen(prefix) + 14);
 
     static uint8_t derle_buffer[MAX_TABLE_LENGTH];
@@ -544,6 +578,12 @@ int main(int argc, char **argv) {
         int transitions = uni ? 32 : ((bpp == 3) ? (8 * 8) : (bpp == 4) ? (16 * 16) : (32 * 32));
         int phases = idx * phase_per_byte / transitions;
         frame_counts[i] = phases;
+
+        // sprintf(fn, "%s_TB%d.bin", prefix, i);
+        // fp = fopen(fn, "w");
+        // assert(fp);
+        // fwrite(derle_buffer, idx, 1, fp);
+        // fclose(fp);
 
         // Dump phases
         sprintf(fn, "%s_TB%d.csv", prefix, i);

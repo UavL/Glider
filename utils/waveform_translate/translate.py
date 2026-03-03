@@ -3,29 +3,49 @@ import argparse
 import csv
 import os
 
-def process_table(fn, newfn):
+pattern_igzo = {
+    '12': '1',
+    '13': '3',
+    '14': '2',
+    '1': '5',
+    '2': '4',
+    '3': '6',
+    '0': '0'
+}
+
+pattern_e6 = {
+    '2': '1',
+    '5': '2',
+    '6': '3',
+    '8': '4',
+    '10': '5',
+    '12': '6',
+    '0': '0'
+}
+
+pattern_pmv = {
+    '1': '6',
+    '2': '1',
+    '0': '0'
+}
+
+def process_table(fn, newfn, pattern):
     table = {}
     with open(fn, newline='') as csvfile:
         csvreader = csv.reader(csvfile, delimiter=',')
         for row in csvreader:
             src = row[0]
             dst = row[1]
-            seq = row[2:-1]
-            table[f'{src}_{dst}'] = seq
-    newtable = {}
-    # We drop all odd numbered entries
-    for src in range(16):
-        for dst in range(16):
-            try:
-                seq = table[f'{src*2}_{dst*2}']
-                newtable[f'{src}_{dst}'] = seq
-            except KeyError:
-                continue
+            seq = row[2:]
+            newseq = []
+            for phase in seq:
+                newseq += pattern[phase]
+            table[f'{src}_{dst}'] = newseq
     with open(newfn, 'w') as csvfile: 
         for src in range(16):
             for dst in range(16):
                 try:
-                    ss = ','.join(newtable[f'{src}_{dst}'])
+                    ss = ','.join(table[f'{src}_{dst}'])
                     csvfile.write(f'{src},{dst},{ss}\n')
                 except KeyError:
                     continue
@@ -33,7 +53,17 @@ def process_table(fn, newfn):
 def main():
     parser = argparse.ArgumentParser(prog='wvfm_converter')
     parser.add_argument('filename')
+    parser.add_argument('-p', '--pattern', required=True, choices=['igzo', 'e6', 'pmv'])
+
     args = parser.parse_args()
+    pattern = {}
+    if args.pattern == 'igzo':
+        pattern = pattern_igzo
+    elif args.pattern == 'e6':
+        pattern = pattern_e6
+    elif args.pattern == 'pmv':
+        pattern = pattern_pmv
+
     config = configparser.ConfigParser()
     config.read(args.filename)
     #print(config.sections())
@@ -44,13 +74,15 @@ def main():
     prefix = config['WAVEFORM']['PREFIX']
     # name = config['WAVEFORM']['NAME']
     bpp = int(config['WAVEFORM']['BPP'])
-    if bpp != 5:
-        raise Exception("Input needs to be an 5bpp waveform")
     modes = int(config['WAVEFORM']['MODES'])
     temps = int(config['WAVEFORM']['TEMPS'])
     tables = int(config['WAVEFORM']['TABLES'])
-    outbpp = int(config['WAVEFORM']['OUTBPP']) if version == '2.1' else 2
+    #outbpp = int(config['WAVEFORM']['OUTBPP']) if version == '2.1' else 2
+    outbpp = 4
     unidir = int(config['WAVEFORM']['UNIDIR']) if version == '2.1' else 0
+
+    # This tool always output in V2.1 to support OUTBPP = 4
+    version = '2.1'
 
     # Get all framecounts
     # fc = []
@@ -62,17 +94,18 @@ def main():
     #     trange.append(config['WAVEFORM'][f'T{i}RANGE'])
 
     dirname = os.path.dirname(os.path.abspath(args.filename))
+    suffix = args.pattern
 
     for i in range(tables):
         oldname = f'{prefix}_TB{i}.csv'
-        newname = f'{prefix}_4bpp_TB{i}.csv'
+        newname = f'{prefix}_{suffix}_TB{i}.csv'
         process_table(os.path.join(dirname, oldname),
-                      os.path.join(dirname, newname))
+                      os.path.join(dirname, newname), pattern)
 
-    with open(os.path.join(dirname, f'{prefix}_4bpp_desc.iwf'), 'w') as fp:
+    with open(os.path.join(dirname, f'{prefix}_{suffix}_desc.iwf'), 'w') as fp:
         fp.write('[WAVEFORM]\n')
         fp.write(f'VERSION = {version}\n')
-        fp.write(f'PREFIX = {prefix}_4bpp\n')
+        fp.write(f'PREFIX = {prefix}_{suffix}\n')
         fp.write(f'NAME = {config['WAVEFORM']['NAME']}\n')
         fp.write(f'BPP = 4\n')
         fp.write(f'MODES = {modes}\n')
