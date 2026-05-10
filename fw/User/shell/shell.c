@@ -74,10 +74,7 @@ SHELL_FUNC( shell_test );
 SHELL_FUNC( shell_i2c_probe );
 SHELL_FUNC( shell_recv );
 SHELL_FUNC( shell_send );
-SHELL_FUNC( shell_df );
-SHELL_FUNC( shell_format );
-SHELL_FUNC( shell_fdump );
-SHELL_FUNC( shell_rm );
+SHELL_FUNC( shell_fs );
 SHELL_FUNC( shell_setvolt );
 SHELL_FUNC( shell_setcfg );
 SHELL_FUNC( shell_sensor );
@@ -90,10 +87,7 @@ SHELL_HELP( test );
 SHELL_HELP( i2c_probe );
 SHELL_HELP( recv );
 SHELL_HELP( send );
-SHELL_HELP( df );
-SHELL_HELP( format );
-SHELL_HELP( fdump );
-SHELL_HELP( rm );
+SHELL_HELP( fs );
 SHELL_HELP( setvolt );
 SHELL_HELP( setcfg );
 SHELL_HELP( sensor );
@@ -109,10 +103,7 @@ const SHELL_COMMAND shell_commands[] =
   { "i2c_probe", shell_i2c_probe },
   { "recv", shell_recv },
   { "send", shell_send },
-  { "df", shell_df },
-  { "format", shell_format },
-  { "fdump", shell_fdump },
-  { "rm", shell_rm },
+  { "fs", shell_fs },
   { "setvolt", shell_setvolt },
   { "setcfg", shell_setcfg },
   { "sensor", shell_sensor },
@@ -130,10 +121,7 @@ static const SHELL_HELP_DATA shell_help_data[] =
   SHELL_INFO( i2c_probe ),
   SHELL_INFO( recv ),
   SHELL_INFO( send ),
-  SHELL_INFO( df ),
-  SHELL_INFO( format ),
-  SHELL_INFO( fdump ),
-  SHELL_INFO( rm ),
+  SHELL_INFO( fs ),
   SHELL_INFO( setvolt ),
   SHELL_INFO( setcfg ),
   SHELL_INFO( sensor ),
