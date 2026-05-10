@@ -112,10 +112,11 @@ void shell_syslog(shell_context_t *ctx, int argc, char **argv) {
 }
 
 /***********************************************************************
- * CMD: stacks
+ * CMD: mem
  **********************************************************************/
-const char shell_help_stacks[] = "\n";
-const char shell_help_summary_stacks[] = "Report task stack usage";
+const char shell_help_mem[] = "[detail]\n"
+  "  detail - Show detailed heap information\n";
+const char shell_help_summary_mem[] = "Report memory (stack & heap) usage";
 
 static void shell_print_task_stack(shell_context_t *ctx, TaskHandle_t task) {
     if (task) {
@@ -125,9 +126,45 @@ static void shell_print_task_stack(shell_context_t *ctx, TaskHandle_t task) {
     }
 }
 
-void shell_stacks(shell_context_t *ctx, int argc, char **argv ) {
+static void shell_print_heap_summary(shell_context_t *ctx) {
+    size_t total = configTOTAL_HEAP_SIZE;
+    size_t free = xPortGetFreeHeapSize();
+    size_t used = total - free;
+    size_t min_free = xPortGetMinimumEverFreeHeapSize();
+
+    printf("\nHeap Usage:\n");
+    printf(" Total:    %u\n", (unsigned)total);
+    printf(" Used:     %u\n", (unsigned)used);
+    printf(" Free:     %u\n", (unsigned)free);
+    printf(" Min Free: %u\n", (unsigned)min_free);
+}
+
+static void shell_print_heap_details(shell_context_t *ctx) {
+    HeapStats_t stats;
+
+    vPortGetHeapStats(&stats);
+
+    printf("\nHeap Details:\n");
+    printf(" Largest Free Block:   %u\n", (unsigned)stats.xSizeOfLargestFreeBlockInBytes);
+    printf(" Smallest Free Block:  %u\n", (unsigned)stats.xSizeOfSmallestFreeBlockInBytes);
+    printf(" Num Free Blocks:      %u\n", (unsigned)stats.xNumberOfFreeBlocks);
+    printf(" Successful Allocs:    %u\n", (unsigned)stats.xNumberOfSuccessfulAllocations);
+    printf(" Successful Frees:     %u\n", (unsigned)stats.xNumberOfSuccessfulFrees);
+}
+
+void shell_mem(shell_context_t *ctx, int argc, char **argv ) {
+    int detail = 0;
+
+    if ((argc > 1) && (strcmp(argv[1], "detail") == 0)) {
+        detail = 1;
+    }
+    else if (argc > 1) {
+        printf("Invalid argument. Usage: %s\n", shell_help_mem);
+        return;
+    }
+
     printf("High Water Marks are in 32-bit words (zero is bad).\n");
-    printf("Task Stask High Water Marks:\n");
+    printf("Task Stack High Water Marks:\n");
 
     shell_print_task_stack(ctx, startup_task_handle);
     shell_print_task_stack(ctx, housekeeping_task_handle);
@@ -136,6 +173,12 @@ void shell_stacks(shell_context_t *ctx, int argc, char **argv ) {
     shell_print_task_stack(ctx, ui_task_handle);
     shell_print_task_stack(ctx, key_scan_task_handle);
     shell_print_task_stack(ctx, power_mon_task_handle);
+
+    shell_print_heap_summary(ctx);
+
+    if (detail) {
+        shell_print_heap_details(ctx);
+    }
 }
 
 /***********************************************************************

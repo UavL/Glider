@@ -69,7 +69,7 @@ typedef struct
 SHELL_FUNC( shell_help );
 SHELL_FUNC( shell_ver );
 SHELL_FUNC( shell_syslog );
-SHELL_FUNC( shell_stacks );
+SHELL_FUNC( shell_mem );
 SHELL_FUNC( shell_test );
 SHELL_FUNC( shell_i2c_probe );
 SHELL_FUNC( shell_recv );
@@ -82,7 +82,7 @@ SHELL_FUNC( shell_sensor );
 SHELL_HELP( help );
 SHELL_HELP( ver );
 SHELL_HELP( syslog );
-SHELL_HELP( stacks );
+SHELL_HELP( mem );
 SHELL_HELP( test );
 SHELL_HELP( i2c_probe );
 SHELL_HELP( recv );
@@ -98,7 +98,7 @@ const SHELL_COMMAND shell_commands[] =
   { "help", shell_help },
   { "ver", shell_ver },
   { "syslog", shell_syslog },
-  { "stacks", shell_stacks },
+  { "mem", shell_mem },
   { "test", shell_test },
   { "i2c_probe", shell_i2c_probe },
   { "recv", shell_recv },
@@ -116,7 +116,7 @@ static const SHELL_HELP_DATA shell_help_data[] =
   SHELL_INFO( help ),
   SHELL_INFO( ver ),
   SHELL_INFO( syslog ),
-  SHELL_INFO( stacks ),
+  SHELL_INFO( mem ),
   SHELL_INFO( test ),
   SHELL_INFO( i2c_probe ),
   SHELL_INFO( recv ),
