@@ -655,7 +655,7 @@ const char shell_help_summary_setcfg[] = "Sets configuration. Remember to use sa
 typedef struct {
     const char *name;
     void *pointer;
-    enum {UINT8, UINT16, UINT32, FLOAT32} type;
+    enum {UINT8, UINT16, UINT32, FLOAT32, STRING} type;
 } cfg_var_t;
 
 cfg_var_t vars[] = {
@@ -683,7 +683,8 @@ cfg_var_t vars[] = {
     {"tcon_hbp", &(config.tcon_hbp), UINT8},
     {"tcon_hact", &(config.tcon_hact), UINT16},
     {"mirror", &(config.mirror), UINT8},
-    {"input_sel", &(config.input_sel), UINT8}
+    {"input_sel", &(config.input_sel), UINT8},
+    {"bitstream", &(config.bitstream), STRING}
 };
 int num_vars = sizeof(vars) / sizeof(cfg_var_t);
 
@@ -700,6 +701,14 @@ static void setcfg_set_helper(shell_context_t *ctx, cfg_var_t *var, char *val) {
     else if (var->type == FLOAT32) {
         *(float *)(var->pointer) = strtof(val, NULL);
     }
+    else if (var->type == STRING) {
+        if (strlen(val) >= BITSTREAM_NAME_MAX) {
+            printf("Error: value too long (max %d chars)\n", BITSTREAM_NAME_MAX - 1);
+            return;
+        }
+        strncpy((char *)(var->pointer), val, BITSTREAM_NAME_MAX);
+        ((char *)(var->pointer))[BITSTREAM_NAME_MAX - 1] = '\0';
+    }
 }
 
 static void setcfg_get_helper(shell_context_t *ctx, cfg_var_t *var) {
@@ -714,6 +723,9 @@ static void setcfg_get_helper(shell_context_t *ctx, cfg_var_t *var) {
     }
     else if (var->type == FLOAT32) {
         printf("%f\n", *(float *)(var->pointer));
+    }
+    else if (var->type == STRING) {
+        printf("%s\n", (char *)(var->pointer));
     }
 }
 
