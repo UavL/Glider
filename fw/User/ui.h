@@ -25,3 +25,7 @@
 void ui_init(void);
 portTASK_FUNCTION(ui_task, pvParameters);
 portTASK_FUNCTION(key_scan_task, pvParameters);
+
+extern bool system_standby;
+void ui_enter_standby(void);
+void ui_exit_standby(void);

@@ -81,6 +81,7 @@ SHELL_FUNC( shell_rm );
 SHELL_FUNC( shell_setvolt );
 SHELL_FUNC( shell_setcfg );
 SHELL_FUNC( shell_sensor );
+SHELL_FUNC( shell_standby );
 
 SHELL_HELP( help );
 SHELL_HELP( ver );
@@ -97,6 +98,7 @@ SHELL_HELP( rm );
 SHELL_HELP( setvolt );
 SHELL_HELP( setcfg );
 SHELL_HELP( sensor );
+SHELL_HELP( standby );
 
 //static const SHELL_COMMAND shell_commands[] =
 const SHELL_COMMAND shell_commands[] =
@@ -116,6 +118,7 @@ const SHELL_COMMAND shell_commands[] =
   { "setvolt", shell_setvolt },
   { "setcfg", shell_setcfg },
   { "sensor", shell_sensor },
+  { "standby", shell_standby },
   { "exit", NULL },
   { NULL, NULL }
 };
@@ -137,6 +140,7 @@ static const SHELL_HELP_DATA shell_help_data[] =
   SHELL_INFO( setvolt ),
   SHELL_INFO( setcfg ),
   SHELL_INFO( sensor ),
+  SHELL_INFO( standby ),
   { NULL, NULL, NULL }
 };
 

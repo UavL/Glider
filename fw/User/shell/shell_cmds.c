@@ -26,6 +26,7 @@
 #include "app_main.h"
 #include "app.h"
 #include "xmodem.h"
+#include "ui.h"
 
 #ifdef printf
 #undef printf
@@ -767,4 +768,24 @@ void shell_sensor(shell_context_t *ctx, int argc, char **argv) {
     power_get_rail_power(RAIL_5VEG, &p_cur, &p_avg, &p_max);
     p_cur_sum += p_cur; p_avg_sum += p_avg; p_max_sum += p_max;
     printf("EPD HV:    %5.1f mW  %5.1f mW  %5.1f mW\n", p_cur_sum, p_avg_sum, p_max_sum);
+}
+
+const char shell_help_standby[] = "<on|off>\n";
+const char shell_help_summary_standby[] = "Control low-power standby mode";
+
+void shell_standby(shell_context_t *ctx, int argc, char **argv) {
+    if (argc < 2) {
+        printf("Usage: standby <on|off>\n");
+        return;
+    }
+    
+    if (strcmp(argv[1], "on") == 0) {
+        printf("Requesting standby mode...\n");
+        system_standby = true;
+    } else if (strcmp(argv[1], "off") == 0) {
+        printf("Requesting wake-up...\n");
+        system_standby = false;
+    } else {
+        printf("Usage: standby <on|off>\n");
+    }
 }
