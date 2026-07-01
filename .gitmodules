@@ -4,3 +4,6 @@
 [submodule "fw/User/tinyusb"]
 	path = fw/User/tinyusb
 	url = https://www.github.com/hathach/tinyusb
+[submodule "Caster"]
+	path = Caster
+	url = https://gitlab.com/zephray/Caster.git

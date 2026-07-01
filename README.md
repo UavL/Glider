@@ -949,6 +949,35 @@ Most of the parameters are configured over the SPI bus from the MCU. However the
 
 Note that for both Modos kits (6" and 13"), default setting (MONO, 8-bit) is the correct setting.
 
+#### One-command release build
+
+The preferred release path builds the MCU firmware locally and builds the Spartan-6 bitstream inside the official Xilinx ISE 14.7 VM. This avoids installing ISE on the host system.
+
+1. Download and boot the official Xilinx ISE 14.7 VM.
+2. Make sure the VM is reachable over SSH. The default VM login is usually `ise` with password `xilinx`.
+3. Clone Glider with submodules:
+
+```
+git clone --recursive https://gitlab.com/zephray/Glider.git
+cd Glider
+```
+
+4. Build a release, replacing the IP address with the VM address:
+
+```
+scripts/release.sh --ise-host 192.168.56.101 0.1.0
+```
+
+The release output is placed under `build/release/<version>/`. The release script runs `git submodule update --init --recursive`, builds the MCU through headless STM32CubeIDE, copies Caster to the ISE VM with `scp`, and copies the bitstream, logs, ISE reports, flash-tool files, and `metadata.txt` into the release directory.
+
+For local release-script checks that do not touch hardware tools or the VM:
+
+```
+scripts/release.sh --dry-run --ise-host 192.168.56.101 0.1.0
+```
+
+The manual build notes below are still useful for debugging individual pieces.
+
 #### Build FPGA Gateware using GUI
 
 There are 2 ways to build the gateware. One is using Xilinx's ISE GUI, another is using build script. Note that on a freshly cloned repo, you will need to build with GUI at least once to re-generate all necessary IPs.
