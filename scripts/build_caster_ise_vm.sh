@@ -9,6 +9,7 @@ SOURCE_DIR="$ROOT_DIR/Caster"
 OUT_DIR="$ROOT_DIR/build/caster-ise-vm"
 REMOTE_WORKDIR="~/caster_ise_build"
 SHARED_FOLDER=""
+VARIANT="8bit-mono"
 DRY_RUN="${DRY_RUN:-0}"
 
 SSH_OPTS=(
@@ -38,6 +39,8 @@ Options:
   --source PATH           Local Caster source directory. Default: ./Caster
   --out PATH              Local output directory. Default: ./build/caster-ise-vm
   --remote-workdir PATH   Remote staging directory. Default: ~/caster_ise_build
+  --variant VARIANT       Build variant: 8bit-mono, 8bit-k3, 16bit-mono, or
+                          16bit-k3. Default: 8bit-mono
   --shared-folder PATH    Remote path to a shared workspace for quick experiments.
                           When set, the script builds PATH/Caster in place on the VM.
   --dry-run               Print commands instead of running them.
@@ -111,6 +114,11 @@ while [[ $# -gt 0 ]]; do
         SHARED_FOLDER="$2"
         shift 2
         ;;
+    --variant)
+        [[ $# -ge 2 ]] || die "--variant requires a value"
+        VARIANT="$2"
+        shift 2
+        ;;
     --dry-run)
         DRY_RUN=1
         shift
@@ -126,6 +134,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -n "$HOST" ]] || die "--host is required"
+case "$VARIANT" in
+    8bit-mono|8bit-k3|16bit-mono|16bit-k3) ;;
+    *) die "unknown Caster build variant: $VARIANT" ;;
+esac
 
 REMOTE="$USER_NAME@$HOST"
 RUN_ID="$(date +%Y%m%d-%H%M%S)"
@@ -133,7 +145,7 @@ REMOTE_RUN_DIR="$REMOTE_WORKDIR/run-$RUN_ID"
 
 if [[ -n "$SHARED_FOLDER" ]]; then
     REMOTE_CASTER_DIR="${SHARED_FOLDER%/}/Caster"
-    REMOTE_CMD="cd $(quote "$REMOTE_CASTER_DIR")/rtl/spartan6/par && ./build.sh"
+    REMOTE_CMD="cd $(quote "$REMOTE_CASTER_DIR")/rtl/spartan6/par && ./build.sh $(quote "$VARIANT")"
     run_cmd ssh "${SSH_OPTS[@]}" "$REMOTE" "$REMOTE_CMD"
     echo "Shared-folder build leaves artifacts in $REMOTE_CASTER_DIR/rtl/spartan6/par"
     exit 0
@@ -174,6 +186,7 @@ cd src/rtl/spartan6/par
 if [ -z "\${XILINX:-}" ]; then
     . /opt/Xilinx/14.7/ISE_DS/settings64.sh
 fi
+./write_build_config.sh $(quote "$VARIANT") ../../build_config.vh
 ipcore_status=0
 if [ ! -f ../ipcore_dir/vi_fifo.v ] || [ ! -f ../ipcore_dir/bi_fifo.v ] || [ ! -f ../ipcore_dir/bo_fifo.v ] || [ ! -f ../ipcore_dir/chipscope_icon.v ] || [ ! -f ../ipcore_dir/chipscope_ila.v ]; then
     printf '%s\n' 'project open ../caster.xise' 'process run "Regenerate All Cores"' 'exit' > regenerate_cores.tcl
@@ -194,7 +207,7 @@ if [ "\$ipcore_status" -ne 0 ]; then
     exit 0
 fi
 set +e
-./ise_flow.sh > $REMOTE_RUN_DIR_Q/out/build.log 2>&1
+./ise_flow.sh $(quote "$VARIANT") > $REMOTE_RUN_DIR_Q/out/build.log 2>&1
 build_status=\$?
 set -e
 if [ -f top.bit ]; then

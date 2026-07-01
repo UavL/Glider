@@ -45,7 +45,9 @@ release_root="$tmpdir/release"
 
 assert_file_contains "$release_log" "stm32cubeide .*org.eclipse.cdt.managedbuilder.core.headlessbuild .*glider_ec_rtos/Debug" "headless CubeIDE MCU build"
 assert_file_contains "$release_log" "git -C .*/Glider submodule update --init --recursive" "recursive submodule update"
-assert_file_contains "$release_log" "build_caster_ise_vm.sh --host 192.168.56.101 --source .*/Glider/Caster --out .*/0.1-task2/caster" "Caster VM build from submodule"
+for variant in 8bit-mono 8bit-k3 16bit-mono 16bit-k3; do
+    assert_file_contains "$release_log" "build_caster_ise_vm.sh --host 192.168.56.101 --source .*/Glider/Caster --out .*/0.1-task2/caster/$variant --variant $variant" "Caster VM build for $variant"
+done
 assert_file_contains "$release_log" "package_release.sh 0.1-task2 .*/0.1-task2" "release packaging"
 
 metadata="$release_root/0.1-task2/metadata.txt"
@@ -53,6 +55,12 @@ metadata="$release_root/0.1-task2/metadata.txt"
 assert_file_contains "$metadata" '^version=0.1-task2$' "metadata version"
 assert_file_contains "$metadata" '^glider_revision=[0-9a-f]{40}$' "metadata Glider revision"
 assert_file_contains "$metadata" '^caster_revision=[0-9a-f]{40}$' "metadata Caster revision"
+for variant in 8bit-mono 8bit-k3 16bit-mono 16bit-k3; do
+    assert_file_contains "$release_log" "cp .*/0.1-task2/caster/$variant/fpga.bit .*/0.1-task2/flash_tool/fpga-$variant.bit" "packaged bitstream for $variant"
+done
+if grep -Eq "cp .*/0.1-task2/caster/8bit-mono/fpga.bit .*/0.1-task2/flash_tool/fpga.bit" "$release_log"; then
+    fail "release should not package an ambiguous fpga.bit compatibility copy"
+fi
 
 no_tool_log="$tmpdir/no-tool-mcu.log"
 (

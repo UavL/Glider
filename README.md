@@ -944,8 +944,8 @@ Make sure to use the recursive flag to clone submodules as well.
 
 Most of the parameters are configured over the SPI bus from the MCU. However there are still some compile time parameters to be set before building the FPGA bitstream.
 
-- In `rtl/spartan6/top.v`, there is a parameter called `COLORMODE`. It can be set to `MONO`, `RGBW`, or `DES`. `RGBW` should be used on OED panels, and `DES` should be used on Kaleido 3 and DES screens.
-- In `rtl/defines.vh`, there is a define called `OUTPUT_16B`. Define this flag when using 16-bit panels.
+- `rtl/spartan6/par/write_build_config.sh` generates `rtl/build_config.vh` from a build variant. The supported release variants are `8bit-mono`, `8bit-k3`, `16bit-mono`, and `16bit-k3`.
+- `CASTER_COLORMODE` and `CASTER_OUTPUT_WIDTH` are generated together so color mode and output bus width use the same build-selection path.
 
 Note that for both Modos kits (6" and 13"), default setting (MONO, 8-bit) is the correct setting.
 
@@ -968,7 +968,7 @@ cd Glider
 scripts/release.sh --ise-host 192.168.56.101 0.1.0
 ```
 
-The release output is placed under `build/release/<version>/`. The release script runs `git submodule update --init --recursive`, builds the MCU through headless STM32CubeIDE, copies Caster to the ISE VM with `scp`, and copies the bitstream, logs, ISE reports, flash-tool files, and `metadata.txt` into the release directory.
+The release output is placed under `build/release/<version>/`. The release script runs `git submodule update --init --recursive`, builds the MCU through headless STM32CubeIDE, copies Caster to the ISE VM with `scp`, and copies the bitstreams, logs, ISE reports, flash-tool files, and `metadata.txt` into the release directory. The flash-tool directory contains `fpga-8bit-mono.bit`, `fpga-8bit-k3.bit`, `fpga-16bit-mono.bit`, and `fpga-16bit-k3.bit`.
 
 For local release-script checks that do not touch hardware tools or the VM:
 
