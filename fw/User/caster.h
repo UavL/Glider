@@ -72,6 +72,9 @@
 #define CSR_CFG_FASTG_W2GFRAME 47
 #define CSR_STATUS          128
 #define CSR_ID0             129
+#define CSR_DAMAGE_COUNT_HI 130
+#define CSR_DAMAGE_COUNT_MID 131
+#define CSR_DAMAGE_COUNT_LO 132
 // Alias for 16bit registers
 #define CSR_LUT_ADDR        CSR_LUT_ADDR_HI
 #define CSR_OP_LEFT         CSR_OP_LEFT_HI
@@ -118,6 +121,7 @@ uint8_t caster_load_waveform(uint8_t *waveform, uint8_t frames);
 uint8_t caster_redraw(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 uint8_t caster_setmode(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
     update_mode_t mode);
+uint32_t caster_get_damage_counter(void);
 void caster_redraw_blank(void);
 uint8_t caster_osd_send_buf(uint8_t *buf);
 uint8_t caster_osd_set_enable(bool en);

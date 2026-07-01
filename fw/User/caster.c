@@ -113,6 +113,14 @@ uint8_t caster_setmode(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
     return 0;
 }
 
+uint32_t caster_get_damage_counter(void) {
+    uint32_t damage = 0;
+    damage |= (uint32_t)(fpga_write_reg8(CSR_DAMAGE_COUNT_HI, 0x00) & 0x1f) << 16;
+    damage |= (uint32_t)fpga_write_reg8(CSR_DAMAGE_COUNT_MID, 0x00) << 8;
+    damage |= (uint32_t)fpga_write_reg8(CSR_DAMAGE_COUNT_LO, 0x00);
+    return damage;
+}
+
 uint8_t caster_setinput(uint8_t input_src) {
 //    if (is_busy()) return 1;
 //    fpga_write_reg8(CSR_CFG_IN_SRC, input_src);
