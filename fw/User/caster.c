@@ -28,6 +28,14 @@ static size_t last_update;
 static size_t last_update_duration;
 static uint8_t waveform_frames;
 
+enum {
+    CASTER_MIN_DRV = 2,
+    CASTER_FASTM_B2W_FRAMES = 9,
+    CASTER_FASTM_W2B_FRAMES = 9,
+    CASTER_FASTG_B2G_FRAMES = 2,
+    CASTER_FASTG_W2G_FRAMES = 2,
+};
+
 static uint8_t get_update_frames(void) {
     // Should be worst case time to clear/ update a frame
     //uint8_t min_time = 10; // Minimum time for non-LUT modes
@@ -53,7 +61,11 @@ void caster_init(void) {
     fpga_write_reg8(CSR_CFG_FBYTES_B0, frame_bytes & 0xff);
     fpga_write_reg8(CSR_CFG_FBYTES_B1, (frame_bytes >> 8) & 0xff);
     fpga_write_reg8(CSR_CFG_FBYTES_B2, (frame_bytes >> 16) & 0xff);
-    fpga_write_reg8(CSR_CFG_MINDRV, 2);
+    fpga_write_reg8(CSR_CFG_MINDRV, CASTER_MIN_DRV);
+    fpga_write_reg8(CSR_CFG_B2WFRAME, CASTER_FASTM_B2W_FRAMES);
+    fpga_write_reg8(CSR_CFG_W2BFRAME, CASTER_FASTM_W2B_FRAMES);
+    fpga_write_reg8(CSR_CFG_FASTG_B2GFRAME, CASTER_FASTG_B2G_FRAMES);
+    fpga_write_reg8(CSR_CFG_FASTG_W2GFRAME, CASTER_FASTG_W2G_FRAMES);
     fpga_write_reg8(CSR_LUT_FRAME, 38);
     fpga_write_reg16(CSR_OSD_LEFT, 0);
     fpga_write_reg16(CSR_OSD_RIGHT, 256/4);
