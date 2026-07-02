@@ -22,11 +22,58 @@
 //
 #pragma once
 
+#include <stddef.h>
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "caster.h"
+
 #define BITSTREAM_NAME_MAX  40
+
+#define CONFIG_SCHEMA_VERSION       1u
+#define CONFIG_BUTTON_BINDING_COUNT 6
 
 #define INPUT_SEL_AUTO      0
 #define INPUT_SEL_TMDS      1
 #define INPUT_SEL_DP        2
+
+typedef enum {
+    ACT_PREV_MODE = 0,
+    ACT_NEXT_MODE,
+    ACT_MODE_BROWSING,
+    ACT_MODE_WATCHING,
+    ACT_MODE_TYPING,
+    ACT_MODE_READING,
+    ACT_CLEAR,
+    ACT_TOGGLE_AC,
+    ACT_OPEN_SETTINGS,
+    ACT_POFF,
+    ACT_INPUT_AUTO,
+    ACT_INPUT_TMDS,
+    ACT_INPUT_DP,
+    ACT_COUNT
+} button_action_t;
+
+typedef enum {
+    AC_OFF = 0,
+    AC_ADAPT,
+    AC_FIXED,
+    AC_MODE_COUNT
+} autoclear_mode_t;
+
+typedef enum {
+    AC_1MIN = 0,
+    AC_5MIN,
+    AC_15MIN,
+    AC_INTERVAL_COUNT
+} autoclear_interval_t;
+
+typedef enum {
+    AC_THRES_HIGH = 0,
+    AC_THRES_MED,
+    AC_THRES_LOW,
+    AC_THRES_COUNT
+} autoclear_threshold_t;
 
 typedef struct {
     uint32_t pclk_hz; // pixel clock
@@ -60,10 +107,21 @@ typedef struct {
     // overwritten when loading 'legacy' configs (w/o 'bitstream' field),
     // because their config_t padded with 2 extra bytes at the end
     char bitstream[BITSTREAM_NAME_MAX] __attribute__((aligned(4)));
+    uint32_t schema_version;
+    int button_actions[CONFIG_BUTTON_BINDING_COUNT];
+    int update_mode;
+    int lightness;
+    int contrast;
+    int saturation;
+    int autoclear_mode;
+    int autoclear_interval;
+    int autoclear_threshold;
 } config_t;
 
 extern config_t config;
 
 void config_init(void);
+void config_reset_button_actions(void);
+void config_validate_loaded(size_t loaded_size);
 void config_load(void);
 void config_save(void);

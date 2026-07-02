@@ -1,0 +1,173 @@
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+
+#include "config.h"
+#include "ui_menu.h"
+
+#define ASSERT_TRUE(expr) do { \
+    if (!(expr)) { \
+        printf("ASSERT_TRUE failed at %s:%d: %s\n", __FILE__, __LINE__, #expr); \
+        return 1; \
+    } \
+} while (0)
+
+#define ASSERT_EQ(expected, actual) do { \
+    long long exp__ = (long long)(expected); \
+    long long act__ = (long long)(actual); \
+    if (exp__ != act__) { \
+        printf("ASSERT_EQ failed at %s:%d: expected %lld got %lld\n", \
+                __FILE__, __LINE__, exp__, act__); \
+        return 1; \
+    } \
+} while (0)
+
+static int test_config_defaults_match_button_design(void) {
+    config_init();
+
+    ASSERT_EQ(CONFIG_SCHEMA_VERSION, config.schema_version);
+    ASSERT_EQ(ACT_NEXT_MODE, config.button_actions[0]);
+    ASSERT_EQ(ACT_PREV_MODE, config.button_actions[1]);
+    ASSERT_EQ(ACT_OPEN_SETTINGS, config.button_actions[2]);
+    ASSERT_EQ(ACT_POFF, config.button_actions[3]);
+    ASSERT_EQ(ACT_CLEAR, config.button_actions[4]);
+    ASSERT_EQ(ACT_TOGGLE_AC, config.button_actions[5]);
+    ASSERT_EQ(AC_OFF, config.autoclear_mode);
+    ASSERT_EQ(AC_5MIN, config.autoclear_interval);
+    ASSERT_EQ(AC_THRES_MED, config.autoclear_threshold);
+
+    return 0;
+}
+
+static int test_legacy_config_validation_repairs_appended_fields(void) {
+    config_init();
+
+    config.schema_version = 0;
+    for (int i = 0; i < CONFIG_BUTTON_BINDING_COUNT; i++)
+        config.button_actions[i] = -99;
+    config.update_mode = -1;
+    config.lightness = 99;
+    config.contrast = -99;
+    config.saturation = 99;
+    config.autoclear_mode = 99;
+    config.autoclear_interval = 99;
+    config.autoclear_threshold = 99;
+
+    config_validate_loaded(offsetof(config_t, schema_version));
+
+    ASSERT_EQ(CONFIG_SCHEMA_VERSION, config.schema_version);
+    ASSERT_EQ(ACT_NEXT_MODE, config.button_actions[0]);
+    ASSERT_EQ(ACT_PREV_MODE, config.button_actions[1]);
+    ASSERT_EQ(ACT_OPEN_SETTINGS, config.button_actions[2]);
+    ASSERT_EQ(UM_FAST_MONO_BAYER, config.update_mode);
+    ASSERT_EQ(0, config.lightness);
+    ASSERT_EQ(0, config.contrast);
+    ASSERT_EQ(0, config.saturation);
+    ASSERT_EQ(AC_OFF, config.autoclear_mode);
+    ASSERT_EQ(AC_5MIN, config.autoclear_interval);
+    ASSERT_EQ(AC_THRES_MED, config.autoclear_threshold);
+
+    return 0;
+}
+
+static int test_config_validation_repairs_invalid_values(void) {
+    config_init();
+
+    config.button_actions[0] = -1;
+    config.button_actions[1] = ACT_COUNT;
+    config.update_mode = 999;
+    config.input_sel = 99;
+    config.lightness = 4;
+    config.contrast = -4;
+    config.saturation = 4;
+    config.autoclear_mode = 99;
+    config.autoclear_interval = -1;
+    config.autoclear_threshold = 99;
+
+    config_validate_loaded(sizeof(config));
+
+    ASSERT_EQ(ACT_NEXT_MODE, config.button_actions[0]);
+    ASSERT_EQ(ACT_PREV_MODE, config.button_actions[1]);
+    ASSERT_EQ(UM_FAST_MONO_BAYER, config.update_mode);
+    ASSERT_EQ(INPUT_SEL_AUTO, config.input_sel);
+    ASSERT_EQ(3, config.lightness);
+    ASSERT_EQ(-3, config.contrast);
+    ASSERT_EQ(3, config.saturation);
+    ASSERT_EQ(AC_OFF, config.autoclear_mode);
+    ASSERT_EQ(AC_5MIN, config.autoclear_interval);
+    ASSERT_EQ(AC_THRES_MED, config.autoclear_threshold);
+
+    return 0;
+}
+
+static int test_menu_navigation_commits_and_cancels_modal_values(void) {
+    ui_menu_t menu;
+
+    config_init();
+    ui_menu_init(&menu, &config);
+
+    ASSERT_EQ(UI_MENU_DEPTH_CATEGORIES, ui_menu_depth(&menu));
+    ASSERT_TRUE(ui_menu_selected_label(&menu) != NULL);
+    ASSERT_EQ('D', ui_menu_selected_label(&menu)[0]);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_EQ(UI_MENU_DEPTH_ITEMS, ui_menu_depth(&menu));
+    ASSERT_EQ('U', ui_menu_selected_label(&menu)[0]);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_EQ(UI_MENU_DEPTH_MODAL, ui_menu_depth(&menu));
+    ASSERT_EQ(UM_FAST_MONO_BAYER, config.update_mode);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ASSERT_TRUE(ui_menu_modal_value_label(&menu) != NULL);
+    ASSERT_EQ('W', ui_menu_modal_value_label(&menu)[0]);
+    ui_menu_handle(&menu, UI_MENU_EVENT_BACK);
+    ASSERT_EQ(UI_MENU_DEPTH_ITEMS, ui_menu_depth(&menu));
+    ASSERT_EQ(UM_FAST_MONO_BAYER, config.update_mode);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_EQ(UI_MENU_DEPTH_ITEMS, ui_menu_depth(&menu));
+    ASSERT_EQ(UM_FAST_MONO_BLUE_NOISE, config.update_mode);
+
+    return 0;
+}
+
+static int test_menu_snapshot_exposes_visible_rows_and_values(void) {
+    ui_menu_t menu;
+
+    config_init();
+    ui_menu_init(&menu, &config);
+
+    ASSERT_EQ(3, ui_menu_row_count(&menu));
+    ASSERT_EQ('D', ui_menu_row_label(&menu, 0)[0]);
+    ASSERT_EQ('B', ui_menu_row_label(&menu, 1)[0]);
+    ASSERT_EQ(1, ui_menu_row_selected(&menu, 0));
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_TRUE(ui_menu_row_count(&menu) > 3);
+    ASSERT_EQ('U', ui_menu_row_label(&menu, 0)[0]);
+    ASSERT_EQ('B', ui_menu_row_value(&menu, 0)[0]);
+    ASSERT_EQ(1, ui_menu_row_selected(&menu, 0));
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_EQ(4, ui_menu_row_count(&menu));
+    ASSERT_EQ('B', ui_menu_row_label(&menu, 0)[0]);
+    ASSERT_EQ('W', ui_menu_row_label(&menu, 1)[0]);
+    ASSERT_EQ(1, ui_menu_row_selected(&menu, 0));
+
+    return 0;
+}
+
+int main(void) {
+    int rc = 0;
+
+    rc |= test_config_defaults_match_button_design();
+    rc |= test_legacy_config_validation_repairs_appended_fields();
+    rc |= test_config_validation_repairs_invalid_values();
+    rc |= test_menu_navigation_commits_and_cancels_modal_values();
+    rc |= test_menu_snapshot_exposes_visible_rows_and_values();
+
+    return rc;
+}

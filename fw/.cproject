@@ -99,7 +99,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="spiffs/src/test|spiffs/src/default|tinyusb/hw|tinyusb/hw/mcu|tinyusb/docs|tinyusb/lib|tinyusb/examples|tinyusb/tools|tinyusb/test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="User"/>
+						<entry excluding="tests|spiffs/src/test|spiffs/src/default|tinyusb/hw|tinyusb/hw/mcu|tinyusb/docs|tinyusb/lib|tinyusb/examples|tinyusb/tools|tinyusb/test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="User"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
@@ -300,7 +300,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="spiffs/src/test|spiffs/src/default|tinyusb/hw|tinyusb/hw/mcu|tinyusb/docs|tinyusb/lib|tinyusb/examples|tinyusb/tools|tinyusb/test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="User"/>
+						<entry excluding="tests|spiffs/src/test|spiffs/src/default|tinyusb/hw|tinyusb/hw/mcu|tinyusb/docs|tinyusb/lib|tinyusb/examples|tinyusb/tools|tinyusb/test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="User"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
