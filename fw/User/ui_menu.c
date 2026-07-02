@@ -96,6 +96,16 @@ static const value_label_t input_values[] = {
     {INPUT_SEL_DP, "DP"},
 };
 
+static const value_label_t scalar_values[] = {
+    {-3, "-3"},
+    {-2, "-2"},
+    {-1, "-1"},
+    {0, "0"},
+    {1, "1"},
+    {2, "2"},
+    {3, "3"},
+};
+
 static const value_label_t action_values[] = {
     {ACT_PREV_MODE, "Previous Display Mode"},
     {ACT_NEXT_MODE, "Next Display Mode"},
@@ -150,6 +160,10 @@ static int modal_count(const ui_menu_t *menu) {
 
     if (item->id == MENU_ITEM_UPDATE_MODE)
         return (int)(sizeof(update_mode_values) / sizeof(update_mode_values[0]));
+    if ((item->id == MENU_ITEM_LIGHTNESS) ||
+            (item->id == MENU_ITEM_CONTRAST) ||
+            (item->id == MENU_ITEM_SATURATION))
+        return (int)(sizeof(scalar_values) / sizeof(scalar_values[0]));
     if ((item->id >= MENU_ITEM_BUTTON_1_SHORT) && (item->id <= MENU_ITEM_BUTTON_3_LONG))
         return (int)(sizeof(action_values) / sizeof(action_values[0]));
     if (item->id == MENU_ITEM_AUTO_CLEAR)
@@ -162,6 +176,12 @@ static int modal_count(const ui_menu_t *menu) {
         return (int)(sizeof(input_values) / sizeof(input_values[0]));
 
     return 0;
+}
+
+static int item_is_scalar(menu_item_id_t id) {
+    return (id == MENU_ITEM_LIGHTNESS) ||
+            (id == MENU_ITEM_CONTRAST) ||
+            (id == MENU_ITEM_SATURATION);
 }
 
 static int *config_value_ptr(ui_menu_t *menu, menu_item_id_t id) {
@@ -217,6 +237,12 @@ static const value_label_t *item_values(menu_item_id_t id, int *count) {
     if (id == MENU_ITEM_UPDATE_MODE) {
         *count = (int)(sizeof(update_mode_values) / sizeof(update_mode_values[0]));
         return update_mode_values;
+    }
+    if ((id == MENU_ITEM_LIGHTNESS) ||
+            (id == MENU_ITEM_CONTRAST) ||
+            (id == MENU_ITEM_SATURATION)) {
+        *count = (int)(sizeof(scalar_values) / sizeof(scalar_values[0]));
+        return scalar_values;
     }
     if ((id >= MENU_ITEM_BUTTON_1_SHORT) && (id <= MENU_ITEM_BUTTON_3_LONG)) {
         *count = (int)(sizeof(action_values) / sizeof(action_values[0]));
@@ -327,6 +353,12 @@ ui_menu_depth_t ui_menu_depth(const ui_menu_t *menu) {
     return menu->depth;
 }
 
+const char *ui_menu_category_label(const ui_menu_t *menu) {
+    if (menu == NULL)
+        return NULL;
+    return categories[menu->category_index].label;
+}
+
 const char *ui_menu_selected_label(const ui_menu_t *menu) {
     if (menu == NULL)
         return NULL;
@@ -429,4 +461,49 @@ const char *ui_menu_modal_value_label(const ui_menu_t *menu) {
         return values[menu->modal_index].label;
 
     return NULL;
+}
+
+int ui_menu_modal_is_scalar(const ui_menu_t *menu) {
+    const menu_item_t *item = selected_item(menu);
+    if ((item == NULL) || (menu->depth != UI_MENU_DEPTH_MODAL))
+        return 0;
+    return item_is_scalar(item->id);
+}
+
+int ui_menu_modal_count(const ui_menu_t *menu) {
+    if ((menu == NULL) || (menu->depth != UI_MENU_DEPTH_MODAL))
+        return 0;
+    return modal_count(menu);
+}
+
+int ui_menu_modal_index(const ui_menu_t *menu) {
+    if ((menu == NULL) || (menu->depth != UI_MENU_DEPTH_MODAL))
+        return 0;
+    return menu->modal_index;
+}
+
+int ui_menu_viewport_first(int current_first, int selected, int row_count, int visible_rows) {
+    int max_first;
+
+    if ((row_count <= 0) || (visible_rows <= 0))
+        return 0;
+    if (visible_rows >= row_count)
+        return 0;
+
+    max_first = row_count - visible_rows;
+    if (current_first < 0)
+        current_first = 0;
+    if (current_first > max_first)
+        current_first = max_first;
+
+    if (selected < 0)
+        selected = 0;
+    if (selected >= row_count)
+        selected = row_count - 1;
+
+    if (selected < current_first)
+        return selected;
+    if (selected >= current_first + visible_rows)
+        return selected - visible_rows + 1;
+    return current_first;
 }

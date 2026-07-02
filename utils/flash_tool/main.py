@@ -412,7 +412,8 @@ class App(tk.Tk):
             self.after(0, lambda: self.update_status(self.INFO_COLOR, "烧录资源中", "正在传输FPGA固件，请稍候"))
             self.send_file("fpga.bit", "fpga.bit")
             self.after(0, lambda: self.update_status(self.INFO_COLOR, "烧录资源中", "正在传输字体文件，请稍候"))
-            self.send_file('font_24x40.bin', 'font_24x40.bin')
+            for font in ['font_quicksand_16.bin', 'font_quicksand_20.bin', 'font_quicksand_28.bin']:
+                self.send_file('fonts/' + font, 'fonts/' + font)
             self.after(0, lambda: self.update_status(self.INFO_COLOR, "烧录资源中", "正在传输配置文件，请稍候"))
             if self.scr_size == 6:
                 subprocess.run("./cfggen/bin/cfggen 6 1448 1072 75", shell=True)

@@ -101,13 +101,20 @@ def send_file(h, fn, target_fn):
     send_buffer(h, bytearray(target_fn, 'ascii'))
     send_buffer(h, bin)
 
+FONT_FILES = [
+    'font_quicksand_16.bin',
+    'font_quicksand_20.bin',
+    'font_quicksand_28.bin',
+]
+
 def send_files():
     success = False
     while not success:
         try:
             h = open_dev()
             send_file(h, 'fpga.bit', 'fpga.bit')
-            send_file(h, 'font_24x40.bin', 'font_24x40.bin')
+            for font in FONT_FILES:
+                send_file(h, 'fonts/' + font, 'fonts/' + font)
             success = True
         except OSError:
             print("Waiting for device to reconnect")

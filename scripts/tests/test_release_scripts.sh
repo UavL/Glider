@@ -58,6 +58,10 @@ assert_file_contains "$metadata" '^caster_revision=[0-9a-f]{40}$' "metadata Cast
 for variant in 8bit-mono 8bit-k3 16bit-mono 16bit-k3; do
     assert_file_contains "$release_log" "cp .*/0.1-task2/caster/$variant/fpga.bit .*/0.1-task2/flash_tool/fpga-$variant.bit" "packaged bitstream for $variant"
 done
+assert_file_contains "$release_log" "python3 .*/tools/fonts/generate_quicksand_fonts.py --out-dir .*/0.1-task2/flash_tool/fonts" "generated Quicksand release fonts"
+if grep -Eq "cp .*/utils/flash_tool/font_24x40.bin .*/0.1-task2/flash_tool/font_24x40.bin" "$release_log"; then
+    fail "release should not package the legacy font_24x40.bin"
+fi
 if grep -Eq "cp .*/0.1-task2/caster/8bit-mono/fpga.bit .*/0.1-task2/flash_tool/fpga.bit" "$release_log"; then
     fail "release should not package an ambiguous fpga.bit compatibility copy"
 fi

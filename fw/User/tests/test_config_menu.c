@@ -160,6 +160,63 @@ static int test_menu_snapshot_exposes_visible_rows_and_values(void) {
     return 0;
 }
 
+static int test_menu_scalar_modal_commits_lightness(void) {
+    ui_menu_t menu;
+
+    config_init();
+    ui_menu_init(&menu, &config);
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ASSERT_EQ('L', ui_menu_selected_label(&menu)[0]);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_EQ(UI_MENU_DEPTH_MODAL, ui_menu_depth(&menu));
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ASSERT_TRUE(ui_menu_modal_value_label(&menu) != NULL);
+    ASSERT_EQ('1', ui_menu_modal_value_label(&menu)[0]);
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+
+    ASSERT_EQ(UI_MENU_DEPTH_ITEMS, ui_menu_depth(&menu));
+    ASSERT_EQ(1, config.lightness);
+
+    return 0;
+}
+
+static int test_menu_exposes_category_and_scalar_modal_metadata(void) {
+    ui_menu_t menu;
+
+    config_init();
+    ui_menu_init(&menu, &config);
+
+    ASSERT_EQ('D', ui_menu_category_label(&menu)[0]);
+    ASSERT_EQ(0, ui_menu_modal_is_scalar(&menu));
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_EQ('D', ui_menu_category_label(&menu)[0]);
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+
+    ASSERT_EQ(UI_MENU_DEPTH_MODAL, ui_menu_depth(&menu));
+    ASSERT_EQ(1, ui_menu_modal_is_scalar(&menu));
+    ASSERT_EQ(7, ui_menu_modal_count(&menu));
+    ASSERT_EQ(3, ui_menu_modal_index(&menu));
+    ASSERT_EQ('0', ui_menu_modal_value_label(&menu)[0]);
+
+    return 0;
+}
+
+static int test_menu_viewport_moves_lazily(void) {
+    ASSERT_EQ(0, ui_menu_viewport_first(0, 0, 7, 4));
+    ASSERT_EQ(0, ui_menu_viewport_first(0, 3, 7, 4));
+    ASSERT_EQ(1, ui_menu_viewport_first(0, 4, 7, 4));
+    ASSERT_EQ(4, ui_menu_viewport_first(4, 7, 8, 4));
+    ASSERT_EQ(4, ui_menu_viewport_first(4, 6, 8, 4));
+    ASSERT_EQ(3, ui_menu_viewport_first(4, 3, 8, 4));
+    ASSERT_EQ(0, ui_menu_viewport_first(4, 0, 3, 4));
+
+    return 0;
+}
+
 int main(void) {
     int rc = 0;
 
@@ -168,6 +225,9 @@ int main(void) {
     rc |= test_config_validation_repairs_invalid_values();
     rc |= test_menu_navigation_commits_and_cancels_modal_values();
     rc |= test_menu_snapshot_exposes_visible_rows_and_values();
+    rc |= test_menu_scalar_modal_commits_lightness();
+    rc |= test_menu_exposes_category_and_scalar_modal_metadata();
+    rc |= test_menu_viewport_moves_lazily();
 
     return rc;
 }

@@ -27,10 +27,15 @@ typedef struct {
 void ui_menu_init(ui_menu_t *menu, config_t *cfg);
 void ui_menu_handle(ui_menu_t *menu, ui_menu_event_t event);
 ui_menu_depth_t ui_menu_depth(const ui_menu_t *menu);
+const char *ui_menu_category_label(const ui_menu_t *menu);
 const char *ui_menu_selected_label(const ui_menu_t *menu);
 const char *ui_menu_selected_value_label(const ui_menu_t *menu);
 const char *ui_menu_modal_value_label(const ui_menu_t *menu);
+int ui_menu_modal_is_scalar(const ui_menu_t *menu);
+int ui_menu_modal_count(const ui_menu_t *menu);
+int ui_menu_modal_index(const ui_menu_t *menu);
 int ui_menu_row_count(const ui_menu_t *menu);
 const char *ui_menu_row_label(const ui_menu_t *menu, int row);
 const char *ui_menu_row_value(const ui_menu_t *menu, int row);
 int ui_menu_row_selected(const ui_menu_t *menu, int row);
+int ui_menu_viewport_first(int current_first, int selected, int row_count, int visible_rows);
