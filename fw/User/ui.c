@@ -52,9 +52,9 @@ const update_mode_item_t modes[] = {
 
 static int mode_max = sizeof(modes) / sizeof(modes[0]);
 
-#define OSD_WIDTH   256
-#define OSD_HEIGHT  128
-static uint8_t osd_fb[OSD_WIDTH * OSD_HEIGHT / 8];
+#define OSD_WIDTH   CASTER_OSD_WIDTH
+#define OSD_HEIGHT  CASTER_OSD_HEIGHT
+static uint8_t osd_fb[CASTER_OSD_BUF_SIZE];
 
 void ui_init(void) {
     btn_queue = xQueueCreate(8, sizeof(btn_event_t));

@@ -68,9 +68,9 @@ void caster_init(void) {
     fpga_write_reg8(CSR_CFG_FASTG_W2GFRAME, CASTER_FASTG_W2G_FRAMES);
     fpga_write_reg8(CSR_LUT_FRAME, 38);
     fpga_write_reg16(CSR_OSD_LEFT, 0);
-    fpga_write_reg16(CSR_OSD_RIGHT, 256/4);
+    fpga_write_reg16(CSR_OSD_RIGHT, CASTER_OSD_WIDTH / 4);
     fpga_write_reg16(CSR_OSD_TOP, 0);
-    fpga_write_reg16(CSR_OSD_BOTTOM, 128);
+    fpga_write_reg16(CSR_OSD_BOTTOM, CASTER_OSD_HEIGHT);
     fpga_write_reg8(CSR_OSD_EN, 0);
     fpga_write_reg8(CSR_CFG_MIRROR, config.mirror);
     fpga_write_reg8(CSR_ENABLE, 1); // Enable refresh
@@ -139,7 +139,7 @@ void caster_redraw_blank(void) {
 
 uint8_t caster_osd_send_buf(uint8_t *buf) {
     fpga_write_reg16(CSR_OSD_ADDR, 0);
-    fpga_write_bulk(CSR_OSD_WR, buf, 4096);
+    fpga_write_bulk(CSR_OSD_WR, buf, CASTER_OSD_BUF_SIZE);
     return 0;
 }
 
