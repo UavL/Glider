@@ -65,10 +65,13 @@ typedef struct
   const char *help_full;
 } SHELL_HELP_DATA;
 
-// Add additional shell commands here
+// Define GLIDER_DIAGNOSTIC_SHELL to include larger maintenance/test commands.
+// The normal image keeps only the field-useful shell commands.
 SHELL_FUNC( shell_help );
 SHELL_FUNC( shell_ver );
 SHELL_FUNC( shell_syslog );
+SHELL_FUNC( shell_setcfg );
+#ifdef GLIDER_DIAGNOSTIC_SHELL
 SHELL_FUNC( shell_mem );
 SHELL_FUNC( shell_test );
 SHELL_FUNC( shell_i2c_probe );
@@ -76,13 +79,15 @@ SHELL_FUNC( shell_recv );
 SHELL_FUNC( shell_send );
 SHELL_FUNC( shell_fs );
 SHELL_FUNC( shell_setvolt );
-SHELL_FUNC( shell_setcfg );
 SHELL_FUNC( shell_sensor );
 SHELL_FUNC( shell_damage );
+#endif
 
 SHELL_HELP( help );
 SHELL_HELP( ver );
 SHELL_HELP( syslog );
+SHELL_HELP( setcfg );
+#ifdef GLIDER_DIAGNOSTIC_SHELL
 SHELL_HELP( mem );
 SHELL_HELP( test );
 SHELL_HELP( i2c_probe );
@@ -90,9 +95,9 @@ SHELL_HELP( recv );
 SHELL_HELP( send );
 SHELL_HELP( fs );
 SHELL_HELP( setvolt );
-SHELL_HELP( setcfg );
 SHELL_HELP( sensor );
 SHELL_HELP( damage );
+#endif
 
 //static const SHELL_COMMAND shell_commands[] =
 const SHELL_COMMAND shell_commands[] =
@@ -100,6 +105,8 @@ const SHELL_COMMAND shell_commands[] =
   { "help", shell_help },
   { "ver", shell_ver },
   { "syslog", shell_syslog },
+  { "setcfg", shell_setcfg },
+#ifdef GLIDER_DIAGNOSTIC_SHELL
   { "mem", shell_mem },
   { "test", shell_test },
   { "i2c_probe", shell_i2c_probe },
@@ -107,9 +114,9 @@ const SHELL_COMMAND shell_commands[] =
   { "send", shell_send },
   { "fs", shell_fs },
   { "setvolt", shell_setvolt },
-  { "setcfg", shell_setcfg },
   { "sensor", shell_sensor },
   { "damage", shell_damage },
+#endif
   { "exit", NULL },
   { NULL, NULL }
 };
@@ -119,6 +126,8 @@ static const SHELL_HELP_DATA shell_help_data[] =
   SHELL_INFO( help ),
   SHELL_INFO( ver ),
   SHELL_INFO( syslog ),
+  SHELL_INFO( setcfg ),
+#ifdef GLIDER_DIAGNOSTIC_SHELL
   SHELL_INFO( mem ),
   SHELL_INFO( test ),
   SHELL_INFO( i2c_probe ),
@@ -126,9 +135,9 @@ static const SHELL_HELP_DATA shell_help_data[] =
   SHELL_INFO( send ),
   SHELL_INFO( fs ),
   SHELL_INFO( setvolt ),
-  SHELL_INFO( setcfg ),
   SHELL_INFO( sensor ),
   SHELL_INFO( damage ),
+#endif
   { NULL, NULL, NULL }
 };
 

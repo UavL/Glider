@@ -23,6 +23,7 @@
 #include "platform.h"
 #include "board.h"
 #include "app.h"
+#include "numfmt.h"
 
 static bool adc_conv_done;
 static uint16_t adc_buffer[6];
@@ -34,6 +35,13 @@ static float p_avg[8];
 static float p_max[8];
 
 #define ABSF(x) (((x) < 0) ? (0.f-(x)) : (x))
+
+static void syslog_voltage(const char *name, float value) {
+    char text[16];
+
+    numfmt_format_fixed(text, sizeof(text), value, 2);
+    syslog_printf("%s: %s V\n", name, text);
+}
 
 void power_on(void) {
 
@@ -55,8 +63,8 @@ void power_on_epd(void) {
         // Check if negative rails have reached targeted voltage
         float vn = power_get_rail_voltage(RAIL_VN);
         float vgl = power_get_rail_voltage(RAIL_VGL);
-        syslog_printf("VN: %.2f V\n", vn);
-        syslog_printf("VGL: %.2f V\n", vgl);
+        syslog_voltage("VN", vn);
+        syslog_voltage("VGL", vgl);
         if ((vn <= -14.0f) && (vn >= -16.0f) && (vgl <= -19.0f) && (vgl >= -21.0f))
             break;
         timeout++;
@@ -74,8 +82,8 @@ void power_on_epd(void) {
         // Check if positive rails have reached targeted voltage
         float vp = power_get_rail_voltage(RAIL_VP);
         float vgh = power_get_rail_voltage(RAIL_VGH);
-        syslog_printf("VP: %.2f V\n", vp);
-        syslog_printf("VGH: %.2f V\n", vgh);
+        syslog_voltage("VP", vp);
+        syslog_voltage("VGH", vgh);
         if ((vp >= 14.0f) && (vp <= 16.0f) && (vgh >= 21.0f) && (vgh <= 28.0f))
             break;
         timeout++;
@@ -92,7 +100,7 @@ void power_on_epd(void) {
         sleep_ms(200);
         // Check if positive rails have reached targeted voltage
         float v = power_get_rail_voltage(RAIL_VCOM);
-        syslog_printf("VCOM: %.2f V\n", v);
+        syslog_voltage("VCOM", v);
         if (ABSF(v - config.vcom) < 0.2f) // Allow up to 0.2V difference
             break;
         timeout++;

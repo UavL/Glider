@@ -25,8 +25,11 @@
 #include "term.h"
 #include "app_main.h"
 #include "app.h"
+#include "numfmt.h"
+#ifdef GLIDER_DIAGNOSTIC_SHELL
 #include "autoclear.h"
 #include "xmodem.h"
+#endif
 
 #ifdef printf
 #undef printf
@@ -39,9 +42,18 @@
 #define printf(...) shell_printf(ctx, __VA_ARGS__)
 #define vprintf(x,y) shell_vprintf(ctx, x, y)
 
+static void shell_print_fixed(shell_context_t *ctx, float value,
+        unsigned decimals) {
+    char text[16];
+
+    numfmt_format_fixed(text, sizeof(text), value, decimals);
+    printf("%s", text);
+}
+
 /***********************************************************************
  * Misc helper functions
  **********************************************************************/
+#ifdef GLIDER_DIAGNOSTIC_SHELL
 static void dump_bytes(shell_context_t *ctx, unsigned char *rdata, unsigned addr, unsigned rlen) {
     unsigned i;
     for (i = 0; i < rlen; i++) {
@@ -71,6 +83,7 @@ int confirm_danger(shell_context_t *ctx, char *warnStr) {
 
     return(0);
 }
+#endif
 
 /***********************************************************************
  * CMD: syslog
@@ -115,6 +128,7 @@ void shell_syslog(shell_context_t *ctx, int argc, char **argv) {
 /***********************************************************************
  * CMD: mem
  **********************************************************************/
+#ifdef GLIDER_DIAGNOSTIC_SHELL
 const char shell_help_mem[] = "[detail]\n"
   "  detail - Show detailed heap information\n";
 const char shell_help_summary_mem[] = "Report memory (stack & heap) usage";
@@ -284,6 +298,7 @@ void shell_i2c_probe(shell_context_t *ctx, int argc, char **argv)
         }
     }
 }
+#endif
 
 
 //const char shell_help_fl[] = "<operation> [brightness]\n"
@@ -315,6 +330,7 @@ void shell_i2c_probe(shell_context_t *ctx, int argc, char **argv)
 /***********************************************************************
  * XMODEM helper functions
  **********************************************************************/
+#ifdef GLIDER_DIAGNOSTIC_SHELL
 typedef struct {
     shell_context_t *ctx;
 } xmodem_state_t;
@@ -683,7 +699,11 @@ void shell_setvolt(shell_context_t *ctx, int argc, char **argv) {
         return;
     }
 
-    float volt = strtof(argv[2], NULL);
+    float volt = 0.0f;
+    if (!numfmt_parse_float(argv[2], &volt)) {
+        printf("Invalid voltage\n");
+        return;
+    }
     if (strcmp(argv[1], "vcom") == 0) {
         power_set_vcom(volt);
     }
@@ -691,6 +711,7 @@ void shell_setvolt(shell_context_t *ctx, int argc, char **argv) {
         power_set_vgh(volt);
     }
 }
+#endif
 
 
 const char shell_help_setcfg[] = "<set|get|save> [key] [value]\n";
@@ -743,7 +764,12 @@ static void setcfg_set_helper(shell_context_t *ctx, cfg_var_t *var, char *val) {
         *(uint32_t *)(var->pointer) = strtol(val, NULL, 10);
     }
     else if (var->type == FLOAT32) {
-        *(float *)(var->pointer) = strtof(val, NULL);
+        float parsed = 0.0f;
+        if (!numfmt_parse_float(val, &parsed)) {
+            printf("Invalid value\n");
+            return;
+        }
+        *(float *)(var->pointer) = parsed;
     }
     else if (var->type == STRING) {
         if (strlen(val) >= BITSTREAM_NAME_MAX) {
@@ -766,7 +792,8 @@ static void setcfg_get_helper(shell_context_t *ctx, cfg_var_t *var) {
         printf("%d\n", *(uint32_t *)(var->pointer));
     }
     else if (var->type == FLOAT32) {
-        printf("%f\n", *(float *)(var->pointer));
+        shell_print_fixed(ctx, *(float *)(var->pointer), 3);
+        printf("\n");
     }
     else if (var->type == STRING) {
         printf("%s\n", (char *)(var->pointer));
@@ -816,46 +843,47 @@ void shell_setcfg(shell_context_t *ctx, int argc, char **argv) {
     }
 }
 
+#ifdef GLIDER_DIAGNOSTIC_SHELL
 const char shell_help_sensor[] = "\n";
 const char shell_help_summary_sensor[] = "Get sensor readings";
 
 void shell_sensor(shell_context_t *ctx, int argc, char **argv) {
     printf("EPD Supplies:\n");
-    printf("VP:     %5.2f V\n", power_get_rail_voltage(RAIL_VP));
-    printf("VGH:    %5.2f V\n", power_get_rail_voltage(RAIL_VGH));
-    printf("VN:     %5.2f V\n", power_get_rail_voltage(RAIL_VN));
-    printf("VGL:    %5.2f V\n", power_get_rail_voltage(RAIL_VGL));
-    printf("VCOM:   %5.2f V\n", power_get_rail_voltage(RAIL_VCOM));
-    printf("5VES:   %5.2f V %3.0f mA\n", power_get_rail_voltage(RAIL_5VES), power_get_rail_current(RAIL_5VES));
-    printf("5VEG:   %5.2f V %3.0f mA\n", power_get_rail_voltage(RAIL_5VEG), power_get_rail_current(RAIL_5VEG));
+    printf("VP:     "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_VP), 2); printf(" V\n");
+    printf("VGH:    "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_VGH), 2); printf(" V\n");
+    printf("VN:     "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_VN), 2); printf(" V\n");
+    printf("VGL:    "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_VGL), 2); printf(" V\n");
+    printf("VCOM:   "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_VCOM), 2); printf(" V\n");
+    printf("5VES:   "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_5VES), 2); printf(" V "); shell_print_fixed(ctx, power_get_rail_current(RAIL_5VES), 0); printf(" mA\n");
+    printf("5VEG:   "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_5VEG), 2); printf(" V "); shell_print_fixed(ctx, power_get_rail_current(RAIL_5VEG), 0); printf(" mA\n");
 
     printf("System Supplies:\n");
-    printf("VBUS:   %5.2f V\n", power_get_rail_voltage(RAIL_VBUS));
-    printf("3V3:    %5.2f V %3.0f mA\n", power_get_rail_voltage(RAIL_3V3), power_get_rail_current(RAIL_3V3));
-    printf("1V8VID: %5.2f V %3.0f mA\n", power_get_rail_voltage(RAIL_1V8VID), power_get_rail_current(RAIL_1V8VID));
-    printf("3V3VID: %5.2f V %3.0f mA\n", power_get_rail_voltage(RAIL_3V3VID), power_get_rail_current(RAIL_3V3VID));
-    printf("5V2FL:  %5.2f V %3.0f mA\n", power_get_rail_voltage(RAIL_5V2FL), power_get_rail_current(RAIL_5V2FL));
-    printf("1V35:   %5.2f V %3.0f mA\n", power_get_rail_voltage(RAIL_1V35), power_get_rail_current(RAIL_1V35));
-    printf("1V2:    %5.2f V %3.0f mA\n", power_get_rail_voltage(RAIL_1V2), power_get_rail_current(RAIL_1V2));
+    printf("VBUS:   "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_VBUS), 2); printf(" V\n");
+    printf("3V3:    "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_3V3), 2); printf(" V "); shell_print_fixed(ctx, power_get_rail_current(RAIL_3V3), 0); printf(" mA\n");
+    printf("1V8VID: "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_1V8VID), 2); printf(" V "); shell_print_fixed(ctx, power_get_rail_current(RAIL_1V8VID), 0); printf(" mA\n");
+    printf("3V3VID: "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_3V3VID), 2); printf(" V "); shell_print_fixed(ctx, power_get_rail_current(RAIL_3V3VID), 0); printf(" mA\n");
+    printf("5V2FL:  "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_5V2FL), 2); printf(" V "); shell_print_fixed(ctx, power_get_rail_current(RAIL_5V2FL), 0); printf(" mA\n");
+    printf("1V35:   "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_1V35), 2); printf(" V "); shell_print_fixed(ctx, power_get_rail_current(RAIL_1V35), 0); printf(" mA\n");
+    printf("1V2:    "); shell_print_fixed(ctx, power_get_rail_voltage(RAIL_1V2), 2); printf(" V "); shell_print_fixed(ctx, power_get_rail_current(RAIL_1V2), 0); printf(" mA\n");
 
     float p_cur, p_avg, p_max;
     float p_cur_sum, p_avg_sum, p_max_sum;
 
     printf("Power Consumption (CUR, AVG, MAX):\n");
     power_get_rail_power(RAIL_3V3, &p_cur, &p_avg, &p_max);
-    printf("MCU + IO:  %5.1f mW  %5.1f mW  %5.1f mW\n", p_cur, p_avg, p_max);
+    printf("MCU + IO:  "); shell_print_fixed(ctx, p_cur, 1); printf(" mW  "); shell_print_fixed(ctx, p_avg, 1); printf(" mW  "); shell_print_fixed(ctx, p_max, 1); printf(" mW\n");
     power_get_rail_power(RAIL_1V35, &p_cur, &p_avg, &p_max);
-    printf("FPGA DDR:  %5.1f mW  %5.1f mW  %5.1f mW\n", p_cur, p_avg, p_max);
+    printf("FPGA DDR:  "); shell_print_fixed(ctx, p_cur, 1); printf(" mW  "); shell_print_fixed(ctx, p_avg, 1); printf(" mW  "); shell_print_fixed(ctx, p_max, 1); printf(" mW\n");
     power_get_rail_power(RAIL_1V2, &p_cur, &p_avg, &p_max);
-    printf("FPGA CORE: %5.1f mW  %5.1f mW  %5.1f mW\n", p_cur, p_avg, p_max);
+    printf("FPGA CORE: "); shell_print_fixed(ctx, p_cur, 1); printf(" mW  "); shell_print_fixed(ctx, p_avg, 1); printf(" mW  "); shell_print_fixed(ctx, p_max, 1); printf(" mW\n");
     power_get_rail_power(RAIL_1V8VID, &p_cur_sum, &p_avg_sum, &p_max_sum);
     power_get_rail_power(RAIL_3V3VID, &p_cur, &p_avg, &p_max);
     p_cur_sum += p_cur; p_avg_sum += p_avg; p_max_sum += p_max;
-    printf("VIDEO IN:  %5.1f mW  %5.1f mW  %5.1f mW\n", p_cur_sum, p_avg_sum, p_max_sum);
+    printf("VIDEO IN:  "); shell_print_fixed(ctx, p_cur_sum, 1); printf(" mW  "); shell_print_fixed(ctx, p_avg_sum, 1); printf(" mW  "); shell_print_fixed(ctx, p_max_sum, 1); printf(" mW\n");
     power_get_rail_power(RAIL_5VES, &p_cur_sum, &p_avg_sum, &p_max_sum);
     power_get_rail_power(RAIL_5VEG, &p_cur, &p_avg, &p_max);
     p_cur_sum += p_cur; p_avg_sum += p_avg; p_max_sum += p_max;
-    printf("EPD HV:    %5.1f mW  %5.1f mW  %5.1f mW\n", p_cur_sum, p_avg_sum, p_max_sum);
+    printf("EPD HV:    "); shell_print_fixed(ctx, p_cur_sum, 1); printf(" mW  "); shell_print_fixed(ctx, p_avg_sum, 1); printf(" mW  "); shell_print_fixed(ctx, p_max_sum, 1); printf(" mW\n");
 }
 
 const char shell_help_damage[] = "[samples]\n"
@@ -898,3 +926,4 @@ void shell_damage(shell_context_t *ctx, int argc, char **argv) {
             vTaskDelay(pdMS_TO_TICKS(200));
     }
 }
+#endif
