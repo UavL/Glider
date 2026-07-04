@@ -71,6 +71,7 @@ SHELL_FUNC( shell_help );
 SHELL_FUNC( shell_ver );
 SHELL_FUNC( shell_syslog );
 SHELL_FUNC( shell_setcfg );
+SHELL_FUNC( shell_power );
 #ifdef GLIDER_DIAGNOSTIC_SHELL
 SHELL_FUNC( shell_mem );
 SHELL_FUNC( shell_test );
@@ -87,6 +88,7 @@ SHELL_HELP( help );
 SHELL_HELP( ver );
 SHELL_HELP( syslog );
 SHELL_HELP( setcfg );
+SHELL_HELP( power );
 #ifdef GLIDER_DIAGNOSTIC_SHELL
 SHELL_HELP( mem );
 SHELL_HELP( test );
@@ -106,6 +108,7 @@ const SHELL_COMMAND shell_commands[] =
   { "ver", shell_ver },
   { "syslog", shell_syslog },
   { "setcfg", shell_setcfg },
+  { "power", shell_power },
 #ifdef GLIDER_DIAGNOSTIC_SHELL
   { "mem", shell_mem },
   { "test", shell_test },
@@ -127,6 +130,7 @@ static const SHELL_HELP_DATA shell_help_data[] =
   SHELL_INFO( ver ),
   SHELL_INFO( syslog ),
   SHELL_INFO( setcfg ),
+  SHELL_INFO( power ),
 #ifdef GLIDER_DIAGNOSTIC_SHELL
   SHELL_INFO( mem ),
   SHELL_INFO( test ),

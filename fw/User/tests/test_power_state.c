@@ -25,13 +25,22 @@ static int test_suspend_resume_transitions_are_ordered(void) {
 
     power_state_init(&state);
     ASSERT_EQ(POWER_STATE_ACTIVE, power_state_current(&state));
+    ASSERT_EQ(POWER_SUSPEND_NONE, power_state_current_suspend_reason(&state));
+    ASSERT_EQ(POWER_SUSPEND_NONE, power_state_last_suspend_reason(&state));
+    ASSERT_EQ(0, power_state_suspend_count(&state));
+    ASSERT_EQ(0, power_state_resume_count(&state));
 
-    ASSERT_TRUE(power_state_request_suspend(&state));
+    ASSERT_TRUE(power_state_request_suspend(&state, POWER_SUSPEND_USER));
     ASSERT_EQ(POWER_STATE_SUSPENDING, power_state_current(&state));
-    ASSERT_FALSE(power_state_request_suspend(&state));
+    ASSERT_EQ(POWER_SUSPEND_USER, power_state_current_suspend_reason(&state));
+    ASSERT_FALSE(power_state_request_suspend(&state, POWER_SUSPEND_VIDEO_LOSS));
 
     power_state_mark_suspended(&state);
     ASSERT_EQ(POWER_STATE_SUSPENDED, power_state_current(&state));
+    ASSERT_EQ(POWER_SUSPEND_USER, power_state_current_suspend_reason(&state));
+    ASSERT_EQ(POWER_SUSPEND_USER, power_state_last_suspend_reason(&state));
+    ASSERT_EQ(1, power_state_suspend_count(&state));
+    ASSERT_EQ(0, power_state_resume_count(&state));
 
     ASSERT_TRUE(power_state_request_resume(&state, POWER_WAKE_BUTTON));
     ASSERT_EQ(POWER_STATE_RESUMING, power_state_current(&state));
@@ -39,6 +48,10 @@ static int test_suspend_resume_transitions_are_ordered(void) {
 
     power_state_mark_active(&state);
     ASSERT_EQ(POWER_STATE_ACTIVE, power_state_current(&state));
+    ASSERT_EQ(POWER_SUSPEND_NONE, power_state_current_suspend_reason(&state));
+    ASSERT_EQ(POWER_SUSPEND_USER, power_state_last_suspend_reason(&state));
+    ASSERT_EQ(1, power_state_suspend_count(&state));
+    ASSERT_EQ(1, power_state_resume_count(&state));
 
     return 0;
 }
@@ -49,13 +62,14 @@ static int test_wake_sources_only_apply_while_suspended(void) {
     power_state_init(&state);
     ASSERT_FALSE(power_state_can_wake(&state, POWER_WAKE_BUTTON));
 
-    ASSERT_TRUE(power_state_request_suspend(&state));
+    ASSERT_TRUE(power_state_request_suspend(&state, POWER_SUSPEND_VIDEO_LOSS));
     ASSERT_FALSE(power_state_can_wake(&state, POWER_WAKE_BUTTON));
 
     power_state_mark_suspended(&state);
     ASSERT_FALSE(power_state_can_wake(&state, POWER_WAKE_NONE));
     ASSERT_TRUE(power_state_can_wake(&state, POWER_WAKE_BUTTON));
     ASSERT_TRUE(power_state_can_wake(&state, POWER_WAKE_USB_PD));
+    ASSERT_TRUE(power_state_can_wake(&state, POWER_WAKE_USB));
     ASSERT_TRUE(power_state_can_wake(&state, POWER_WAKE_INPUT));
 
     return 0;

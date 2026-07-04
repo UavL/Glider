@@ -47,4 +47,6 @@ enum {
 
 void usbapp_term_out(char data, void *usr);
 int usbapp_term_in(int mode, void *usr);
+bool usbapp_take_suspend_event(void);
+bool usbapp_take_resume_event(void);
 portTASK_FUNCTION(usb_device_task, pvParameters);

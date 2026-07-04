@@ -30,6 +30,33 @@ void usbapp_term_out(char data, void *usr) {
 }
 
 QueueHandle_t rxqueue;
+static volatile bool usb_suspend_event;
+static volatile bool usb_resume_event;
+
+static bool usbapp_take_event(volatile bool *event) {
+    bool pending;
+
+    taskENTER_CRITICAL();
+    pending = *event;
+    *event = false;
+    taskEXIT_CRITICAL();
+    return pending;
+}
+
+static void usbapp_set_bus_suspend(bool suspended) {
+    taskENTER_CRITICAL();
+    usb_suspend_event = suspended;
+    usb_resume_event = !suspended;
+    taskEXIT_CRITICAL();
+}
+
+bool usbapp_take_suspend_event(void) {
+    return usbapp_take_event(&usb_suspend_event);
+}
+
+bool usbapp_take_resume_event(void) {
+    return usbapp_take_event(&usb_resume_event);
+}
 
 // TODO: Implement proper RTOS wakeup instead of this wait 10ms thing
 void tud_cdc_rx_cb(uint8_t itf) {
@@ -40,6 +67,15 @@ void tud_cdc_rx_cb(uint8_t itf) {
         uint8_t c = tud_cdc_read_char();
         xQueueSend(rxqueue, &c, 0);
     }
+}
+
+void tud_suspend_cb(bool remote_wakeup_en) {
+    (void)remote_wakeup_en;
+    usbapp_set_bus_suspend(true);
+}
+
+void tud_resume_cb(void) {
+    usbapp_set_bus_suspend(false);
 }
 
 int usbapp_term_in(int mode, void *usr) {
@@ -226,4 +262,3 @@ portTASK_FUNCTION(usb_device_task, pvParameters) {
         // following code only run if tud_task() process at least 1 event
     }
 }
-

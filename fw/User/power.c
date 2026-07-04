@@ -52,8 +52,20 @@ void power_init(void) {
     power_state_init(&power_state);
 }
 
+power_state_t power_get_state(void) {
+    return power_state_current(&power_state);
+}
+
+power_suspend_reason_t power_get_current_suspend_reason(void) {
+    return power_state_current_suspend_reason(&power_state);
+}
+
+power_suspend_reason_t power_get_last_suspend_reason(void) {
+    return power_state_last_suspend_reason(&power_state);
+}
+
 bool power_is_suspended(void) {
-    return power_state_current(&power_state) == POWER_STATE_SUSPENDED;
+    return power_get_state() == POWER_STATE_SUSPENDED;
 }
 
 bool power_request_resume(uint32_t wake_sources) {
@@ -64,25 +76,46 @@ void power_resume_complete(void) {
     power_state_mark_active(&power_state);
 }
 
+uint32_t power_get_last_wake_sources(void) {
+    return power_state_last_wake_sources(&power_state);
+}
+
+uint32_t power_get_suspend_count(void) {
+    return power_state_suspend_count(&power_state);
+}
+
+uint32_t power_get_resume_count(void) {
+    return power_state_resume_count(&power_state);
+}
+
 void power_off(void) {
-    if (!power_state_request_suspend(&power_state))
+    power_suspend(POWER_SUSPEND_USER);
+}
+
+void power_suspend(power_suspend_reason_t reason) {
+    if (!power_state_request_suspend(&power_state, reason))
         return;
 
     syslog_print("Suspending system");
-    usbpd_disarm_wake();
-    usbpd_suspend_displayport();
+    if (reason != POWER_SUSPEND_VIDEO_LOSS) {
+        usbpd_disarm_wake();
+        usbpd_suspend_displayport();
+    }
     power_off_epd();
     fpga_suspend();
-    adv7611_powerdown();
-    ptn3460_powerdown();
-    gpio_put(HPD_EN, 0);
-    gpio_put(DEC_RST, 0);
-    gpio_put(DP_PDN, 0);
+    if (reason != POWER_SUSPEND_VIDEO_LOSS) {
+        adv7611_powerdown();
+        ptn3460_powerdown();
+        gpio_put(HPD_EN, 0);
+        gpio_put(DEC_RST, 0);
+        gpio_put(DP_PDN, 0);
+    }
     gpio_put(LED_GRN, 0);
     gpio_put(LED_RED, 0);
 
     power_state_mark_suspended(&power_state);
-    usbpd_disarm_wake();
+    if (reason != POWER_SUSPEND_VIDEO_LOSS)
+        usbpd_disarm_wake();
     syslog_print("System suspended");
 }
 

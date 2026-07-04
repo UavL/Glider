@@ -41,6 +41,7 @@
 
 #define DP_PDN          GPIOD, GPIO_PIN_3
 #define DP_HPD          GPIOD, GPIO_PIN_7
+#define DP_ACTIVE       GPIOE, GPIO_PIN_6
 #define DEC_RST         GPIOD, GPIO_PIN_6
 
 #define HPD_EN          GPIOA, GPIO_PIN_9

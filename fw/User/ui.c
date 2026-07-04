@@ -574,6 +574,14 @@ static bool is_dp_active(void) {
     return dp_ready;
 }
 
+static bool is_dp_video_active(void) {
+    return gpio_get(DP_ACTIVE) == GPIO_PIN_SET;
+}
+
+static bool is_video_active(bool tmds_mode) {
+    return tmds_mode ? is_tmds_active() : is_dp_video_active();
+}
+
 static bool select_active_input(void) {
     bool tmds_mode = false;
 
@@ -645,10 +653,21 @@ static void resume_video_frontends(void) {
 }
 
 static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
-        TickType_t usbpd_wake_arm_time) {
+        TickType_t usbpd_wake_arm_time, bool tmds_mode) {
     btn_event_t btn_event;
+    power_suspend_reason_t reason = power_get_current_suspend_reason();
+
+    if ((reason == POWER_SUSPEND_VIDEO_LOSS) && is_video_active(tmds_mode))
+        return POWER_WAKE_INPUT;
+
+    if (usbapp_take_resume_event())
+        return POWER_WAKE_USB;
+
     if (xQueueReceive(btn_queue, &btn_event, pdMS_TO_TICKS(200)) == pdTRUE)
         return POWER_WAKE_BUTTON;
+
+    if (usbapp_take_resume_event())
+        return POWER_WAKE_USB;
 
     if (!*usbpd_wake_armed &&
             (((int32_t)xTaskGetTickCount() - (int32_t)usbpd_wake_arm_time) >= 0)) {
@@ -697,14 +716,15 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             }
 
             uint32_t wake_sources = wait_for_wake_source(&usbpd_wake_armed,
-                    usbpd_wake_arm_time);
+                    usbpd_wake_arm_time, tmds_mode);
             if (!power_request_resume(wake_sources))
                 continue;
 
             syslog_printf("Waking system: 0x%02x", (unsigned)wake_sources);
             usbpd_disarm_wake();
             fpga_resume();
-            resume_video_frontends();
+            if (power_get_last_suspend_reason() != POWER_SUSPEND_VIDEO_LOSS)
+                resume_video_frontends();
             start_display_pipeline(&tmds_mode);
             power_resume_complete();
 
@@ -721,6 +741,13 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             menu_render_state.category_index = 0;
             menu_render_state.depth = UI_MENU_DEPTH_CATEGORIES;
             caster_osd_set_enable(false);
+            continue;
+        }
+
+        (void)usbapp_take_resume_event();
+        if (usbapp_take_suspend_event()) {
+            syslog_print("USB bus suspended; suspending");
+            power_suspend(POWER_SUSPEND_USB);
             continue;
         }
 
@@ -763,9 +790,13 @@ portTASK_FUNCTION(ui_task, pvParameters) {
         }
 
         // Detect loss of signal / lost access to FPGA
-        if ((tmds_mode && (!is_tmds_active())) || (fpga_write_reg8(CSR_ID0, 0x00) != 0x35)) {
-            // Stop and restart
-            syslog_print("System reset!");
+        if (!is_video_active(tmds_mode)) {
+            syslog_print("Video signal lost; suspending");
+            power_suspend(POWER_SUSPEND_VIDEO_LOSS);
+            continue;
+        }
+        if (fpga_write_reg8(CSR_ID0, 0x00) != 0x35) {
+            syslog_print("FPGA access lost; resetting");
             power_off_epd();
             NVIC_SystemReset();
         }

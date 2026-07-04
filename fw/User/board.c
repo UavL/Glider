@@ -51,6 +51,13 @@ size_t board_usb_get_serial(uint16_t desc_str1[], size_t max_chars) {
 }
 
 void board_late_init(void) {
+    GPIO_InitTypeDef gpio = {0};
+
+    gpio.Pin = GPIO_PIN_6;
+    gpio.Mode = GPIO_MODE_INPUT;
+    gpio.Pull = GPIO_PULLDOWN;
+    HAL_GPIO_Init(GPIOE, &gpio);
+
     uint32_t iter_count = 100;
     uint32_t elapsed_ms;
     do {

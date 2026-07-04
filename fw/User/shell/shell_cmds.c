@@ -713,6 +713,94 @@ void shell_setvolt(shell_context_t *ctx, int argc, char **argv) {
 }
 #endif
 
+const char shell_help_power[] = "[status|off]\n"
+  "  status - Show suspend state, last wake source, and counters.\n"
+  "  off    - Enter device-level suspend.\n";
+const char shell_help_summary_power[] = "Show or change power state";
+
+static const char *power_shell_state_name(power_state_t state) {
+    switch (state) {
+    case POWER_STATE_ACTIVE:
+        return "active";
+    case POWER_STATE_SUSPENDING:
+        return "suspending";
+    case POWER_STATE_SUSPENDED:
+        return "suspended";
+    case POWER_STATE_RESUMING:
+        return "resuming";
+    default:
+        return "unknown";
+    }
+}
+
+static const char *power_shell_suspend_reason_name(
+        power_suspend_reason_t reason) {
+    switch (reason) {
+    case POWER_SUSPEND_NONE:
+        return "none";
+    case POWER_SUSPEND_USER:
+        return "user";
+    case POWER_SUSPEND_VIDEO_LOSS:
+        return "video-loss";
+    case POWER_SUSPEND_USB:
+        return "usb";
+    default:
+        return "unknown";
+    }
+}
+
+static void power_shell_print_wake_sources(shell_context_t *ctx,
+        uint32_t wake_sources) {
+    bool printed = false;
+
+    printf("0x%02x", (unsigned)wake_sources);
+    if (wake_sources == POWER_WAKE_NONE)
+        return;
+
+    printf(" (");
+    if (wake_sources & POWER_WAKE_BUTTON) {
+        printf("button");
+        printed = true;
+    }
+    if (wake_sources & POWER_WAKE_USB_PD) {
+        printf("%susbpd", printed ? "," : "");
+        printed = true;
+    }
+    if (wake_sources & POWER_WAKE_USB) {
+        printf("%susb", printed ? "," : "");
+        printed = true;
+    }
+    if (wake_sources & POWER_WAKE_INPUT) {
+        printf("%sinput", printed ? "," : "");
+    }
+    printf(")");
+}
+
+void shell_power(shell_context_t *ctx, int argc, char **argv) {
+    if ((argc > 1) && (strcmp(argv[1], "off") == 0)) {
+        printf("Suspending\n");
+        power_off();
+        return;
+    }
+
+    if ((argc > 1) && (strcmp(argv[1], "status") != 0)) {
+        printf("Usage: power [status|off]\n");
+        return;
+    }
+
+    printf("state: %s\n", power_shell_state_name(power_get_state()));
+    printf("current reason: %s\n",
+            power_shell_suspend_reason_name(
+                power_get_current_suspend_reason()));
+    printf("last reason: %s\n",
+            power_shell_suspend_reason_name(power_get_last_suspend_reason()));
+    printf("last wake: ");
+    power_shell_print_wake_sources(ctx, power_get_last_wake_sources());
+    printf("\n");
+    printf("suspend count: %u\n", (unsigned)power_get_suspend_count());
+    printf("resume count: %u\n", (unsigned)power_get_resume_count());
+}
+
 
 const char shell_help_setcfg[] = "<set|get|save> [key] [value]\n";
 const char shell_help_summary_setcfg[] = "Sets configuration. Remember to use save to save it to the flash.";

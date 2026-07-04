@@ -47,10 +47,17 @@ typedef enum {
 } power_rail_t;
 
 void power_off(void);
+void power_suspend(power_suspend_reason_t reason);
 void power_init(void);
+power_state_t power_get_state(void);
+power_suspend_reason_t power_get_current_suspend_reason(void);
+power_suspend_reason_t power_get_last_suspend_reason(void);
 bool power_is_suspended(void);
 bool power_request_resume(uint32_t wake_sources);
 void power_resume_complete(void);
+uint32_t power_get_last_wake_sources(void);
+uint32_t power_get_suspend_count(void);
+uint32_t power_get_resume_count(void);
 void power_on(void);
 void power_on_epd(void);
 void power_off_epd(void);
