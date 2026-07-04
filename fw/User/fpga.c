@@ -64,8 +64,11 @@ static void fpga_load_bitstream(const char *fn) {
 
     SPIFFS_clearerr(&spiffs_fs);
     spiffs_file f = SPIFFS_open(&spiffs_fs, fn, SPIFFS_O_RDONLY, 0);
-    if (SPIFFS_errno(&spiffs_fs) != 0)
+    if (SPIFFS_errno(&spiffs_fs) != 0) {
+        syslog_printf("Unable to open bitstream '%s': %d", fn,
+                SPIFFS_errno(&spiffs_fs));
         return;
+    }
 
     spiffs_stat s;
     SPIFFS_fstat(&spiffs_fs, f, &s);

@@ -85,9 +85,9 @@ static const value_label_t autoclear_interval_values[] = {
 };
 
 static const value_label_t autoclear_threshold_values[] = {
-    {AC_THRES_HIGH, "High"},
-    {AC_THRES_MED, "Medium"},
-    {AC_THRES_LOW, "Low"},
+    {AC_THRES_HIGH, "Sometimes"},
+    {AC_THRES_MED, "Occasionally"},
+    {AC_THRES_LOW, "Often"},
 };
 
 static const value_label_t input_values[] = {

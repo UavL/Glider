@@ -306,6 +306,27 @@ static int test_menu_viewport_moves_lazily(void) {
     return 0;
 }
 
+static int test_menu_autoclear_threshold_uses_frequency_labels(void) {
+    ui_menu_t menu;
+
+    config_init();
+    ui_menu_init(&menu, &config);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    for (int i = 0; i < 5; i++)
+        ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ASSERT_EQ('C', ui_menu_selected_label(&menu)[0]);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_EQ(UI_MENU_DEPTH_MODAL, ui_menu_depth(&menu));
+    ASSERT_EQ('S', ui_menu_row_label(&menu, 0)[0]);
+    ASSERT_EQ('O', ui_menu_row_label(&menu, 1)[0]);
+    ASSERT_EQ('O', ui_menu_row_label(&menu, 2)[0]);
+    ASSERT_EQ('f', ui_menu_row_label(&menu, 2)[1]);
+
+    return 0;
+}
+
 static int test_system_menu_exposes_osd_scale_setting(void) {
     ui_menu_t menu;
 
@@ -349,6 +370,7 @@ int main(void) {
     rc |= test_menu_contrast_uses_lcd_monitor_range();
     rc |= test_menu_exposes_category_and_scalar_modal_metadata();
     rc |= test_menu_viewport_moves_lazily();
+    rc |= test_menu_autoclear_threshold_uses_frequency_labels();
     rc |= test_system_menu_exposes_osd_scale_setting();
 
     return rc;

@@ -33,6 +33,12 @@ cflags=(
     "$SCRIPT_DIR/test_tone_lut.c" \
     -o "$BUILD_DIR/test_tone_lut"
 
+"$cc" "${cflags[@]}" \
+    "$USER_DIR/autoclear.c" \
+    "$SCRIPT_DIR/test_autoclear.c" \
+    -o "$BUILD_DIR/test_autoclear"
+
 "$BUILD_DIR/test_config_menu"
 "$BUILD_DIR/test_osd_font"
 "$BUILD_DIR/test_tone_lut"
+"$BUILD_DIR/test_autoclear"

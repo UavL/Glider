@@ -25,6 +25,7 @@
 #include "term.h"
 #include "app_main.h"
 #include "app.h"
+#include "autoclear.h"
 #include "xmodem.h"
 
 #ifdef printf
@@ -855,4 +856,45 @@ void shell_sensor(shell_context_t *ctx, int argc, char **argv) {
     power_get_rail_power(RAIL_5VEG, &p_cur, &p_avg, &p_max);
     p_cur_sum += p_cur; p_avg_sum += p_avg; p_max_sum += p_max;
     printf("EPD HV:    %5.1f mW  %5.1f mW  %5.1f mW\n", p_cur_sum, p_avg_sum, p_max_sum);
+}
+
+const char shell_help_damage[] = "[samples]\n"
+  "  samples - Optional number of 200 ms damage-counter samples.\n";
+const char shell_help_summary_damage[] = "Show Caster damage counter";
+
+void shell_damage(shell_context_t *ctx, int argc, char **argv) {
+    int samples = 1;
+    uint32_t accumulated = 0;
+
+    if (argc > 1)
+        samples = strtol(argv[1], NULL, 0);
+    if (samples < 1)
+        samples = 1;
+
+    uint8_t id = fpga_write_reg8(CSR_ID0, 0x00);
+    uint8_t status = fpga_write_reg8(CSR_STATUS, 0x00);
+    uint32_t threshold = autoclear_scaled_threshold(config.autoclear_threshold,
+            config.hact, config.vact);
+
+    printf("fpga id: 0x%02x status: 0x%02x\n", id, status);
+    printf("autoclear mode: %d interval: %d threshold: %d scaled: %u\n",
+            config.autoclear_mode, config.autoclear_interval,
+            config.autoclear_threshold, (unsigned)threshold);
+
+    for (int i = 0; i < samples; i++) {
+        uint32_t damage = caster_get_damage_counter();
+        uint64_t next_accumulated = (uint64_t)accumulated + damage;
+        accumulated = (next_accumulated > UINT32_MAX) ?
+                UINT32_MAX : (uint32_t)next_accumulated;
+        bool trigger = accumulated > threshold;
+        uint32_t remaining = trigger ? 0 : threshold - accumulated;
+
+        printf("%d: damage=%u accumulated=%u remaining=%u%s\n", i,
+                (unsigned)damage, (unsigned)accumulated,
+                (unsigned)remaining, trigger ? " trigger" : "");
+        if (trigger)
+            accumulated = 0;
+        if (i + 1 < samples)
+            vTaskDelay(pdMS_TO_TICKS(200));
+    }
 }

@@ -25,6 +25,7 @@
 #include "app.h"
 #include <stdio.h>
 #include <string.h>
+#include "autoclear.h"
 #include "ui.h"
 #include "osd_font.h"
 #include "ui_menu.h"
@@ -390,18 +391,6 @@ static void render_settings_menu(const osd_fonts_t *fonts, const ui_menu_t *menu
     caster_osd_set_enable(true);
 }
 
-static uint32_t autoclear_interval_ms(void) {
-    switch (config.autoclear_interval) {
-    case AC_1MIN:
-        return 60000;
-    case AC_15MIN:
-        return 15 * 60000;
-    case AC_5MIN:
-    default:
-        return 5 * 60000;
-    }
-}
-
 static int binding_index_for_event(btn_event_t event) {
     switch (event) {
     case BTN1_SHORT_PRESSED:
@@ -430,6 +419,18 @@ static const char *input_label(uint8_t input) {
     case INPUT_SEL_AUTO:
     default:
         return "Auto";
+    }
+}
+
+static const char *autoclear_mode_label(void) {
+    switch (config.autoclear_mode) {
+    case AC_ADAPT:
+        return "Adaptive";
+    case AC_FIXED:
+        return "Fixed";
+    case AC_OFF:
+    default:
+        return "OFF";
     }
 }
 
@@ -473,10 +474,18 @@ static void preview_tone_modal(const ui_menu_t *menu) {
     caster_set_tone(lightness, contrast);
 }
 
+static void reset_autoclear_state(TickType_t *autoclear_timeout,
+        uint32_t *autoclear_damage_counter, uint32_t *autoclear_damage_last) {
+    if (autoclear_timeout != NULL)
+        *autoclear_timeout = 0;
+    autoclear_reset(autoclear_damage_counter, autoclear_damage_last);
+}
+
 static void execute_button_action(button_action_t action, const osd_fonts_t *fonts,
         ui_menu_t *menu, bool *menu_open, bool *autoclear,
         TickType_t *osd_timeout, TickType_t *autoclear_timeout,
-        osd_menu_render_state_t *render_state) {
+        uint32_t *autoclear_damage_counter, uint32_t *autoclear_damage_last,
+        osd_menu_render_state_t *render_state, int *autoclear_previous_mode) {
     switch (action) {
     case ACT_PREV_MODE:
         mode--;
@@ -504,13 +513,17 @@ static void execute_button_action(button_action_t action, const osd_fonts_t *fon
         break;
     case ACT_CLEAR:
         caster_redraw(0, 0, config.hact, config.vact);
+        reset_autoclear_state(autoclear_timeout, autoclear_damage_counter,
+                autoclear_damage_last);
         break;
     case ACT_TOGGLE_AC:
-        config.autoclear_mode = *autoclear ? AC_OFF : AC_FIXED;
+        config.autoclear_mode = autoclear_toggle_mode(config.autoclear_mode,
+                autoclear_previous_mode);
         *autoclear = config.autoclear_mode != AC_OFF;
-        *autoclear_timeout = 0;
+        reset_autoclear_state(autoclear_timeout, autoclear_damage_counter,
+                autoclear_damage_last);
         config_save();
-        draw_status_popup(fonts, "Auto Clear", *autoclear ? "ON" : "OFF");
+        draw_status_popup(fonts, "Auto Clear", autoclear_mode_label());
         *osd_timeout = xTaskGetTickCount() + pdMS_TO_TICKS(2000);
         break;
     case ACT_OPEN_SETTINGS:
@@ -578,6 +591,10 @@ static void restart_fpga(void) {
 portTASK_FUNCTION(ui_task, pvParameters) {
     TickType_t osd_timeout = 0;
     TickType_t autoclear_timeout = 0;
+    uint32_t autoclear_damage_counter = 0;
+    uint32_t autoclear_damage_last = 0;
+    int autoclear_previous_mode = (config.autoclear_mode == AC_ADAPT ||
+            config.autoclear_mode == AC_FIXED) ? config.autoclear_mode : AC_ADAPT;
     bool autoclear = config.autoclear_mode != AC_OFF;
     bool menu_open = false;
     ui_menu_t menu;
@@ -644,17 +661,35 @@ portTASK_FUNCTION(ui_task, pvParameters) {
         }
 
         // Update auto clear
+        bool autoclear_trigger = false;
+        if (autoclear && (config.autoclear_mode == AC_ADAPT)) {
+            autoclear_trigger = autoclear_adaptive_update(
+                    &autoclear_damage_counter, &autoclear_damage_last,
+                    caster_get_damage_counter(), config.autoclear_threshold,
+                    config.hact, config.vact);
+        }
+
         if ((autoclear_timeout != 0) && (((int32_t)xTaskGetTickCount() - (int32_t)autoclear_timeout) >= 0)) {
-            caster_redraw(0, 0, config.hact, config.vact);
+            autoclear_trigger = true;
             autoclear_timeout = 0; // Pending reset
         }
 
-        if (autoclear && (autoclear_timeout == 0)) {
-            autoclear_timeout = xTaskGetTickCount() + pdMS_TO_TICKS(autoclear_interval_ms());
+        if (autoclear_trigger) {
+            caster_redraw(0, 0, config.hact, config.vact);
+            reset_autoclear_state(&autoclear_timeout, &autoclear_damage_counter,
+                    &autoclear_damage_last);
+        }
+
+        if (autoclear && (config.autoclear_mode == AC_FIXED) &&
+                (autoclear_timeout == 0)) {
+            autoclear_timeout = xTaskGetTickCount() +
+                    pdMS_TO_TICKS(autoclear_fixed_interval_ms(
+                            config.autoclear_interval));
         }
 
         if (!autoclear) {
-            autoclear_timeout = 0;
+            reset_autoclear_state(&autoclear_timeout, &autoclear_damage_counter,
+                    &autoclear_damage_last);
         }
 
         // Detect loss of signal / lost access to FPGA
@@ -727,18 +762,36 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                     preview_tone_modal(&menu);
                 }
                 if (menu_config_changed(&previous_config)) {
+                    if (previous_config.autoclear_mode != config.autoclear_mode) {
+                        if ((config.autoclear_mode == AC_ADAPT) ||
+                                (config.autoclear_mode == AC_FIXED)) {
+                            autoclear_previous_mode = config.autoclear_mode;
+                        }
+                        else if ((previous_config.autoclear_mode == AC_ADAPT) ||
+                                (previous_config.autoclear_mode == AC_FIXED)) {
+                            autoclear_previous_mode = previous_config.autoclear_mode;
+                        }
+                    }
                     config_save();
                     autoclear = config.autoclear_mode != AC_OFF;
                     if ((previous_config.lightness != config.lightness) ||
                             (previous_config.contrast != config.contrast)) {
                         caster_set_tone(config.lightness, config.contrast);
                     }
-                    if (previous_config.autoclear_interval != config.autoclear_interval)
-                        autoclear_timeout = 0;
+                    if ((previous_config.autoclear_mode != config.autoclear_mode) ||
+                            (previous_config.autoclear_interval != config.autoclear_interval) ||
+                            (previous_config.autoclear_threshold != config.autoclear_threshold)) {
+                        reset_autoclear_state(&autoclear_timeout,
+                                &autoclear_damage_counter,
+                                &autoclear_damage_last);
+                    }
                     if (previous_mode != (update_mode_t)config.update_mode) {
                         mode = mode_index_for((update_mode_t)config.update_mode);
                         caster_setmode(0, 0, config.hact, config.vact,
                                 modes[mode].id);
+                        reset_autoclear_state(&autoclear_timeout,
+                                &autoclear_damage_counter,
+                                &autoclear_damage_last);
                     }
                 }
                 render_settings_menu(&fonts, &menu, &menu_render_state);
@@ -751,7 +804,9 @@ portTASK_FUNCTION(ui_task, pvParameters) {
         if ((binding >= 0) && (binding < CONFIG_BUTTON_BINDING_COUNT)) {
             execute_button_action((button_action_t)config.button_actions[binding],
                     &fonts, &menu, &menu_open, &autoclear, &osd_timeout,
-                    &autoclear_timeout, &menu_render_state);
+                    &autoclear_timeout, &autoclear_damage_counter,
+                    &autoclear_damage_last, &menu_render_state,
+                    &autoclear_previous_mode);
         }
     }
 }
