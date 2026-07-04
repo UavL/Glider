@@ -70,7 +70,7 @@ static void config_init_settings(void) {
     config.update_mode = UM_FAST_MONO_BAYER;
     config.lightness = 0;
     config.contrast = 0;
-    config.saturation = 0;
+    config.reserved_tone = 0;
     config.autoclear_mode = AC_OFF;
     config.autoclear_interval = AC_5MIN;
     config.autoclear_threshold = AC_THRES_MED;
@@ -292,8 +292,8 @@ void config_validate_loaded(size_t loaded_size) {
         config.input_sel = INPUT_SEL_AUTO;
 
     config.lightness = clamp_int(config.lightness, -3, 3);
-    config.contrast = clamp_int(config.contrast, -3, 3);
-    config.saturation = clamp_int(config.saturation, -3, 3);
+    config.contrast = clamp_int(config.contrast, -1, 6);
+    config.reserved_tone = 0;
 
     if ((config.autoclear_mode < 0) || (config.autoclear_mode >= AC_MODE_COUNT))
         config.autoclear_mode = AC_OFF;

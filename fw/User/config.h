@@ -112,7 +112,7 @@ typedef struct {
     int update_mode;
     int lightness;
     int contrast;
-    int saturation;
+    int reserved_tone;
     int autoclear_mode;
     int autoclear_interval;
     int autoclear_threshold;

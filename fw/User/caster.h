@@ -71,6 +71,8 @@
 #define CSR_CFG_FASTG_B2GFRAME 46
 #define CSR_CFG_FASTG_W2GFRAME 47
 #define CSR_OSD_SCALE       48
+#define CSR_TONE_ADDR       49
+#define CSR_TONE_WR         50
 #define CSR_STATUS          128
 #define CSR_ID0             129
 #define CSR_DAMAGE_COUNT_HI 130
@@ -133,3 +135,4 @@ uint8_t caster_osd_send_buf(uint8_t *buf);
 uint8_t caster_osd_set_window(uint16_t left, uint16_t top,
     uint16_t logical_width, uint16_t logical_height);
 uint8_t caster_osd_set_enable(bool en);
+void caster_set_tone(int lightness, int contrast);

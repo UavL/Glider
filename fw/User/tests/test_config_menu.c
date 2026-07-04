@@ -49,7 +49,7 @@ static int test_legacy_config_validation_repairs_appended_fields(void) {
     config.update_mode = -1;
     config.lightness = 99;
     config.contrast = -99;
-    config.saturation = 99;
+    config.reserved_tone = 99;
     config.autoclear_mode = 99;
     config.autoclear_interval = 99;
     config.autoclear_threshold = 99;
@@ -64,7 +64,7 @@ static int test_legacy_config_validation_repairs_appended_fields(void) {
     ASSERT_EQ(UM_FAST_MONO_BAYER, config.update_mode);
     ASSERT_EQ(0, config.lightness);
     ASSERT_EQ(0, config.contrast);
-    ASSERT_EQ(0, config.saturation);
+    ASSERT_EQ(0, config.reserved_tone);
     ASSERT_EQ(AC_OFF, config.autoclear_mode);
     ASSERT_EQ(AC_5MIN, config.autoclear_interval);
     ASSERT_EQ(AC_THRES_MED, config.autoclear_threshold);
@@ -105,7 +105,7 @@ static int test_config_validation_repairs_invalid_values(void) {
     config.input_sel = 99;
     config.lightness = 4;
     config.contrast = -4;
-    config.saturation = 4;
+    config.reserved_tone = 4;
     config.autoclear_mode = 99;
     config.autoclear_interval = -1;
     config.autoclear_threshold = 99;
@@ -118,8 +118,8 @@ static int test_config_validation_repairs_invalid_values(void) {
     ASSERT_EQ(UM_FAST_MONO_BAYER, config.update_mode);
     ASSERT_EQ(INPUT_SEL_AUTO, config.input_sel);
     ASSERT_EQ(3, config.lightness);
-    ASSERT_EQ(-3, config.contrast);
-    ASSERT_EQ(3, config.saturation);
+    ASSERT_EQ(-1, config.contrast);
+    ASSERT_EQ(0, config.reserved_tone);
     ASSERT_EQ(AC_OFF, config.autoclear_mode);
     ASSERT_EQ(AC_5MIN, config.autoclear_interval);
     ASSERT_EQ(AC_THRES_MED, config.autoclear_threshold);
@@ -128,6 +128,10 @@ static int test_config_validation_repairs_invalid_values(void) {
     config.osd_scale_2x = -1;
     config_validate_loaded(sizeof(config));
     ASSERT_EQ(0, config.osd_scale_2x);
+
+    config.contrast = 99;
+    config_validate_loaded(sizeof(config));
+    ASSERT_EQ(6, config.contrast);
 
     return 0;
 }
@@ -178,10 +182,13 @@ static int test_menu_snapshot_exposes_visible_rows_and_values(void) {
     ASSERT_EQ(1, ui_menu_row_selected(&menu, 0));
 
     ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
-    ASSERT_TRUE(ui_menu_row_count(&menu) > 3);
+    ASSERT_EQ(6, ui_menu_row_count(&menu));
     ASSERT_EQ('U', ui_menu_row_label(&menu, 0)[0]);
     ASSERT_EQ('B', ui_menu_row_value(&menu, 0)[0]);
     ASSERT_EQ(1, ui_menu_row_selected(&menu, 0));
+    ASSERT_EQ('L', ui_menu_row_label(&menu, 1)[0]);
+    ASSERT_EQ('C', ui_menu_row_label(&menu, 2)[0]);
+    ASSERT_EQ('A', ui_menu_row_label(&menu, 3)[0]);
 
     ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
     ASSERT_EQ(4, ui_menu_row_count(&menu));
@@ -210,6 +217,56 @@ static int test_menu_scalar_modal_commits_lightness(void) {
 
     ASSERT_EQ(UI_MENU_DEPTH_ITEMS, ui_menu_depth(&menu));
     ASSERT_EQ(1, config.lightness);
+
+    return 0;
+}
+
+static int test_menu_scalar_modal_exposes_preview_value_without_commit(void) {
+    ui_menu_t menu;
+
+    config_init();
+    ui_menu_init(&menu, &config);
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+
+    ASSERT_EQ(1, ui_menu_modal_is_tone(&menu));
+    ASSERT_EQ(1, ui_menu_modal_tone_target(&menu));
+    ASSERT_EQ(0, ui_menu_modal_preview_value(&menu));
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ASSERT_EQ(1, ui_menu_modal_preview_value(&menu));
+    ASSERT_EQ(0, config.lightness);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_BACK);
+    ASSERT_EQ(UI_MENU_DEPTH_ITEMS, ui_menu_depth(&menu));
+    ASSERT_EQ(0, config.lightness);
+
+    return 0;
+}
+
+static int test_menu_contrast_uses_lcd_monitor_range(void) {
+    ui_menu_t menu;
+
+    config_init();
+    ui_menu_init(&menu, &config);
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ASSERT_EQ('C', ui_menu_selected_label(&menu)[0]);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_EQ(UI_MENU_DEPTH_MODAL, ui_menu_depth(&menu));
+    ASSERT_EQ(1, ui_menu_modal_is_tone(&menu));
+    ASSERT_EQ(2, ui_menu_modal_tone_target(&menu));
+    ASSERT_EQ(8, ui_menu_modal_count(&menu));
+    ASSERT_EQ(1, ui_menu_modal_index(&menu));
+    ASSERT_EQ(0, ui_menu_modal_preview_value(&menu));
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_PREV);
+    ASSERT_EQ(-1, ui_menu_modal_preview_value(&menu));
+    ui_menu_handle(&menu, UI_MENU_EVENT_PREV);
+    ASSERT_EQ(6, ui_menu_modal_preview_value(&menu));
 
     return 0;
 }
@@ -288,6 +345,8 @@ int main(void) {
     rc |= test_menu_navigation_commits_and_cancels_modal_values();
     rc |= test_menu_snapshot_exposes_visible_rows_and_values();
     rc |= test_menu_scalar_modal_commits_lightness();
+    rc |= test_menu_scalar_modal_exposes_preview_value_without_commit();
+    rc |= test_menu_contrast_uses_lcd_monitor_range();
     rc |= test_menu_exposes_category_and_scalar_modal_metadata();
     rc |= test_menu_viewport_moves_lazily();
     rc |= test_system_menu_exposes_osd_scale_setting();

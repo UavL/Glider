@@ -449,13 +449,28 @@ static bool menu_config_changed(const config_t *previous) {
             (previous->update_mode != config.update_mode) ||
             (previous->lightness != config.lightness) ||
             (previous->contrast != config.contrast) ||
-            (previous->saturation != config.saturation) ||
             (previous->autoclear_mode != config.autoclear_mode) ||
             (previous->autoclear_interval != config.autoclear_interval) ||
             (previous->autoclear_threshold != config.autoclear_threshold) ||
             (previous->osd_scale_2x != config.osd_scale_2x) ||
             (memcmp(previous->button_actions, config.button_actions,
                     sizeof(config.button_actions)) != 0);
+}
+
+static void preview_tone_modal(const ui_menu_t *menu) {
+    int lightness = config.lightness;
+    int contrast = config.contrast;
+    int target = ui_menu_modal_tone_target(menu);
+
+    if (target == 0)
+        return;
+
+    if (target == 1)
+        lightness = ui_menu_modal_preview_value(menu);
+    else if (target == 2)
+        contrast = ui_menu_modal_preview_value(menu);
+
+    caster_set_tone(lightness, contrast);
 }
 
 static void execute_button_action(button_action_t action, const osd_fonts_t *fonts,
@@ -678,6 +693,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             update_mode_t previous_mode = (update_mode_t)config.update_mode;
             ui_menu_event_t menu_event = UI_MENU_EVENT_ENTER;
             bool close_menu = false;
+            bool was_tone_modal = ui_menu_modal_is_tone(&menu);
 
             if (btn_event == BTN1_SHORT_PRESSED)
                 menu_event = UI_MENU_EVENT_PREV;
@@ -702,9 +718,21 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             }
             else {
                 ui_menu_handle(&menu, menu_event);
+                if (was_tone_modal && (menu_event == UI_MENU_EVENT_BACK)) {
+                    caster_set_tone(config.lightness, config.contrast);
+                }
+                else if (ui_menu_modal_is_tone(&menu) &&
+                        ((menu_event == UI_MENU_EVENT_PREV) ||
+                         (menu_event == UI_MENU_EVENT_NEXT))) {
+                    preview_tone_modal(&menu);
+                }
                 if (menu_config_changed(&previous_config)) {
                     config_save();
                     autoclear = config.autoclear_mode != AC_OFF;
+                    if ((previous_config.lightness != config.lightness) ||
+                            (previous_config.contrast != config.contrast)) {
+                        caster_set_tone(config.lightness, config.contrast);
+                    }
                     if (previous_config.autoclear_interval != config.autoclear_interval)
                         autoclear_timeout = 0;
                     if (previous_mode != (update_mode_t)config.update_mode) {

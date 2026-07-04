@@ -28,5 +28,11 @@ cflags=(
     "$SCRIPT_DIR/test_osd_font.c" \
     -o "$BUILD_DIR/test_osd_font"
 
+"$cc" "${cflags[@]}" \
+    "$USER_DIR/tone_lut.c" \
+    "$SCRIPT_DIR/test_tone_lut.c" \
+    -o "$BUILD_DIR/test_tone_lut"
+
 "$BUILD_DIR/test_config_menu"
 "$BUILD_DIR/test_osd_font"
+"$BUILD_DIR/test_tone_lut"

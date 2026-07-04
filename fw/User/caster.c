@@ -23,6 +23,7 @@
 #include "platform.h"
 #include "board.h"
 #include "app.h"
+#include "tone_lut.h"
 
 static size_t last_update;
 static size_t last_update_duration;
@@ -74,6 +75,7 @@ void caster_init(void) {
     caster_osd_set_window(0, 0, CASTER_OSD_WIDTH, CASTER_OSD_HEIGHT);
     fpga_write_reg8(CSR_OSD_EN, 0);
     fpga_write_reg8(CSR_CFG_MIRROR, config.mirror);
+    caster_set_tone(config.lightness, config.contrast);
     fpga_write_reg8(CSR_ENABLE, 1); // Enable refresh
 }
 
@@ -161,4 +163,12 @@ uint8_t caster_osd_set_window(uint16_t left, uint16_t top,
 uint8_t caster_osd_set_enable(bool en) {
     fpga_write_reg8(CSR_OSD_EN, en);
     return 0;
+}
+
+void caster_set_tone(int lightness, int contrast) {
+    uint8_t lut[TONE_LUT_SIZE];
+
+    tone_lut_build_y(lightness, contrast, lut);
+    fpga_write_reg8(CSR_TONE_ADDR, 0);
+    fpga_write_bulk(CSR_TONE_WR, lut, TONE_LUT_SIZE);
 }

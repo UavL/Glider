@@ -6,7 +6,6 @@ typedef enum {
     MENU_ITEM_UPDATE_MODE = 0,
     MENU_ITEM_LIGHTNESS,
     MENU_ITEM_CONTRAST,
-    MENU_ITEM_SATURATION,
     MENU_ITEM_AUTO_CLEAR,
     MENU_ITEM_AUTO_CLEAR_INTERVAL,
     MENU_ITEM_AUTO_CLEAR_THRESHOLD,
@@ -41,7 +40,6 @@ static const menu_item_t display_items[] = {
     {MENU_ITEM_UPDATE_MODE, "Update Mode"},
     {MENU_ITEM_LIGHTNESS, "Lightness"},
     {MENU_ITEM_CONTRAST, "Contrast"},
-    {MENU_ITEM_SATURATION, "Saturation"},
     {MENU_ITEM_AUTO_CLEAR, "Auto Clear"},
     {MENU_ITEM_AUTO_CLEAR_INTERVAL, "Clear Interval"},
     {MENU_ITEM_AUTO_CLEAR_THRESHOLD, "Clear Threshold"},
@@ -113,6 +111,17 @@ static const value_label_t scalar_values[] = {
     {3, "3"},
 };
 
+static const value_label_t contrast_values[] = {
+    {-1, "-1"},
+    {0, "0"},
+    {1, "+1"},
+    {2, "+2"},
+    {3, "+3"},
+    {4, "+4"},
+    {5, "+5"},
+    {6, "+6"},
+};
+
 static const value_label_t action_values[] = {
     {ACT_PREV_MODE, "Previous Display Mode"},
     {ACT_NEXT_MODE, "Next Display Mode"},
@@ -167,10 +176,10 @@ static int modal_count(const ui_menu_t *menu) {
 
     if (item->id == MENU_ITEM_UPDATE_MODE)
         return (int)(sizeof(update_mode_values) / sizeof(update_mode_values[0]));
-    if ((item->id == MENU_ITEM_LIGHTNESS) ||
-            (item->id == MENU_ITEM_CONTRAST) ||
-            (item->id == MENU_ITEM_SATURATION))
+    if (item->id == MENU_ITEM_LIGHTNESS)
         return (int)(sizeof(scalar_values) / sizeof(scalar_values[0]));
+    if (item->id == MENU_ITEM_CONTRAST)
+        return (int)(sizeof(contrast_values) / sizeof(contrast_values[0]));
     if ((item->id >= MENU_ITEM_BUTTON_1_SHORT) && (item->id <= MENU_ITEM_BUTTON_3_LONG))
         return (int)(sizeof(action_values) / sizeof(action_values[0]));
     if (item->id == MENU_ITEM_AUTO_CLEAR)
@@ -189,8 +198,7 @@ static int modal_count(const ui_menu_t *menu) {
 
 static int item_is_scalar(menu_item_id_t id) {
     return (id == MENU_ITEM_LIGHTNESS) ||
-            (id == MENU_ITEM_CONTRAST) ||
-            (id == MENU_ITEM_SATURATION);
+            (id == MENU_ITEM_CONTRAST);
 }
 
 static int *config_value_ptr(ui_menu_t *menu, menu_item_id_t id) {
@@ -201,8 +209,6 @@ static int *config_value_ptr(ui_menu_t *menu, menu_item_id_t id) {
         return &menu->config->lightness;
     case MENU_ITEM_CONTRAST:
         return &menu->config->contrast;
-    case MENU_ITEM_SATURATION:
-        return &menu->config->saturation;
     case MENU_ITEM_AUTO_CLEAR:
         return &menu->config->autoclear_mode;
     case MENU_ITEM_AUTO_CLEAR_INTERVAL:
@@ -249,11 +255,13 @@ static const value_label_t *item_values(menu_item_id_t id, int *count) {
         *count = (int)(sizeof(update_mode_values) / sizeof(update_mode_values[0]));
         return update_mode_values;
     }
-    if ((id == MENU_ITEM_LIGHTNESS) ||
-            (id == MENU_ITEM_CONTRAST) ||
-            (id == MENU_ITEM_SATURATION)) {
+    if (id == MENU_ITEM_LIGHTNESS) {
         *count = (int)(sizeof(scalar_values) / sizeof(scalar_values[0]));
         return scalar_values;
+    }
+    if (id == MENU_ITEM_CONTRAST) {
+        *count = (int)(sizeof(contrast_values) / sizeof(contrast_values[0]));
+        return contrast_values;
     }
     if ((id >= MENU_ITEM_BUTTON_1_SHORT) && (id <= MENU_ITEM_BUTTON_3_LONG)) {
         *count = (int)(sizeof(action_values) / sizeof(action_values[0]));
@@ -440,9 +448,7 @@ const char *ui_menu_row_value(const ui_menu_t *menu, int row) {
         return "";
 
     const menu_item_t *item = &categories[menu->category_index].items[row];
-    if ((item->id == MENU_ITEM_LIGHTNESS) ||
-            (item->id == MENU_ITEM_CONTRAST) ||
-            (item->id == MENU_ITEM_SATURATION)) {
+    if (item->id == MENU_ITEM_LIGHTNESS) {
         int *value = config_value_ptr((ui_menu_t *)menu, item->id);
         return scalar_label((value != NULL) ? *value : 0);
     }
@@ -483,6 +489,38 @@ int ui_menu_modal_is_scalar(const ui_menu_t *menu) {
     if ((item == NULL) || (menu->depth != UI_MENU_DEPTH_MODAL))
         return 0;
     return item_is_scalar(item->id);
+}
+
+int ui_menu_modal_is_tone(const ui_menu_t *menu) {
+    const menu_item_t *item = selected_item(menu);
+    if ((item == NULL) || (menu->depth != UI_MENU_DEPTH_MODAL))
+        return 0;
+    return (item->id == MENU_ITEM_LIGHTNESS) || (item->id == MENU_ITEM_CONTRAST);
+}
+
+int ui_menu_modal_tone_target(const ui_menu_t *menu) {
+    const menu_item_t *item = selected_item(menu);
+    if ((item == NULL) || (menu->depth != UI_MENU_DEPTH_MODAL))
+        return 0;
+    if (item->id == MENU_ITEM_LIGHTNESS)
+        return 1;
+    if (item->id == MENU_ITEM_CONTRAST)
+        return 2;
+    return 0;
+}
+
+int ui_menu_modal_preview_value(const ui_menu_t *menu) {
+    const menu_item_t *item = selected_item(menu);
+    int count = 0;
+    const value_label_t *values;
+
+    if ((item == NULL) || (menu->depth != UI_MENU_DEPTH_MODAL))
+        return 0;
+
+    values = item_values(item->id, &count);
+    if ((values == NULL) || (menu->modal_index >= count))
+        return 0;
+    return values[menu->modal_index].value;
 }
 
 int ui_menu_modal_count(const ui_menu_t *menu) {
