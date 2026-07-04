@@ -30,7 +30,7 @@
 
 #define BITSTREAM_NAME_MAX  40
 
-#define CONFIG_SCHEMA_VERSION       1u
+#define CONFIG_SCHEMA_VERSION       2u
 #define CONFIG_BUTTON_BINDING_COUNT 6
 
 #define INPUT_SEL_AUTO      0
@@ -116,6 +116,7 @@ typedef struct {
     int autoclear_mode;
     int autoclear_interval;
     int autoclear_threshold;
+    int osd_scale_2x;
 } config_t;
 
 extern config_t config;

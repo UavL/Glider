@@ -13,12 +13,17 @@ OSD_FONT_VERSION = 1
 OSD_FONT_TYPE_PROPORTIONAL_ASCII = 1
 OSD_FONT_PIXFMT_Y1 = 1
 SIZES = (16, 20, 28)
+THRESHOLDS = {
+    16: 129,
+    20: 150,
+    28: 160
+}
 ASCII_FIRST = 32
 ASCII_LAST = 126
 DEFAULT_TTF_CANDIDATES = (
+    pathlib.Path("usr/share/fonts/truetype/quicksand/Quicksand-Regular.ttf"),
     pathlib.Path("usr/share/fonts/truetype/quicksand/Quicksand-Bold.ttf"),
     pathlib.Path("usr/share/fonts/truetype/quicksand/Quicksand-VariableFont_wght.ttf"),
-    pathlib.Path("usr/share/fonts/truetype/quicksand/Quicksand-Regular.ttf"),
 )
 
 
@@ -51,7 +56,7 @@ def _glyph_bounds(font, chars):
     return top, bottom, max_width
 
 
-def _render_glyph_words(font, ch, max_width, height, top):
+def _render_glyph_words(font, ch, max_width, height, top, threshold):
     bbox = font.getbbox(ch)
     advance = int(math.ceil(font.getlength(ch)))
     left = min(0, bbox[0])
@@ -65,7 +70,7 @@ def _render_glyph_words(font, ch, max_width, height, top):
     for y in range(height):
         row = [0] * row_words
         for x in range(width):
-            if image.getpixel((x, y)) >= 128:
+            if image.getpixel((x, y)) >= threshold:
                 row[x // 32] |= 0x80000000 >> (x % 32)
         words.extend(row)
     return words
@@ -80,7 +85,7 @@ def build_font_words(ttf, size):
     glyph_words = 1 + height * row_words
     data = []
     for ch in chars:
-        glyph = _render_glyph_words(font, ch, max_width, height, top)
+        glyph = _render_glyph_words(font, ch, max_width, height, top, THRESHOLDS[size])
         if len(glyph) != glyph_words:
             raise ValueError(f"internal glyph size mismatch for {ch!r}")
         data.extend(glyph)

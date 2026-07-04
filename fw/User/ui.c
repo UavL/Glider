@@ -56,10 +56,12 @@ const update_mode_item_t modes[] = {
 
 static int mode_max = sizeof(modes) / sizeof(modes[0]);
 
-#define OSD_WIDTH   CASTER_OSD_WIDTH
-#define OSD_HEIGHT  CASTER_OSD_HEIGHT
-#define OSD_BLACK   false
-#define OSD_WHITE   true
+#define OSD_WIDTH           CASTER_OSD_WIDTH
+#define OSD_HEIGHT          CASTER_OSD_HEIGHT
+#define OSD_STATUS_WIDTH    256
+#define OSD_STATUS_HEIGHT   64
+#define OSD_BLACK           false
+#define OSD_WHITE           true
 static uint8_t osd_fb[CASTER_OSD_BUF_SIZE];
 
 typedef struct {
@@ -204,10 +206,11 @@ static int mode_index_for(update_mode_t id) {
 
 static void draw_status_popup(const osd_fonts_t *fonts, const char *title, const char *value) {
     osd_clear(0xff);
-    osd_draw_prop_string(font_or(fonts->item, fonts->large), 12, 20, title,
-            OSD_WIDTH - 24, OSD_BLACK);
-    osd_draw_prop_string(font_or(fonts->large, fonts->item), 12, 72, value,
-            OSD_WIDTH - 24, OSD_BLACK);
+    char *textbuf[80];
+    snprintf(textbuf, 80, "%s %s", title, value);
+    osd_draw_prop_string(font_or(fonts->large, fonts->item), 12, 14, textbuf,
+            OSD_STATUS_WIDTH - 24, OSD_BLACK);
+    caster_osd_set_window(0, 0, OSD_STATUS_WIDTH, OSD_STATUS_HEIGHT);
     caster_osd_send_buf(osd_fb);
     caster_osd_set_enable(true);
 }
@@ -230,7 +233,7 @@ static void draw_menu_row(const osd_fonts_t *fonts, int y, int h, bool selected,
 
     const osd_font_t *item_font = font_or(fonts->item, fonts->small);
     const osd_font_t *value_font = font_or(fonts->small, fonts->item);
-    int text_y = y + ((h > 34) ? 9 : 6);
+    int text_y = y + ((h > 34) ? 8 : 4);
     if (value != NULL && value[0] != '\0') {
         osd_draw_prop_string(item_font, x + 8, text_y, label, w - 110, fg);
         osd_draw_right_string(value_font, x + w - 8, text_y + 2, value, 96, fg);
@@ -247,19 +250,22 @@ static void draw_slider_modal(const osd_fonts_t *fonts, const ui_menu_t *menu) {
     int h = OSD_HEIGHT - y - 22 - 4;
     int rail_x = x + 24;
     int rail_w = w - 48;
-    int rail_y = y + 118;
+    int rail_y = y + 80;
     int count = ui_menu_modal_count(menu);
     int index = ui_menu_modal_index(menu);
     int tick_step = (count > 1) ? rail_w / (count - 1) : 0;
     int knob_x = rail_x + tick_step * index;
+
+    if (tick_step != 0)
+        rail_w = tick_step * (count - 1);
 
     osd_fill_rect(x, y, w, h, OSD_WHITE);
     osd_draw_rect(x, y, w, h, OSD_BLACK, 3);
 
     osd_draw_prop_string(font_or(fonts->item, fonts->small), x + 8, y + 10,
             ui_menu_selected_label(menu), w - 16, OSD_BLACK);
-    osd_draw_prop_string(font_or(fonts->large, fonts->item), x + 12, y + 62,
-            ui_menu_modal_value_label(menu), w - 24, OSD_BLACK);
+    osd_draw_prop_string(font_or(fonts->large, fonts->item), OSD_WIDTH / 2 - 10,
+            y + 40, ui_menu_modal_value_label(menu), w - 24, OSD_BLACK);
 
     osd_fill_rect(rail_x, rail_y - 2, rail_w, 4, OSD_BLACK);
     for (int i = 0; i < count; i++) {
@@ -268,9 +274,9 @@ static void draw_slider_modal(const osd_fonts_t *fonts, const ui_menu_t *menu) {
     }
     osd_fill_rect(knob_x - 6, rail_y - 10, 12, 20, OSD_BLACK);
 
-    osd_draw_prop_string(font_or(fonts->small, fonts->item), rail_x, rail_y + 18,
+    osd_draw_prop_string(font_or(fonts->small, fonts->item), rail_x - 8, rail_y + 18,
             "-3", 36, OSD_BLACK);
-    osd_draw_right_string(font_or(fonts->small, fonts->item), rail_x + rail_w,
+    osd_draw_right_string(font_or(fonts->small, fonts->item), rail_x + rail_w + 8,
             rail_y + 18, "3", 36, OSD_BLACK);
 }
 
@@ -287,7 +293,7 @@ static void draw_list_modal(const osd_fonts_t *fonts, const ui_menu_t *menu,
     osd_fill_rect(x, y, w, h, OSD_WHITE);
     osd_draw_rect(x, y, w, h, OSD_BLACK, 3);
 
-    osd_draw_prop_string(font_or(fonts->item, fonts->small), x + 8, y + 10,
+    osd_draw_prop_string(font_or(fonts->item, fonts->small), x + 8, y + 8,
             ui_menu_selected_label(menu), w - 16, OSD_BLACK);
 
     if (visible > (h - 34) / row_h)
@@ -301,7 +307,7 @@ static void draw_list_modal(const osd_fonts_t *fonts, const ui_menu_t *menu,
         bool bg = selected ? OSD_BLACK : OSD_WHITE;
         int yy = row_top + (row - first) * row_h;
         osd_fill_rect(x + 8, yy, w - 16, row_h - 3, bg);
-        osd_draw_prop_string(font_or(fonts->small, fonts->item), x + 11, yy + 4,
+        osd_draw_prop_string(font_or(fonts->small, fonts->item), x + 11, yy + 2,
                 ui_menu_row_label(menu, row), w - 22, fg);
     }
 }
@@ -325,9 +331,9 @@ static void render_settings_menu(const osd_fonts_t *fonts, const ui_menu_t *menu
     }
 
     osd_fill_rect(0, 0, OSD_WIDTH, 28, OSD_BLACK);
-    osd_draw_prop_string(font_or(fonts->item, fonts->small), 8, 5, "Settings",
+    osd_draw_prop_string(font_or(fonts->item, fonts->small), 8, 3, "Settings",
             90, OSD_WHITE);
-    osd_draw_prop_string(font_or(fonts->small, fonts->item), 110, 8,
+    osd_draw_prop_string(font_or(fonts->small, fonts->item), 110, 7,
             (ui_menu_depth(menu) == UI_MENU_DEPTH_CATEGORIES) ? "Top Level" :
             ui_menu_category_label(menu), OSD_WIDTH - 118, OSD_WHITE);
 
@@ -371,14 +377,15 @@ static void render_settings_menu(const osd_fonts_t *fonts, const ui_menu_t *menu
         hint = "B1/B2 Up/Dn  B3 OK  L3 Back";
     else
         hint = "B1/B2 Up/Dn  B3 Ent  L3 Back";
-    osd_draw_prop_string(font_or(fonts->small, fonts->item), 5, OSD_HEIGHT - 18,
+    osd_draw_prop_string(font_or(fonts->small, fonts->item), 5, OSD_HEIGHT - 20,
             hint, OSD_WIDTH - 48, OSD_BLACK);
 
     char page[12];
     snprintf(page, sizeof(page), "%d/%d", selected + 1, count);
     osd_draw_right_string(font_or(fonts->small, fonts->item), OSD_WIDTH - 5,
-            OSD_HEIGHT - 18, page, 42, OSD_BLACK);
+            OSD_HEIGHT - 20, page, 42, OSD_BLACK);
 
+    caster_osd_set_window(0, 0, OSD_WIDTH, OSD_HEIGHT);
     caster_osd_send_buf(osd_fb);
     caster_osd_set_enable(true);
 }
@@ -446,6 +453,7 @@ static bool menu_config_changed(const config_t *previous) {
             (previous->autoclear_mode != config.autoclear_mode) ||
             (previous->autoclear_interval != config.autoclear_interval) ||
             (previous->autoclear_threshold != config.autoclear_threshold) ||
+            (previous->osd_scale_2x != config.osd_scale_2x) ||
             (memcmp(previous->button_actions, config.button_actions,
                     sizeof(config.button_actions)) != 0);
 }

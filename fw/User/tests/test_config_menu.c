@@ -35,6 +35,7 @@ static int test_config_defaults_match_button_design(void) {
     ASSERT_EQ(AC_OFF, config.autoclear_mode);
     ASSERT_EQ(AC_5MIN, config.autoclear_interval);
     ASSERT_EQ(AC_THRES_MED, config.autoclear_threshold);
+    ASSERT_EQ(0, config.osd_scale_2x);
 
     return 0;
 }
@@ -52,6 +53,7 @@ static int test_legacy_config_validation_repairs_appended_fields(void) {
     config.autoclear_mode = 99;
     config.autoclear_interval = 99;
     config.autoclear_threshold = 99;
+    config.osd_scale_2x = 99;
 
     config_validate_loaded(offsetof(config_t, schema_version));
 
@@ -66,6 +68,30 @@ static int test_legacy_config_validation_repairs_appended_fields(void) {
     ASSERT_EQ(AC_OFF, config.autoclear_mode);
     ASSERT_EQ(AC_5MIN, config.autoclear_interval);
     ASSERT_EQ(AC_THRES_MED, config.autoclear_threshold);
+    ASSERT_EQ(0, config.osd_scale_2x);
+
+    return 0;
+}
+
+static int test_legacy_config_validation_defaults_osd_scale_from_ppi(void) {
+    config_init();
+
+    config.hact = 1600;
+    config.vact = 1200;
+    config.size_x_mm = 135;
+    config.size_y_mm = 101;
+    config.osd_scale_2x = 0;
+    config_validate_loaded(offsetof(config_t, osd_scale_2x));
+    ASSERT_EQ(1, config.osd_scale_2x);
+
+    config_init();
+    config.hact = 1600;
+    config.vact = 1200;
+    config.size_x_mm = 270;
+    config.size_y_mm = 203;
+    config.osd_scale_2x = 1;
+    config_validate_loaded(offsetof(config_t, osd_scale_2x));
+    ASSERT_EQ(0, config.osd_scale_2x);
 
     return 0;
 }
@@ -83,6 +109,7 @@ static int test_config_validation_repairs_invalid_values(void) {
     config.autoclear_mode = 99;
     config.autoclear_interval = -1;
     config.autoclear_threshold = 99;
+    config.osd_scale_2x = 99;
 
     config_validate_loaded(sizeof(config));
 
@@ -96,6 +123,11 @@ static int test_config_validation_repairs_invalid_values(void) {
     ASSERT_EQ(AC_OFF, config.autoclear_mode);
     ASSERT_EQ(AC_5MIN, config.autoclear_interval);
     ASSERT_EQ(AC_THRES_MED, config.autoclear_threshold);
+    ASSERT_EQ(1, config.osd_scale_2x);
+
+    config.osd_scale_2x = -1;
+    config_validate_loaded(sizeof(config));
+    ASSERT_EQ(0, config.osd_scale_2x);
 
     return 0;
 }
@@ -217,17 +249,48 @@ static int test_menu_viewport_moves_lazily(void) {
     return 0;
 }
 
+static int test_system_menu_exposes_osd_scale_setting(void) {
+    ui_menu_t menu;
+
+    config_init();
+    ui_menu_init(&menu, &config);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ASSERT_EQ('S', ui_menu_selected_label(&menu)[0]);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_EQ(UI_MENU_DEPTH_ITEMS, ui_menu_depth(&menu));
+    ASSERT_EQ('I', ui_menu_row_label(&menu, 0)[0]);
+    ASSERT_EQ('O', ui_menu_row_label(&menu, 1)[0]);
+    ASSERT_EQ('1', ui_menu_row_value(&menu, 1)[0]);
+
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_EQ(UI_MENU_DEPTH_MODAL, ui_menu_depth(&menu));
+    ASSERT_EQ(2, ui_menu_row_count(&menu));
+    ASSERT_EQ('1', ui_menu_row_label(&menu, 0)[0]);
+    ASSERT_EQ('2', ui_menu_row_label(&menu, 1)[0]);
+    ui_menu_handle(&menu, UI_MENU_EVENT_NEXT);
+    ui_menu_handle(&menu, UI_MENU_EVENT_ENTER);
+    ASSERT_EQ(1, config.osd_scale_2x);
+
+    return 0;
+}
+
 int main(void) {
     int rc = 0;
 
     rc |= test_config_defaults_match_button_design();
     rc |= test_legacy_config_validation_repairs_appended_fields();
+    rc |= test_legacy_config_validation_defaults_osd_scale_from_ppi();
     rc |= test_config_validation_repairs_invalid_values();
     rc |= test_menu_navigation_commits_and_cancels_modal_values();
     rc |= test_menu_snapshot_exposes_visible_rows_and_values();
     rc |= test_menu_scalar_modal_commits_lightness();
     rc |= test_menu_exposes_category_and_scalar_modal_metadata();
     rc |= test_menu_viewport_moves_lazily();
+    rc |= test_system_menu_exposes_osd_scale_setting();
 
     return rc;
 }

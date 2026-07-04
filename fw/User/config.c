@@ -46,6 +46,15 @@ static bool is_valid_update_mode(int mode) {
            (mode == UM_AUTO_LUT_NO_DITHER);
 }
 
+static int default_osd_scale_2x_from_ppi(void) {
+    if ((config.size_x_mm == 0) || (config.size_y_mm == 0))
+        return 0;
+
+    uint32_t ppi_x10 = ((uint32_t)config.hact * 254u) / config.size_x_mm;
+    uint32_t ppi_y10 = ((uint32_t)config.vact * 254u) / config.size_y_mm;
+    return (((ppi_x10 + ppi_y10) / 2u) > 2000u) ? 1 : 0;
+}
+
 void config_reset_button_actions(void) {
     config.button_actions[0] = ACT_NEXT_MODE;
     config.button_actions[1] = ACT_PREV_MODE;
@@ -65,6 +74,7 @@ static void config_init_settings(void) {
     config.autoclear_mode = AC_OFF;
     config.autoclear_interval = AC_5MIN;
     config.autoclear_threshold = AC_THRES_MED;
+    config.osd_scale_2x = 0;
 }
 
 void config_init(void) {
@@ -257,6 +267,7 @@ void config_init(void) {
 void config_validate_loaded(size_t loaded_size) {
     if (loaded_size <= offsetof(config_t, schema_version)) {
         config_init_settings();
+        config.osd_scale_2x = default_osd_scale_2x_from_ppi();
         return;
     }
 
@@ -290,6 +301,11 @@ void config_validate_loaded(size_t loaded_size) {
         config.autoclear_interval = AC_5MIN;
     if ((config.autoclear_threshold < 0) || (config.autoclear_threshold >= AC_THRES_COUNT))
         config.autoclear_threshold = AC_THRES_MED;
+
+    if (loaded_size <= offsetof(config_t, osd_scale_2x))
+        config.osd_scale_2x = default_osd_scale_2x_from_ppi();
+    else
+        config.osd_scale_2x = clamp_int(config.osd_scale_2x, 0, 1);
 }
 
 #ifndef GLIDER_HOST_TEST

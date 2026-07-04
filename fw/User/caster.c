@@ -43,6 +43,10 @@ static uint8_t get_update_frames(void) {
     return 16;
 }
 
+static uint16_t osd_x_pixel_to_group(uint16_t pixels) {
+    return (uint16_t)((pixels + 3u) / 4u);
+}
+
 static void wait(void) {
     // Reading is not implemented in the simulator
 }
@@ -67,10 +71,7 @@ void caster_init(void) {
     fpga_write_reg8(CSR_CFG_FASTG_B2GFRAME, CASTER_FASTG_B2G_FRAMES);
     fpga_write_reg8(CSR_CFG_FASTG_W2GFRAME, CASTER_FASTG_W2G_FRAMES);
     fpga_write_reg8(CSR_LUT_FRAME, 38);
-    fpga_write_reg16(CSR_OSD_LEFT, 0);
-    fpga_write_reg16(CSR_OSD_RIGHT, CASTER_OSD_WIDTH / 4);
-    fpga_write_reg16(CSR_OSD_TOP, 0);
-    fpga_write_reg16(CSR_OSD_BOTTOM, CASTER_OSD_HEIGHT);
+    caster_osd_set_window(0, 0, CASTER_OSD_WIDTH, CASTER_OSD_HEIGHT);
     fpga_write_reg8(CSR_OSD_EN, 0);
     fpga_write_reg8(CSR_CFG_MIRROR, config.mirror);
     fpga_write_reg8(CSR_ENABLE, 1); // Enable refresh
@@ -140,6 +141,20 @@ void caster_redraw_blank(void) {
 uint8_t caster_osd_send_buf(uint8_t *buf) {
     fpga_write_reg16(CSR_OSD_ADDR, 0);
     fpga_write_bulk(CSR_OSD_WR, buf, CASTER_OSD_BUF_SIZE);
+    return 0;
+}
+
+uint8_t caster_osd_set_window(uint16_t left, uint16_t top,
+        uint16_t logical_width, uint16_t logical_height) {
+    uint16_t scale = config.osd_scale_2x ? 2u : 1u;
+    uint16_t right = left + logical_width * scale;
+    uint16_t bottom = top + logical_height * scale;
+
+    fpga_write_reg8(CSR_OSD_SCALE, config.osd_scale_2x ? 1 : 0);
+    fpga_write_reg16(CSR_OSD_LEFT, osd_x_pixel_to_group(left));
+    fpga_write_reg16(CSR_OSD_RIGHT, osd_x_pixel_to_group(right));
+    fpga_write_reg16(CSR_OSD_TOP, top);
+    fpga_write_reg16(CSR_OSD_BOTTOM, bottom);
     return 0;
 }
 

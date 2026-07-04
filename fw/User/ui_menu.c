@@ -17,6 +17,7 @@ typedef enum {
     MENU_ITEM_BUTTON_2_LONG,
     MENU_ITEM_BUTTON_3_LONG,
     MENU_ITEM_INPUT,
+    MENU_ITEM_OSD_SCALE,
     MENU_ITEM_COUNT,
 } menu_item_id_t;
 
@@ -57,6 +58,7 @@ static const menu_item_t button_items[] = {
 
 static const menu_item_t system_items[] = {
     {MENU_ITEM_INPUT, "Input"},
+    {MENU_ITEM_OSD_SCALE, "OSD Scale"},
 };
 
 static const menu_category_t categories[] = {
@@ -94,6 +96,11 @@ static const value_label_t input_values[] = {
     {INPUT_SEL_AUTO, "Auto"},
     {INPUT_SEL_TMDS, "TMDS"},
     {INPUT_SEL_DP, "DP"},
+};
+
+static const value_label_t osd_scale_values[] = {
+    {0, "1x"},
+    {1, "2x"},
 };
 
 static const value_label_t scalar_values[] = {
@@ -174,6 +181,8 @@ static int modal_count(const ui_menu_t *menu) {
         return (int)(sizeof(autoclear_threshold_values) / sizeof(autoclear_threshold_values[0]));
     if (item->id == MENU_ITEM_INPUT)
         return (int)(sizeof(input_values) / sizeof(input_values[0]));
+    if (item->id == MENU_ITEM_OSD_SCALE)
+        return (int)(sizeof(osd_scale_values) / sizeof(osd_scale_values[0]));
 
     return 0;
 }
@@ -209,6 +218,8 @@ static int *config_value_ptr(ui_menu_t *menu, menu_item_id_t id) {
         return &menu->config->button_actions[id - MENU_ITEM_BUTTON_1_SHORT];
     case MENU_ITEM_INPUT:
         return NULL;
+    case MENU_ITEM_OSD_SCALE:
+        return &menu->config->osd_scale_2x;
     default:
         return NULL;
     }
@@ -263,6 +274,10 @@ static const value_label_t *item_values(menu_item_id_t id, int *count) {
     if (id == MENU_ITEM_INPUT) {
         *count = (int)(sizeof(input_values) / sizeof(input_values[0]));
         return input_values;
+    }
+    if (id == MENU_ITEM_OSD_SCALE) {
+        *count = (int)(sizeof(osd_scale_values) / sizeof(osd_scale_values[0]));
+        return osd_scale_values;
     }
 
     *count = 0;
