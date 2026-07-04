@@ -43,8 +43,26 @@ cflags=(
     "$SCRIPT_DIR/test_numfmt.c" \
     -o "$BUILD_DIR/test_numfmt"
 
+"$cc" "${cflags[@]}" \
+    "$USER_DIR/power_state.c" \
+    "$SCRIPT_DIR/test_power_state.c" \
+    -o "$BUILD_DIR/test_power_state"
+
+"$cc" "${cflags[@]}" \
+    "$USER_DIR/wake_event_latch.c" \
+    "$SCRIPT_DIR/test_wake_event_latch.c" \
+    -o "$BUILD_DIR/test_wake_event_latch"
+
+"$cc" "${cflags[@]}" \
+    "$USER_DIR/fpga_spi_policy.c" \
+    "$SCRIPT_DIR/test_fpga_spi_policy.c" \
+    -o "$BUILD_DIR/test_fpga_spi_policy"
+
 "$BUILD_DIR/test_config_menu"
 "$BUILD_DIR/test_osd_font"
 "$BUILD_DIR/test_tone_lut"
 "$BUILD_DIR/test_autoclear"
 "$BUILD_DIR/test_numfmt"
+"$BUILD_DIR/test_power_state"
+"$BUILD_DIR/test_wake_event_latch"
+"$BUILD_DIR/test_fpga_spi_policy"

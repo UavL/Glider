@@ -64,6 +64,8 @@ void ptn3460_early_init(void) {
 }
 
 void ptn3460_init(void) {
+    gpio_put(DP_PDN, 1);
+
     // wait for HPD to become high
     int ticks = 0;
     while (gpio_get(DP_HPD) != true) {

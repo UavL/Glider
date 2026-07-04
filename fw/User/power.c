@@ -33,6 +33,7 @@ static float currents[8];
 static float p_cur[8];
 static float p_avg[8];
 static float p_max[8];
+static power_state_machine_t power_state;
 
 #define ABSF(x) (((x) < 0) ? (0.f-(x)) : (x))
 
@@ -47,9 +48,42 @@ void power_on(void) {
 
 }
 
+void power_init(void) {
+    power_state_init(&power_state);
+}
+
+bool power_is_suspended(void) {
+    return power_state_current(&power_state) == POWER_STATE_SUSPENDED;
+}
+
+bool power_request_resume(uint32_t wake_sources) {
+    return power_state_request_resume(&power_state, wake_sources);
+}
+
+void power_resume_complete(void) {
+    power_state_mark_active(&power_state);
+}
+
 void power_off(void) {
-    // TODO: Not actually implemented yet
-    fatal("Shutdown");
+    if (!power_state_request_suspend(&power_state))
+        return;
+
+    syslog_print("Suspending system");
+    usbpd_disarm_wake();
+    usbpd_suspend_displayport();
+    power_off_epd();
+    fpga_suspend();
+    adv7611_powerdown();
+    ptn3460_powerdown();
+    gpio_put(HPD_EN, 0);
+    gpio_put(DEC_RST, 0);
+    gpio_put(DP_PDN, 0);
+    gpio_put(LED_GRN, 0);
+    gpio_put(LED_RED, 0);
+
+    power_state_mark_suspended(&power_state);
+    usbpd_disarm_wake();
+    syslog_print("System suspended");
 }
 
 void power_on_epd(void) {

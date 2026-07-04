@@ -22,6 +22,11 @@
 //
 #pragma once
 
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "power_state.h"
+
 typedef enum {
     // Rails with both voltage and current monitoring
     RAIL_5VES,
@@ -42,6 +47,10 @@ typedef enum {
 } power_rail_t;
 
 void power_off(void);
+void power_init(void);
+bool power_is_suspended(void);
+bool power_request_resume(uint32_t wake_sources);
+void power_resume_complete(void);
 void power_on(void);
 void power_on_epd(void);
 void power_off_epd(void);

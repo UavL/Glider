@@ -23,6 +23,7 @@
 #include "platform.h"
 #include "board.h"
 #include "app.h"
+#include "fpga_spi_policy.h"
 //#include "bitstream.h"
 
 static int fpga_done = 0;
@@ -155,6 +156,8 @@ void fpga_reset(void) {
 void fpga_init(const char *fn) {
     // Initialize FPGA pins
     gpio_put(FPGA_CS, 1);
+    gpio_put(FPGA_SUSP, 0);
+    board_switch_spi_freq(FPGA_SPI, fpga_spi_bitstream_hz());
 
     fpga_reset();
 
@@ -167,13 +170,17 @@ void fpga_init(const char *fn) {
 #endif
 
     // Switch to lower frequency
-    board_switch_spi_freq(FPGA_SPI, 1000000);
+    board_switch_spi_freq(FPGA_SPI, fpga_spi_register_hz());
 }
 
 void fpga_suspend(void) {
-
+    gpio_put(FPGA_CS, 1);
+    gpio_put(FPGA_SUSP, 1);
+    gpio_put(FPGA_PROG, 0);
 }
 
 void fpga_resume(void) {
-
+    gpio_put(FPGA_SUSP, 0);
+    gpio_put(FPGA_PROG, 1);
+    sleep_ms(2);
 }

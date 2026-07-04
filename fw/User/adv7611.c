@@ -161,4 +161,7 @@ void adv7611_powerdown(void) {
     buf[1] = 0x62; // Power down
     int result;
     result = pal_i2c_write_payload(ADV7611_I2C, ADV7611_I2C_ADDR, buf, 2);
+    if (result != 0) {
+        syslog_printf("Failed powering down ADV7611\n");
+    }
 }

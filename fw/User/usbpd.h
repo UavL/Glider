@@ -25,4 +25,9 @@
 extern bool dp_ready;
 
 void usbpd_isr(void);
+void usbpd_arm_wake(void);
+void usbpd_disarm_wake(void);
+bool usbpd_take_wake_event(void);
+void usbpd_suspend_displayport(void);
+void usbpd_resume_displayport(void);
 portTASK_FUNCTION(usb_pd_task, pvParameters);

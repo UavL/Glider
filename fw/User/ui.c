@@ -207,7 +207,7 @@ static int mode_index_for(update_mode_t id) {
 
 static void draw_status_popup(const osd_fonts_t *fonts, const char *title, const char *value) {
     osd_clear(0xff);
-    char *textbuf[80];
+    char textbuf[80];
     snprintf(textbuf, 80, "%s %s", title, value);
     osd_draw_prop_string(font_or(fonts->large, fonts->item), 12, 14, textbuf,
             OSD_STATUS_WIDTH - 24, OSD_BLACK);
@@ -574,6 +574,47 @@ static bool is_dp_active(void) {
     return dp_ready;
 }
 
+static bool select_active_input(void) {
+    bool tmds_mode = false;
+
+    if (config.input_sel == INPUT_SEL_DP) {
+        tmds_mode = false;
+        syslog_print("Forced to use DP input");
+    }
+    else if (config.input_sel == INPUT_SEL_TMDS) {
+        tmds_mode = true;
+        syslog_print("Forced to use TMDS input");
+    }
+    else {
+        while (1) {
+            if (is_tmds_active()) {
+                tmds_mode = true;
+                break;
+            }
+            else if (is_dp_active()) {
+                tmds_mode = false;
+                break;
+            }
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+    }
+
+    if (tmds_mode) {
+        while (!is_tmds_active()) {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+        ptn3460_powerdown();
+    }
+    else {
+        while (!is_dp_active()) {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+        adv7611_powerdown();
+    }
+
+    return tmds_mode;
+}
+
 static void restart_fpga(void) {
     fpga_init(config.bitstream);
     syslog_printf("Waiting for video signal to lock");
@@ -588,6 +629,38 @@ static void restart_fpga(void) {
     syslog_printf("FPGA up");
 }
 
+static void start_display_pipeline(bool *tmds_mode) {
+    *tmds_mode = select_active_input();
+    restart_fpga();
+    power_on_epd();
+    caster_init();
+    syslog_printf("FPGA started with status %02x", fpga_write_reg8(CSR_STATUS, 0x00));
+}
+
+static void resume_video_frontends(void) {
+    adv7611_early_init();
+    adv7611_init();
+    ptn3460_init();
+    usbpd_resume_displayport();
+}
+
+static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
+        TickType_t usbpd_wake_arm_time) {
+    btn_event_t btn_event;
+    if (xQueueReceive(btn_queue, &btn_event, pdMS_TO_TICKS(200)) == pdTRUE)
+        return POWER_WAKE_BUTTON;
+
+    if (!*usbpd_wake_armed &&
+            (((int32_t)xTaskGetTickCount() - (int32_t)usbpd_wake_arm_time) >= 0)) {
+        usbpd_arm_wake();
+        *usbpd_wake_armed = true;
+    }
+
+    if (*usbpd_wake_armed && usbpd_take_wake_event())
+        return POWER_WAKE_USB_PD;
+    return POWER_WAKE_NONE;
+}
+
 portTASK_FUNCTION(ui_task, pvParameters) {
     TickType_t osd_timeout = 0;
     TickType_t autoclear_timeout = 0;
@@ -597,6 +670,9 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             config.autoclear_mode == AC_FIXED) ? config.autoclear_mode : AC_ADAPT;
     bool autoclear = config.autoclear_mode != AC_OFF;
     bool menu_open = false;
+    bool suspend_wait_initialized = false;
+    bool usbpd_wake_armed = false;
+    TickType_t usbpd_wake_arm_time = 0;
     ui_menu_t menu;
     osd_menu_render_state_t menu_render_state = {0};
 
@@ -608,52 +684,46 @@ portTASK_FUNCTION(ui_task, pvParameters) {
 
     mode = mode_index_for((update_mode_t)config.update_mode);
 
-    // First wait link establish
     bool tmds_mode = false;
-
-    if (config.input_sel == INPUT_SEL_DP) {
-        tmds_mode = false;
-        syslog_print("Forced to use DP input");
-    }
-    else if (config.input_sel == INPUT_SEL_TMDS) {
-        tmds_mode = true;
-        syslog_print("Forced to use TMDS input");
-    }
-    else {
-        while (1) {
-            // Check is DP on
-            if (is_tmds_active()) {
-                tmds_mode = true;
-                break;
-            }
-            else if (is_dp_active()) {
-                tmds_mode = false;
-                break;
-            }
-            vTaskDelay(pdMS_TO_TICKS(100)); // Wait before next iteration
-        }
-    }
-
-    if (tmds_mode) {
-        // Making sure video is active
-        while (!is_tmds_active()) {
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
-        ptn3460_powerdown();
-    }
-    else {
-        while (!is_dp_active()) {
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
-        adv7611_powerdown();
-    }
-
-    restart_fpga();
-    power_on_epd();
-    caster_init(); // Start refresh
-    syslog_printf("FPGA started with status %02x", fpga_write_reg8(CSR_STATUS, 0x00));
+    start_display_pipeline(&tmds_mode);
 
     while (1) {
+        if (power_is_suspended()) {
+            if (!suspend_wait_initialized) {
+                usbpd_disarm_wake();
+                usbpd_wake_armed = false;
+                usbpd_wake_arm_time = xTaskGetTickCount() + pdMS_TO_TICKS(1000);
+                suspend_wait_initialized = true;
+            }
+
+            uint32_t wake_sources = wait_for_wake_source(&usbpd_wake_armed,
+                    usbpd_wake_arm_time);
+            if (!power_request_resume(wake_sources))
+                continue;
+
+            syslog_printf("Waking system: 0x%02x", (unsigned)wake_sources);
+            usbpd_disarm_wake();
+            fpga_resume();
+            resume_video_frontends();
+            start_display_pipeline(&tmds_mode);
+            power_resume_complete();
+
+            menu_open = false;
+            suspend_wait_initialized = false;
+            usbpd_wake_armed = false;
+            osd_timeout = 0;
+            autoclear_timeout = 0;
+            autoclear = config.autoclear_mode != AC_OFF;
+            mode = mode_index_for((update_mode_t)config.update_mode);
+            reset_autoclear_state(&autoclear_timeout, &autoclear_damage_counter,
+                    &autoclear_damage_last);
+            menu_render_state.first_row = 0;
+            menu_render_state.category_index = 0;
+            menu_render_state.depth = UI_MENU_DEPTH_CATEGORIES;
+            caster_osd_set_enable(false);
+            continue;
+        }
+
         // Check OSD timeout
         if ((osd_timeout != 0) && (((int32_t)xTaskGetTickCount() - (int32_t)osd_timeout) >= 0)) {
             osd_timeout = 0;

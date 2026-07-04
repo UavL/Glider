@@ -49,6 +49,12 @@ static portTASK_FUNCTION(housekeeping_task, pvParameters) {
     last_flash_time = xTaskGetTickCount();
 
     while (1) {
+        if (power_is_suspended()) {
+            gpio_put(LED_GRN, 0);
+            led = 0;
+            vTaskDelayUntil(&last_flash_time, flash_rate);
+            continue;
+        }
         gpio_put(LED_GRN, led);
         led = !led;
         vTaskDelayUntil(&last_flash_time, flash_rate);  
@@ -78,6 +84,7 @@ static portTASK_FUNCTION(startup_task, pvParameters) {
 //        buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
     config_init();
     config_load();
+    power_init();
     edid_init();
     adv7611_early_init(); // Must be before PTN3460 to release RST and I2C bus
     ptn3460_early_init(); // Let PTN3460 starts internal bootup process

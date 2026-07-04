@@ -23,23 +23,60 @@
 #include "platform.h"
 #include "board.h"
 #include "app.h"
+#include "wake_event_latch.h"
 
 static SemaphoreHandle_t isr_sem = NULL;
 bool dp_ready = false;
+static wake_event_latch_t wake_latch;
+static volatile bool hpd_sent = false;
+static volatile bool hpd_low_requested = false;
+static volatile bool displayport_suspended = false;
 
 void usbpd_isr(void) {
     BaseType_t context_switch = pdFALSE;
 
+    wake_event_latch_signal(&wake_latch);
     if (isr_sem) {
         xSemaphoreGiveFromISR(isr_sem, &context_switch);
         portYIELD_FROM_ISR(context_switch);
     }
 }
 
+void usbpd_arm_wake(void) {
+    wake_event_latch_arm(&wake_latch);
+}
+
+void usbpd_disarm_wake(void) {
+    wake_event_latch_disarm(&wake_latch);
+}
+
+bool usbpd_take_wake_event(void) {
+    return wake_event_latch_take(&wake_latch);
+}
+
+static void usbpd_poke_task(void) {
+    if (isr_sem)
+        xSemaphoreGive(isr_sem);
+}
+
+void usbpd_suspend_displayport(void) {
+    displayport_suspended = true;
+    dp_ready = false;
+    hpd_sent = false;
+    hpd_low_requested = true;
+    usbpd_poke_task();
+}
+
+void usbpd_resume_displayport(void) {
+    displayport_suspended = false;
+    dp_ready = false;
+    hpd_sent = false;
+    usbpd_poke_task();
+}
+
 portTASK_FUNCTION(usb_pd_task, pvParameters) {
     isr_sem = xSemaphoreCreateCounting(1, 0);
     extern int dp_enabled;
-    static bool hpd_sent = false;
 
     int result = tcpm_init(0);
     if (result)
@@ -60,7 +97,17 @@ portTASK_FUNCTION(usb_pd_task, pvParameters) {
         do {
             fusb302_tcpc_alert(0);
             timeout = pd_run_state_machine(0);
-            if (dp_enabled && !hpd_sent && !pd_is_vdm_busy(0)) {
+            if (!dp_enabled) {
+                hpd_sent = false;
+                hpd_low_requested = false;
+                dp_ready = false;
+            }
+            else if (hpd_low_requested && !pd_is_vdm_busy(0)) {
+                syslog_printf("DP HPD low\n");
+                pd_send_hpd(0, hpd_low);
+                hpd_low_requested = false;
+            }
+            else if (!displayport_suspended && !hpd_sent && !pd_is_vdm_busy(0)) {
                 syslog_printf("DP enabled\n");
                 pd_send_hpd(0, hpd_high);
                 hpd_sent = true;
