@@ -26,6 +26,7 @@
 #include "app_main.h"
 #include "app.h"
 #include "numfmt.h"
+#include "config_timing.h"
 #ifdef GLIDER_DIAGNOSTIC_SHELL
 #include "autoclear.h"
 #include "xmodem.h"
@@ -48,6 +49,23 @@ static void shell_print_fixed(shell_context_t *ctx, float value,
 
     numfmt_format_fixed(text, sizeof(text), value, decimals);
     printf("%s", text);
+}
+
+static bool shell_parse_uint16(const char *text, uint16_t min_value,
+        uint16_t max_value, uint16_t *value) {
+    char *end = NULL;
+    unsigned long parsed;
+
+    if ((text == NULL) || (value == NULL) || (*text == '\0'))
+        return false;
+
+    parsed = strtoul(text, &end, 10);
+    if ((end == text) || (*end != '\0') || (parsed < min_value) ||
+            (parsed > max_value))
+        return false;
+
+    *value = (uint16_t)parsed;
+    return true;
 }
 
 /***********************************************************************
@@ -799,6 +817,74 @@ void shell_power(shell_context_t *ctx, int argc, char **argv) {
     printf("\n");
     printf("suspend count: %u\n", (unsigned)power_get_suspend_count());
     printf("resume count: %u\n", (unsigned)power_get_resume_count());
+}
+
+const char shell_help_setres[] =
+    "<size_in> <x_res> <y_res> <ref_hz> <cvt-rb2|cvt-rb>\n"
+    "  Calculates display timing, updates config, and saves config.bin.\n";
+const char shell_help_summary_setres[] = "Calculate and save display timing";
+
+static void shell_print_timing_summary(shell_context_t *ctx,
+        config_timing_standard_t standard, uint16_t refresh_hz) {
+    printf("Timing standard: %s\n", config_timing_standard_name(standard));
+    printf("Refresh target: %u Hz\n", (unsigned)refresh_hz);
+    printf("PCLK: %u Hz\n", (unsigned)config.pclk_hz);
+    printf("HACT: %u\n", (unsigned)config.hact);
+    printf("HBLK: %u\n", (unsigned)config.hblk);
+    printf("HFP:  %u\n", (unsigned)config.hfp);
+    printf("HSW:  %u\n", (unsigned)config.hsync);
+    printf("VACT: %u\n", (unsigned)config.vact);
+    printf("VBLK: %u\n", (unsigned)config.vblk);
+    printf("VFP:  %u\n", (unsigned)config.vfp);
+    printf("VSW:  %u\n", (unsigned)config.vsync);
+    printf("TCON_HACT: %u\n", (unsigned)config.tcon_hact);
+    printf("TCON_HFP:  %u\n", (unsigned)config.tcon_hfp);
+    printf("TCON_HSW:  %u\n", (unsigned)config.tcon_hsync);
+    printf("TCON_HBP:  %u\n", (unsigned)config.tcon_hbp);
+    printf("TCON_VACT: %u\n", (unsigned)config.tcon_vact);
+    printf("TCON_VFP:  %u\n", (unsigned)config.tcon_vfp);
+    printf("TCON_VSW:  %u\n", (unsigned)config.tcon_vsync);
+    printf("TCON_VBP:  %u\n", (unsigned)config.tcon_vbp);
+}
+
+void shell_setres( shell_context_t *ctx, int argc, char **argv )
+{
+    float size_in = 0.0f;
+    uint16_t x_res;
+    uint16_t y_res;
+    uint16_t refresh_hz;
+    config_timing_standard_t standard;
+
+    if (argc != 6) {
+        printf("Usage: setres %s", shell_help_setres);
+        return;
+    }
+
+    if (!numfmt_parse_float(argv[1], &size_in) || (size_in <= 0.0f)) {
+        printf("Invalid size_in\n");
+        return;
+    }
+    if (!shell_parse_uint16(argv[2], 1, 65535, &x_res) ||
+            !shell_parse_uint16(argv[3], 1, 65535, &y_res) ||
+            !shell_parse_uint16(argv[4], 1, 1000, &refresh_hz)) {
+        printf("Invalid resolution or refresh rate\n");
+        return;
+    }
+    if (!config_timing_standard_from_string(argv[5], &standard)) {
+        printf("Unknown timing standard: %s\n", argv[5]);
+        printf("Usage: setres %s", shell_help_setres);
+        return;
+    }
+
+    if (!config_apply_display_timing(&config, size_in, x_res, y_res,
+            refresh_hz, standard)) {
+        printf("Unable to calculate timing\n");
+        return;
+    }
+
+    config_save();
+    shell_print_timing_summary(ctx, standard, refresh_hz);
+    printf("Saved config.bin\n");
 }
 
 
