@@ -18,6 +18,7 @@ THRESHOLDS = {
     20: 150,
     28: 160
 }
+DEFAULT_THRESHOLD = 128
 ASCII_FIRST = 32
 ASCII_LAST = 126
 DEFAULT_TTF_CANDIDATES = (
@@ -85,7 +86,8 @@ def build_font_words(ttf, size):
     glyph_words = 1 + height * row_words
     data = []
     for ch in chars:
-        glyph = _render_glyph_words(font, ch, max_width, height, top, THRESHOLDS[size])
+        glyph = _render_glyph_words(font, ch, max_width, height, top,
+                THRESHOLDS.get(size, DEFAULT_THRESHOLD))
         if len(glyph) != glyph_words:
             raise ValueError(f"internal glyph size mismatch for {ch!r}")
         data.extend(glyph)

@@ -56,7 +56,12 @@ assert_file_contains "$metadata" '^caster_revision=[0-9a-f]{40}$' "metadata Cast
 for variant in 8bit-mono 8bit-k3 16bit-mono 16bit-k3; do
     assert_file_contains "$release_log" "cp .*/0.1-task2/caster/$variant/fpga.bit .*/0.1-task2/flash_tool/fpga-$variant.bit" "packaged bitstream for $variant"
 done
-assert_file_contains "$release_log" "python3 .*/tools/fonts/generate_quicksand_fonts.py --out-dir .*/0.1-task2/flash_tool/fonts" "generated Quicksand release fonts"
+for font in font_quicksand_16.bin font_quicksand_20.bin font_quicksand_28.bin; do
+    assert_file_contains "$release_log" "cp .*/utils/flash_tool/fonts/$font .*/0.1-task2/flash_tool/fonts/$font" "packaged checked-in $font"
+done
+if grep -Eq "generate_quicksand_fonts.py" "$release_log"; then
+    fail "release should not regenerate checked-in font binaries"
+fi
 assert_file_contains "$release_log" "make -C .*/utils/flash_tool/cfggen" "built cfggen for release configs"
 assert_file_contains "$release_log" ".*/utils/flash_tool/cfggen/bin/cfggen 6 1448 1072 75 cvt-rb --out .*/0.1-task2/flash_tool/configs/config-6in.bin" "generated 6 inch CVT-RB config"
 assert_file_contains "$release_log" ".*/utils/flash_tool/cfggen/bin/cfggen 13.3 1600 1200 75 cvt-rb2 --out .*/0.1-task2/flash_tool/configs/config-13in.bin" "generated 13 inch CVT-RBv2 config"

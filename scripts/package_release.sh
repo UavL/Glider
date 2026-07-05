@@ -19,7 +19,10 @@ run_cmd cp "$release_dir/glider_ec_rtos_$version.bin" "$flash_dir/glider_ec_rtos
 for variant in 8bit-mono 8bit-k3 16bit-mono 16bit-k3; do
     run_cmd cp "$release_dir/caster/$variant/fpga.bit" "$flash_dir/fpga-$variant.bit"
 done
-run_cmd python3 "$repo/tools/fonts/generate_quicksand_fonts.py" --out-dir "$flash_dir/fonts"
+mkdir -p "$flash_dir/fonts"
+for font in font_quicksand_16.bin font_quicksand_20.bin font_quicksand_28.bin; do
+    run_cmd cp "$repo/utils/flash_tool/fonts/$font" "$flash_dir/fonts/$font"
+done
 run_cmd make -C "$repo/utils/flash_tool/cfggen"
 mkdir -p "$flash_dir/configs"
 run_cmd "$repo/utils/flash_tool/cfggen/bin/cfggen" \
