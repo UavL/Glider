@@ -1,8 +1,11 @@
 # Install python3 hidapi package https://pypi.org/project/hidapi/
+import argparse
 import hid
 import struct
 from datetime import datetime
+from pathlib import Path
 import subprocess
+import sys
 import time
 
 USBCMD_RESET =          0x00
@@ -107,27 +110,147 @@ FONT_FILES = [
     'font_quicksand_28.bin',
 ]
 
-def send_files():
+BITSTREAM_VARIANTS = [
+    '8bit-mono',
+    '8bit-k3',
+    '16bit-mono',
+    '16bit-k3',
+]
+
+def _write_line(output, text=""):
+    if callable(output):
+        output(text)
+    else:
+        output.write(text + "\n")
+
+def discover_bitstreams(directory):
+    directory = Path(directory)
+    variant_order = {
+        f'fpga-{variant}.bit': index
+        for index, variant in enumerate(BITSTREAM_VARIANTS)
+    }
+    release_bitstreams = sorted(
+        directory.glob('fpga-*.bit'),
+        key=lambda path: (variant_order.get(path.name, len(variant_order)), path.name),
+    )
+    if release_bitstreams:
+        return release_bitstreams
+
+    legacy_bitstream = directory / 'fpga.bit'
+    if legacy_bitstream.exists():
+        return [legacy_bitstream]
+
+    return []
+
+def select_bitstream(directory=Path('.'), input_func=input, output=sys.stdout):
+    bitstreams = discover_bitstreams(directory)
+    if not bitstreams:
+        raise FileNotFoundError(
+            "No FPGA bitstream found. Expected fpga-<variant>.bit release "
+            "files or legacy fpga.bit in the flash tool directory.")
+
+    if len(bitstreams) == 1:
+        _write_line(output, f"Using FPGA bitstream: {bitstreams[0].name}")
+        return bitstreams[0]
+
+    _write_line(output, "Select FPGA bitstream:")
+    for index, bitstream in enumerate(bitstreams, start=1):
+        _write_line(output, f"{index}) {bitstream.name}")
+
+    while True:
+        response = input_func("Enter selection number: ").strip()
+        try:
+            selected = int(response)
+        except ValueError:
+            _write_line(output, "Please enter a number.")
+            continue
+
+        if 1 <= selected <= len(bitstreams):
+            return bitstreams[selected - 1]
+
+        _write_line(output, f"Please enter a number from 1 to {len(bitstreams)}.")
+
+def _require_files(paths):
+    for path in paths:
+        if not path.is_file():
+            raise FileNotFoundError(f"Required file not found: {path}")
+
+def ask_yes_no(prompt, default=False, input_func=input):
+    suffix = " [Y/n] " if default else " [y/N] "
+    while True:
+        response = input_func(prompt + suffix).strip().lower()
+        if not response:
+            return default
+        if response in ("y", "yes"):
+            return True
+        if response in ("n", "no"):
+            return False
+        print("Please answer yes or no.")
+
+def send_files(bitstream_path=None, include_fonts=True):
+    base_dir = Path('.')
+    bitstream = Path(bitstream_path) if bitstream_path else select_bitstream(base_dir)
+    font_paths = [base_dir / 'fonts' / font for font in FONT_FILES]
+    required_files = [bitstream]
+    if include_fonts:
+        required_files += font_paths
+    _require_files(required_files)
+
     success = False
     while not success:
         try:
             h = open_dev()
-            send_file(h, 'fpga.bit', 'fpga.bit')
-            for font in FONT_FILES:
-                send_file(h, 'fonts/' + font, 'fonts/' + font)
+            send_file(h, bitstream, 'fpga.bit')
+            if include_fonts:
+                for font_path in font_paths:
+                    send_file(h, font_path, 'fonts/' + font_path.name)
             success = True
         except OSError:
             print("Waiting for device to reconnect")
             time.sleep(5)
 
 def flash_mcu():
-    subprocess.run(
-        "dfu-util -a 0 -i 0 -s 0x08000000:leave -D glider_ec_rtos.bin",
-        shell=True)
+    result = subprocess.run([
+        "dfu-util",
+        "-a", "0",
+        "-i", "0",
+        "-s", "0x08000000:leave",
+        "-D", "glider_ec_rtos.bin",
+    ])
+    return result.returncode == 0
 
-def main():
-    flash_mcu()
-    send_files()
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="Flash Glider firmware assets.")
+    parser.add_argument(
+        "--skip-mcu",
+        action="store_true",
+        help="Skip dfu-util MCU flashing and only transfer files over HID.",
+    )
+    parser.add_argument(
+        "--bitstream",
+        type=Path,
+        help="FPGA bitstream to transfer. Defaults to an interactive selection.",
+    )
+    parser.add_argument(
+        "--no-fonts",
+        action="store_true",
+        help="Only transfer the FPGA bitstream; skip bundled font files.",
+    )
+    return parser.parse_args(argv)
+
+def main(argv=None):
+    args = parse_args(argv)
+
+    if not args.skip_mcu and not flash_mcu():
+        print("Warning: dfu-util failed to flash the MCU firmware.")
+        if not ask_yes_no("Continue with FPGA/font transfer anyway?", default=False):
+            return 1
+
+    send_files(
+        bitstream_path=args.bitstream,
+        include_fonts=not args.no_fonts,
+    )
+    return 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
