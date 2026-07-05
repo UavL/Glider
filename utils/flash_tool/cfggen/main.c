@@ -3,13 +3,48 @@
 #include <stdint.h>
 #include <math.h>
 #include <time.h>
+#include <string.h>
 #include "config.h"
+
+typedef enum {
+    TIMING_CVT_RB2,
+    TIMING_CVT_RB,
+} timing_standard_t;
+
+static const char *timing_standard_name(timing_standard_t standard) {
+    switch (standard) {
+    case TIMING_CVT_RB2:
+        return "CVT-RBv2";
+    case TIMING_CVT_RB:
+        return "CVT-RB";
+    default:
+        return "unknown";
+    }
+}
+
+static int cvt_vsync_width(int x_res, int y_res) {
+    if (x_res * 3 == y_res * 4)
+        return 4;
+    if (x_res * 9 == y_res * 16)
+        return 5;
+    if (x_res * 10 == y_res * 16)
+        return 6;
+    if (x_res * 4 == y_res * 5)
+        return 7;
+    if (x_res * 9 == y_res * 15)
+        return 7;
+    return 10;
+}
+
+static uint32_t round_clock(float raw_hz, uint32_t granularity_hz) {
+    return (uint32_t)roundf(raw_hz / (float)granularity_hz) * granularity_hz;
+}
 
 int main(int argc, char *argv[]) {
     config_init();
 
-    if (argc != 5) {
-        printf("Usage: cfggen <size_in> <x_res> <y_res> <ref_hz>\n");
+    if ((argc != 5) && (argc != 6)) {
+        printf("Usage: cfggen <size_in> <x_res> <y_res> <ref_hz> [cvt-rb2|cvt-rb]\n");
         return -1;
     }
 
@@ -17,6 +52,20 @@ int main(int argc, char *argv[]) {
     int x_res = atoi(argv[2]);
     int y_res = atoi(argv[3]);
     int ref_hz = atoi(argv[4]);
+    timing_standard_t timing_standard = TIMING_CVT_RB2;
+    if (argc == 6) {
+        if (strcmp(argv[5], "cvt-rb2") == 0) {
+            timing_standard = TIMING_CVT_RB2;
+        }
+        else if (strcmp(argv[5], "cvt-rb") == 0) {
+            timing_standard = TIMING_CVT_RB;
+        }
+        else {
+            printf("Unknown timing standard: %s\n", argv[5]);
+            printf("Usage: cfggen <size_in> <x_res> <y_res> <ref_hz> [cvt-rb2|cvt-rb]\n");
+            return -1;
+        }
+    }
 
     // Calculate size
     float size_mm = size_in * 25.4f;
@@ -32,27 +81,54 @@ int main(int argc, char *argv[]) {
     // tm_year starts from 1900, edid starts from 1990
     config.mfg_year = tm.tm_year - 90;
 
-    // Calculate CVT RBv2
+    // Calculate CVT reduced blanking host timings.
     config.hact = x_res;
-    config.hblk = 80;
-    config.hfp = 8;
-    config.hsync = 32;
+    if (timing_standard == TIMING_CVT_RB2) {
+        config.hblk = 80;
+        config.hfp = 8;
+        config.hsync = 32;
+    }
+    else {
+        config.hblk = 160;
+        config.hfp = 48;
+        config.hsync = 32;
+    }
 
     config.vact = y_res;
-    config.vsync = 8;
+    if (timing_standard == TIMING_CVT_RB2) {
+        config.vsync = 8;
+    }
+    else {
+        config.vsync = cvt_vsync_width(x_res, y_res);
+    }
     // Calculate Vblank time, it needs to be >460us
     float act_lines_time = 1000.f / ref_hz - 0.46;
     config.vblk = (uint16_t)((float)(config.vact) / act_lines_time * 0.46f + 1.f);
-    // VBP is fixed to 6 lines
-    config.vfp = config.vblk - config.vsync - 6;
+    if (timing_standard == TIMING_CVT_RB2) {
+        // VBP is fixed to 6 lines
+        config.vfp = config.vblk - config.vsync - 6;
+    }
+    else {
+        config.vfp = 3;
+        uint16_t min_vblk = config.vfp + config.vsync + 6;
+        if (config.vblk < min_vblk)
+            config.vblk = min_vblk;
+    }
 
-    // PCLK needs to be rounded to the nearest kHz
-    config.pclk_hz = (uint32_t)roundf((config.hact + config.hblk) *
-        (config.vact + config.vblk) * ref_hz / 1000.f) * 1000;
+    float raw_pclk_hz = (config.hact + config.hblk) *
+        (config.vact + config.vblk) * ref_hz;
+    if (timing_standard == TIMING_CVT_RB2) {
+        // RBv2 pixel clock is rounded to the nearest kHz.
+        config.pclk_hz = round_clock(raw_pclk_hz, 1000);
+    }
+    else {
+        // RBv1 pixel clock is rounded to the nearest 0.25 MHz.
+        config.pclk_hz = round_clock(raw_pclk_hz, 250000);
+    }
 
-    config.tcon_hfp = 16;
     config.tcon_hsync = 2;
     config.tcon_hbp = 2;
+    config.tcon_hfp = config.hblk / 4 - config.tcon_hsync - config.tcon_hbp;
     config.tcon_hact = x_res / 4;
 
     config.tcon_vsync = 1;
@@ -61,6 +137,7 @@ int main(int argc, char *argv[]) {
     config.tcon_vact = y_res;
 
     printf("Summary:\n");
+    printf("Timing standard: %s\n", timing_standard_name(timing_standard));
     printf("Size X: %d\n", config.size_x_mm);
     printf("Size Y: %d\n", config.size_y_mm);
     printf("Mfg Year: %d\n", config.mfg_year + 1990);
