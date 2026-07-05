@@ -21,6 +21,32 @@ class FlashToolTests(unittest.TestCase):
     def setUp(self):
         self.flash = load_flash_module()
 
+    class _FakeDfuStdout:
+        def __init__(self, lines, captured_output):
+            self.lines = lines
+            self.captured_output = captured_output
+            self.index = 0
+            self.saw_live_output = False
+
+        def readline(self):
+            if self.index == 1:
+                self.saw_live_output = "Erase" in self.captured_output.getvalue()
+            if self.index >= len(self.lines):
+                return ""
+            line = self.lines[self.index]
+            self.index += 1
+            return line
+
+    class _FakeDfuProcess:
+        def __init__(self, lines, returncode, captured_output):
+            self.stdout = FlashToolTests._FakeDfuStdout(lines, captured_output)
+            self.returncode = returncode
+
+        def poll(self):
+            if self.stdout.index >= len(self.stdout.lines):
+                return self.returncode
+            return None
+
     def test_discover_bitstreams_returns_release_variants_sorted(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -103,24 +129,43 @@ class FlashToolTests(unittest.TestCase):
         self.assertIn("2) config-13in.bin", output.getvalue())
 
     def test_flash_mcu_returns_false_when_dfu_util_fails(self):
-        completed = types.SimpleNamespace(returncode=74, stdout="No DFU capable USB device available\n")
-        with mock.patch.object(self.flash.subprocess, "run", return_value=completed), \
-                mock.patch.object(self.flash.sys, "stdout", new=io.StringIO()):
+        captured_output = io.StringIO()
+        process = self._FakeDfuProcess([
+            "No DFU capable USB device available\n",
+        ], returncode=74, captured_output=captured_output)
+
+        with mock.patch.object(self.flash.subprocess, "Popen", return_value=process), \
+                mock.patch.object(self.flash.sys, "stdout", new=captured_output):
             self.assertFalse(self.flash.flash_mcu())
 
     def test_flash_mcu_accepts_leave_status_error_after_successful_download(self):
-        stdout = "\n".join([
+        captured_output = io.StringIO()
+        process = self._FakeDfuProcess([
             'DfuSe interface name: "Internal Flash   "',
-            "Download done.",
-            "File downloaded successfully",
-            "Submitting leave request...",
-            "dfu-util: Error during download get_status",
-        ])
-        completed = types.SimpleNamespace(returncode=74, stdout=stdout)
+            "Download done.\n",
+            "File downloaded successfully\n",
+            "Submitting leave request...\n",
+            "dfu-util: Error during download get_status\n",
+        ], returncode=74, captured_output=captured_output)
 
-        with mock.patch.object(self.flash.subprocess, "run", return_value=completed), \
-                mock.patch.object(self.flash.sys, "stdout", new=io.StringIO()):
+        with mock.patch.object(self.flash.subprocess, "Popen", return_value=process), \
+                mock.patch.object(self.flash.sys, "stdout", new=captured_output):
             self.assertTrue(self.flash.flash_mcu())
+
+    def test_flash_mcu_streams_dfu_util_output_while_process_is_running(self):
+        captured_output = io.StringIO()
+        process = self._FakeDfuProcess([
+            "Erase   [=========] 50%\n",
+            "Download done.\n",
+            "File downloaded successfully\n",
+            "dfu-util: Error during download get_status\n",
+        ], returncode=74, captured_output=captured_output)
+
+        with mock.patch.object(self.flash.subprocess, "Popen", return_value=process), \
+                mock.patch.object(self.flash.sys, "stdout", new=captured_output):
+            self.assertTrue(self.flash.flash_mcu())
+
+        self.assertTrue(process.stdout.saw_live_output)
 
     def test_main_stops_after_failed_dfu_when_user_declines_continue(self):
         with mock.patch.object(self.flash, "flash_mcu", return_value=False), \

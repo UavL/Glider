@@ -271,16 +271,25 @@ def send_files(bitstream_path=None, include_fonts=True, config_path=None,
             time.sleep(5)
 
 def flash_mcu():
-    result = subprocess.run([
+    process = subprocess.Popen([
         "dfu-util",
         "-a", "0",
         "-i", "0",
         "-s", "0x08000000:leave",
         "-D", "glider_ec_rtos.bin",
     ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf-8", errors="replace")
-    output = result.stdout or ""
-    print(output, end="")
-    return result.returncode == 0 or "File downloaded successfully" in output
+
+    success = False
+    while True:
+        line = process.stdout.readline()
+        if line == "" and process.poll() is not None:
+            break
+        if line:
+            print(line, end="", flush=True)
+            if "File downloaded successfully" in line:
+                success = True
+
+    return process.returncode == 0 or success
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Flash Glider firmware assets.")
