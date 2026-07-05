@@ -73,11 +73,23 @@
 #define CSR_OSD_SCALE       48
 #define CSR_TONE_ADDR       49
 #define CSR_TONE_WR         50
+#define CSR_INPUT_CTRL      51
 #define CSR_STATUS          128
 #define CSR_ID0             129
 #define CSR_DAMAGE_COUNT_HI 130
 #define CSR_DAMAGE_COUNT_MID 131
 #define CSR_DAMAGE_COUNT_LO 132
+#define CSR_INPUT_STATUS        133
+#define CSR_INPUT_MEAS_HACT_HI  134
+#define CSR_INPUT_MEAS_HACT_LO  135
+#define CSR_INPUT_MEAS_VACT_HI  136
+#define CSR_INPUT_MEAS_VACT_LO  137
+#define CSR_INPUT_MEAS_HTOT_HI  138
+#define CSR_INPUT_MEAS_HTOT_LO  139
+#define CSR_INPUT_MEAS_VTOT_HI  140
+#define CSR_INPUT_MEAS_VTOT_LO  141
+#define CSR_DEBUG_MEMIF_STATE   142
+#define CSR_DEBUG_FIFO_STATE    143
 // Alias for 16bit registers
 #define CSR_LUT_ADDR        CSR_LUT_ADDR_HI
 #define CSR_OP_LEFT         CSR_OP_LEFT_HI
@@ -103,6 +115,20 @@
 #define STATUS_OP_BUSY      4
 #define STATUS_OP_QUEUE     3
 #define CTRL_ENABLE         0
+
+#define INPUT_CTRL_INTERNAL     (1u << 0)
+#define INPUT_CTRL_TMDS         (1u << 1)
+#define INPUT_CTRL_DP           (1u << 2)
+#define INPUT_CTRL_AUTO         (1u << 3)
+
+#define INPUT_STATUS_INTERNAL   (1u << 0)
+#define INPUT_STATUS_TMDS       (1u << 1)
+#define INPUT_STATUS_DP         (1u << 2)
+#define INPUT_STATUS_STABLE     (1u << 3)
+#define INPUT_STATUS_SUPPORTED  (1u << 4)
+#define INPUT_STATUS_LIVE       (1u << 5)
+#define INPUT_STATUS_RESET      (1u << 6)
+#define INPUT_STATUS_LOST       (1u << 7)
 
 #define WAVEFORM_SIZE       (4*1024)
 
@@ -136,3 +162,10 @@ uint8_t caster_osd_set_window(uint16_t left, uint16_t top,
     uint16_t logical_width, uint16_t logical_height);
 uint8_t caster_osd_set_enable(bool en);
 void caster_set_tone(int lightness, int contrast);
+uint8_t caster_input_status(void);
+void caster_input_force_internal(void);
+void caster_input_request_tmds(void);
+void caster_input_request_dp(void);
+void caster_input_request_auto(void);
+void caster_input_get_measured(uint16_t *hact, uint16_t *vact,
+        uint16_t *htotal, uint16_t *vtotal);

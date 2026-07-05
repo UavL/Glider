@@ -59,10 +59,11 @@ static int mode_max = sizeof(modes) / sizeof(modes[0]);
 
 #define OSD_WIDTH           CASTER_OSD_WIDTH
 #define OSD_HEIGHT          CASTER_OSD_HEIGHT
-#define OSD_STATUS_WIDTH    256
+#define OSD_STATUS_WIDTH    320
 #define OSD_STATUS_HEIGHT   64
 #define OSD_BLACK           false
 #define OSD_WHITE           true
+#define NO_SIGNAL_DELAY_MS  5000
 static uint8_t osd_fb[CASTER_OSD_BUF_SIZE];
 
 typedef struct {
@@ -76,6 +77,15 @@ typedef struct {
     int category_index;
     ui_menu_depth_t depth;
 } osd_menu_render_state_t;
+
+typedef enum {
+    SIGNAL_OSD_NONE,
+    SIGNAL_OSD_NO_SIGNAL,
+    SIGNAL_OSD_UNSUPPORTED,
+    SIGNAL_OSD_SLEEPING,
+} signal_osd_state_t;
+
+static void apply_input_selection(bool *tmds_mode);
 
 void ui_init(void) {
     btn_queue = xQueueCreate(8, sizeof(btn_event_t));
@@ -211,6 +221,20 @@ static void draw_status_popup(const osd_fonts_t *fonts, const char *title, const
     snprintf(textbuf, 80, "%s %s", title, value);
     osd_draw_prop_string(font_or(fonts->large, fonts->item), 12, 14, textbuf,
             OSD_STATUS_WIDTH - 24, OSD_BLACK);
+    caster_osd_set_window(0, 0, OSD_STATUS_WIDTH, OSD_STATUS_HEIGHT);
+    caster_osd_send_buf(osd_fb);
+    caster_osd_set_enable(true);
+}
+
+static void draw_signal_popup(const osd_fonts_t *fonts, const char *title,
+        const char *detail) {
+    osd_clear(0xff);
+    osd_draw_prop_string(font_or(fonts->large, fonts->item), 12, 12, title,
+            OSD_STATUS_WIDTH - 24, OSD_BLACK);
+    if ((detail != NULL) && (detail[0] != '\0')) {
+        osd_draw_prop_string(font_or(fonts->item, fonts->small), 12, 42, detail,
+                OSD_STATUS_WIDTH - 24, OSD_BLACK);
+    }
     caster_osd_set_window(0, 0, OSD_STATUS_WIDTH, OSD_STATUS_HEIGHT);
     caster_osd_send_buf(osd_fb);
     caster_osd_set_enable(true);
@@ -386,7 +410,8 @@ static void render_settings_menu(const osd_fonts_t *fonts, const ui_menu_t *menu
     osd_draw_right_string(font_or(fonts->small, fonts->item), OSD_WIDTH - 5,
             OSD_HEIGHT - 20, page, 42, OSD_BLACK);
 
-    caster_osd_set_window(0, 0, OSD_WIDTH, OSD_HEIGHT);
+    caster_osd_set_window(0, config.tcon_vact -
+        OSD_HEIGHT * (config.osd_scale_2x ? 2u : 1u), OSD_WIDTH, OSD_HEIGHT);
     caster_osd_send_buf(osd_fb);
     caster_osd_set_enable(true);
 }
@@ -485,7 +510,8 @@ static void execute_button_action(button_action_t action, const osd_fonts_t *fon
         ui_menu_t *menu, bool *menu_open, bool *autoclear,
         TickType_t *osd_timeout, TickType_t *autoclear_timeout,
         uint32_t *autoclear_damage_counter, uint32_t *autoclear_damage_last,
-        osd_menu_render_state_t *render_state, int *autoclear_previous_mode) {
+        osd_menu_render_state_t *render_state, int *autoclear_previous_mode,
+        bool *tmds_mode) {
     switch (action) {
     case ACT_PREV_MODE:
         mode--;
@@ -544,18 +570,21 @@ static void execute_button_action(button_action_t action, const osd_fonts_t *fon
     case ACT_INPUT_AUTO:
         config.input_sel = INPUT_SEL_AUTO;
         config_save();
+        apply_input_selection(tmds_mode);
         draw_status_popup(fonts, "Input", input_label(config.input_sel));
         *osd_timeout = xTaskGetTickCount() + pdMS_TO_TICKS(2000);
         break;
     case ACT_INPUT_TMDS:
         config.input_sel = INPUT_SEL_TMDS;
         config_save();
+        apply_input_selection(tmds_mode);
         draw_status_popup(fonts, "Input", input_label(config.input_sel));
         *osd_timeout = xTaskGetTickCount() + pdMS_TO_TICKS(2000);
         break;
     case ACT_INPUT_DP:
         config.input_sel = INPUT_SEL_DP;
         config_save();
+        apply_input_selection(tmds_mode);
         draw_status_popup(fonts, "Input", input_label(config.input_sel));
         *osd_timeout = xTaskGetTickCount() + pdMS_TO_TICKS(2000);
         break;
@@ -582,52 +611,49 @@ static bool is_video_active(bool tmds_mode) {
     return tmds_mode ? is_tmds_active() : is_dp_video_active();
 }
 
-static bool select_active_input(void) {
-    bool tmds_mode = false;
+static bool is_selected_video_active(bool tmds_mode) {
+    if (config.input_sel == INPUT_SEL_AUTO)
+        return is_tmds_active() || is_dp_video_active();
+    return is_video_active(tmds_mode);
+}
 
-    if (config.input_sel == INPUT_SEL_DP) {
-        tmds_mode = false;
-        syslog_print("Forced to use DP input");
-    }
-    else if (config.input_sel == INPUT_SEL_TMDS) {
-        tmds_mode = true;
-        syslog_print("Forced to use TMDS input");
-    }
-    else {
-        while (1) {
-            if (is_tmds_active()) {
-                tmds_mode = true;
-                break;
-            }
-            else if (is_dp_active()) {
-                tmds_mode = false;
-                break;
-            }
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
-    }
+static void resume_video_frontends(void);
 
-    if (tmds_mode) {
-        while (!is_tmds_active()) {
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
+static void apply_input_selection(bool *tmds_mode) {
+    switch (config.input_sel) {
+    case INPUT_SEL_TMDS:
+        *tmds_mode = true;
+        syslog_print("Requesting TMDS input");
+        adv7611_early_init();
+        adv7611_init();
         ptn3460_powerdown();
-    }
-    else {
-        while (!is_dp_active()) {
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
+        caster_input_request_tmds();
+        break;
+    case INPUT_SEL_DP:
+        *tmds_mode = false;
+        syslog_print("Requesting DP input");
+        ptn3460_init();
+        usbpd_resume_displayport();
         adv7611_powerdown();
+        caster_input_request_dp();
+        break;
+    case INPUT_SEL_AUTO:
+    default:
+        if (is_tmds_active())
+            *tmds_mode = true;
+        else if (is_dp_active())
+            *tmds_mode = false;
+        syslog_print("Requesting auto input");
+        resume_video_frontends();
+        caster_input_request_auto();
+        break;
     }
-
-    return tmds_mode;
 }
 
 static void restart_fpga(void) {
     fpga_init(config.bitstream);
-    syslog_printf("Waiting for video signal to lock");
+    syslog_printf("Waiting for FPGA CSR access");
     while (true) {
-        // Wait for PLL to lock
         vTaskDelay(pdMS_TO_TICKS(100));
         uint8_t result = fpga_write_reg8(CSR_ID0, 0x00);
         if (result == 0x35) {
@@ -637,11 +663,16 @@ static void restart_fpga(void) {
     syslog_printf("FPGA up");
 }
 
-static void start_display_pipeline(bool *tmds_mode) {
-    *tmds_mode = select_active_input();
+static void start_display_pipeline(bool *tmds_mode, const osd_fonts_t *fonts,
+        signal_osd_state_t *signal_osd_state, TickType_t *no_signal_deadline) {
     restart_fpga();
     power_on_epd();
     caster_init();
+    apply_input_selection(tmds_mode);
+    caster_osd_set_enable(false);
+    *signal_osd_state = SIGNAL_OSD_NONE;
+    *no_signal_deadline = xTaskGetTickCount() +
+            pdMS_TO_TICKS(NO_SIGNAL_DELAY_MS);
     syslog_printf("FPGA started with status %02x", fpga_write_reg8(CSR_STATUS, 0x00));
 }
 
@@ -652,12 +683,101 @@ static void resume_video_frontends(void) {
     usbpd_resume_displayport();
 }
 
+static void update_input_tracking(uint8_t input_status, bool *tmds_mode,
+        bool *live_was_selected) {
+    if (input_status & INPUT_STATUS_TMDS)
+        *tmds_mode = true;
+    else if (input_status & INPUT_STATUS_DP)
+        *tmds_mode = false;
+    *live_was_selected = !!(input_status & INPUT_STATUS_LIVE);
+}
+
+static void update_signal_osd(const osd_fonts_t *fonts, uint8_t input_status,
+        bool menu_open, TickType_t osd_timeout,
+        signal_osd_state_t *signal_osd_state, TickType_t *no_signal_deadline) {
+    if (menu_open || (osd_timeout != 0))
+        return;
+
+    if (input_status & INPUT_STATUS_LIVE) {
+        if (*signal_osd_state != SIGNAL_OSD_NONE)
+            caster_osd_set_enable(false);
+        *signal_osd_state = SIGNAL_OSD_NONE;
+        *no_signal_deadline = 0;
+        return;
+    }
+
+    if ((input_status & INPUT_STATUS_STABLE) &&
+            !(input_status & INPUT_STATUS_SUPPORTED)) {
+        if (*signal_osd_state != SIGNAL_OSD_UNSUPPORTED) {
+            uint16_t hact;
+            uint16_t vact;
+            char detail[32];
+            caster_input_get_measured(&hact, &vact, NULL, NULL);
+            if ((hact != 0) && (vact != 0))
+                snprintf(detail, sizeof(detail), "%u x %u", hact, vact);
+            else
+                detail[0] = '\0';
+            draw_signal_popup(fonts, "Unsupported Input", detail);
+            *signal_osd_state = SIGNAL_OSD_UNSUPPORTED;
+        }
+        *no_signal_deadline = 0;
+        return;
+    }
+
+    if ((*no_signal_deadline != 0) &&
+            (((int32_t)xTaskGetTickCount() - (int32_t)*no_signal_deadline) < 0)) {
+        if (*signal_osd_state != SIGNAL_OSD_NONE)
+            caster_osd_set_enable(false);
+        *signal_osd_state = SIGNAL_OSD_NONE;
+        return;
+    }
+    *no_signal_deadline = 0;
+
+    if (*signal_osd_state != SIGNAL_OSD_NO_SIGNAL) {
+        draw_signal_popup(fonts, "No Signal", NULL);
+        *signal_osd_state = SIGNAL_OSD_NO_SIGNAL;
+    }
+}
+
+static void log_input_status(uint8_t input_status) {
+    uint16_t hact;
+    uint16_t vact;
+    uint16_t htotal;
+    uint16_t vtotal;
+
+    caster_input_get_measured(&hact, &vact, &htotal, &vtotal);
+    syslog_printf("Input status %02x, measured %u x %u, total %u x %u",
+            input_status, hact, vact, htotal, vtotal);
+}
+
+static void reload_to_internal_source(bool *tmds_mode, const osd_fonts_t *fonts,
+        signal_osd_state_t *signal_osd_state, TickType_t *no_signal_deadline,
+        const char *reason) {
+    syslog_print(reason);
+    power_off_epd();
+    start_display_pipeline(tmds_mode, fonts, signal_osd_state,
+            no_signal_deadline);
+}
+
+static void recover_from_live_loss(bool *tmds_mode, const osd_fonts_t *fonts,
+        signal_osd_state_t *signal_osd_state, TickType_t *no_signal_deadline) {
+    reload_to_internal_source(tmds_mode, fonts, signal_osd_state,
+            no_signal_deadline,
+            "Live video lost; reloading FPGA into internal source");
+    draw_signal_popup(fonts, "Sleeping", NULL);
+    *signal_osd_state = SIGNAL_OSD_SLEEPING;
+    *no_signal_deadline = 0;
+    caster_redraw(0, 0, config.hact, config.vact);
+    sleep_ms(600);
+    power_suspend(POWER_SUSPEND_VIDEO_LOSS);
+}
+
 static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
         TickType_t usbpd_wake_arm_time, bool tmds_mode) {
     btn_event_t btn_event;
     power_suspend_reason_t reason = power_get_current_suspend_reason();
 
-    if ((reason == POWER_SUSPEND_VIDEO_LOSS) && is_video_active(tmds_mode))
+    if ((reason == POWER_SUSPEND_VIDEO_LOSS) && is_selected_video_active(tmds_mode))
         return POWER_WAKE_INPUT;
 
     if (usbapp_take_resume_event())
@@ -691,9 +811,13 @@ portTASK_FUNCTION(ui_task, pvParameters) {
     bool menu_open = false;
     bool suspend_wait_initialized = false;
     bool usbpd_wake_armed = false;
+    bool live_was_selected = false;
+    uint8_t last_logged_input_status = 0xff;
+    TickType_t no_signal_deadline = 0;
     TickType_t usbpd_wake_arm_time = 0;
     ui_menu_t menu;
     osd_menu_render_state_t menu_render_state = {0};
+    signal_osd_state_t signal_osd_state = SIGNAL_OSD_NONE;
 
     osd_fonts_t fonts = {
         .small = load_osd_font("fonts/font_quicksand_16.bin"),
@@ -704,7 +828,8 @@ portTASK_FUNCTION(ui_task, pvParameters) {
     mode = mode_index_for((update_mode_t)config.update_mode);
 
     bool tmds_mode = false;
-    start_display_pipeline(&tmds_mode);
+    start_display_pipeline(&tmds_mode, &fonts, &signal_osd_state,
+            &no_signal_deadline);
 
     while (1) {
         if (power_is_suspended()) {
@@ -725,12 +850,14 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             fpga_resume();
             if (power_get_last_suspend_reason() != POWER_SUSPEND_VIDEO_LOSS)
                 resume_video_frontends();
-            start_display_pipeline(&tmds_mode);
+            start_display_pipeline(&tmds_mode, &fonts, &signal_osd_state,
+                    &no_signal_deadline);
             power_resume_complete();
 
             menu_open = false;
             suspend_wait_initialized = false;
             usbpd_wake_armed = false;
+            live_was_selected = false;
             osd_timeout = 0;
             autoclear_timeout = 0;
             autoclear = config.autoclear_mode != AC_OFF;
@@ -740,7 +867,6 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             menu_render_state.first_row = 0;
             menu_render_state.category_index = 0;
             menu_render_state.depth = UI_MENU_DEPTH_CATEGORIES;
-            caster_osd_set_enable(false);
             continue;
         }
 
@@ -789,10 +915,13 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                     &autoclear_damage_last);
         }
 
-        // Detect loss of signal / lost access to FPGA
-        if (!is_video_active(tmds_mode)) {
-            syslog_print("Video signal lost; suspending");
-            power_suspend(POWER_SUSPEND_VIDEO_LOSS);
+        // Detect loss of signal / lost access to FPGA. If live video was
+        // selected, a stopped external clock can also stop CSR access, so use
+        // the frontend signal check before touching FPGA registers.
+        if (live_was_selected && !is_video_active(tmds_mode)) {
+            recover_from_live_loss(&tmds_mode, &fonts, &signal_osd_state,
+                    &no_signal_deadline);
+            live_was_selected = false;
             continue;
         }
         if (fpga_write_reg8(CSR_ID0, 0x00) != 0x35) {
@@ -800,6 +929,29 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             power_off_epd();
             NVIC_SystemReset();
         }
+
+        uint8_t input_status = caster_input_status();
+        if (input_status != last_logged_input_status) {
+            log_input_status(input_status);
+            last_logged_input_status = input_status;
+        }
+        update_input_tracking(input_status, &tmds_mode, &live_was_selected);
+        if (input_status & INPUT_STATUS_LOST) {
+            if (is_selected_video_active(tmds_mode)) {
+                reload_to_internal_source(&tmds_mode, &fonts, &signal_osd_state,
+                        &no_signal_deadline,
+                        "FPGA source lost while frontend is active; retrying internal source");
+            }
+            else {
+                recover_from_live_loss(&tmds_mode, &fonts, &signal_osd_state,
+                        &no_signal_deadline);
+            }
+            live_was_selected = false;
+            last_logged_input_status = 0xff;
+            continue;
+        }
+        update_signal_osd(&fonts, input_status, menu_open, osd_timeout,
+                &signal_osd_state, &no_signal_deadline);
 
         // Detect signal mode
         // TODO: This should be implemented in FPGA
@@ -875,6 +1027,10 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                     }
                     config_save();
                     autoclear = config.autoclear_mode != AC_OFF;
+                    if (previous_config.input_sel != config.input_sel) {
+                        apply_input_selection(&tmds_mode);
+                        live_was_selected = false;
+                    }
                     if ((previous_config.lightness != config.lightness) ||
                             (previous_config.contrast != config.contrast)) {
                         caster_set_tone(config.lightness, config.contrast);
@@ -907,7 +1063,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                     &fonts, &menu, &menu_open, &autoclear, &osd_timeout,
                     &autoclear_timeout, &autoclear_damage_counter,
                     &autoclear_damage_last, &menu_render_state,
-                    &autoclear_previous_mode);
+                    &autoclear_previous_mode, &tmds_mode);
         }
     }
 }

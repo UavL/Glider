@@ -172,3 +172,44 @@ void caster_set_tone(int lightness, int contrast) {
     fpga_write_reg8(CSR_TONE_ADDR, 0);
     fpga_write_bulk(CSR_TONE_WR, lut, TONE_LUT_SIZE);
 }
+
+uint8_t caster_input_status(void) {
+    return fpga_write_reg8(CSR_INPUT_STATUS, 0x00);
+}
+
+void caster_input_force_internal(void) {
+    fpga_write_reg8(CSR_INPUT_CTRL, INPUT_CTRL_INTERNAL);
+}
+
+void caster_input_request_tmds(void) {
+    fpga_write_reg8(CSR_INPUT_CTRL, INPUT_CTRL_TMDS);
+}
+
+void caster_input_request_dp(void) {
+    fpga_write_reg8(CSR_INPUT_CTRL, INPUT_CTRL_DP);
+}
+
+void caster_input_request_auto(void) {
+    fpga_write_reg8(CSR_INPUT_CTRL, INPUT_CTRL_AUTO);
+}
+
+void caster_input_get_measured(uint16_t *hact, uint16_t *vact,
+        uint16_t *htotal, uint16_t *vtotal) {
+    uint16_t hact_value = ((uint16_t)fpga_write_reg8(CSR_INPUT_MEAS_HACT_HI, 0x00) << 8) |
+            fpga_write_reg8(CSR_INPUT_MEAS_HACT_LO, 0x00);
+    uint16_t vact_value = ((uint16_t)fpga_write_reg8(CSR_INPUT_MEAS_VACT_HI, 0x00) << 8) |
+            fpga_write_reg8(CSR_INPUT_MEAS_VACT_LO, 0x00);
+    uint16_t htotal_value = ((uint16_t)fpga_write_reg8(CSR_INPUT_MEAS_HTOT_HI, 0x00) << 8) |
+            fpga_write_reg8(CSR_INPUT_MEAS_HTOT_LO, 0x00);
+    uint16_t vtotal_value = ((uint16_t)fpga_write_reg8(CSR_INPUT_MEAS_VTOT_HI, 0x00) << 8) |
+            fpga_write_reg8(CSR_INPUT_MEAS_VTOT_LO, 0x00);
+
+    if (hact != NULL)
+        *hact = hact_value << 1;
+    if (vact != NULL)
+        *vact = vact_value;
+    if (htotal != NULL)
+        *htotal = htotal_value << 1;
+    if (vtotal != NULL)
+        *vtotal = vtotal_value;
+}
