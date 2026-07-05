@@ -12,6 +12,30 @@ import queue
 import os
 import serial
 
+def cfggen_command_for_screen(scr_size, output_path):
+    if scr_size == 6:
+        return [
+            "./cfggen/bin/cfggen",
+            "6",
+            "1448",
+            "1072",
+            "75",
+            "cvt-rb",
+            "--out",
+            output_path,
+        ]
+
+    return [
+        "./cfggen/bin/cfggen",
+        "13.3",
+        "1600",
+        "1200",
+        "75",
+        "cvt-rb2",
+        "--out",
+        output_path,
+    ]
+
 class App(tk.Tk):
 
     INFO_COLOR =            "snow"
@@ -82,6 +106,7 @@ class App(tk.Tk):
 
         self.status = tk.StringVar(value="设置屏幕尺寸")
         self.instr = tk.StringVar(value="选择要烧录的屏幕尺寸")
+        self.flash_config = tk.BooleanVar(value=True)
 
         self.title_label = tk.Label(self, text="Glider 烧录及测试工具", font=("Font", 20))
         self.title_label.pack(ipady=12, fill="x")
@@ -114,6 +139,9 @@ class App(tk.Tk):
         self.btn_stop = tk.Button(self.option_frame, text="取消", font=("Font", 50), padx = 80, pady = 50, background=self.UNSEL_COLOR, command=lambda: self.send_signal("stop"))
         self.btn_stop.place(x = 800, y = 120, anchor="center")
         self.btn_stop.config(state="disabled")
+
+        self.chk_config = tk.Checkbutton(self.option_frame, text="烧录配置", font=("Font", 28), variable=self.flash_config)
+        self.chk_config.place(x = 600, y = 15)
 
         self.log_frame = tk.Frame(self, width=1000, height=132)
         self.log_frame.pack(padx = 12, pady = 12)
@@ -156,6 +184,7 @@ class App(tk.Tk):
     def start_task(self):
         self.btn_6in.config(state="disabled")
         self.btn_13in.config(state="disabled")
+        self.chk_config.config(state="disabled")
         self.btn_start.config(state="disabled")
         self.btn_start.config(background="grey")
         threading.Thread(target=self.flash_test_task, daemon=True).start()
@@ -314,6 +343,7 @@ class App(tk.Tk):
         self.btn_start.config(command=self.start_task)
         self.btn_6in.config(state="normal")
         self.btn_13in.config(state="normal")
+        self.chk_config.config(state="normal")
 
     def repurpose_button(self):
         self.btn_start.config(background=self.ATTN_COLOR)
@@ -414,12 +444,12 @@ class App(tk.Tk):
             self.after(0, lambda: self.update_status(self.INFO_COLOR, "烧录资源中", "正在传输字体文件，请稍候"))
             for font in ['font_quicksand_16.bin', 'font_quicksand_20.bin', 'font_quicksand_28.bin']:
                 self.send_file('fonts/' + font, 'fonts/' + font)
-            self.after(0, lambda: self.update_status(self.INFO_COLOR, "烧录资源中", "正在传输配置文件，请稍候"))
-            if self.scr_size == 6:
-                subprocess.run("./cfggen/bin/cfggen 6 1448 1072 75", shell=True)
-            else:
-                subprocess.run("./cfggen/bin/cfggen 13.3 1600 1200 75", shell=True)
-            self.send_file('config.bin', 'config.bin')
+            if self.flash_config.get():
+                self.after(0, lambda: self.update_status(self.INFO_COLOR, "烧录资源中", "正在传输配置文件，请稍候"))
+                completed = subprocess.run(cfggen_command_for_screen(self.scr_size, "config.bin"))
+                if completed.returncode != 0:
+                    raise Exception("cfggen failed")
+                self.send_file('config.bin', 'config.bin')
         except Exception as e:
             self.after(0, lambda: self.log_status(str(e) + "\n"))
             self.after(0, lambda: self.update_status(self.ERR_COLOR, "失败", "未知错误\n请反馈问题并重试烧录流程"))

@@ -56,4 +56,12 @@ assert_contains "$rb_output" "HFP:  48" "RB horizontal front porch"
 assert_contains "$rb_output" "HSW:  32" "RB horizontal sync"
 assert_contains "$rb_output" "VFP:  3" "RB vertical front porch"
 
+out_file="$tmpdir/config-6in.bin"
+out_output="$(
+    cd "$tmpdir"
+    ./cfggen 6 1448 1072 75 cvt-rb --out "$out_file"
+)"
+assert_contains "$out_output" "Output: $out_file" "cfggen output path"
+[[ -s "$out_file" ]] || fail "cfggen did not write output file"
+
 echo "PASS: cfggen timing standards"

@@ -55,4 +55,5 @@ run_cmd "$SCRIPT_DIR/build_caster_ise_vm.sh" \
 run_cmd python3 "$repo/utils/flash_tool/flash.py" \
     --skip-mcu \
     --bitstream "$out_dir/fpga.bit" \
-    --no-fonts
+    --no-fonts \
+    --no-config

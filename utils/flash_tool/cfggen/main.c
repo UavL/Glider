@@ -43,8 +43,8 @@ static uint32_t round_clock(float raw_hz, uint32_t granularity_hz) {
 int main(int argc, char *argv[]) {
     config_init();
 
-    if ((argc != 5) && (argc != 6)) {
-        printf("Usage: cfggen <size_in> <x_res> <y_res> <ref_hz> [cvt-rb2|cvt-rb]\n");
+    if ((argc < 5) || (argc > 8)) {
+        printf("Usage: cfggen <size_in> <x_res> <y_res> <ref_hz> [cvt-rb2|cvt-rb] [--out <file>]\n");
         return -1;
     }
 
@@ -53,18 +53,35 @@ int main(int argc, char *argv[]) {
     int y_res = atoi(argv[3]);
     int ref_hz = atoi(argv[4]);
     timing_standard_t timing_standard = TIMING_CVT_RB2;
-    if (argc == 6) {
-        if (strcmp(argv[5], "cvt-rb2") == 0) {
+    const char *output_path = "config.bin";
+
+    int argi = 5;
+    if ((argi < argc) && (strcmp(argv[argi], "--out") != 0)) {
+        if (strcmp(argv[argi], "cvt-rb2") == 0) {
             timing_standard = TIMING_CVT_RB2;
         }
-        else if (strcmp(argv[5], "cvt-rb") == 0) {
+        else if (strcmp(argv[argi], "cvt-rb") == 0) {
             timing_standard = TIMING_CVT_RB;
         }
         else {
-            printf("Unknown timing standard: %s\n", argv[5]);
-            printf("Usage: cfggen <size_in> <x_res> <y_res> <ref_hz> [cvt-rb2|cvt-rb]\n");
+            printf("Unknown timing standard: %s\n", argv[argi]);
+            printf("Usage: cfggen <size_in> <x_res> <y_res> <ref_hz> [cvt-rb2|cvt-rb] [--out <file>]\n");
             return -1;
         }
+        argi++;
+    }
+
+    if (argi < argc) {
+        if ((strcmp(argv[argi], "--out") != 0) || ((argi + 1) >= argc)) {
+            printf("Usage: cfggen <size_in> <x_res> <y_res> <ref_hz> [cvt-rb2|cvt-rb] [--out <file>]\n");
+            return -1;
+        }
+        output_path = argv[argi + 1];
+        argi += 2;
+    }
+    if (argi != argc) {
+        printf("Usage: cfggen <size_in> <x_res> <y_res> <ref_hz> [cvt-rb2|cvt-rb] [--out <file>]\n");
+        return -1;
     }
 
     // Calculate size
@@ -165,7 +182,13 @@ int main(int argc, char *argv[]) {
         ((config.hact + config.hblk) * (config.vact + config.vblk)));
 
     FILE *fp;
-    fp = fopen("config.bin", "wb");
+    printf("Output: %s\n", output_path);
+
+    fp = fopen(output_path, "wb");
+    if (fp == NULL) {
+        printf("Unable to open output file: %s\n", output_path);
+        return -1;
+    }
     fwrite(&config, sizeof(config), 1, fp);
     fclose(fp);
 

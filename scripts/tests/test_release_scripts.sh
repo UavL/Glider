@@ -57,6 +57,9 @@ for variant in 8bit-mono 8bit-k3 16bit-mono 16bit-k3; do
     assert_file_contains "$release_log" "cp .*/0.1-task2/caster/$variant/fpga.bit .*/0.1-task2/flash_tool/fpga-$variant.bit" "packaged bitstream for $variant"
 done
 assert_file_contains "$release_log" "python3 .*/tools/fonts/generate_quicksand_fonts.py --out-dir .*/0.1-task2/flash_tool/fonts" "generated Quicksand release fonts"
+assert_file_contains "$release_log" "make -C .*/utils/flash_tool/cfggen" "built cfggen for release configs"
+assert_file_contains "$release_log" ".*/utils/flash_tool/cfggen/bin/cfggen 6 1448 1072 75 cvt-rb --out .*/0.1-task2/flash_tool/configs/config-6in.bin" "generated 6 inch CVT-RB config"
+assert_file_contains "$release_log" ".*/utils/flash_tool/cfggen/bin/cfggen 13.3 1600 1200 75 cvt-rb2 --out .*/0.1-task2/flash_tool/configs/config-13in.bin" "generated 13 inch CVT-RBv2 config"
 if grep -Eq "cp .*/utils/flash_tool/font_24x40.bin .*/0.1-task2/flash_tool/font_24x40.bin" "$release_log"; then
     fail "release should not package the legacy font_24x40.bin"
 fi
@@ -99,6 +102,6 @@ dev_fpga_log="$tmpdir/dev-fpga.log"
     "$REPO_ROOT/scripts/dev_flash_fpga.sh" --ise-host 192.168.56.101 --variant 16bit-k3
 ) >"$dev_fpga_log" 2>&1
 assert_file_contains "$dev_fpga_log" "build_caster_ise_vm.sh --host 192.168.56.101 --source .*/Glider/Caster --out .*/Glider/build/dev/caster/16bit-k3 --variant 16bit-k3" "dev FPGA script builds one variant"
-assert_file_contains "$dev_fpga_log" "python3 .*/Glider/utils/flash_tool/flash.py --skip-mcu --bitstream .*/Glider/build/dev/caster/16bit-k3/fpga.bit --no-fonts" "dev FPGA script transfers only selected bitstream"
+assert_file_contains "$dev_fpga_log" "python3 .*/Glider/utils/flash_tool/flash.py --skip-mcu --bitstream .*/Glider/build/dev/caster/16bit-k3/fpga.bit --no-fonts --no-config" "dev FPGA script transfers only selected bitstream"
 
 echo "PASS: Glider release dry-run"

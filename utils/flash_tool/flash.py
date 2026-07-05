@@ -117,6 +117,11 @@ BITSTREAM_VARIANTS = [
     '16bit-k3',
 ]
 
+CONFIG_FILES = [
+    'config-6in.bin',
+    'config-13in.bin',
+]
+
 def _write_line(output, text=""):
     if callable(output):
         output(text)
@@ -170,6 +175,54 @@ def select_bitstream(directory=Path('.'), input_func=input, output=sys.stdout):
 
         _write_line(output, f"Please enter a number from 1 to {len(bitstreams)}.")
 
+def discover_configs(directory):
+    directory = Path(directory)
+    config_dir = directory / 'configs'
+    config_order = {
+        name: index
+        for index, name in enumerate(CONFIG_FILES)
+    }
+    release_configs = sorted(
+        config_dir.glob('config-*.bin'),
+        key=lambda path: (config_order.get(path.name, len(config_order)), path.name),
+    )
+    if release_configs:
+        return release_configs
+
+    legacy_config = directory / 'config.bin'
+    if legacy_config.exists():
+        return [legacy_config]
+
+    return []
+
+def select_config(directory=Path('.'), input_func=input, output=sys.stdout):
+    configs = discover_configs(directory)
+    if not configs:
+        raise FileNotFoundError(
+            "No display config found. Expected configs/config-*.bin release "
+            "files or legacy config.bin in the flash tool directory.")
+
+    if len(configs) == 1:
+        _write_line(output, f"Using display config: {configs[0].name}")
+        return configs[0]
+
+    _write_line(output, "Select display config:")
+    for index, config in enumerate(configs, start=1):
+        _write_line(output, f"{index}) {config.name}")
+
+    while True:
+        response = input_func("Enter selection number: ").strip()
+        try:
+            selected = int(response)
+        except ValueError:
+            _write_line(output, "Please enter a number.")
+            continue
+
+        if 1 <= selected <= len(configs):
+            return configs[selected - 1]
+
+        _write_line(output, f"Please enter a number from 1 to {len(configs)}.")
+
 def _require_files(paths):
     for path in paths:
         if not path.is_file():
@@ -187,13 +240,19 @@ def ask_yes_no(prompt, default=False, input_func=input):
             return False
         print("Please answer yes or no.")
 
-def send_files(bitstream_path=None, include_fonts=True):
+def send_files(bitstream_path=None, include_fonts=True, config_path=None,
+        include_config=False):
     base_dir = Path('.')
     bitstream = Path(bitstream_path) if bitstream_path else select_bitstream(base_dir)
+    config = None
+    if include_config:
+        config = Path(config_path) if config_path else select_config(base_dir)
     font_paths = [base_dir / 'fonts' / font for font in FONT_FILES]
     required_files = [bitstream]
     if include_fonts:
         required_files += font_paths
+    if config is not None:
+        required_files.append(config)
     _require_files(required_files)
 
     success = False
@@ -204,6 +263,8 @@ def send_files(bitstream_path=None, include_fonts=True):
             if include_fonts:
                 for font_path in font_paths:
                     send_file(h, font_path, 'fonts/' + font_path.name)
+            if config is not None:
+                send_file(h, config, 'config.bin')
             success = True
         except OSError:
             print("Waiting for device to reconnect")
@@ -236,6 +297,16 @@ def parse_args(argv=None):
         action="store_true",
         help="Only transfer the FPGA bitstream; skip bundled font files.",
     )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        help="Display config file to transfer as config.bin.",
+    )
+    parser.add_argument(
+        "--no-config",
+        action="store_true",
+        help="Do not ask for or transfer a display config file.",
+    )
     return parser.parse_args(argv)
 
 def main(argv=None):
@@ -246,9 +317,17 @@ def main(argv=None):
         if not ask_yes_no("Continue with FPGA/font transfer anyway?", default=False):
             return 1
 
+    include_config = False
+    if args.config:
+        include_config = True
+    elif not args.no_config:
+        include_config = ask_yes_no("Flash display config file?", default=True)
+
     send_files(
         bitstream_path=args.bitstream,
         include_fonts=not args.no_fonts,
+        config_path=args.config,
+        include_config=include_config,
     )
     return 0
 
