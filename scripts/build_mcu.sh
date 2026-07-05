@@ -24,11 +24,14 @@ if [[ -z "$ide_bin" ]]; then
 fi
 
 workspace="$repo/build/stm32-workspace"
+configuration="$repo/build/stm32-configuration"
 mkdir -p "$release_dir"
+mkdir -p "$configuration"
 
 run_cmd "$ide_bin" \
     -nosplash \
     --launcher.suppressErrors \
+    -configuration "$configuration" \
     -application org.eclipse.cdt.managedbuilder.core.headlessbuild \
     -data "$workspace" \
     -import "$repo/fw" \

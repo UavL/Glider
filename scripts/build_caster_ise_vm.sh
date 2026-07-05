@@ -260,9 +260,11 @@ if [ "\$ipcore_status" -ne 0 ]; then
             variant_out=$REMOTE_RUN_DIR_Q/out/\$variant
         else
             variant_out=$REMOTE_RUN_DIR_Q/out
-        fi
-        mkdir -p "\$variant_out"
+    fi
+    mkdir -p "\$variant_out"
+    if [ "\$multi_variant" -eq 1 ]; then
         cp $REMOTE_RUN_DIR_Q/out/ipcore.log "\$variant_out/ipcore.log" 2>/dev/null || true
+    fi
         printf 'CoreGen failed with status %s\n' "\$ipcore_status" > "\$variant_out/build.log"
         printf '%s\n' "\$ipcore_status" > "\$variant_out/build.status"
         rm -rf "\$variant_out/reports"
@@ -279,7 +281,9 @@ for variant in \$variants; do
         variant_out=$REMOTE_RUN_DIR_Q/out
     fi
     mkdir -p "\$variant_out"
-    cp $REMOTE_RUN_DIR_Q/out/ipcore.log "\$variant_out/ipcore.log"
+    if [ "\$multi_variant" -eq 1 ]; then
+        cp $REMOTE_RUN_DIR_Q/out/ipcore.log "\$variant_out/ipcore.log"
+    fi
     ./clean.sh >/dev/null 2>&1 || true
     set +e
     ./ise_flow.sh "\$variant" > "\$variant_out/build.log" 2>&1
