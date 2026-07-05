@@ -54,22 +54,29 @@ assert_file_contains "$metadata" '^version=0.1-task2$' "metadata version"
 assert_file_contains "$metadata" '^glider_revision=[0-9a-f]{40}$' "metadata Glider revision"
 assert_file_contains "$metadata" '^caster_revision=[0-9a-f]{40}$' "metadata Caster revision"
 for variant in 8bit-mono 8bit-k3 16bit-mono 16bit-k3; do
-    assert_file_contains "$release_log" "cp .*/0.1-task2/caster/$variant/fpga.bit .*/0.1-task2/flash_tool/fpga-$variant.bit" "packaged bitstream for $variant"
+    assert_file_contains "$release_log" "cp .*/0.1-task2/caster/$variant/fpga.bit .*/0.1-task2/firmware/fpga-$variant.bit" "packaged bitstream for $variant"
+    assert_file_contains "$release_log" "cp .*/0.1-task2/caster/$variant/reports.tar.gz .*/0.1-task2/buildlog/02_reports-$variant.tar.gz" "preserved Caster reports for $variant"
 done
 for font in font_quicksand_16.bin font_quicksand_20.bin font_quicksand_28.bin; do
-    assert_file_contains "$release_log" "cp .*/utils/flash_tool/fonts/$font .*/0.1-task2/flash_tool/fonts/$font" "packaged checked-in $font"
+    assert_file_contains "$release_log" "cp .*/utils/flash_tool/fonts/$font .*/0.1-task2/firmware/fonts/$font" "packaged checked-in $font"
 done
 if grep -Eq "generate_quicksand_fonts.py" "$release_log"; then
     fail "release should not regenerate checked-in font binaries"
 fi
 assert_file_contains "$release_log" "make -C .*/utils/flash_tool/cfggen" "built cfggen for release configs"
-assert_file_contains "$release_log" ".*/utils/flash_tool/cfggen/bin/cfggen 6 1448 1072 75 cvt-rb --out .*/0.1-task2/flash_tool/configs/config-6in.bin" "generated 6 inch CVT-RB config"
-assert_file_contains "$release_log" ".*/utils/flash_tool/cfggen/bin/cfggen 13.3 1600 1200 75 cvt-rb2 --out .*/0.1-task2/flash_tool/configs/config-13in.bin" "generated 13 inch CVT-RBv2 config"
+assert_file_contains "$release_log" ".*/utils/flash_tool/cfggen/bin/cfggen 6 1448 1072 75 cvt-rb --out .*/0.1-task2/firmware/configs/config-6in.bin" "generated 6 inch CVT-RB config"
+assert_file_contains "$release_log" ".*/utils/flash_tool/cfggen/bin/cfggen 13.3 1600 1200 75 cvt-rb2 --out .*/0.1-task2/firmware/configs/config-13in.bin" "generated 13 inch CVT-RBv2 config"
+assert_file_contains "$release_log" "mv .*/0.1-task2/logs/01_mcu.log .*/0.1-task2/buildlog/01_mcu.log" "preserved MCU build log"
+assert_file_contains "$release_log" "mv .*/0.1-task2/logs/03_package.log .*/0.1-task2/buildlog/03_package.log" "preserved package log"
+assert_file_contains "$release_log" "rm -rf .*/0.1-task2/caster .*/0.1-task2/logs .*/0.1-task2/glider_ec_rtos_0.1-task2.bin" "removed intermediate release files"
 if grep -Eq "cp .*/utils/flash_tool/font_24x40.bin .*/0.1-task2/flash_tool/font_24x40.bin" "$release_log"; then
     fail "release should not package the legacy font_24x40.bin"
 fi
-if grep -Eq "cp .*/0.1-task2/caster/8bit-mono/fpga.bit .*/0.1-task2/flash_tool/fpga.bit" "$release_log"; then
+if grep -Eq "cp .*/0.1-task2/caster/8bit-mono/fpga.bit .*/0.1-task2/firmware/fpga.bit" "$release_log"; then
     fail "release should not package an ambiguous fpga.bit compatibility copy"
+fi
+if grep -Eq "/0\.1-task2/flash_tool/" "$release_log"; then
+    fail "release package should use firmware directory, not flash_tool"
 fi
 
 ise_vm_log="$tmpdir/ise-vm.log"

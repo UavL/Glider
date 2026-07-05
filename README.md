@@ -972,7 +972,7 @@ cd Glider
 scripts/release.sh --ise-host 192.168.56.101 0.1.0
 ```
 
-The release output is placed under `build/release/<version>/`. The release script runs `git submodule update --init --recursive`, builds the MCU through headless STM32CubeIDE, copies Caster to the ISE VM with `scp`, and copies the bitstreams, logs, ISE reports, flash-tool files, and `metadata.txt` into the release directory. The flash-tool directory contains `fpga-8bit-mono.bit`, `fpga-8bit-k3.bit`, `fpga-16bit-mono.bit`, and `fpga-16bit-k3.bit`.
+The release output is placed under `build/release/<version>/`. The release script runs `git submodule update --init --recursive`, builds the MCU through headless STM32CubeIDE, copies Caster to the ISE VM with `scp`, and writes a compact package containing `metadata.txt`, a `firmware/` directory for the user-facing firmware package, and a `buildlog/` directory for selected build logs and FPGA report archives. The firmware directory contains `fpga-8bit-mono.bit`, `fpga-8bit-k3.bit`, `fpga-16bit-mono.bit`, and `fpga-16bit-k3.bit`.
 
 For local release-script checks that do not touch hardware tools or the VM:
 

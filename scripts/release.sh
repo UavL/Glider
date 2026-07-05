@@ -48,6 +48,21 @@ done
 [[ -n "$ise_host" ]] || die "missing ISE VM host; pass --ise-host or set GLIDER_ISE_VM_HOST"
 validate_release_version "$version"
 
+finalize_release_layout() {
+    local release_dir="$1"
+    local version="$2"
+    local buildlog_dir="$release_dir/buildlog"
+    local variant
+
+    mkdir -p "$buildlog_dir"
+    run_cmd mv "$release_dir/logs/01_mcu.log" "$buildlog_dir/01_mcu.log"
+    for variant in 8bit-mono 8bit-k3 16bit-mono 16bit-k3; do
+        run_cmd cp "$release_dir/caster/$variant/reports.tar.gz" "$buildlog_dir/02_reports-$variant.tar.gz"
+    done
+    run_cmd mv "$release_dir/logs/03_package.log" "$buildlog_dir/03_package.log"
+    run_cmd rm -rf "$release_dir/caster" "$release_dir/logs" "$release_dir/glider_ec_rtos_$version.bin"
+}
+
 release_root="${RELEASE_ROOT:-$(repo_root)/build/release}"
 release_dir="$release_root/$version"
 prepare_release_dir "$release_dir" "$force"
@@ -67,5 +82,7 @@ run_logged_step "Caster VM build" "$log_dir/02_caster.log" \
 
 run_logged_step "release packaging" "$log_dir/03_package.log" \
     "$SCRIPT_DIR/package_release.sh" "$version" "$release_dir"
+
+finalize_release_layout "$release_dir" "$version"
 
 log "Release complete: $release_dir"

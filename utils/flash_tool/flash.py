@@ -277,8 +277,10 @@ def flash_mcu():
         "-i", "0",
         "-s", "0x08000000:leave",
         "-D", "glider_ec_rtos.bin",
-    ])
-    return result.returncode == 0
+    ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf-8", errors="replace")
+    output = result.stdout or ""
+    print(output, end="")
+    return result.returncode == 0 or "File downloaded successfully" in output
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Flash Glider firmware assets.")

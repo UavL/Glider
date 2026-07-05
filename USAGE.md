@@ -24,7 +24,7 @@ The board ships with firmware pre-installed. On first power-on it should general
 
 ## Flashing Requirements
 
-Download a release zip from the GitLab release page. Inside the zip, there is a flash_tool directory. Flashing an existing release needs only:
+Download a release zip from the GitLab release page. Inside the zip, there is a `firmware` directory. Flashing an existing release needs only:
 
 - Python 3.
 - Python `hidapi`: `pip3 install hidapi`.
@@ -32,11 +32,27 @@ Download a release zip from the GitLab release page. Inside the zip, there is a 
 
 Linux and macOS are the easiest supported flashing hosts. Windows is possible, but you need to locate a working `dfu-util` build yourself, and WinUSB driver installation via Zadig may be required before `dfu-util` can access the STM32 DFU interface.
 
+On macOS, the first HID transfer may trigger an Input Monitoring permission prompt for the terminal app. Grant that permission, then rerun the flashing command if the first attempt was blocked.
+
+On Linux, install udev rules so `dfu-util` can access the STM32 DFU interface and Python `hidapi` can access the Glider HID interface without running the whole Python environment through `sudo`:
+
+```bash
+sudo tee /etc/udev/rules.d/99-glider.rules >/dev/null <<'EOF'
+SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="df11", MODE="0666", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTR{idVendor}=="1209", ATTR{idProduct}=="ae86", MODE="0666", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="ae86", MODE="0666", TAG+="uaccess"
+EOF
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+After installing the rules, unplug and reconnect the board. If you are flashing a release, re-enter DFU mode before running `python3 flash.py`.
+
 Build tools are separate and much larger downloads. Install them only if you plan to build firmware or FPGA bitstreams from source.
 
 ## Flashing A Release Package
 
-After downloading and extracting a release zip from the GitLab release page, open the `flash_tool` directory inside the zip. It contains:
+After downloading and extracting a release zip from the GitLab release page, open the `firmware` directory inside the zip. It contains:
 
 - `glider_ec_rtos.bin`: MCU firmware.
 - `fpga-8bit-mono.bit`, `fpga-8bit-k3.bit`, `fpga-16bit-mono.bit`, `fpga-16bit-k3.bit`: FPGA bitstreams.
@@ -46,7 +62,7 @@ After downloading and extracting a release zip from the GitLab release page, ope
 
 Enter DFU mode before starting the release flash: hold the button closer to the USB port while plugging in USB.
 
-From the release `flash_tool` directory:
+From the release `firmware` directory:
 
 ```bash
 python3 flash.py
@@ -148,25 +164,25 @@ Set the VM NIC to host-only mode if needed so the host can reach it directly. In
 
 ### Full Release Build
 
-Do a full release build before using the development flash helpers. This confirms STM32CubeIDE, submodules, the ISE VM, SSH access, `sshpass`, `cfggen`, font generation, and release packaging are all working before any helper attempts to flash hardware.
+It's recommended to run the release build script first, to confirm STM32CubeIDE, submodules, the ISE VM, SSH access, `sshpass`, `cfggen`, are all working, before starting the development work.
 
-For a release package:
+For a release package (1.0 is the version number, you can use anything):
 
 ```bash
-scripts/release.sh --ise-host 192.168.56.101 0.1.0
+scripts/release.sh --ise-host 192.168.56.101 1.0
 ```
 
-The release flow builds the MCU locally, builds all FPGA variants in one ISE VM session, generates fonts, generates display configs, and writes the package to `build/release/<version>/`.
+The release flow builds the MCU locally, builds all FPGA variants in one ISE VM session, copies the checked-in fonts, generates display configs, and writes the package to `build/release/<version>/`. The usable firmware payload is under `firmware/`; selected logs and FPGA report archives are under `buildlog/`.
 
 For release-script checks without hardware tools:
 
 ```bash
-scripts/release.sh --dry-run --ise-host 192.168.56.101 0.1.0
+scripts/release.sh --dry-run --ise-host 192.168.56.101 1.0
 ```
 
 ## Development Builds
 
-Use the development helpers after a full release build has succeeded. These helpers exist to avoid rebuilding everything during iteration: MCU firmware rebuilds take only a few seconds, and a single FPGA variant rebuild avoids the full four-variant release path.
+Use the development helpers after a full release build has succeeded. So you can only rebuild the part that you are actively iterating on. As a bonus, you can only build one bitstream variant, which should speed things up even further.
 
 ### MCU Firmware
 
@@ -218,6 +234,8 @@ Diagnostic builds also include XMODEM file-transfer commands such as `recv`. Nor
 - If USB-C DisplayPort Alt Mode is used, make sure the cable supports DisplayPort Alt Mode. Many charge-only USB-C cables will not work for video.
 - Use a serial terminal and run `syslog` to see what the firmware is doing. This is often the fastest way to distinguish video-input, config, FPGA-load, and power-state issues.
 - If `dfu-util` reports no DFU device, re-enter DFU mode by holding the button closer to the USB port while plugging in USB.
-- If `flash.py` cannot find a bitstream, run it from the release `flash_tool` directory or pass `--bitstream`.
+- If `dfu-util` or Python `hidapi` reports a permission error on Linux, install the udev rules from [Flashing Requirements](#flashing-requirements), then unplug and reconnect the board.
+- If Python `hidapi` cannot open the device on macOS, grant Input Monitoring permission to the terminal app and rerun the flashing command.
+- If `flash.py` cannot find a bitstream, run it from the release `firmware` directory or pass `--bitstream`.
 - If the display is shifted or unstable, check that the config matches the panel and try the other timing standard with `setres`.
 - If the ISE VM build cannot log in, confirm the VM SSH user is `ise`, the password is `xilinx`, the VM is reachable, and `sshpass` is installed.

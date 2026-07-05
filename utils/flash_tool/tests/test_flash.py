@@ -103,14 +103,30 @@ class FlashToolTests(unittest.TestCase):
         self.assertIn("2) config-13in.bin", output.getvalue())
 
     def test_flash_mcu_returns_false_when_dfu_util_fails(self):
-        completed = types.SimpleNamespace(returncode=74)
-        with mock.patch.object(self.flash.subprocess, "run", return_value=completed):
+        completed = types.SimpleNamespace(returncode=74, stdout="No DFU capable USB device available\n")
+        with mock.patch.object(self.flash.subprocess, "run", return_value=completed), \
+                mock.patch.object(self.flash.sys, "stdout", new=io.StringIO()):
             self.assertFalse(self.flash.flash_mcu())
+
+    def test_flash_mcu_accepts_leave_status_error_after_successful_download(self):
+        stdout = "\n".join([
+            'DfuSe interface name: "Internal Flash   "',
+            "Download done.",
+            "File downloaded successfully",
+            "Submitting leave request...",
+            "dfu-util: Error during download get_status",
+        ])
+        completed = types.SimpleNamespace(returncode=74, stdout=stdout)
+
+        with mock.patch.object(self.flash.subprocess, "run", return_value=completed), \
+                mock.patch.object(self.flash.sys, "stdout", new=io.StringIO()):
+            self.assertTrue(self.flash.flash_mcu())
 
     def test_main_stops_after_failed_dfu_when_user_declines_continue(self):
         with mock.patch.object(self.flash, "flash_mcu", return_value=False), \
                 mock.patch.object(self.flash, "ask_yes_no", return_value=False), \
-                mock.patch.object(self.flash, "send_files") as send_files:
+                mock.patch.object(self.flash, "send_files") as send_files, \
+                mock.patch.object(self.flash.sys, "stdout", new=io.StringIO()):
             result = self.flash.main([])
 
         self.assertEqual(result, 1)
@@ -119,7 +135,8 @@ class FlashToolTests(unittest.TestCase):
     def test_main_continues_after_failed_dfu_when_user_accepts(self):
         with mock.patch.object(self.flash, "flash_mcu", return_value=False), \
                 mock.patch.object(self.flash, "ask_yes_no", return_value=True), \
-                mock.patch.object(self.flash, "send_files") as send_files:
+                mock.patch.object(self.flash, "send_files") as send_files, \
+                mock.patch.object(self.flash.sys, "stdout", new=io.StringIO()):
             result = self.flash.main([])
 
         self.assertEqual(result, 0)
