@@ -10,9 +10,13 @@ This is a long document, containing not just information about this project, but
 
 Eink is a registered trademark and brand of E Ink Corporation. All the contents provided in this repo are based on publicly available information online and original research. They are not endorsed by Eink in any way and they may contain errors and/ or inaccuracies. 
 
-If you're interested in attaining a board, checkout the [product page for the Modos Paper Monitor on Crowd Supply](https://www.crowdsupply.com/modos-tech/modos-paper-monitor).
+If you're interested in attaining a board, checkout the [product page for the Modos Paper Dev Kit on Crowd Supply](https://www.crowdsupply.com/modos-tech/modos-paper-monitor). For complete monitor ready to be used out-of-the-box, checkout the [product page for the Modos Flow on Crowd Supply](https://www.crowdsupply.com/modos-tech/modos-flow).
 
 If you are interested in Eink or any other display technologies, I have a Discord server for that. Feel free to join: [https://discord.gg/rtT7euSHQS](https://discord.gg/rtT7euSHQS) . (This Discord server is also not endorsed by Eink or any other company. It's not a customer support server.) For Modos product support or other inqueries about Modos products, use [https://discord.gg/6ktE6VxSyh](https://discord.gg/6ktE6VxSyh).
+
+## Quick Start
+
+If you already have a Glider board/ kit: For board setup, flashing, development build loops, and display configuration, start with [USAGE.md](USAGE.md).
 
 ## Table of Contents 
 
