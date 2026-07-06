@@ -86,7 +86,7 @@ def send_buffer(h, bin):
     start_time = datetime.now()
     for i in range(pkts):
         if i % 16 == 0:
-            print(f'\rSending {i // 16 + 1} of {pkts // 16} KB', end = '')
+            print(f'\rSending {i // 16 + 1} of {pkts // 16 + 1} KB', end = '')
         pkt = b'\x05' + bin[i*PKT_DATA_SIZE:(i+1)*PKT_DATA_SIZE]
         h.write(pkt)
     str_in = h.read(PACKET_SIZE)
