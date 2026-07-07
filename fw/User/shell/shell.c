@@ -75,6 +75,7 @@ SHELL_FUNC( shell_i2c_probe );
 SHELL_FUNC( shell_recv );
 SHELL_FUNC( shell_send );
 SHELL_FUNC( shell_df );
+SHELL_FUNC( shell_epd );
 SHELL_FUNC( shell_format );
 SHELL_FUNC( shell_fdump );
 SHELL_FUNC( shell_rm );
@@ -91,6 +92,7 @@ SHELL_HELP( i2c_probe );
 SHELL_HELP( recv );
 SHELL_HELP( send );
 SHELL_HELP( df );
+SHELL_HELP( epd );
 SHELL_HELP( format );
 SHELL_HELP( fdump );
 SHELL_HELP( rm );
@@ -110,6 +112,7 @@ const SHELL_COMMAND shell_commands[] =
   { "recv", shell_recv },
   { "send", shell_send },
   { "df", shell_df },
+  { "epd", shell_epd },
   { "format", shell_format },
   { "fdump", shell_fdump },
   { "rm", shell_rm },
@@ -131,6 +134,7 @@ static const SHELL_HELP_DATA shell_help_data[] =
   SHELL_INFO( recv ),
   SHELL_INFO( send ),
   SHELL_INFO( df ),
+  SHELL_INFO( epd ),
   SHELL_INFO( format ),
   SHELL_INFO( fdump ),
   SHELL_INFO( rm ),

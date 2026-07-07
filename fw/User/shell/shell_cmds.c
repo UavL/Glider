@@ -615,6 +615,19 @@ void shell_setvolt(shell_context_t *ctx, int argc, char **argv) {
     }
 }
 
+const char shell_help_epd[] = "<on|off>\n";
+const char shell_help_summary_epd[] = "Turn the EPD power rails on or off";
+
+void shell_epd(shell_context_t *ctx, int argc, char **argv) {
+    if (argc < 2) {
+        printf("Usage: epd <on|off>\n");
+        return;
+    }
+    if (strcmp(argv[1], "off") == 0)
+        power_off_epd();
+    else if (strcmp(argv[1], "on") == 0)
+        power_on_epd();
+}
 
 const char shell_help_setcfg[] = "<set|get|save> [key] [value]\n";
 const char shell_help_summary_setcfg[] = "Sets configuration. Remember to use save to save it to the flash.";
