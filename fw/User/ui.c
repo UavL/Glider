@@ -24,6 +24,11 @@
 #include "board.h"
 #include "app.h"
 #include "ui.h"
+#include "fpga.h"
+#include "caster.h"
+#include "adv7611.h"
+#include "ptn3460.h"
+#include "usbpd/usb_pd.h"
 
 static QueueHandle_t btn_queue;
 
@@ -37,6 +42,8 @@ typedef enum {
 } btn_event_t;
 
 static int mode = 0;
+static bool tmds_mode = false;
+bool system_standby = false;
 
 typedef struct {
     update_mode_t id;
@@ -177,7 +184,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
     //font_t *font_32x53 = load_font("font_32x53.bin");
 
     // First wait link establish
-    bool tmds_mode = false;
+    tmds_mode = false;
 
     if (config.input_sel == INPUT_SEL_DP) {
         tmds_mode = false;
@@ -221,7 +228,23 @@ portTASK_FUNCTION(ui_task, pvParameters) {
     caster_init(); // Start refresh
     syslog_printf("FPGA started with status %02x", fpga_write_reg8(CSR_STATUS, 0x00));
 
+    bool last_standby = false;
+
     while (1) {
+        if (system_standby) {
+            if (!last_standby) {
+                ui_enter_standby();
+                last_standby = true;
+            }
+            vTaskDelay(pdMS_TO_TICKS(100));
+            continue;
+        } else {
+            if (last_standby) {
+                ui_exit_standby();
+                last_standby = false;
+            }
+        }
+
         // Check OSD timeout
         if ((osd_timeout != 0) && (((int32_t)xTaskGetTickCount() - (int32_t)osd_timeout) >= 0)) {
             osd_timeout = 0;
@@ -351,4 +374,57 @@ portTASK_FUNCTION(key_scan_task, pvParameters) {
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
+}
+
+void ui_enter_standby(void) {
+
+    // 1. Power off EPD high voltage rails
+    power_off_epd();
+
+    // 2. Stop FPGA display controller scanning and framebuffer reads
+    fpga_write_reg8(CSR_ENABLE, 0);
+
+    // 3. Power down the active video receiver
+    if (tmds_mode) {
+        adv7611_powerdown();
+    } else {
+        pd_send_hpd(0, hpd_low);
+        ptn3460_powerdown();
+    }
+
+    // 4. Suspend the FPGA (pull SUSPEND high)
+    gpio_put(FPGA_SUSP, 1);
+    
+    syslog_printf("Entered standby mode");
+}
+
+void ui_exit_standby(void) {
+
+    // 1. Resume FPGA from suspend state (pull SUSPEND low)
+    gpio_put(FPGA_SUSP, 0);
+    sleep_ms(10); // Wait for FPGA hardware to wake up
+
+    // 2. Re-enable video decoder
+    if (tmds_mode) {
+        adv7611_init();
+        ptn3460_powerdown();
+    } else {
+        ptn3460_early_init(); // Pull DP_PDN high to power up the chip
+        sleep_ms(50);         // Wait for PTN3460 internal bootloader to finish
+        ptn3460_init();       // Initialize and configure DisplayPort registers
+        pd_send_hpd(0, hpd_high);
+        adv7611_powerdown();
+    }
+
+    // 3. Re-initialize FPGA (reload bitstream + wait for PLL lock)
+    restart_fpga();
+
+    // 4. Power on EPD rails
+    power_on_epd();
+
+    // 5. Re-enable Caster
+    caster_init();
+    caster_setmode(0, 0, config.hact, config.vact, modes[mode].id);
+
+    syslog_printf("Exited standby mode");
 }

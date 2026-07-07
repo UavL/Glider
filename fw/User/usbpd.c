@@ -59,6 +59,7 @@ portTASK_FUNCTION(usb_pd_task, pvParameters) {
 //            syslog_printf("FUSB302 interrupt");
 //            //tcpc_alert(0);
 //        }
+        int loop_count = 0;
         do {
             tcpc_alert(0);
             timeout = pd_run_state_machine(0);
@@ -68,8 +69,11 @@ portTASK_FUNCTION(usb_pd_task, pvParameters) {
                 hpd_sent = true;
                 dp_ready = true;
             }
-//            vTaskDelay(pdMS_TO_TICKS(5));
-            //xSemaphoreTake(isr_sem, 0); // Clear semaphore
+            loop_count++;
+            if (loop_count > 5) {
+                vTaskDelay(pdMS_TO_TICKS(5));
+                break;
+            }
         } while (gpio_get(TCPC_INT) == 0);
     }
 

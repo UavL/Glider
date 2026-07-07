@@ -61,8 +61,9 @@ void ptn3460_init(void) {
     int ticks = 0;
     while (gpio_get(DP_HPD) != true) {
         ticks ++;
-        if (ticks > 500) {
+        if (ticks >= 500) {
             syslog_printf("PTN3460 boot timeout\n");
+            break;
         }
         sleep_ms(1);
     }
