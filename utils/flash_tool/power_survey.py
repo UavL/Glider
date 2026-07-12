@@ -260,10 +260,21 @@ def main(argv=None):
         return 1
     finally:
         print("\nResuming to active state...")
-        hid_transition(h, powerup=True)
-        wait_for_state(ser, "active", timeout=args.settle + 5.0)
-        h.close()
-        ser.close()
+        try:
+            # Send the wake command first, before anything that can block
+            # for seconds (the wait below) -- a second Ctrl+C here must not
+            # prevent the device from at least being told to resume.
+            hid_transition(h, powerup=True)
+            wait_for_state(ser, "active", timeout=args.settle + 5.0)
+        except KeyboardInterrupt:
+            print("\nInterrupted again while resuming -- the powerup command "
+                  "was already sent, but the device may still be settling "
+                  "(video frontends/FPGA power back up before it reports "
+                  "'active'). Check 'power status' over the shell before "
+                  "trusting the device's state.", file=sys.stderr)
+        finally:
+            h.close()
+            ser.close()
 
     print_summary(results, args.states)
     if args.csv:
