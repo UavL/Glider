@@ -12,3 +12,5 @@
 # then unplug and replug the device.
 SUBSYSTEM=="usb", ATTR{idVendor}=="1209", ATTR{idProduct}=="ae86", MODE="0666", TAG+="uaccess"
 SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="ae86", MODE="0666", TAG+="uaccess"
+# CDC-ACM shell console (power_survey.py --port /dev/ttyACMx)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="ae86", MODE="0666", TAG+="uaccess"
