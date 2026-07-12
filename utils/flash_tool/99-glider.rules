@@ -1,0 +1,14 @@
+# Grants regular users access to the Modos Glider EC's USB HID/CDC
+# interface (VID 1209 / PID AE86, see open_dev() in flash.py) so flash.py
+# and power_survey.py can talk to it without sudo. sudo is best avoided for
+# these tools anyway: it re-resolves python3 and site-packages from root's
+# environment rather than yours, which can silently pick up a different,
+# incompatible package also importable as `hid`.
+#
+# Install:
+#   sudo cp 99-glider.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules
+#   sudo udevadm trigger
+# then unplug and replug the device.
+SUBSYSTEM=="usb", ATTR{idVendor}=="1209", ATTR{idProduct}=="ae86", MODE="0666", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="ae86", MODE="0666", TAG+="uaccess"
