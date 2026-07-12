@@ -27,6 +27,16 @@
 
 #include "power_state.h"
 
+// Requests posted from other contexts (USB HID callback, shell) and
+// consumed by the UI task, which owns the suspend/resume flow.
+typedef enum {
+    POWER_REQ_NONE = 0,
+    POWER_REQ_RETAIN,        // EPD rails off, image retained, auto-wake on video change
+    POWER_REQ_RETAIN_NOWAKE, // As above, but only explicit resume/button wakes
+    POWER_REQ_SUSPEND,       // Full device-level suspend
+    POWER_REQ_RESUME,
+} power_request_t;
+
 typedef enum {
     // Rails with both voltage and current monitoring
     RAIL_5VES,
@@ -54,6 +64,10 @@ power_suspend_reason_t power_get_current_suspend_reason(void);
 power_suspend_reason_t power_get_last_suspend_reason(void);
 bool power_is_suspended(void);
 bool power_request_resume(uint32_t wake_sources);
+void power_post_request(power_request_t req);
+power_request_t power_take_request(void);
+void power_retain_deepen(power_suspend_reason_t reason);
+bool power_is_retained(void);
 void power_resume_complete(void);
 uint32_t power_get_last_wake_sources(void);
 uint32_t power_get_suspend_count(void);

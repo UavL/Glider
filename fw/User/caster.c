@@ -124,6 +124,24 @@ uint32_t caster_get_damage_counter(void) {
     return damage;
 }
 
+// Wait until no host-issued operation is queued or being processed.
+// Returns 0 when idle, 1 on timeout.
+uint8_t caster_wait_idle(uint32_t timeout_ms) {
+    const uint8_t busy_mask =
+            (uint8_t)((1u << STATUS_OP_BUSY) | (1u << STATUS_OP_QUEUE));
+    uint32_t waited = 0;
+
+    while (1) {
+        uint8_t status = fpga_write_reg8(CSR_STATUS, 0x00);
+        if ((status & busy_mask) == 0)
+            return 0;
+        if (waited >= timeout_ms)
+            return 1;
+        sleep_ms(5);
+        waited += 5;
+    }
+}
+
 uint8_t caster_setinput(uint8_t input_src) {
 //    if (is_busy()) return 1;
 //    fpga_write_reg8(CSR_CFG_IN_SRC, input_src);

@@ -777,6 +777,9 @@ static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
     btn_event_t btn_event;
     power_suspend_reason_t reason = power_get_current_suspend_reason();
 
+    if (power_take_request() == POWER_REQ_RESUME)
+        return POWER_WAKE_USB;
+
     if ((reason == POWER_SUSPEND_VIDEO_LOSS) && is_selected_video_active(tmds_mode))
         return POWER_WAKE_INPUT;
 
@@ -800,6 +803,97 @@ static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
     return POWER_WAKE_NONE;
 }
 
+// Retain suspend: EPD rails off with the last image kept on the panel,
+// while the FPGA, framebuffer and video frontends stay alive for fast
+// resume. Entered on host request (USB HID / shell).
+#define RETAIN_POLL_MS          30
+#define RETAIN_QUIET_MS         120
+#define RETAIN_QUIET_TIMEOUT_MS 2000
+#define RETAIN_SETTLE_MS        700
+#define RETAIN_CASTER_IDLE_MS   1000
+
+static bool enter_retain(uint32_t *damage_last) {
+    uint32_t quiet_ms = 0;
+    uint32_t waited_ms = 0;
+    uint32_t damage = caster_get_damage_counter();
+
+    syslog_print("Entering retain suspend");
+    caster_osd_set_enable(false);
+
+    // Wait for input-driven updates to go quiet so the retained image is
+    // complete. Give up eventually and retain anyway; the resume redraw
+    // reconciles anything that was cut short.
+    while (quiet_ms < RETAIN_QUIET_MS) {
+        if (waited_ms >= RETAIN_QUIET_TIMEOUT_MS) {
+            syslog_print("Input still changing; retaining anyway");
+            break;
+        }
+        sleep_ms(RETAIN_POLL_MS);
+        waited_ms += RETAIN_POLL_MS;
+        uint32_t now = caster_get_damage_counter();
+        if (now != damage) {
+            damage = now;
+            quiet_ms = 0;
+        }
+        else {
+            quiet_ms += RETAIN_POLL_MS;
+        }
+    }
+
+    // Wait for queued host operations (redraw/setmode) to be consumed
+    if (caster_wait_idle(RETAIN_CASTER_IDLE_MS) != 0)
+        syslog_print("Caster op still busy; retaining anyway");
+
+    // Let in-flight per-pixel waveforms finish on glass before cutting rails
+    sleep_ms(RETAIN_SETTLE_MS);
+
+    *damage_last = caster_get_damage_counter();
+    power_suspend(POWER_SUSPEND_RETAIN);
+    return power_is_retained();
+}
+
+static uint32_t wait_for_retain_wake(bool tmds_mode, bool damage_wake,
+        uint32_t *damage_last) {
+    btn_event_t btn_event;
+
+    power_request_t req = power_take_request();
+    if (req == POWER_REQ_RESUME)
+        return POWER_WAKE_USB;
+    if (req == POWER_REQ_SUSPEND) {
+        power_retain_deepen(POWER_SUSPEND_USER);
+        return POWER_WAKE_NONE;
+    }
+
+    if (usbapp_take_suspend_event()) {
+        syslog_print("USB bus suspended; deepening retain suspend");
+        power_retain_deepen(POWER_SUSPEND_USB);
+        return POWER_WAKE_NONE;
+    }
+    (void)usbapp_take_resume_event();
+
+    // With live video selected the FPGA runs off the input clock, so check
+    // the frontends (MCU-side) before touching FPGA registers.
+    if (!is_selected_video_active(tmds_mode)) {
+        syslog_print("Video lost during retain; deepening retain suspend");
+        power_retain_deepen(POWER_SUSPEND_VIDEO_LOSS);
+        return POWER_WAKE_NONE;
+    }
+
+    if (damage_wake) {
+        uint32_t damage = caster_get_damage_counter();
+        if (damage != *damage_last) {
+            *damage_last = damage;
+            return POWER_WAKE_DAMAGE;
+        }
+    }
+
+    if (xQueueReceive(btn_queue, &btn_event,
+            pdMS_TO_TICKS(RETAIN_POLL_MS)) == pdTRUE)
+        return POWER_WAKE_BUTTON;
+
+    return POWER_WAKE_NONE;
+}
+
 portTASK_FUNCTION(ui_task, pvParameters) {
     TickType_t osd_timeout = 0;
     TickType_t autoclear_timeout = 0;
@@ -811,6 +905,8 @@ portTASK_FUNCTION(ui_task, pvParameters) {
     bool menu_open = false;
     bool suspend_wait_initialized = false;
     bool usbpd_wake_armed = false;
+    bool retain_damage_wake = true;
+    uint32_t retain_damage_last = 0;
     bool live_was_selected = false;
     uint8_t last_logged_input_status = 0xff;
     TickType_t no_signal_deadline = 0;
@@ -833,19 +929,41 @@ portTASK_FUNCTION(ui_task, pvParameters) {
 
     while (1) {
         if (power_is_suspended()) {
-            if (!suspend_wait_initialized) {
-                usbpd_disarm_wake();
-                usbpd_wake_armed = false;
-                usbpd_wake_arm_time = xTaskGetTickCount() + pdMS_TO_TICKS(1000);
-                suspend_wait_initialized = true;
-            }
+            uint32_t wake_sources;
 
-            uint32_t wake_sources = wait_for_wake_source(&usbpd_wake_armed,
-                    usbpd_wake_arm_time, tmds_mode);
+            if (power_is_retained()) {
+                // Re-run the deep-wait init below if the state deepens
+                suspend_wait_initialized = false;
+                wake_sources = wait_for_retain_wake(tmds_mode,
+                        retain_damage_wake, &retain_damage_last);
+            }
+            else {
+                if (!suspend_wait_initialized) {
+                    usbpd_disarm_wake();
+                    usbpd_wake_armed = false;
+                    usbpd_wake_arm_time = xTaskGetTickCount() + pdMS_TO_TICKS(1000);
+                    suspend_wait_initialized = true;
+                }
+
+                wake_sources = wait_for_wake_source(&usbpd_wake_armed,
+                        usbpd_wake_arm_time, tmds_mode);
+            }
             if (!power_request_resume(wake_sources))
                 continue;
 
             syslog_printf("Waking system: 0x%02x", (unsigned)wake_sources);
+            if (power_get_last_suspend_reason() == POWER_SUSPEND_RETAIN) {
+                // Fast path: FPGA, framebuffer and video frontends were kept
+                // alive; only the EPD rails were off. Bring the rails back
+                // and reconcile the panel with the still-live framebuffer.
+                power_on_epd();
+                caster_redraw(0, 0, config.hact, config.vact);
+                power_resume_complete();
+                suspend_wait_initialized = false;
+                reset_autoclear_state(&autoclear_timeout,
+                        &autoclear_damage_counter, &autoclear_damage_last);
+                continue;
+            }
             usbpd_disarm_wake();
             fpga_resume();
             if (power_get_last_suspend_reason() != POWER_SUSPEND_VIDEO_LOSS)
@@ -874,6 +992,22 @@ portTASK_FUNCTION(ui_task, pvParameters) {
         if (usbapp_take_suspend_event()) {
             syslog_print("USB bus suspended; suspending");
             power_suspend(POWER_SUSPEND_USB);
+            continue;
+        }
+
+        power_request_t power_req = power_take_request();
+        if (power_req == POWER_REQ_SUSPEND) {
+            syslog_print("Host requested suspend");
+            power_suspend(POWER_SUSPEND_USER);
+            continue;
+        }
+        if ((power_req == POWER_REQ_RETAIN) ||
+                (power_req == POWER_REQ_RETAIN_NOWAKE)) {
+            syslog_print("Host requested retain suspend");
+            retain_damage_wake = (power_req == POWER_REQ_RETAIN);
+            menu_open = false;
+            osd_timeout = 0;
+            enter_retain(&retain_damage_last);
             continue;
         }
 

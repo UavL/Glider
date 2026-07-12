@@ -159,10 +159,20 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
             NVIC_SystemReset();
             break;
         case USBCMD_POWERDOWN:
-            // TODO
+            // param 0: retain (image kept, auto-wake on video change)
+            // param 1: full device-level suspend
+            // param 2: retain, wake only on POWERUP or button
+            if (param == 1)
+                power_post_request(POWER_REQ_SUSPEND);
+            else if (param == 2)
+                power_post_request(POWER_REQ_RETAIN_NOWAKE);
+            else
+                power_post_request(POWER_REQ_RETAIN);
+            retval = 0;
             break;
         case USBCMD_POWERUP:
-            // TODO
+            power_post_request(POWER_REQ_RESUME);
+            retval = 0;
             break;
         case USBCMD_SETINPUT:
             config.input_sel = param;

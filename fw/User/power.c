@@ -34,6 +34,19 @@ static float p_cur[8];
 static float p_avg[8];
 static float p_max[8];
 static power_state_machine_t power_state;
+static volatile power_request_t pending_request = POWER_REQ_NONE;
+
+// Rail telemetry refresh period. power_on_epd() temporarily switches to
+// fast sampling so rail bring-up is bounded by converter settling time
+// instead of the telemetry period.
+#define POWER_MONITOR_PERIOD_MS         100
+#define POWER_MONITOR_FAST_PERIOD_MS    10
+static volatile uint32_t monitor_period_ms = POWER_MONITOR_PERIOD_MS;
+
+static void power_monitor_set_fast(bool fast) {
+    monitor_period_ms = fast ?
+            POWER_MONITOR_FAST_PERIOD_MS : POWER_MONITOR_PERIOD_MS;
+}
 
 #define ABSF(x) (((x) < 0) ? (0.f-(x)) : (x))
 
@@ -50,6 +63,27 @@ void power_on(void) {
 
 void power_init(void) {
     power_state_init(&power_state);
+}
+
+void power_post_request(power_request_t req) {
+    taskENTER_CRITICAL();
+    pending_request = req;
+    taskEXIT_CRITICAL();
+}
+
+power_request_t power_take_request(void) {
+    power_request_t req;
+
+    taskENTER_CRITICAL();
+    req = pending_request;
+    pending_request = POWER_REQ_NONE;
+    taskEXIT_CRITICAL();
+    return req;
+}
+
+bool power_is_retained(void) {
+    return (power_get_state() == POWER_STATE_SUSPENDED) &&
+            (power_get_current_suspend_reason() == POWER_SUSPEND_RETAIN);
 }
 
 power_state_t power_get_state(void) {
@@ -97,6 +131,16 @@ void power_suspend(power_suspend_reason_t reason) {
         return;
 
     syslog_print("Suspending system");
+    if (reason == POWER_SUSPEND_RETAIN) {
+        // Light suspend: EPD rails off, last image retained on the panel.
+        // FPGA, framebuffer and video frontends stay alive for fast resume.
+        power_off_epd();
+        gpio_put(LED_GRN, 0);
+        gpio_put(LED_RED, 0);
+        power_state_mark_suspended(&power_state);
+        syslog_print("System in retain suspend");
+        return;
+    }
     if (reason != POWER_SUSPEND_VIDEO_LOSS) {
         usbpd_disarm_wake();
         usbpd_suspend_displayport();
@@ -119,64 +163,96 @@ void power_suspend(power_suspend_reason_t reason) {
     syslog_print("System suspended");
 }
 
+// Escalate an active retain suspend to a deeper suspend reason, applying the
+// shutdown steps that retain skipped. Used when video or the USB bus goes
+// away while the display is in the retain state.
+void power_retain_deepen(power_suspend_reason_t reason) {
+    if (!power_is_retained())
+        return;
+
+    syslog_printf("Deepening retain suspend, reason %d\n", (int)reason);
+    if (reason != POWER_SUSPEND_VIDEO_LOSS) {
+        usbpd_disarm_wake();
+        usbpd_suspend_displayport();
+    }
+    fpga_suspend();
+    if (reason != POWER_SUSPEND_VIDEO_LOSS) {
+        adv7611_powerdown();
+        ptn3460_powerdown();
+        gpio_put(HPD_EN, 0);
+        gpio_put(DEC_RST, 0);
+        gpio_put(DP_PDN, 0);
+    }
+    power_state_update_suspend_reason(&power_state, reason);
+}
+
+#define EPD_PWRUP_POLL_MS       10
+#define EPD_PWRUP_TIMEOUT_MS    1200
+
+static bool epd_neg_rails_good(void) {
+    float vn = power_get_rail_voltage(RAIL_VN);
+    float vgl = power_get_rail_voltage(RAIL_VGL);
+    return (vn <= -14.0f) && (vn >= -16.0f) &&
+            (vgl <= -19.0f) && (vgl >= -21.0f);
+}
+
+static bool epd_pos_rails_good(void) {
+    float vp = power_get_rail_voltage(RAIL_VP);
+    float vgh = power_get_rail_voltage(RAIL_VGH);
+    return (vp >= 14.0f) && (vp <= 16.0f) &&
+            (vgh >= 21.0f) && (vgh <= 28.0f);
+}
+
+static bool epd_vcom_good(void) {
+    float v = power_get_rail_voltage(RAIL_VCOM);
+    return ABSF(v - config.vcom) < 0.2f; // Allow up to 0.2V difference
+}
+
+static bool epd_wait_rails(bool (*good)(void)) {
+    uint32_t waited = 0;
+
+    while (!good()) {
+        if (waited >= EPD_PWRUP_TIMEOUT_MS)
+            return false;
+        sleep_ms(EPD_PWRUP_POLL_MS);
+        waited += EPD_PWRUP_POLL_MS;
+    }
+    return true;
+}
+
 void power_on_epd(void) {
-    int timeout = 0;
+    power_monitor_set_fast(true);
     gpio_put(VCOM_MEN, 1); // Disable
     gpio_put(VCOM_EN, 1); // Disable
-	HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+    HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
     gpio_put(EPD_PWREN, 1);
-    while (1) {
-        sleep_ms(200);
-        // Check if negative rails have reached targeted voltage
-        float vn = power_get_rail_voltage(RAIL_VN);
-        float vgl = power_get_rail_voltage(RAIL_VGL);
-        syslog_voltage("VN", vn);
-        syslog_voltage("VGL", vgl);
-        if ((vn <= -14.0f) && (vn >= -16.0f) && (vgl <= -19.0f) && (vgl >= -21.0f))
-            break;
-        timeout++;
-        if (timeout == 3) {
-            // Power failed to start
-            fatal("Failed to bring up neg rails");
-        }
+    if (!epd_wait_rails(epd_neg_rails_good)) {
+        syslog_voltage("VN", power_get_rail_voltage(RAIL_VN));
+        syslog_voltage("VGL", power_get_rail_voltage(RAIL_VGL));
+        power_monitor_set_fast(false);
+        fatal("Failed to bring up neg rails");
     }
-    //sleep_ms(200);
+    syslog_voltage("VN", power_get_rail_voltage(RAIL_VN));
+    syslog_voltage("VGL", power_get_rail_voltage(RAIL_VGL));
     gpio_put(EPD_POSEN, 1);
     HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
-    timeout = 0;
-    while (1) {
-        sleep_ms(200);
-        // Check if positive rails have reached targeted voltage
-        float vp = power_get_rail_voltage(RAIL_VP);
-        float vgh = power_get_rail_voltage(RAIL_VGH);
-        syslog_voltage("VP", vp);
-        syslog_voltage("VGH", vgh);
-        if ((vp >= 14.0f) && (vp <= 16.0f) && (vgh >= 21.0f) && (vgh <= 28.0f))
-            break;
-        timeout++;
-        if (timeout == 3) {
-            // Power failed to start
-            fatal("Failed to bring up pos rails");
-        }
+    if (!epd_wait_rails(epd_pos_rails_good)) {
+        syslog_voltage("VP", power_get_rail_voltage(RAIL_VP));
+        syslog_voltage("VGH", power_get_rail_voltage(RAIL_VGH));
+        power_monitor_set_fast(false);
+        fatal("Failed to bring up pos rails");
     }
-    //sleep_ms(200);
+    syslog_voltage("VP", power_get_rail_voltage(RAIL_VP));
+    syslog_voltage("VGH", power_get_rail_voltage(RAIL_VGH));
     gpio_put(VCOM_EN, 0); // Enable
     gpio_put(VCOM_MEN, 0); // Enable
-    timeout = 0;
-    while (1) {
-        sleep_ms(200);
-        // Check if positive rails have reached targeted voltage
-        float v = power_get_rail_voltage(RAIL_VCOM);
-        syslog_voltage("VCOM", v);
-        if (ABSF(v - config.vcom) < 0.2f) // Allow up to 0.2V difference
-            break;
-        timeout++;
-        if (timeout == 3) {
-            // Power failed to start
-            fatal("Failed to bring up VCOM");
-        }
+    if (!epd_wait_rails(epd_vcom_good)) {
+        syslog_voltage("VCOM", power_get_rail_voltage(RAIL_VCOM));
+        power_monitor_set_fast(false);
+        fatal("Failed to bring up VCOM");
     }
-    //gpio_put(VCOM_MEN, 1); // Disable
+    syslog_voltage("VCOM", power_get_rail_voltage(RAIL_VCOM));
+    power_monitor_set_fast(false);
 }
 
 void power_off_epd(void) {
@@ -356,6 +432,6 @@ portTASK_FUNCTION(power_monitor_task, pvParameters) {
             p_avg[i] = p_avg[i] * 0.9f + p_cur[i] * 0.1f;
             if (p_cur[i] > p_max[i]) p_max[i] = p_cur[i];
         }
-        vTaskDelay(pdMS_TO_TICKS(100)); // Nothing for now
+        vTaskDelay(pdMS_TO_TICKS(monitor_period_ms));
     }
 }

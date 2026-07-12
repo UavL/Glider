@@ -36,6 +36,18 @@ void power_state_mark_suspended(power_state_machine_t *state) {
     }
 }
 
+void power_state_update_suspend_reason(power_state_machine_t *state,
+        power_suspend_reason_t reason) {
+    if (state == NULL)
+        return;
+    if ((state->current != POWER_STATE_SUSPENDED) &&
+            (state->current != POWER_STATE_SUSPENDING))
+        return;
+    state->current_suspend_reason = reason;
+    if (state->current == POWER_STATE_SUSPENDED)
+        state->last_suspend_reason = reason;
+}
+
 bool power_state_can_wake(const power_state_machine_t *state,
         uint32_t wake_sources) {
     return (state != NULL) &&

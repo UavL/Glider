@@ -291,6 +291,25 @@ def flash_mcu():
 
     return process.returncode == 0 or success
 
+POWERDOWN_PARAMS = {
+    "retain": 0,
+    "off": 1,
+    "retain-manual": 2,
+}
+
+def power_command(powerdown=None, powerup=False):
+    h = open_dev()
+    try:
+        if powerup:
+            send_cmd(h, USBCMD_POWERUP, 0, 0, 0, 0, 0, 0)
+            print("Power up requested")
+        else:
+            send_cmd(h, USBCMD_POWERDOWN, POWERDOWN_PARAMS[powerdown],
+                     0, 0, 0, 0, 0)
+            print(f"Power down requested ({powerdown})")
+    finally:
+        h.close()
+
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Flash Glider firmware assets.")
     parser.add_argument(
@@ -318,10 +337,27 @@ def parse_args(argv=None):
         action="store_true",
         help="Do not ask for or transfer a display config file.",
     )
+    parser.add_argument(
+        "--powerdown",
+        choices=sorted(POWERDOWN_PARAMS),
+        help="Enter a low power state instead of flashing. 'retain' keeps "
+             "the image on the panel and auto-wakes on video changes, "
+             "'retain-manual' keeps the image but only wakes on --powerup "
+             "or a button, 'off' is the full device-level suspend.",
+    )
+    parser.add_argument(
+        "--powerup",
+        action="store_true",
+        help="Request resume from a low power state instead of flashing.",
+    )
     return parser.parse_args(argv)
 
 def main(argv=None):
     args = parse_args(argv)
+
+    if args.powerdown or args.powerup:
+        power_command(args.powerdown, args.powerup)
+        return 0
 
     if not args.skip_mcu and not flash_mcu():
         print("Warning: dfu-util failed to flash the MCU firmware.")

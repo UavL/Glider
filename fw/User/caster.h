@@ -156,6 +156,7 @@ uint8_t caster_redraw(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 uint8_t caster_setmode(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
     update_mode_t mode);
 uint32_t caster_get_damage_counter(void);
+uint8_t caster_wait_idle(uint32_t timeout_ms);
 void caster_redraw_blank(void);
 uint8_t caster_osd_send_buf(uint8_t *buf);
 uint8_t caster_osd_set_window(uint16_t left, uint16_t top,

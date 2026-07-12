@@ -731,9 +731,11 @@ void shell_setvolt(shell_context_t *ctx, int argc, char **argv) {
 }
 #endif
 
-const char shell_help_power[] = "[status|off]\n"
+const char shell_help_power[] = "[status|off|retain|resume]\n"
   "  status - Show suspend state, last wake source, and counters.\n"
-  "  off    - Enter device-level suspend.\n";
+  "  off    - Enter device-level suspend.\n"
+  "  retain - EPD rails off, image retained on panel, fast resume.\n"
+  "  resume - Request resume from retain or suspend.\n";
 const char shell_help_summary_power[] = "Show or change power state";
 
 static const char *power_shell_state_name(power_state_t state) {
@@ -762,6 +764,8 @@ static const char *power_shell_suspend_reason_name(
         return "video-loss";
     case POWER_SUSPEND_USB:
         return "usb";
+    case POWER_SUSPEND_RETAIN:
+        return "retain";
     default:
         return "unknown";
     }
@@ -790,6 +794,10 @@ static void power_shell_print_wake_sources(shell_context_t *ctx,
     }
     if (wake_sources & POWER_WAKE_INPUT) {
         printf("%sinput", printed ? "," : "");
+        printed = true;
+    }
+    if (wake_sources & POWER_WAKE_DAMAGE) {
+        printf("%sdamage", printed ? "," : "");
     }
     printf(")");
 }
@@ -801,8 +809,20 @@ void shell_power(shell_context_t *ctx, int argc, char **argv) {
         return;
     }
 
+    if ((argc > 1) && (strcmp(argv[1], "retain") == 0)) {
+        printf("Requesting retain suspend\n");
+        power_post_request(POWER_REQ_RETAIN);
+        return;
+    }
+
+    if ((argc > 1) && (strcmp(argv[1], "resume") == 0)) {
+        printf("Requesting resume\n");
+        power_post_request(POWER_REQ_RESUME);
+        return;
+    }
+
     if ((argc > 1) && (strcmp(argv[1], "status") != 0)) {
-        printf("Usage: power [status|off]\n");
+        printf("Usage: power [status|off|retain|resume]\n");
         return;
     }
 

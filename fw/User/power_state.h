@@ -16,6 +16,7 @@ typedef enum {
     POWER_WAKE_USB_PD = 1u << 1,
     POWER_WAKE_INPUT = 1u << 2,
     POWER_WAKE_USB = 1u << 3,
+    POWER_WAKE_DAMAGE = 1u << 4,
 } power_wake_source_t;
 
 typedef enum {
@@ -23,6 +24,7 @@ typedef enum {
     POWER_SUSPEND_USER,
     POWER_SUSPEND_VIDEO_LOSS,
     POWER_SUSPEND_USB,
+    POWER_SUSPEND_RETAIN,
 } power_suspend_reason_t;
 
 typedef struct {
@@ -39,6 +41,8 @@ power_state_t power_state_current(const power_state_machine_t *state);
 bool power_state_request_suspend(power_state_machine_t *state,
         power_suspend_reason_t reason);
 void power_state_mark_suspended(power_state_machine_t *state);
+void power_state_update_suspend_reason(power_state_machine_t *state,
+        power_suspend_reason_t reason);
 bool power_state_can_wake(const power_state_machine_t *state,
         uint32_t wake_sources);
 bool power_state_request_resume(power_state_machine_t *state,
