@@ -867,3 +867,46 @@ small) tolerate CSR failures during the lock transition, or gate the check on AD
 lock status over I2C instead of CSR; (gateware, correct) run the CSR on `clk_sys` —
 question for Modos/zephray. Also worth doing after: chase the 688 ms SPIFFS bitstream
 read, and the ~200 ms of 100 ms-quantized polls in `restart_fpga()`.
+
+## 10. R1/R2 results — hypothesis CONFIRMED; Fix A applied
+
+Hardware results (2026-07-29, later same day):
+
+- **R1, HDMI unplugged**: resume completes cleanly — syslog timestamps continue
+  (`Waking system: 0x08`), **no reboot, 1.2 s** board-side (bitstream 564 ms).
+- **R2, HDMI connected**: **rebooted every time** (syslog restarts at `[0.000]`).
+- **Pinned TMDS (`input_sel 1`) + off/resume**: repeating **reset loop** — EPD rails
+  cycling audibly (periodic whine), transient gray blob from fragmentary aborted drives,
+  ~15 s until it escapes by winning the race, sometimes stuck (`ui_task` parked, shell
+  alive, rails energized under a partially-driven panel — do not leave it in this state;
+  DC stress). Mechanism: `apply_input_selection()` switches `clk_epdc` to the untrained
+  TMDS clock unconditionally; each reboot re-inits the ADV7611, restarting the very
+  handshake it is racing. Brownout ruled out (deterministic, `input_sel`-dependent,
+  VBUS 5.07 V, shell-alive stuck states).
+
+**Fix A** committed as `39d5b71` (fw/User/ui.c): while the frontend reports a source but
+the FPGA has not confirmed live video, probe `CSR_ID0` first and skip the FPGA-touching
+part of the `ui_task` iteration when unresponsive; suppress the `INPUT_STATUS_LOST`
+reload in that window; 10 s grace deadline restores the reset net for a genuinely hung
+FPGA. Not target-compiled here (no ARM toolchain); host tests pass.
+
+**Post-flash test plan** (build `scripts/build_mcu.sh` or `scripts/dev_flash_mcu.sh`;
+DFU recovery documented in §3):
+
+1. `power off` → `power resume` with HDMI connected, ×5. Predict: **no reboot** —
+   `syslog` shows `Waking system`, continuing timestamps; image restored after
+   board-resume (~1.2 s) + Pi HDMI re-handshake (~1–3 s [EST]). Total 2–4 s.
+2. Same with `input_sel 1`. Predict: no reset loop; graceful wait until link trains.
+   (Revert to `setcfg input_sel 0` afterwards regardless.)
+3. HDMI unplug/replug while active — regression check on the normal video-loss path.
+4. If any reboot still occurs: capture `syslog`, note whether it restarts at 0.000.
+
+**Remaining roadmap after Fix A**, in order: (1) resume latency polish — the double
+`ADV7611 initialization done` per resume (`resume_video_frontends()` at ui.c:970 then
+again via `apply_input_selection()` AUTO branch) restarts the HDMI handshake twice,
+worth ~0.5–1 s; the 688 ms SPIFFS-bound bitstream read; the 100 ms-quantized polls.
+(2) Host-side idle hook: Pi issues `power off` (or HID POWERDOWN param 1) after idle,
+`power resume` on activity — now safe once Fix A is verified. (3) Suspend-floor MCU
+draw (145 mW of the 190 mW floor): `key_scan_task` 10 ms poll first, then tickless
+idle (PR #17's regime, done right). (4) Upstream questions: CSR-on-`clk_sys` gateware
+change; report the pinned-TMDS reset loop to Modos.
