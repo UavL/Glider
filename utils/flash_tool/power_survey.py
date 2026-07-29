@@ -227,7 +227,29 @@ def parse_args(argv=None):
                          choices=STATE_ORDER,
                          help="Subset/order of states to test.")
     parser.add_argument("--csv", type=Path, help="Write a CSV summary to this path.")
+    parser.add_argument(
+        "--monitor", action="store_true",
+        help="Just stream raw output from the shell console and exit (Ctrl+C to "
+             "stop) -- for watching syslog output live, no HID/state transitions.",
+    )
     return parser.parse_args(argv)
+
+
+def monitor(port, baud):
+    ser = serial.Serial(port, baud, timeout=1)
+    print(f"Streaming {port} @ {baud}, Ctrl+C to stop. Press Enter on the device "
+          "to confirm the link is alive if nothing shows up.")
+    try:
+        while True:
+            data = ser.read(256)
+            if data:
+                sys.stdout.buffer.write(data)
+                sys.stdout.flush()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        ser.close()
+    return 0
 
 
 def main(argv=None):
@@ -238,6 +260,9 @@ def main(argv=None):
         print("Could not auto-detect the device's CDC-ACM port; pass --port explicitly.",
               file=sys.stderr)
         return 1
+
+    if args.monitor:
+        return monitor(port, args.baud)
 
     print("Opening HID control interface...")
     h = open_dev()
