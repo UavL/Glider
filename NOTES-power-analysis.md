@@ -802,3 +802,68 @@ Paste-ready.
 ---
 
 *Generated from static analysis of the `power-analysis` branch. No hardware was observed.*
+
+---
+
+# Session 2 (2026-07-29) — hardware results are in; everything above is superseded where it conflicts
+
+The board is now **confirmed running this tree's firmware** (the earlier "retain grays the
+panel" report came from a stale flash and is void). Measured results:
+
+## 8. Measured power (via `sensor`), and what died with it
+
+| State | MCU+IO | FPGA DDR+CORE | VIDEO IN | EPD HV | ~Total |
+|---|---|---|---|---|---|
+| Active, static image | 572 mW | ~253 mW | ~585 mW | ~62 mW avg | **~1.46 W** |
+| Retain | 566 mW | ~254 mW | ~580 mW | 0 | **~1.40 W** |
+| Full off (`power off`) | 147 mW | ~15 mW | 28 mW | 0 | **~0.19 W** |
+
+- **Gray screen: gone.** Image survives retain and full off, both directions. §2's
+  mechanisms were never tested against this firmware and are moot for now.
+- **Retain is dead as a power state** (−4%; EPD HV idles at ~62 mW). It survives as a
+  fast-resume convenience state only. §3's Exp-3 prediction ("retain will disappoint")
+  confirmed, more brutally than predicted.
+- **Full off is the strategy**: −87%. Duty-cycling active↔off at 60 s/page ≈ 0.29 W board
+  average. The Pi (1.5–2.4 W) is now the dominant battery problem — outside this repo.
+- ~420 mW of "MCU+IO" is FPGA I/O (it vanishes when the FPGA is erased); true MCU ≈
+  145 mW = **77% of the suspend floor** → MCU idle work (PR #17's regime, done properly:
+  `key_scan_task` first) is back on the roadmap for the floor, though behind the item below.
+
+## 9. The real bug: resume-from-off spuriously reboots the MCU
+
+`power off` → `power resume` took ~4 s; `syslog` afterwards **starts at [0.000] "System
+starting"** — a full reboot, with the pre-suspend log wiped. Once: 6 s + a transient dim
+diffuse blob (plausibly a double reset).
+
+Audit of reset paths **[CODE]**: no watchdog; `fatal()` (error.c:56), `HardFault`, and
+`configASSERT` (FreeRTOSConfig.h:157) all hang, never reset; `USBCMD_RESET`
+(usbapp.c:159) unused. The **only** reachable reset is the FPGA sanity check
+[ui.c:1061-1065](fw/User/ui.c#L1061-L1065): one failed `CSR_ID0` read →
+`NVIC_SystemReset()`. Its guard (`live_was_selected`) is explicitly false right after
+resume ([ui.c:977](fw/User/ui.c#L977)).
+
+Gateware **[CODE]**: `clk_epdc` — the clock the whole caster core *and the CSR/SPI
+interface* run on — is `v_pclk`, the vin mux output clock
+([Caster/rtl/spartan6/top.v:177](Caster/rtl/spartan6/top.v#L177)), i.e. the
+video-recovered pixel clock once a source is selected (internal-clock fallback when
+none). During the Pi's HDMI re-training after resume, that clock is switching/unstable —
+exactly what the comment at ui.c:1052 warns about — so a CSR read can glitch → instant
+reset. Timeline fits: resume ~2 s (bitstream alone measured **688 ms**, SPIFFS-bound, not
+the 150–250 ms SPI estimate in §1.5) + reset + reboot 1.75 s + HDMI relock ≈ 4 s.
+
+**[INFER]** — mechanism is code-complete but needs the discriminating test:
+
+- **R1**: `power off` → unplug HDMI → `power resume`, ×5. Predict: **no reboot**, resume
+  ~2 s, `syslog` timestamps continue and show `Waking system: 0x..`.
+- **R2**: same with HDMI connected, ×5. Predict: intermittent reboot (`syslog` restarts
+  at [0.000]).
+- **R3** (only if R1 also reboots): brownout suspect — VBUS read 4.76 V in suspend;
+  retry on a strong supply without the inline meter.
+
+**Why this outranks everything**: the same unguarded window opens on *any* input glitch
+while not-yet-live — Pi modesets, DPMS blank/unblank. The host-side blanking strategy
+(§6) would trip this reset landmine constantly. Fix candidates, pending R1/R2: (fw,
+small) tolerate CSR failures during the lock transition, or gate the check on ADV7611
+lock status over I2C instead of CSR; (gateware, correct) run the CSR on `clk_sys` —
+question for Modos/zephray. Also worth doing after: chase the 688 ms SPIFFS bitstream
+read, and the ~200 ms of 100 ms-quantized polls in `restart_fpga()`.
