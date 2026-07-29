@@ -1,0 +1,140 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+Glider is an open-source low-latency Eink monitor. This repo holds the PCB design (KiCad) and the MCU
+firmware (`fw/`); the FPGA gateware ("Caster") lives in the `Caster/` git submodule
+(https://gitlab.com/zephray/Caster.git). `README.md` has deep background on EPD theory and the Caster/Glider
+design; `USAGE.md` has the practical board/flashing/dev workflow — read that first for anything hands-on.
+
+Repo layout:
+- `fw/` — STM32H750 MCU firmware (STM32CubeIDE project), FreeRTOS-based.
+- `Caster/` — FPGA gateware submodule (Spartan-6, built with Xilinx ISE 14.7).
+- `fw/User/tinyusb/` — TinyUSB submodule (USB stack).
+- `pcb/` — KiCad board design (`pcb/pcb_common` submodule for shared library parts).
+- `utils/flash_tool/` — `flash.py` (HID-based flashing/config tool), `cfggen` (display timing config generator),
+  `power_survey.py` (compares power draw across suspend states over HID+shell).
+- `scripts/` — build/release automation (see Commands below).
+- `case/`, `tools/fonts/` — enclosure design, OSD font generation.
+
+Clone with `git clone --recursive`; if submodules are missing, `git submodule update --init --recursive`
+(a missing `tusb.h` build error means the `tinyusb` submodule wasn't cloned).
+
+## Commands
+
+### Build MCU firmware
+Headless STM32CubeIDE build (no GUI needed):
+```bash
+scripts/build_mcu.sh <version> <release-dir>
+```
+Or interactively: open STM32CubeIDE, import `fw/` as an existing project, build the `glider_ec_rtos` project
+(Debug config by default). Output: `fw/Debug/glider_ec_rtos.bin`.
+
+Dev loop (rebuild + `dfu-util` flash in one step, board must be in DFU mode — hold the button nearest the
+USB port while plugging in):
+```bash
+scripts/dev_flash_mcu.sh
+```
+
+### Build FPGA gateware
+Requires a Xilinx ISE 14.7 VM reachable over SSH (see `USAGE.md` for VM setup). Full release (MCU + all
+4 Caster variants: `8bit-mono`, `8bit-k3`, `16bit-mono`, `16bit-k3`):
+```bash
+scripts/release.sh --ise-host <vm-ip> <version>          # real build
+scripts/release.sh --dry-run --ise-host <vm-ip> <version> # exercises the script without touching hardware tools
+```
+One variant only, for iterating on gateware:
+```bash
+scripts/dev_flash_fpga.sh --ise-host <vm-ip> --variant 8bit-mono
+```
+
+### Flash a built firmware
+```bash
+python3 utils/flash_tool/flash.py                # interactive HID flashing (dfu-util + FPGA/font/config transfer)
+sudo dfu-util -a 0 -i 0 -s 0x08000000:leave -D glider_ec_rtos.bin  # manual MCU-only DFU flash
+```
+`flash.py` needs the `hidapi` PyPI package (`pip install hidapi`) — **not** the unrelated `hid` PyPI package,
+which has an incompatible API (`hid.Device` vs the `hid.device` class `flash.py` expects). On Linux, install
+udev rules instead of using `sudo` for the Python tools — `sudo` re-resolves `python3`/`site-packages` from
+root's environment and can pick up that wrong package. See `USAGE.md` "Flashing Requirements" for the rules,
+or `utils/flash_tool/99-glider.rules` (also covers the `tty` subsystem for the CDC-ACM shell console, which
+the `USAGE.md` rules don't).
+
+### Tests
+Host-side C unit tests (compiles individual firmware modules with plain `gcc -DGLIDER_HOST_TEST`, no
+hardware/STM32CubeIDE needed):
+```bash
+bash fw/User/tests/build_host_tests.sh
+```
+Shell-script assertions (registration/wiring checks for shell commands, config timing, release scripts):
+```bash
+bash scripts/tests/test_shell_commands.sh
+bash scripts/tests/test_fw_config_timing.sh
+bash scripts/tests/test_cfggen.sh
+bash scripts/tests/test_release_scripts.sh
+```
+Python tests for the flash tool:
+```bash
+cd utils/flash_tool && python3 -m unittest discover -s tests -p "test_*.py"
+```
+(`test_factory_tool.py` needs `tkinter` for `main.py`, the factory GUI tool — failures there are an
+environment gap, not a code issue, if `tkinter` isn't installed.)
+
+## Architecture
+
+### MCU firmware (`fw/User/`)
+FreeRTOS tasks coordinate over the housekeeping duties described in README's "Firmware Functions": EPD power
+supply sequencing and VCOM measurement, rail voltage/current monitoring, FPGA bitstream push over SPI on
+boot (the FPGA has no own flash — `fpga.c`'s `fpga_init()`/`fpga_reset()` load it from the MCU's SPIFFS
+filesystem every time), USB-C PD negotiation and DP Alt-Mode lane muxing (`usbpd.c`), video decoder init
+(`adv7611.c` for DVI, `ptn3460.c` for DP-to-LVDS), and host communication.
+
+Key modules: `power.c`/`power_state.c` (suspend/resume state machine — see below), `ui.c` (main
+`ui_task` loop: input selection, OSD/menu, autoclear, suspend/resume orchestration), `caster.c` (host-side
+driver for the FPGA's register/command interface), `usbapp.c` (USB HID command dispatch, see `USBCMD_*` in
+both `usbapp.c` and `utils/flash_tool/flash.py` — keep them in sync), `config.c`/`config_timing.c` (display
+timing config, persisted via SPIFFS), `shell/` (a linenoise-derived interactive shell, see below).
+
+The device enumerates as a single composite USB device (VID `0x1209`, PID `0xAE86`): a HID interface
+("Control", used by `flash.py`/`power_survey.py`) and a CDC-ACM interface ("Debug", the shell console —
+typically `/dev/ttyACMx` on Linux). `usbapp.c`'s CDC output (`usbapp_term_out`) writes unconditionally; it
+does not gate on host-connected state.
+
+### Power/suspend state machine
+`power_state.c` tracks `POWER_STATE_{ACTIVE,SUSPENDING,SUSPENDED,RESUMING}` plus a suspend reason
+(`POWER_SUSPEND_{USER,VIDEO_LOSS,USB,RETAIN}`) and wake sources (`POWER_WAKE_{BUTTON,USB_PD,INPUT,USB,DAMAGE}`).
+`power.c`'s `power_suspend()` has two paths:
+- **Retain** (`POWER_SUSPEND_RETAIN`): only the EPD rails go off; FPGA, DDR3 framebuffer, and video frontends
+  stay alive, so resume is just `power_on_epd()` + a full redraw (fast).
+- **Full suspend** (any other reason): also suspends the FPGA (`fpga_suspend()`, which erases its
+  configuration) and powers down the video frontend chips. Resume calls `fpga_resume()` then
+  `start_display_pipeline()` → `restart_fpga()`, which fully reloads the bitstream and blocks until the FPGA's
+  CSR bus responds before proceeding — this path is much heavier than retain's.
+
+Host-triggered requests (`power_post_request()`/`power_take_request()`, backed by a critical section, not an
+ISR-safe primitive — only called from task context) come from the shell (`power {status,off,retain,resume}`)
+or USB HID (`USBCMD_POWERDOWN` param 0/1/2 = retain/off/retain-no-autowake, `USBCMD_POWERUP` = resume).
+Requests to enter retain/retain-manual/full-suspend are only consumed by `ui_task` while it's currently
+*active* — sending one while already suspended is silently dropped (only `RESUME` and `SUSPEND`-to-deepen are
+handled from the suspended branch, via `power_retain_deepen()`). Always bounce through active before
+requesting a different suspend state.
+
+`ui_task`'s main loop also has a standing safety net (pre-dating any of the above): if a sanity
+`fpga_write_reg8(CSR_ID0, ...)` read ever fails, it calls `NVIC_SystemReset()` — the only spontaneous,
+repeatable reset path in the firmware (no watchdog is configured; `HardFault_Handler` just hangs).
+
+### Shell (`fw/User/shell/`)
+A linenoise-derived interactive command shell (prompt `"# "`, Enter = `\r`, see `shell_platform.c`'s
+`term_translate`) reachable over the CDC-ACM interface. Most maintenance/diagnostic commands (`sensor`,
+`mem`, `test`, `i2c_probe`, `recv`/`send`, `fs`, `setvolt`, `damage`) are gated behind the
+`GLIDER_DIAGNOSTIC_SHELL` preprocessor symbol in `fw/.cproject` (defined in all three build configs —
+Debug/Release/DebugRAM — as of this repo state; check before assuming it's still there upstream).
+`sensor` (per-rail current/power breakdown) is what `power_survey.py` depends on.
+
+### FPGA gateware (Caster)
+Three clock domains (`clk_vi` input video, `clk_epdc` EPDC core, `clk_mem` DDR3) connected through sync/async
+FIFOs; `caster.v` is the EPDC core, `top.v` wires in the surrounding I/O and memory interface modules. Compile
+variant (`8bit-mono`/`8bit-k3`/`16bit-mono`/`16bit-k3`) is a build-time choice — `CASTER_COLORMODE` and
+`CASTER_OUTPUT_WIDTH` are generated together and must match.
