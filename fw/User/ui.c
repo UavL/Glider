@@ -812,6 +812,15 @@ static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
 #define RETAIN_SETTLE_MS        700
 #define RETAIN_CASTER_IDLE_MS   1000
 
+// While a video source is present at the frontend but the FPGA has not yet
+// reported it live, the EPDC (CSR interface included) can be clocked from the
+// still-training input pixel clock, making register access unreliable. Hold
+// off FPGA traffic in that window instead of treating a failed read as a lost
+// FPGA; give up after the grace period so a genuinely hung FPGA is still
+// caught by the reset safety net.
+#define INPUT_ACQUIRE_GRACE_MS  10000
+#define INPUT_ACQUIRE_POLL_MS   100
+
 static bool enter_retain(uint32_t *damage_last) {
     uint32_t quiet_ms = 0;
     uint32_t waited_ms = 0;
@@ -908,6 +917,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
     bool retain_damage_wake = true;
     uint32_t retain_damage_last = 0;
     bool live_was_selected = false;
+    TickType_t input_acquire_deadline = 0;
     uint8_t last_logged_input_status = 0xff;
     TickType_t no_signal_deadline = 0;
     TickType_t usbpd_wake_arm_time = 0;
@@ -976,6 +986,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             suspend_wait_initialized = false;
             usbpd_wake_armed = false;
             live_was_selected = false;
+            input_acquire_deadline = 0;
             osd_timeout = 0;
             autoclear_timeout = 0;
             autoclear = config.autoclear_mode != AC_OFF;
@@ -1009,6 +1020,30 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             osd_timeout = 0;
             enter_retain(&retain_damage_last);
             continue;
+        }
+
+        // Input acquisition window: a source is present at the frontend but
+        // the FPGA has not confirmed live video yet (fresh resume, cable
+        // plug-in, host mode change). Probe the CSR bus first and skip the
+        // whole FPGA-touching part of this iteration while it is
+        // unresponsive, so a training input clock neither triggers the
+        // reset safety net below nor feeds garbage into autoclear/input
+        // tracking.
+        bool input_acquiring = !live_was_selected &&
+                is_selected_video_active(tmds_mode);
+        if (!input_acquiring) {
+            input_acquire_deadline = 0;
+        }
+        else {
+            if (input_acquire_deadline == 0)
+                input_acquire_deadline = xTaskGetTickCount() +
+                        pdMS_TO_TICKS(INPUT_ACQUIRE_GRACE_MS);
+            if (((int32_t)xTaskGetTickCount() -
+                    (int32_t)input_acquire_deadline < 0) &&
+                    (fpga_write_reg8(CSR_ID0, 0x00) != 0x35)) {
+                vTaskDelay(pdMS_TO_TICKS(INPUT_ACQUIRE_POLL_MS));
+                continue;
+            }
         }
 
         // Check OSD timeout
@@ -1059,6 +1094,14 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             continue;
         }
         if (fpga_write_reg8(CSR_ID0, 0x00) != 0x35) {
+            if (input_acquiring &&
+                    ((int32_t)xTaskGetTickCount() -
+                    (int32_t)input_acquire_deadline < 0)) {
+                // Input clock dropped between the probe above and here;
+                // still inside the acquisition grace period.
+                vTaskDelay(pdMS_TO_TICKS(INPUT_ACQUIRE_POLL_MS));
+                continue;
+            }
             syslog_print("FPGA access lost; resetting");
             power_off_epd();
             NVIC_SystemReset();
@@ -1070,7 +1113,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             last_logged_input_status = input_status;
         }
         update_input_tracking(input_status, &tmds_mode, &live_was_selected);
-        if (input_status & INPUT_STATUS_LOST) {
+        if ((input_status & INPUT_STATUS_LOST) && !input_acquiring) {
             if (is_selected_video_active(tmds_mode)) {
                 reload_to_internal_source(&tmds_mode, &fonts, &signal_osd_state,
                         &no_signal_deadline,
@@ -1081,6 +1124,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                         &no_signal_deadline);
             }
             live_was_selected = false;
+            input_acquire_deadline = 0;
             last_logged_input_status = 0xff;
             continue;
         }
