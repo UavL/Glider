@@ -1160,6 +1160,53 @@ runs the FPGA reload + init waveform; repeat 2–3× if the inversion/ghost pers
 If it survives that, it is physical DC-imbalance — leave it displaying a full-black
 then full-white a few times to rebalance.
 
+### 10.8 Retain scramble ROOT-CAUSED and fixed (`f9d8977`) — supersedes §10.7
+
+§10.7 concluded "blocked on gateware". That was premature. A single hardware test settled
+it: **Browsing mode, static page → retain → resume is clean; turning a page *during*
+retain → resume scrambles.** (Browsing has no auto-LUT engine, so this also rules out the
+auto-LUT timing theory as the cause here.)
+
+**Mechanism, confirmed in the board's gateware (`Caster@48c3e7d`):**
+- Framebuffer writeback is ungated: `assign bo_valid = s5_active` (caster.v:885). Every
+  scanned frame writes the updated per-pixel state to DDR3.
+- Retain leaves the scan running with the rails off, so a page turned while retained is
+  consumed normally — the EPDC drives it into dead rails **and advances the framebuffer**,
+  while the glass still holds the old page.
+- The resume redraw computes from that baseline: pixels the framebuffer already considers
+  correct are not driven ⇒ old and new page superimposed. No change during retain ⇒ no
+  divergence ⇒ clean. ✓ matches the test exactly.
+
+**Why `d53afdb` (stop the EPDC) was worse, also confirmed:** `vin_ready = s1_active`
+(caster.v:463). Halting the scan stalls input consumption while the source keeps
+streaming; the video FIFO desynchronises with no flush on re-enable, corrupting even the
+static case. The revert was right.
+
+**Key constraint:** state update and input consumption are the *same signal* on this
+gateware. Firmware cannot suppress one without stalling the other, so it can only detect
+divergence and correct it.
+
+**Fix (`f9d8977`)**: `caster_resync_panel()` — drive the whole panel white with the input
+blanked (`CSR_ENABLE` bit1, csr.v:233-235 / caster.v:532), which puts glass *and*
+framebuffer into the same known state, then repaint live content from there. Called from
+the retain fast resume only when the damage delta exceeds the existing threshold, in place
+of the plain redraw. Below threshold (cursor/clock churn) behaviour is unchanged — quiet
+retain still resumes flash-free. Cost: one white flash, only when content actually changed
+while retained — which `retain_hook.py` makes rare by waking the board on the keypress
+before the reader renders.
+
+**Watch during testing:** the blank drive uses `get_update_frames()` = 16 frames. That is
+ample for FAST_MONO modes (9-frame transitions) but may under-drive in Reading/auto-LUT
+mode; if Reading still ghosts after a resync, the blank op length is the suspect (the
+auto-LUT pass on quiescence should clean it up regardless).
+
+**Gateware wishlist — the clean fix** (add to §10.6's list, highest value): a *freeze*
+control that suppresses framebuffer writeback and panel drive **while still consuming the
+input stream** (gate `bo_valid`/state update, keep `vin_ready` asserted). That makes retain
+lossless — framebuffer stays in sync with the glass, no FIFO desync, and content changed
+during retain simply appears as a normal partial update on resume: no flash, no resync, no
+host-side race. Small, well-scoped RTL change; the correct primitive for reading mode.
+
 **Remaining roadmap after Fix A**, in order: (1) resume latency polish — the double
 `ADV7611 initialization done` per resume (`resume_video_frontends()` at ui.c:970 then
 again via `apply_input_selection()` AUTO branch) restarts the HDMI handshake twice,
