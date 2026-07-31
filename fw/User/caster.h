@@ -130,6 +130,10 @@
 #define INPUT_STATUS_RESET      (1u << 6)
 #define INPUT_STATUS_LOST       (1u << 7)
 
+// CSR_ENABLE bits
+#define CASTER_EN_REFRESH   (1u << 0)
+#define CASTER_EN_BLANK     (1u << 1) // force input pixels white
+
 #define WAVEFORM_SIZE       (4*1024)
 
 #define FRAME_RATE_HZ       (60)
@@ -158,6 +162,7 @@ uint8_t caster_setmode(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
 uint32_t caster_get_damage_counter(void);
 uint8_t caster_wait_idle(uint32_t timeout_ms);
 void caster_redraw_blank(void);
+void caster_resync_panel(void);
 uint8_t caster_osd_send_buf(uint8_t *buf);
 uint8_t caster_osd_set_window(uint16_t left, uint16_t top,
     uint16_t logical_width, uint16_t logical_height);

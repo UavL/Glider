@@ -1149,22 +1149,30 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             syslog_printf("Waking system: 0x%02x", (unsigned)wake_sources);
             if (power_get_last_suspend_reason() == POWER_SUSPEND_RETAIN) {
                 // Fast path: FPGA, framebuffer and video frontends were kept
-                // alive; only the EPD rails were off. Bring the rails back,
-                // and only reconcile the panel if the framebuffer changed
-                // meaningfully while retained. With live video a few pixels
-                // (cursor blink, clock digit) always change, and flashing
-                // the whole panel over them defeats the point of retain --
+                // alive; only the EPD rails were off.
+                //
+                // The EPDC kept scanning while retained, so anything that
+                // changed on the input was consumed with the rails dead: the
+                // framebuffer advanced for pixels the glass never moved, and
+                // the two are now out of sync. A plain redraw from that
+                // baseline superimposes the old and new images, so a
+                // meaningful change needs a full resync (white flash, then
+                // repaint) instead.
+                //
+                // Small churn (cursor blink, a clock digit) is left alone --
                 // those pixels stay stale until they next change, which is
-                // the acceptable cost. Real content changes (a page turn is
-                // orders of magnitude more pixels) still redraw. The
-                // counter is 21 bits; mask the delta against wrap.
+                // the price of a flash-free resume. The counter is 21 bits;
+                // mask the delta against wrap.
                 power_on_epd();
                 uint32_t retain_damage_delta =
                         (caster_get_damage_counter() - retain_damage_last) &
                         0x1fffffu;
                 if (retain_damage_delta >
-                        ((uint32_t)config.hact * config.vact) / 100u)
-                    caster_redraw(0, 0, config.hact, config.vact);
+                        ((uint32_t)config.hact * config.vact) / 100u) {
+                    syslog_printf("Image changed during retain (%u px); "
+                            "resyncing panel", (unsigned)retain_damage_delta);
+                    caster_resync_panel();
+                }
                 power_resume_complete();
                 suspend_wait_initialized = false;
                 reset_autoclear_state(&autoclear_timeout,
