@@ -22,7 +22,7 @@
 //
 #pragma once
 
-void fpga_init(const char *fn);
+int fpga_init(const char *fn);
 void fpga_reset(void);
 void fpga_suspend(void);
 void fpga_resume(void);

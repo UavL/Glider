@@ -650,14 +650,32 @@ static void apply_input_selection(bool *tmds_mode) {
     }
 }
 
+// How long to wait for CSR access after a successful configuration before
+// concluding the FPGA is wedged and rebooting to recover (a reboot also
+// clears any leaked filesystem state). A failed bitstream load never gets
+// here -- it parks in fatal() instead, so this cannot reboot-loop on a
+// missing file.
+#define FPGA_CSR_WAIT_TIMEOUT_MS 5000
+
 static void restart_fpga(void) {
-    fpga_init(config.bitstream);
+    if (fpga_init(config.bitstream) != 0) {
+        // No bitstream reached the FPGA; waiting for CSR access would hang
+        // forever. Park in a safe, debuggable state (EPD off, shell alive).
+        fatal("Bitstream load failed; check 'fpga.bit' with 'fs ls'");
+    }
     syslog_printf("Waiting for FPGA CSR access");
+    uint32_t waited = 0;
     while (true) {
         vTaskDelay(pdMS_TO_TICKS(100));
+        waited += 100;
         uint8_t result = fpga_write_reg8(CSR_ID0, 0x00);
         if (result == 0x35) {
             break;
+        }
+        if (waited >= FPGA_CSR_WAIT_TIMEOUT_MS) {
+            syslog_print("FPGA CSR unresponsive after load; resetting");
+            power_off_epd();
+            NVIC_SystemReset();
         }
     }
     syslog_printf("FPGA up");

@@ -57,7 +57,7 @@ void fpga_write_bulk(uint8_t addr, uint8_t *buf, int length) {
     gpio_put(FPGA_CS, 1);
 }
 
-static void fpga_load_bitstream(const char *fn) {
+static int fpga_load_bitstream(const char *fn) {
 
     TickType_t start = xTaskGetTickCount();
 
@@ -68,7 +68,7 @@ static void fpga_load_bitstream(const char *fn) {
     if (SPIFFS_errno(&spiffs_fs) != 0) {
         syslog_printf("Unable to open bitstream '%s': %d", fn,
                 SPIFFS_errno(&spiffs_fs));
-        return;
+        return -1;
     }
 
     spiffs_stat s;
@@ -121,6 +121,7 @@ static void fpga_load_bitstream(const char *fn) {
     TickType_t end = xTaskGetTickCount();
 
     syslog_printf("Bitstream loading took %d ms", (end - start) * (1000 / configTICK_RATE_HZ));
+    return 0;
 }
 
 
@@ -153,7 +154,9 @@ void fpga_reset(void) {
     sleep_ms(10);
 }
 
-void fpga_init(const char *fn) {
+int fpga_init(const char *fn) {
+    int result;
+
     // Initialize FPGA pins
     gpio_put(FPGA_CS, 1);
     gpio_put(FPGA_SUSP, 0);
@@ -162,15 +165,13 @@ void fpga_init(const char *fn) {
     fpga_reset();
 
     // Load bitstream
-#if 1
-    fpga_load_bitstream(fn);
-    fpga_wait_done(true);
-#else
-    //fpga_wait_done(false);
-#endif
+    result = fpga_load_bitstream(fn);
+    if (result == 0)
+        fpga_wait_done(true);
 
     // Switch to lower frequency
     board_switch_spi_freq(FPGA_SPI, fpga_spi_register_hz());
+    return result;
 }
 
 void fpga_suspend(void) {
