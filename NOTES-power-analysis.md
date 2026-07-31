@@ -1207,6 +1207,44 @@ lossless — framebuffer stays in sync with the glass, no FIFO desync, and conte
 during retain simply appears as a normal partial update on resume: no flash, no resync, no
 host-side race. Small, well-scoped RTL change; the correct primitive for reading mode.
 
+### 10.9 The retain trigger was broken: damage counter is per-frame (`7889148`)
+
+§10.8's resync never fired. **`CSR_DAMAGE_COUNT` is a per-frame count, not a monotonic
+total** — wired to `damage_counter_last` (caster.v:189), and `damage_counter` is zeroed at
+every vsync (caster.v:858-859). So `enter_retain()` snapshotted ~0 (quiet), resume read ~0
+(static again), delta ~0, threshold never crossed — regardless of what happened in
+between. This invalidates the premise under `268cfba`, `4d24169` **and** `f9d8977`.
+(`autoclear_adaptive_update()` accumulates per poll — the autoclear path had it right all
+along.) Confirms the user's report: only a manual refresh cleared the scramble, because
+the automatic redraw was never issued.
+
+**Fix:** accumulate samples in `wait_for_retain_wake()` (already polls at 30 ms; damage
+stays elevated for the whole update, so a page turn lands several large samples) and
+trigger off the accumulator.
+
+**Also simplified:** `caster_resync_panel()` (§10.8) removed — `OP_EXT_REDRAW` already
+force-clears every pixel before repainting (`clear_en` → `force_clear`,
+pixel_processing.v:174-178, 229-232), which is precisely why `ACT_CLEAR` fixes the
+scramble. The extra blanking pass was redundant.
+
+### 10.10 Two RTL shortcuts evaluated and ruled out (asked externally)
+
+- **"Use an existing per-pixel mode (or a null-LUT slot) meaning *do not drive*."** The
+  architecture premise is correct — mode is 4 bits stored per pixel in the framebuffer
+  state word (`pixel_mode = proc_bi[15:12]`, pixel_processing.v:150), runtime-settable per
+  region via `OP_EXT_SETMODE`. But **no no-drive mode exists and no free slot behaves as
+  one**: the decode `default:` for unused codes 1110/1111 falls back to
+  `BASEMODE_FAST_MONO`/`DITHER_NONE` and drives normally (pixel_processing.v:220-223,
+  *"Fallback, todo: report this as an error"*). Creating one is a Verilog change.
+- **"top.v may expose an unused enable/standby input."** It does not — ports are CLK_IN,
+  DDR3, EPD outputs, LVDS/DPI inputs, SPI CSR, LED. The `FPGA_SUSP` pin the MCU drives is
+  not connected to the design.
+- **The zero-Verilog quiesce that does exist** is `CSR_ENABLE` bit0 (stop scan) / bit1
+  (blank input). Bit0 is unusable: `vin_ready = s1_active` (caster.v:463), so stopping the
+  scan stalls input consumption while the source streams on, the video FIFO desynchronises
+  with no flush, and it corrupts even the static case (measured — `d53afdb`, reverted).
+  **That coupling is the reason a pure-MCU quiesce cannot work on this gateware.**
+
 **Remaining roadmap after Fix A**, in order: (1) resume latency polish — the double
 `ADV7611 initialization done` per resume (`resume_video_frontends()` at ui.c:970 then
 again via `apply_input_selection()` AUTO branch) restarts the HDMI handshake twice,
