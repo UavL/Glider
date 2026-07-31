@@ -901,6 +901,25 @@ DFU recovery documented in §3):
 3. HDMI unplug/replug while active — regression check on the normal video-loss path.
 4. If any reboot still occurs: capture `syslog`, note whether it restarts at 0.000.
 
+### 10.1 First post-flash result (Fix A as of `39d5b71`): two new findings
+
+- **Intermittent DDR3 calibration failure on resume** — `FPGA started with status 90`
+  (MIG_ERROR + OP_BUSY, no SYS_READY). Pre-existing: the earlier "stuck blob" sensor
+  signature (FPGA DDR ~20 mW, CORE ~120 mW) is the same state. Fix A then correctly
+  held 10 s and reset a genuinely sick FPGA. Now handled proactively: `wait_fpga_ready()`
+  retries the configuration once (`2e545f5`).
+- **Fix A defect found and fixed**: the `INPUT_STATUS_LOST` suppression was gated on
+  "acquiring" which never expires if the source needs the LOST reload to re-acquire —
+  permanently blocking video bring-up (plausible cause of the observed
+  "PC recognizes the display but it never shows" state). Repaired in `2e545f5`:
+  suppression now bound to the same 10 s grace as the CSR tolerance.
+- **White rectangle in the OSD corner** (~3×1 cm, sharp edges, where mode popups
+  appear): almost certainly the OSD overlay stuck enabled — an OSD-disable write lost
+  on the dead register bus during the sick-FPGA episode — masking updates beneath it.
+  Sharp rectangle ⇒ digital, not panel damage. Predicted to clear after a cold power
+  cycle (boot forces `CSR_OSD_EN=0` in `caster_init`) + one full refresh. If it
+  survives that, reassess.
+
 **Remaining roadmap after Fix A**, in order: (1) resume latency polish — the double
 `ADV7611 initialization done` per resume (`resume_video_frontends()` at ui.c:970 then
 again via `apply_input_selection()` AUTO branch) restarts the HDMI handshake twice,
