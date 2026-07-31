@@ -85,7 +85,7 @@ typedef enum {
     SIGNAL_OSD_SLEEPING,
 } signal_osd_state_t;
 
-static void apply_input_selection(bool *tmds_mode);
+static void apply_input_selection(bool *tmds_mode, bool reinit_frontends);
 
 void ui_init(void) {
     btn_queue = xQueueCreate(8, sizeof(btn_event_t));
@@ -578,21 +578,21 @@ static void execute_button_action(button_action_t action, const osd_fonts_t *fon
     case ACT_INPUT_AUTO:
         config.input_sel = INPUT_SEL_AUTO;
         config_save();
-        apply_input_selection(tmds_mode);
+        apply_input_selection(tmds_mode, true);
         draw_status_popup(fonts, "Input", input_label(config.input_sel));
         *osd_timeout = xTaskGetTickCount() + pdMS_TO_TICKS(2000);
         break;
     case ACT_INPUT_TMDS:
         config.input_sel = INPUT_SEL_TMDS;
         config_save();
-        apply_input_selection(tmds_mode);
+        apply_input_selection(tmds_mode, true);
         draw_status_popup(fonts, "Input", input_label(config.input_sel));
         *osd_timeout = xTaskGetTickCount() + pdMS_TO_TICKS(2000);
         break;
     case ACT_INPUT_DP:
         config.input_sel = INPUT_SEL_DP;
         config_save();
-        apply_input_selection(tmds_mode);
+        apply_input_selection(tmds_mode, true);
         draw_status_popup(fonts, "Input", input_label(config.input_sel));
         *osd_timeout = xTaskGetTickCount() + pdMS_TO_TICKS(2000);
         break;
@@ -605,6 +605,26 @@ static bool is_tmds_active(void) {
     uint8_t val;
     val = adv7611_read_reg(HDMI_I2C_ADDR, 0x04);
     return !!(val & 0x2);
+}
+
+// True only when actual video is flowing with the configured timing: TMDS
+// PLL locked, the ADV7611's vertical and DE-regeneration filters locked, and
+// the measured resolution matching the display config. The bare TMDS lock
+// bit (is_tmds_active) asserts as soon as a carrier is present -- long
+// before the source has finished mode-setting -- and must not be used to
+// decide that the FPGA may switch onto the recovered pixel clock.
+static bool is_tmds_video_stable(void) {
+    if (!(adv7611_read_reg(HDMI_I2C_ADDR, 0x04) & 0x02))
+        return false;
+    uint8_t r07 = adv7611_read_reg(HDMI_I2C_ADDR, 0x07);
+    // Bit 7: vertical filter locked, bit 5: DE regeneration filter locked
+    if ((r07 & 0xa0) != 0xa0)
+        return false;
+    uint16_t w = ((uint16_t)(r07 & 0x1f) << 8) |
+            adv7611_read_reg(HDMI_I2C_ADDR, 0x08);
+    uint16_t h = ((uint16_t)(adv7611_read_reg(HDMI_I2C_ADDR, 0x09) & 0x1f) << 8) |
+            adv7611_read_reg(HDMI_I2C_ADDR, 0x0a);
+    return (w == config.hact) && (h == config.vact);
 }
 
 static bool is_dp_active(void) {
@@ -625,6 +645,20 @@ static bool is_selected_video_active(bool tmds_mode) {
     return is_video_active(tmds_mode);
 }
 
+// Gate for handing the FPGA the live source: requires verified-stable video
+// (see is_tmds_video_stable), not just a carrier.
+static bool is_selected_source_ready(void) {
+    switch (config.input_sel) {
+    case INPUT_SEL_TMDS:
+        return is_tmds_video_stable();
+    case INPUT_SEL_DP:
+        return is_dp_video_active();
+    case INPUT_SEL_AUTO:
+    default:
+        return is_tmds_video_stable() || is_dp_video_active();
+    }
+}
+
 static void resume_video_frontends(void);
 
 // Deferred input-mux switch state. Writing CSR_INPUT_CTRL while the selected
@@ -636,9 +670,13 @@ static void resume_video_frontends(void);
 // only once the frontend (checked over I2C/GPIO, independent of the FPGA
 // clock) has reported the source present for INPUT_SOURCE_STABLE_MS.
 #define INPUT_SOURCE_STABLE_MS  500
+// After requesting the switch, expect LIVE within this window; otherwise the
+// mux may be latched onto a clock that went away -- reload to recover.
+#define INPUT_SWITCH_LIVE_TIMEOUT_MS 5000
 static bool input_switch_pending;
 static bool input_source_stable_tracking;
 static TickType_t input_source_stable_since;
+static TickType_t input_live_deadline;
 
 static void issue_pending_input_request(void) {
     switch (config.input_sel) {
@@ -658,24 +696,34 @@ static void issue_pending_input_request(void) {
     }
 }
 
-static void apply_input_selection(bool *tmds_mode) {
+// reinit_frontends: re-initialize the video frontend chips (needed after
+// they were powered down, or when the input selection changed). Skip it on
+// pipeline reloads with the frontends already up -- an ADV7611 re-init
+// toggles HPD and restarts the source's HDMI handshake, destabilizing the
+// very signal the deferred switch is waiting for.
+static void apply_input_selection(bool *tmds_mode, bool reinit_frontends) {
     input_switch_pending = true;
     input_source_stable_tracking = false;
+    input_live_deadline = 0;
     switch (config.input_sel) {
     case INPUT_SEL_TMDS:
         *tmds_mode = true;
         syslog_print("Requesting TMDS input");
-        adv7611_early_init();
-        adv7611_init();
-        ptn3460_powerdown();
+        if (reinit_frontends) {
+            adv7611_early_init();
+            adv7611_init();
+            ptn3460_powerdown();
+        }
         caster_input_force_internal();
         break;
     case INPUT_SEL_DP:
         *tmds_mode = false;
         syslog_print("Requesting DP input");
-        ptn3460_init();
-        usbpd_resume_displayport();
-        adv7611_powerdown();
+        if (reinit_frontends) {
+            ptn3460_init();
+            usbpd_resume_displayport();
+            adv7611_powerdown();
+        }
         caster_input_force_internal();
         break;
     case INPUT_SEL_AUTO:
@@ -685,7 +733,8 @@ static void apply_input_selection(bool *tmds_mode) {
         else if (is_dp_active())
             *tmds_mode = false;
         syslog_print("Requesting auto input");
-        resume_video_frontends();
+        if (reinit_frontends)
+            resume_video_frontends();
         caster_input_force_internal();
         break;
     }
@@ -756,7 +805,8 @@ static void wait_fpga_ready(void) {
 }
 
 static void start_display_pipeline(bool *tmds_mode, const osd_fonts_t *fonts,
-        signal_osd_state_t *signal_osd_state, TickType_t *no_signal_deadline) {
+        signal_osd_state_t *signal_osd_state, TickType_t *no_signal_deadline,
+        bool reinit_frontends) {
     // The DDR3 controller can come up sick on the resume path (observed:
     // status 0x90 = MIG_ERROR + OP_BUSY appearing only after the pipeline
     // starts generating memory traffic -- the early wait_fpga_ready() check
@@ -770,7 +820,7 @@ static void start_display_pipeline(bool *tmds_mode, const osd_fonts_t *fonts,
         wait_fpga_ready();
         power_on_epd();
         caster_init();
-        apply_input_selection(tmds_mode);
+        apply_input_selection(tmds_mode, reinit_frontends);
         caster_osd_set_enable(false);
         *signal_osd_state = SIGNAL_OSD_NONE;
         *no_signal_deadline = xTaskGetTickCount() +
@@ -871,7 +921,7 @@ static void reload_to_internal_source(bool *tmds_mode, const osd_fonts_t *fonts,
     syslog_print(reason);
     power_off_epd();
     start_display_pipeline(tmds_mode, fonts, signal_osd_state,
-            no_signal_deadline);
+            no_signal_deadline, false);
 }
 
 static void recover_from_live_loss(bool *tmds_mode, const osd_fonts_t *fonts,
@@ -933,17 +983,16 @@ static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
 // off FPGA traffic in that window instead of treating a failed read as a lost
 // FPGA; give up after the grace period so a genuinely hung FPGA is still
 // caught by the reset safety net.
-#define INPUT_ACQUIRE_GRACE_MS  10000
+#define INPUT_ACQUIRE_GRACE_MS  3000
 #define INPUT_ACQUIRE_POLL_MS   100
 
-// How long CSR access may stay dead before the reset safety net fires. The
-// CSR interface rides the video input clock, and the FPGA's input mux reacts
-// to an incoming clock before the frontend's lock status (polled over I2C)
-// reads true -- so a dropout can start while the acquisition guard is not
-// engaged yet. Observed on hardware: HDMI replug at idle reset the board.
-// A transition-induced dropout recovers within a few seconds; a genuinely
-// dead FPGA does not.
-#define FPGA_CSR_DEAD_LIMIT_MS  10000
+// How long CSR access may stay dead before the pipeline is reloaded. The
+// CSR interface rides the video input clock; once the mux has left the
+// internal source, a clock loss (cable pull, source renegotiation) freezes
+// the gateware mux FSM on the dead clock and nothing inside the FPGA can
+// recover it -- only a reconfiguration. Waiting longer than a couple of
+// seconds just prolongs the outage.
+#define FPGA_CSR_DEAD_LIMIT_MS  2000
 
 static bool enter_retain(uint32_t *damage_last) {
     uint32_t quiet_ms = 0;
@@ -1059,7 +1108,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
 
     bool tmds_mode = false;
     start_display_pipeline(&tmds_mode, &fonts, &signal_osd_state,
-            &no_signal_deadline);
+            &no_signal_deadline, true);
 
     while (1) {
         if (power_is_suspended()) {
@@ -1103,7 +1152,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             if (power_get_last_suspend_reason() != POWER_SUSPEND_VIDEO_LOSS)
                 resume_video_frontends();
             start_display_pipeline(&tmds_mode, &fonts, &signal_osd_state,
-                    &no_signal_deadline);
+                    &no_signal_deadline, false);
             power_resume_complete();
 
             menu_open = false;
@@ -1148,9 +1197,10 @@ portTASK_FUNCTION(ui_task, pvParameters) {
 
         // Deferred input-mux switch (see the comment at
         // issue_pending_input_request): only hand the FPGA the live source
-        // once the frontend has reported it present continuously.
+        // once the frontend has reported verified-stable video (locked
+        // filters + matching measured resolution) continuously.
         if (input_switch_pending && !live_was_selected) {
-            if (!is_selected_video_active(tmds_mode)) {
+            if (!is_selected_source_ready()) {
                 input_source_stable_tracking = false;
             }
             else if (!input_source_stable_tracking) {
@@ -1164,7 +1214,27 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                 input_switch_pending = false;
                 input_source_stable_tracking = false;
                 input_acquire_deadline = 0;
+                input_live_deadline = xTaskGetTickCount() +
+                        pdMS_TO_TICKS(INPUT_SWITCH_LIVE_TIMEOUT_MS);
             }
+        }
+
+        // If the switch was issued but the pipeline never reached LIVE, the
+        // mux may be latched onto a clock that went away (the gateware FSM
+        // cannot fall back on its own). Reload to get back to a known state;
+        // apply_input_selection() re-arms the deferred switch.
+        if (!input_switch_pending && !live_was_selected &&
+                (input_live_deadline != 0) &&
+                (((int32_t)xTaskGetTickCount() -
+                (int32_t)input_live_deadline) >= 0)) {
+            input_live_deadline = 0;
+            reload_to_internal_source(&tmds_mode, &fonts, &signal_osd_state,
+                    &no_signal_deadline,
+                    "Input did not go live after switch; reloading pipeline");
+            live_was_selected = false;
+            input_acquire_deadline = 0;
+            last_logged_input_status = 0xff;
+            continue;
         }
 
         // Input acquisition window: a source is present at the frontend but
@@ -1247,9 +1317,12 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                 vTaskDelay(pdMS_TO_TICKS(INPUT_ACQUIRE_POLL_MS));
                 continue;
             }
-            // Debounce: only reset if CSR access stays dead (see the
-            // FPGA_CSR_DEAD_LIMIT_MS comment for why it can drop out
-            // transiently even when the guard above is not engaged).
+            // Debounce: see the FPGA_CSR_DEAD_LIMIT_MS comment for why CSR
+            // can drop out transiently. If it stays dead, the mux is latched
+            // onto a dead clock and only a reconfiguration recovers it --
+            // reload the pipeline instead of rebooting the MCU (keeps the
+            // shell and syslog alive; frontends are left running so the
+            // source's handshake is not restarted).
             uint32_t dead_ms = 0;
             bool recovered = false;
             while (dead_ms < FPGA_CSR_DEAD_LIMIT_MS) {
@@ -1261,9 +1334,13 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                 }
             }
             if (!recovered) {
-                syslog_print("FPGA access lost; resetting");
-                power_off_epd();
-                NVIC_SystemReset();
+                reload_to_internal_source(&tmds_mode, &fonts,
+                        &signal_osd_state, &no_signal_deadline,
+                        "FPGA access lost; reloading pipeline");
+                live_was_selected = false;
+                input_acquire_deadline = 0;
+                last_logged_input_status = 0xff;
+                continue;
             }
             syslog_printf("FPGA CSR recovered after %u ms dropout",
                     (unsigned)dead_ms);
@@ -1276,6 +1353,8 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             last_logged_input_status = input_status;
         }
         update_input_tracking(input_status, &tmds_mode, &live_was_selected);
+        if (live_was_selected)
+            input_live_deadline = 0;
         // Suppress the LOST reload only during the acquisition grace period:
         // the reload restarts the frontend handshake it would be waiting on.
         // After the grace expires it must run again, or a source that needs
@@ -1373,7 +1452,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                     config_save();
                     autoclear = config.autoclear_mode != AC_OFF;
                     if (previous_config.input_sel != config.input_sel) {
-                        apply_input_selection(&tmds_mode);
+                        apply_input_selection(&tmds_mode, true);
                         live_was_selected = false;
                     }
                     if ((previous_config.lightness != config.lightness) ||
