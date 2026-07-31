@@ -1011,6 +1011,30 @@ update modes back and forth, let autoclear fire). It should fade back over a few
 > ADV7611 is mid-training. Would you consider clocking `vin_source_ctrl` (and ideally
 > the CSR slave) from `clk_sys` so the mux can always retreat to a live clock?
 
+### 10.4 Round 5: gate keyed on the wrong signal; policy switched to reload-not-reboot (`2988131`)
+
+Round-5 results: MIG retry works (status 90 → retry → 21, boots stable), but the
+`a67f8b0` gate fired on a bare TMDS carrier ("Input source stable" with no video
+flowing — the ADV7611 lock bit asserts during handshake), still latching the mux onto
+a dying clock: frozen panel + dead buttons (debounce blocks the loop), ~7 reboots on
+resume, and a switched-but-never-LIVE stuck state with no recovery. Cable pull while
+live confirmed to always kill CSR (gateware FSM frozen; only reload recovers).
+
+Fixes in `2988131`:
+- Gate = **verified video**: TMDS PLL + vertical filter + DE-regen locked AND
+  ADV7611-measured resolution == configured mode (HDMI map 0x04/0x07-0x0a), 500 ms
+  continuous.
+- **5 s post-switch LIVE deadline** → reload pipeline, re-arm gate.
+- **CSR loss → reload the FPGA, not the MCU** (debounce 2 s, acquisition grace 3 s):
+  keeps shell+syslog alive, and — critically — a new `reinit_frontends=false` path
+  means reloads (and resume) no longer re-init the ADV7611, so the source's HDMI
+  handshake is not restarted by our own recovery. MCU reset remains only as last
+  resort in `restart_fpga`. Resume loses its double ADV7611 init as a bonus.
+
+Expected behavior now: cable pull / source reboot ⇒ up to ~2 s CSR debounce + ~2 s
+reload, **no MCU reboots, syslog continuous**; switch only ever issued with real
+video flowing.
+
 **Remaining roadmap after Fix A**, in order: (1) resume latency polish — the double
 `ADV7611 initialization done` per resume (`resume_video_frontends()` at ui.c:970 then
 again via `apply_input_selection()` AUTO branch) restarts the HDMI handshake twice,
