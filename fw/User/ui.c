@@ -903,6 +903,15 @@ static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
 #define INPUT_ACQUIRE_GRACE_MS  10000
 #define INPUT_ACQUIRE_POLL_MS   100
 
+// How long CSR access may stay dead before the reset safety net fires. The
+// CSR interface rides the video input clock, and the FPGA's input mux reacts
+// to an incoming clock before the frontend's lock status (polled over I2C)
+// reads true -- so a dropout can start while the acquisition guard is not
+// engaged yet. Observed on hardware: HDMI replug at idle reset the board.
+// A transition-induced dropout recovers within a few seconds; a genuinely
+// dead FPGA does not.
+#define FPGA_CSR_DEAD_LIMIT_MS  10000
+
 static bool enter_retain(uint32_t *damage_last) {
     uint32_t quiet_ms = 0;
     uint32_t waited_ms = 0;
@@ -1184,9 +1193,27 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                 vTaskDelay(pdMS_TO_TICKS(INPUT_ACQUIRE_POLL_MS));
                 continue;
             }
-            syslog_print("FPGA access lost; resetting");
-            power_off_epd();
-            NVIC_SystemReset();
+            // Debounce: only reset if CSR access stays dead (see the
+            // FPGA_CSR_DEAD_LIMIT_MS comment for why it can drop out
+            // transiently even when the guard above is not engaged).
+            uint32_t dead_ms = 0;
+            bool recovered = false;
+            while (dead_ms < FPGA_CSR_DEAD_LIMIT_MS) {
+                vTaskDelay(pdMS_TO_TICKS(INPUT_ACQUIRE_POLL_MS));
+                dead_ms += INPUT_ACQUIRE_POLL_MS;
+                if (fpga_write_reg8(CSR_ID0, 0x00) == 0x35) {
+                    recovered = true;
+                    break;
+                }
+            }
+            if (!recovered) {
+                syslog_print("FPGA access lost; resetting");
+                power_off_epd();
+                NVIC_SystemReset();
+            }
+            syslog_printf("FPGA CSR recovered after %u ms dropout",
+                    (unsigned)dead_ms);
+            continue;
         }
 
         uint8_t input_status = caster_input_status();
