@@ -969,6 +969,48 @@ the ring as it prints (tail pointer advances).
 > with `restart_fpga()` polling CSR forever — display dead until power cycle. One-line
 > fix: close the file after the write.
 
+### 10.3 The real root of every reboot loop: the input-mux clock trap (fixed in `a67f8b0`)
+
+Round-3 logs (fonts confirmed loading ✓; MIG status-90 seen at **cold boot** too, retry
+recovered it in 0.76 s ✓) still showed resume-with-HDMI reboot-looping ~10× despite the
+CSR debounce — with the panel getting darker each cycle. Full trace, end to end **[CODE]**:
+
+1. `apply_input_selection()` wrote `CSR_INPUT_CTRL` (auto/tmds/dp) immediately at
+   pipeline start, while the ADV7611 link was still training.
+2. Gateware `vin_source_ctrl` switches the mux when `live_valid` asserts — but that is
+   just the timing monitor's "supported" flag ([top.v:605-609]), which asserts
+   transiently during training.
+3. The switch moves `clk_epdc` onto the live pixel clock, **and `vin_source_ctrl` is
+   itself clocked by `clk_epdc`** ([top.v:619]) — when the freshly-selected clock dies
+   mid-training, the FSM that could fall back to internal freezes with it. Mux, FSM and
+   CSR are dead until PROG_B reload.
+4. The pipeline health check then read garbage through the dead bus → spurious
+   "memory interface unhealthy" → retry → reset. Each reboot re-inits the ADV7611,
+   restarting the handshake it is racing → loop until timing luck.
+5. Boots were safe only by accident: `CSR_INPUT_CTRL` defaults to internal
+   ([csr.v:194]) and the source is usually silent when the request lands.
+
+**Fix (`a67f8b0`)**: `apply_input_selection()` parks the mux on internal; the ui loop
+issues the real request only after the frontend (ADV7611 lock over I2C / DP GPIO —
+independent of the FPGA clock) reports the source present for 500 ms continuously.
+All prior guards stay as safety nets, and the MIG health check is now trustworthy
+(always runs on the internal clock).
+
+**Panel darkening**: cumulative DC imbalance from repeatedly aborted drive cycles —
+not permanent damage. Recovery: boot cleanly, then run several full refreshes (switch
+update modes back and forth, let autoclear fire). It should fade back over a few cycles.
+
+**Upstream question for zephray (gateware), paste-ready:**
+
+> In `vin_source_ctrl.v` the FSM that controls the internal→live source switch is
+> clocked by `clk_epdc` (top.v), which is the very clock the switch redirects. If the
+> selected live pixel clock subsequently dies (e.g. HDMI link re-training after the
+> "supported" flag transiently asserted), the FSM freezes on the dead clock and can
+> never fall back to internal — the CSR interface (same clock) stays dead until the
+> FPGA is reconfigured. I can reproduce this by requesting the live input while the
+> ADV7611 is mid-training. Would you consider clocking `vin_source_ctrl` (and ideally
+> the CSR slave) from `clk_sys` so the mux can always retreat to a live clock?
+
 **Remaining roadmap after Fix A**, in order: (1) resume latency polish — the double
 `ADV7611 initialization done` per resume (`resume_video_frontends()` at ui.c:970 then
 again via `apply_input_selection()` AUTO branch) restarts the HDMI handshake twice,
