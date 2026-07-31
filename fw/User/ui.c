@@ -1149,10 +1149,15 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             syslog_printf("Waking system: 0x%02x", (unsigned)wake_sources);
             if (power_get_last_suspend_reason() == POWER_SUSPEND_RETAIN) {
                 // Fast path: FPGA, framebuffer and video frontends were kept
-                // alive; only the EPD rails were off. Bring the rails back
-                // and reconcile the panel with the still-live framebuffer.
+                // alive; only the EPD rails were off. Bring the rails back,
+                // and only reconcile the panel if the framebuffer actually
+                // changed while retained -- enter_retain() waited for the
+                // glass to settle, so an unchanged damage counter means
+                // panel and framebuffer still agree and a redraw would just
+                // flash the image it is about to show again.
                 power_on_epd();
-                caster_redraw(0, 0, config.hact, config.vact);
+                if (caster_get_damage_counter() != retain_damage_last)
+                    caster_redraw(0, 0, config.hact, config.vact);
                 power_resume_complete();
                 suspend_wait_initialized = false;
                 reset_autoclear_state(&autoclear_timeout,
