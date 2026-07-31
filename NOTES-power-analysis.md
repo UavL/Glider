@@ -1035,6 +1035,29 @@ Expected behavior now: cable pull / source reboot ⇒ up to ~2 s CSR debounce + 
 reload, **no MCU reboots, syslog continuous**; switch only ever issued with real
 video flowing.
 
+### 10.5 Round 6: the bitstream is the wrong generation (`156cabb`)
+
+The 6-s flash loop ("Input source stable" → 5 s → "Input did not go live; reloading")
+exposed the foundation problem: **the provisioned `fpga.bit` predates the
+INPUT_CTRL/`vin_source_ctrl` gateware** (Caster submodule `2f714ab`, 2026-07-05).
+Proof: current gateware reads `CSR_INPUT_STATUS ≥ 0x19` when parked internal
+(INTERNAL bit + constant STABLE/SUPPORTED); the board reads `0x00` always, LIVE
+never asserts, measured timing always 0. On the legacy bitstream, input selection
+is autonomous in hardware and all input requests are no-ops. This also finally
+explains the **permanent white box**: the input-status-blind firmware drew the
+"No Signal" popup over perfectly working video.
+
+`156cabb` detects the 0x00 signature after pipeline start, disables the
+live-timeout reload and the signal OSD on legacy bitstreams, and logs
+`Legacy bitstream: no input-control interface`. Result: current firmware works on
+the old bitstream again (minus the new protections, which physically need the new
+gateware).
+
+**The real fix is building the current gateware** — Xilinx ISE 14.7 VM +
+`scripts/dev_flash_fpga.sh --ise-host <vm-ip> --variant 8bit-mono` (see USAGE.md
+for VM setup). Until then: no MCU reboots occur (reload policy verified working —
+resume completed with continuous syslog), but LIVE-based features stay dormant.
+
 **Remaining roadmap after Fix A**, in order: (1) resume latency polish — the double
 `ADV7611 initialization done` per resume (`resume_video_frontends()` at ui.c:970 then
 again via `apply_input_selection()` AUTO branch) restarts the HDMI handshake twice,
