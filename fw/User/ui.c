@@ -627,7 +627,40 @@ static bool is_selected_video_active(bool tmds_mode) {
 
 static void resume_video_frontends(void);
 
+// Deferred input-mux switch state. Writing CSR_INPUT_CTRL while the selected
+// source's link is still training lets the gateware latch clk_epdc onto a
+// clock that can die mid-training -- and the mux FSM (vin_source_ctrl) runs
+// on that same clock, so it cannot fall back; mux, FSM and CSR stay dead
+// until the bitstream is reloaded. apply_input_selection() therefore parks
+// the FPGA on the internal source; the ui_task loop issues the real request
+// only once the frontend (checked over I2C/GPIO, independent of the FPGA
+// clock) has reported the source present for INPUT_SOURCE_STABLE_MS.
+#define INPUT_SOURCE_STABLE_MS  500
+static bool input_switch_pending;
+static bool input_source_stable_tracking;
+static TickType_t input_source_stable_since;
+
+static void issue_pending_input_request(void) {
+    switch (config.input_sel) {
+    case INPUT_SEL_TMDS:
+        syslog_print("Input source stable; requesting TMDS");
+        caster_input_request_tmds();
+        break;
+    case INPUT_SEL_DP:
+        syslog_print("Input source stable; requesting DP");
+        caster_input_request_dp();
+        break;
+    case INPUT_SEL_AUTO:
+    default:
+        syslog_print("Input source stable; requesting auto");
+        caster_input_request_auto();
+        break;
+    }
+}
+
 static void apply_input_selection(bool *tmds_mode) {
+    input_switch_pending = true;
+    input_source_stable_tracking = false;
     switch (config.input_sel) {
     case INPUT_SEL_TMDS:
         *tmds_mode = true;
@@ -635,7 +668,7 @@ static void apply_input_selection(bool *tmds_mode) {
         adv7611_early_init();
         adv7611_init();
         ptn3460_powerdown();
-        caster_input_request_tmds();
+        caster_input_force_internal();
         break;
     case INPUT_SEL_DP:
         *tmds_mode = false;
@@ -643,7 +676,7 @@ static void apply_input_selection(bool *tmds_mode) {
         ptn3460_init();
         usbpd_resume_displayport();
         adv7611_powerdown();
-        caster_input_request_dp();
+        caster_input_force_internal();
         break;
     case INPUT_SEL_AUTO:
     default:
@@ -653,7 +686,7 @@ static void apply_input_selection(bool *tmds_mode) {
             *tmds_mode = false;
         syslog_print("Requesting auto input");
         resume_video_frontends();
-        caster_input_request_auto();
+        caster_input_force_internal();
         break;
     }
 }
@@ -1111,6 +1144,27 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             osd_timeout = 0;
             enter_retain(&retain_damage_last);
             continue;
+        }
+
+        // Deferred input-mux switch (see the comment at
+        // issue_pending_input_request): only hand the FPGA the live source
+        // once the frontend has reported it present continuously.
+        if (input_switch_pending && !live_was_selected) {
+            if (!is_selected_video_active(tmds_mode)) {
+                input_source_stable_tracking = false;
+            }
+            else if (!input_source_stable_tracking) {
+                input_source_stable_tracking = true;
+                input_source_stable_since = xTaskGetTickCount();
+            }
+            else if (((int32_t)xTaskGetTickCount() -
+                    (int32_t)(input_source_stable_since +
+                    pdMS_TO_TICKS(INPUT_SOURCE_STABLE_MS))) >= 0) {
+                issue_pending_input_request();
+                input_switch_pending = false;
+                input_source_stable_tracking = false;
+                input_acquire_deadline = 0;
+            }
         }
 
         // Input acquisition window: a source is present at the frontend but
