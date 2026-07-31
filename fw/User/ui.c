@@ -663,9 +663,43 @@ static void restart_fpga(void) {
     syslog_printf("FPGA up");
 }
 
+// After configuration the FPGA's DDR3 controller can fail calibration
+// intermittently (observed on hardware: CSR_STATUS 0x90 = MIG_ERROR +
+// OP_BUSY, no SYS_READY, after a resume that left the still-powered DDR3
+// chip unrefreshed). Wait for SYS_READY and retry the configuration once
+// instead of handing the ui loop's reset safety net a sick FPGA.
+#define FPGA_READY_TIMEOUT_MS   1000
+#define FPGA_READY_POLL_MS      20
+
+static void wait_fpga_ready(void) {
+    const uint8_t err_mask =
+            (uint8_t)((1u << STATUS_MIG_ERROR) | (1u << STATUS_MIF_ERROR));
+
+    for (int attempt = 0; ; attempt++) {
+        uint8_t status = fpga_write_reg8(CSR_STATUS, 0x00);
+        uint32_t waited = 0;
+        while (!(status & (1u << STATUS_SYS_READY)) &&
+                !(status & err_mask) && (waited < FPGA_READY_TIMEOUT_MS)) {
+            sleep_ms(FPGA_READY_POLL_MS);
+            waited += FPGA_READY_POLL_MS;
+            status = fpga_write_reg8(CSR_STATUS, 0x00);
+        }
+        if (status & (1u << STATUS_SYS_READY))
+            return;
+        if (attempt >= 1) {
+            syslog_printf("FPGA not ready (status %02x); giving up", status);
+            return;
+        }
+        syslog_printf("FPGA not ready (status %02x); reloading bitstream",
+                status);
+        restart_fpga();
+    }
+}
+
 static void start_display_pipeline(bool *tmds_mode, const osd_fonts_t *fonts,
         signal_osd_state_t *signal_osd_state, TickType_t *no_signal_deadline) {
     restart_fpga();
+    wait_fpga_ready();
     power_on_epd();
     caster_init();
     apply_input_selection(tmds_mode);
@@ -1031,6 +1065,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
         // tracking.
         bool input_acquiring = !live_was_selected &&
                 is_selected_video_active(tmds_mode);
+        bool acquire_grace = false;
         if (!input_acquiring) {
             input_acquire_deadline = 0;
         }
@@ -1038,8 +1073,9 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             if (input_acquire_deadline == 0)
                 input_acquire_deadline = xTaskGetTickCount() +
                         pdMS_TO_TICKS(INPUT_ACQUIRE_GRACE_MS);
-            if (((int32_t)xTaskGetTickCount() -
-                    (int32_t)input_acquire_deadline < 0) &&
+            acquire_grace = ((int32_t)xTaskGetTickCount() -
+                    (int32_t)input_acquire_deadline) < 0;
+            if (acquire_grace &&
                     (fpga_write_reg8(CSR_ID0, 0x00) != 0x35)) {
                 vTaskDelay(pdMS_TO_TICKS(INPUT_ACQUIRE_POLL_MS));
                 continue;
@@ -1094,9 +1130,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             continue;
         }
         if (fpga_write_reg8(CSR_ID0, 0x00) != 0x35) {
-            if (input_acquiring &&
-                    ((int32_t)xTaskGetTickCount() -
-                    (int32_t)input_acquire_deadline < 0)) {
+            if (acquire_grace) {
                 // Input clock dropped between the probe above and here;
                 // still inside the acquisition grace period.
                 vTaskDelay(pdMS_TO_TICKS(INPUT_ACQUIRE_POLL_MS));
@@ -1113,7 +1147,11 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             last_logged_input_status = input_status;
         }
         update_input_tracking(input_status, &tmds_mode, &live_was_selected);
-        if ((input_status & INPUT_STATUS_LOST) && !input_acquiring) {
+        // Suppress the LOST reload only during the acquisition grace period:
+        // the reload restarts the frontend handshake it would be waiting on.
+        // After the grace expires it must run again, or a source that needs
+        // the reload to re-acquire would never come up.
+        if ((input_status & INPUT_STATUS_LOST) && !acquire_grace) {
             if (is_selected_video_active(tmds_mode)) {
                 reload_to_internal_source(&tmds_mode, &fonts, &signal_osd_state,
                         &no_signal_deadline,
