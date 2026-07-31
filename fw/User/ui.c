@@ -988,14 +988,6 @@ static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
 #define RETAIN_QUIET_TIMEOUT_MS 2000
 #define RETAIN_SETTLE_MS        700
 #define RETAIN_CASTER_IDLE_MS   1000
-// Time for the scan FSM to reach its next frame boundary after ENABLE=0
-// (>2 frame times at the ~60 Hz EPDC rate).
-#define RETAIN_STOP_SETTLE_MS   50
-// NOTE: autonomous wake-on-page-change (POWER_WAKE_DAMAGE) does not work while
-// retained now -- the damage counter is frozen with the stopped EPDC. Retain
-// wakes on a board button, a host command (shell/HID), USB resume, or a
-// frontend-side video-loss deepen. Re-enabling damage-wake needs a future
-// gateware "watch" mode (capture + damage counting without panel drive).
 
 // While a video source is present at the frontend but the FPGA has not yet
 // reported it live, the EPDC (CSR interface included) can be clocked from the
@@ -1048,16 +1040,6 @@ static bool enter_retain(uint32_t *damage_last) {
 
     // Let in-flight per-pixel waveforms finish on glass before cutting rails
     sleep_ms(RETAIN_SETTLE_MS);
-
-    // Stop the EPDC scan before the rails go off. Otherwise it keeps
-    // processing live video into an unpowered panel -- driving the new frame
-    // nowhere while updating its internal glass-state model to match, so the
-    // next real update selects waveforms against a state the glass does not
-    // hold (observed as scrambled/superimposed text after a page turn during
-    // retain). Stopped, the FSM parks at a frame boundary and the framebuffer
-    // stays frozen and consistent with the glass.
-    caster_set_enable(false);
-    sleep_ms(RETAIN_STOP_SETTLE_MS); // let the in-flight frame finish
 
     *damage_last = caster_get_damage_counter();
     power_suspend(POWER_SUSPEND_RETAIN);
@@ -1167,14 +1149,22 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             syslog_printf("Waking system: 0x%02x", (unsigned)wake_sources);
             if (power_get_last_suspend_reason() == POWER_SUSPEND_RETAIN) {
                 // Fast path: FPGA, framebuffer and video frontends were kept
-                // alive; only the EPD rails were off and the EPDC scan was
-                // stopped. Bring the rails back and re-enable the scan; the
-                // first frame diffs live video against the frozen framebuffer
-                // and applies anything that changed while retained as a
-                // normal partial update -- no full-screen flash, and no
-                // scramble from a mismatched glass-state model.
+                // alive; only the EPD rails were off. Bring the rails back,
+                // and only reconcile the panel if the framebuffer changed
+                // meaningfully while retained. With live video a few pixels
+                // (cursor blink, clock digit) always change, and flashing
+                // the whole panel over them defeats the point of retain --
+                // those pixels stay stale until they next change, which is
+                // the acceptable cost. Real content changes (a page turn is
+                // orders of magnitude more pixels) still redraw. The
+                // counter is 21 bits; mask the delta against wrap.
                 power_on_epd();
-                caster_set_enable(true);
+                uint32_t retain_damage_delta =
+                        (caster_get_damage_counter() - retain_damage_last) &
+                        0x1fffffu;
+                if (retain_damage_delta >
+                        ((uint32_t)config.hact * config.vact) / 100u)
+                    caster_redraw(0, 0, config.hact, config.vact);
                 power_resume_complete();
                 suspend_wait_initialized = false;
                 reset_autoclear_state(&autoclear_timeout,
