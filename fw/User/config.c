@@ -337,6 +337,7 @@ void config_save(void) {
         return;
     
     SPIFFS_write(&spiffs_fs, f, &config, sizeof(config));
+    SPIFFS_close(&spiffs_fs, f);
 }
 #else
 void config_load(void) {
