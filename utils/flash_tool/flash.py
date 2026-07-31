@@ -70,7 +70,9 @@ def open_dev():
     return h
 
 def send_cmd(h, cmd, param, x0, y0, x1, y1, pid):
-    byteseq = struct.pack('<bhhhhhh', cmd, param, x0, y0, x1, y1, pid)
+    # Fields are unsigned on the wire; a signed 'h' overflows for values
+    # >= 0x8000 (e.g. the low word of a 450 KB bitstream size).
+    byteseq = struct.pack('<BHHHHHH', cmd, param, x0, y0, x1, y1, pid)
     chksum = struct.pack('<H', crc16(byteseq))
     byteout = b'\x05' + byteseq + chksum + bytearray(48)
     print(byteout)
