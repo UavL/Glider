@@ -677,6 +677,13 @@ static bool input_switch_pending;
 static bool input_source_stable_tracking;
 static TickType_t input_source_stable_since;
 static TickType_t input_live_deadline;
+// Bitstreams predating the INPUT_CTRL/vin_source_ctrl interface ignore the
+// input requests and always read CSR_INPUT_STATUS as 0x00 (the current
+// gateware reads at least 0x19 when parked internal: INTERNAL bit plus
+// constant-true STABLE/SUPPORTED). On such bitstreams input selection is
+// autonomous in hardware, LIVE never asserts, and the live-timeout reload
+// would cycle the pipeline forever -- detect and disable the gating.
+static bool input_status_legacy;
 
 static void issue_pending_input_request(void) {
     switch (config.input_sel) {
@@ -839,6 +846,11 @@ static void start_display_pipeline(bool *tmds_mode, const osd_fonts_t *fonts,
         syslog_print("FPGA memory interface unhealthy; retrying configuration");
         power_off_epd();
     }
+
+    input_status_legacy = (caster_input_status() == 0x00);
+    if (input_status_legacy)
+        syslog_print("Legacy bitstream: no input-control interface; "
+                "live-source gating disabled");
 }
 
 static void resume_video_frontends(void) {
@@ -1214,8 +1226,9 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                 input_switch_pending = false;
                 input_source_stable_tracking = false;
                 input_acquire_deadline = 0;
-                input_live_deadline = xTaskGetTickCount() +
-                        pdMS_TO_TICKS(INPUT_SWITCH_LIVE_TIMEOUT_MS);
+                input_live_deadline = input_status_legacy ? 0 :
+                        (xTaskGetTickCount() +
+                        pdMS_TO_TICKS(INPUT_SWITCH_LIVE_TIMEOUT_MS));
             }
         }
 
@@ -1374,8 +1387,12 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             last_logged_input_status = 0xff;
             continue;
         }
-        update_signal_osd(&fonts, input_status, menu_open, osd_timeout,
-                &signal_osd_state, &no_signal_deadline);
+        // On a legacy bitstream the status register is blind -- it would
+        // report "no signal" permanently, drawing the popup over perfectly
+        // working video (the long-standing white box in the OSD corner).
+        if (!input_status_legacy)
+            update_signal_osd(&fonts, input_status, menu_open, osd_timeout,
+                    &signal_osd_state, &no_signal_deadline);
 
         // Detect signal mode
         // TODO: This should be implemented in FPGA
