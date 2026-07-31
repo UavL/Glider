@@ -132,8 +132,11 @@ static void osd_draw_rect(int x, int y, int w, int h, bool color, int thickness)
 static const osd_font_t *load_osd_font(const char *fn) {
     SPIFFS_clearerr(&spiffs_fs);
     spiffs_file f = SPIFFS_open(&spiffs_fs, fn, SPIFFS_O_RDONLY, 0);
-    if (SPIFFS_errno(&spiffs_fs) != 0)
+    if (SPIFFS_errno(&spiffs_fs) != 0) {
+        syslog_printf("OSD font '%s' open failed: %d", fn,
+                SPIFFS_errno(&spiffs_fs));
         return NULL;
+    }
 
     spiffs_stat s;
     SPIFFS_fstat(&spiffs_fs, f, &s);
@@ -142,6 +145,8 @@ static const osd_font_t *load_osd_font(const char *fn) {
     uint8_t *buf = pvPortMalloc(size);
     if (!buf) {
         SPIFFS_close(&spiffs_fs, f);
+        syslog_printf("OSD font '%s': alloc of %u bytes failed", fn,
+                (unsigned)size);
         return NULL;
     }
 
@@ -151,9 +156,12 @@ static const osd_font_t *load_osd_font(const char *fn) {
     const osd_font_t *font = osd_font_from_memory(buf, size);
     if (font == NULL) {
         vPortFree(buf);
+        syslog_printf("OSD font '%s': invalid format (%u bytes)", fn,
+                (unsigned)size);
         return NULL;
     }
 
+    syslog_printf("OSD font '%s' loaded", fn);
     return font;
 }
 
@@ -716,16 +724,38 @@ static void wait_fpga_ready(void) {
 
 static void start_display_pipeline(bool *tmds_mode, const osd_fonts_t *fonts,
         signal_osd_state_t *signal_osd_state, TickType_t *no_signal_deadline) {
-    restart_fpga();
-    wait_fpga_ready();
-    power_on_epd();
-    caster_init();
-    apply_input_selection(tmds_mode);
-    caster_osd_set_enable(false);
-    *signal_osd_state = SIGNAL_OSD_NONE;
-    *no_signal_deadline = xTaskGetTickCount() +
-            pdMS_TO_TICKS(NO_SIGNAL_DELAY_MS);
-    syslog_printf("FPGA started with status %02x", fpga_write_reg8(CSR_STATUS, 0x00));
+    // The DDR3 controller can come up sick on the resume path (observed:
+    // status 0x90 = MIG_ERROR + OP_BUSY appearing only after the pipeline
+    // starts generating memory traffic -- the early wait_fpga_ready() check
+    // passes). Verify the final status; retry the configuration once, and
+    // if it is still failing, reboot: a clean boot is known to recalibrate.
+    const uint8_t err_mask =
+            (uint8_t)((1u << STATUS_MIG_ERROR) | (1u << STATUS_MIF_ERROR));
+
+    for (int attempt = 0; ; attempt++) {
+        restart_fpga();
+        wait_fpga_ready();
+        power_on_epd();
+        caster_init();
+        apply_input_selection(tmds_mode);
+        caster_osd_set_enable(false);
+        *signal_osd_state = SIGNAL_OSD_NONE;
+        *no_signal_deadline = xTaskGetTickCount() +
+                pdMS_TO_TICKS(NO_SIGNAL_DELAY_MS);
+
+        uint8_t status = fpga_write_reg8(CSR_STATUS, 0x00);
+        syslog_printf("FPGA started with status %02x", status);
+        if (((status & err_mask) == 0) &&
+                ((status & (1u << STATUS_SYS_READY)) != 0))
+            break;
+        if (attempt >= 1) {
+            syslog_print("FPGA memory interface still failing; resetting");
+            power_off_epd();
+            NVIC_SystemReset();
+        }
+        syslog_print("FPGA memory interface unhealthy; retrying configuration");
+        power_off_epd();
+    }
 }
 
 static void resume_video_frontends(void) {
