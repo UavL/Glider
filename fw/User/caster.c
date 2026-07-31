@@ -158,30 +158,6 @@ void caster_redraw_blank(void) {
     fpga_write_reg8(CSR_OP_CMD, OP_EXT_REDRAW);
 }
 
-// Blanking drives a full-panel white update, so it has to stay asserted until
-// the op has run its frames. OP_BUSY tracks the whole op (it clears only once
-// the frame counter drains), so waiting on the op queue is sufficient.
-#define CASTER_RESYNC_TIMEOUT_MS    2000
-
-// Force the panel and the framebuffer back into agreement.
-//
-// The EPDC keeps its per-pixel state in the framebuffer and writes it back
-// unconditionally while scanning. If the image changes while the EPD rails are
-// off (a page turned during retain suspend), the EPDC advances that state for
-// pixels the glass never actually moved: the framebuffer then claims the new
-// image is displayed while the panel still holds the old one. A plain redraw
-// from that baseline leaves the two images superimposed.
-//
-// Recover by driving the whole panel white with the input blanked -- which
-// puts glass and framebuffer in the same known state -- and then repainting
-// the live content from there. Costs one visible white flash.
-void caster_resync_panel(void) {
-    caster_redraw_blank();
-    if (caster_wait_idle(CASTER_RESYNC_TIMEOUT_MS) != 0)
-        syslog_print("Resync blank still busy; repainting anyway");
-    fpga_write_reg8(CSR_ENABLE, CASTER_EN_REFRESH); // stop blanking the input
-    caster_redraw(0, 0, config.hact, config.vact);
-}
 
 uint8_t caster_osd_send_buf(uint8_t *buf) {
     fpga_write_reg16(CSR_OSD_ADDR, 0);

@@ -162,7 +162,6 @@ uint8_t caster_setmode(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
 uint32_t caster_get_damage_counter(void);
 uint8_t caster_wait_idle(uint32_t timeout_ms);
 void caster_redraw_blank(void);
-void caster_resync_panel(void);
 uint8_t caster_osd_send_buf(uint8_t *buf);
 uint8_t caster_osd_set_window(uint16_t left, uint16_t top,
     uint16_t logical_width, uint16_t logical_height);

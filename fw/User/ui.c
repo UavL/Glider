@@ -1006,10 +1006,12 @@ static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
 // seconds just prolongs the outage.
 #define FPGA_CSR_DEAD_LIMIT_MS  2000
 
-static bool enter_retain(uint32_t *damage_last) {
+static bool enter_retain(uint32_t *damage_last, uint32_t *damage_accum) {
     uint32_t quiet_ms = 0;
     uint32_t waited_ms = 0;
     uint32_t damage = caster_get_damage_counter();
+
+    *damage_accum = 0;
 
     syslog_print("Entering retain suspend");
     caster_osd_set_enable(false);
@@ -1047,7 +1049,7 @@ static bool enter_retain(uint32_t *damage_last) {
 }
 
 static uint32_t wait_for_retain_wake(bool tmds_mode, bool damage_wake,
-        uint32_t *damage_last) {
+        uint32_t *damage_last, uint32_t *damage_accum) {
     btn_event_t btn_event;
 
     power_request_t req = power_take_request();
@@ -1073,12 +1075,20 @@ static uint32_t wait_for_retain_wake(bool tmds_mode, bool damage_wake,
         return POWER_WAKE_NONE;
     }
 
-    if (damage_wake) {
-        uint32_t damage = caster_get_damage_counter();
-        if (damage != *damage_last) {
-            *damage_last = damage;
-            return POWER_WAKE_DAMAGE;
-        }
+    // CSR_DAMAGE_COUNT is a per-frame count -- the gateware zeroes it every
+    // vsync -- so accumulate the samples to measure how much of the image
+    // changed while retained. Comparing snapshots taken at retain entry and
+    // at resume reads ~0 in both cases (the image is quiet at each end) and
+    // never detects the change in between.
+    uint32_t damage = caster_get_damage_counter();
+    if (damage != 0) {
+        uint32_t accum = *damage_accum + damage;
+        *damage_accum = (accum < *damage_accum) ? 0xffffffffu : accum;
+    }
+
+    if (damage_wake && (damage != *damage_last)) {
+        *damage_last = damage;
+        return POWER_WAKE_DAMAGE;
     }
 
     if (xQueueReceive(btn_queue, &btn_event,
@@ -1101,6 +1111,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
     bool usbpd_wake_armed = false;
     bool retain_damage_wake = true;
     uint32_t retain_damage_last = 0;
+    uint32_t retain_damage_accum = 0;
     bool live_was_selected = false;
     TickType_t input_acquire_deadline = 0;
     uint8_t last_logged_input_status = 0xff;
@@ -1130,7 +1141,8 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                 // Re-run the deep-wait init below if the state deepens
                 suspend_wait_initialized = false;
                 wake_sources = wait_for_retain_wake(tmds_mode,
-                        retain_damage_wake, &retain_damage_last);
+                        retain_damage_wake, &retain_damage_last,
+                        &retain_damage_accum);
             }
             else {
                 if (!suspend_wait_initialized) {
@@ -1154,24 +1166,21 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                 // The EPDC kept scanning while retained, so anything that
                 // changed on the input was consumed with the rails dead: the
                 // framebuffer advanced for pixels the glass never moved, and
-                // the two are now out of sync. A plain redraw from that
-                // baseline superimposes the old and new images, so a
-                // meaningful change needs a full resync (white flash, then
-                // repaint) instead.
+                // the two are now out of sync. Repainting differentially
+                // from that baseline superimposes the old and new images, so
+                // a meaningful change needs a full redraw -- OP_EXT_REDRAW
+                // force-clears every pixel before repainting, which puts
+                // glass and framebuffer back in agreement.
                 //
                 // Small churn (cursor blink, a clock digit) is left alone --
                 // those pixels stay stale until they next change, which is
-                // the price of a flash-free resume. The counter is 21 bits;
-                // mask the delta against wrap.
+                // the price of a flash-free resume.
                 power_on_epd();
-                uint32_t retain_damage_delta =
-                        (caster_get_damage_counter() - retain_damage_last) &
-                        0x1fffffu;
-                if (retain_damage_delta >
+                if (retain_damage_accum >
                         ((uint32_t)config.hact * config.vact) / 100u) {
-                    syslog_printf("Image changed during retain (%u px); "
-                            "resyncing panel", (unsigned)retain_damage_delta);
-                    caster_resync_panel();
+                    syslog_printf("Image changed during retain (%u); "
+                            "redrawing", (unsigned)retain_damage_accum);
+                    caster_redraw(0, 0, config.hact, config.vact);
                 }
                 power_resume_complete();
                 suspend_wait_initialized = false;
@@ -1223,7 +1232,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             retain_damage_wake = (power_req == POWER_REQ_RETAIN);
             menu_open = false;
             osd_timeout = 0;
-            enter_retain(&retain_damage_last);
+            enter_retain(&retain_damage_last, &retain_damage_accum);
             continue;
         }
 
