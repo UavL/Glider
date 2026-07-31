@@ -151,6 +151,7 @@ typedef enum {
 } update_mode_t;
 
 void caster_init(void);
+void caster_set_enable(bool en);
 uint8_t caster_load_waveform(uint8_t *waveform, uint8_t frames);
 uint8_t caster_redraw(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 uint8_t caster_setmode(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,

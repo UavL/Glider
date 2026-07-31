@@ -76,7 +76,17 @@ void caster_init(void) {
     fpga_write_reg8(CSR_OSD_EN, 0);
     fpga_write_reg8(CSR_CFG_MIRROR, config.mirror);
     caster_set_tone(config.lightness, config.contrast);
-    fpga_write_reg8(CSR_ENABLE, 1); // Enable refresh
+    caster_set_enable(true);
+}
+
+// Enable/disable the EPDC scan. Disabled, the scan FSM parks at the next
+// frame boundary: no panel drive, no glass-state updates, no framebuffer
+// writeback, no damage counting; incoming video is discarded. Re-enabling
+// resumes cleanly without re-running the init waveform, and the first frame
+// diffs live video against the frozen framebuffer, applying anything that
+// changed while disabled as a normal partial update.
+void caster_set_enable(bool en) {
+    fpga_write_reg8(CSR_ENABLE, en ? 1 : 0);
 }
 
 static uint8_t is_busy() {
