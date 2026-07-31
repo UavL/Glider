@@ -897,7 +897,10 @@ DFU recovery documented in §3):
    `syslog` shows `Waking system`, continuing timestamps; image restored after
    board-resume (~1.2 s) + Pi HDMI re-handshake (~1–3 s [EST]). Total 2–4 s.
 2. Same with `input_sel 1`. Predict: no reset loop; graceful wait until link trains.
-   (Revert to `setcfg input_sel 0` afterwards regardless.)
+   (Revert afterwards regardless. Note the real shell syntax, wrong in older
+   sections of this file: `setcfg get input_sel` / `setcfg set input_sel 0` /
+   `setcfg save` — only `save` writes flash and only `save` triggered the fd leak.
+   Leak regression test: `setcfg save` ×3, then `power off` → `power resume`.)
 3. HDMI unplug/replug while active — regression check on the normal video-loss path.
 4. If any reboot still occurs: capture `syslog`, note whether it restarts at 0.000.
 
