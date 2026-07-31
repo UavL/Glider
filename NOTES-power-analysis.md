@@ -920,6 +920,52 @@ DFU recovery documented in §3):
   cycle (boot forces `CSR_OSD_EN=0` in `caster_init`) + one full refresh. If it
   survives that, reassess.
 
+### 10.2 Post-flash round 2: the resume failure was a SPIFFS fd leak (now fixed)
+
+Observed: `power resume` → `Unable to open bitstream 'fpga.bit': -10007` → `ui_task`
+hung forever in `restart_fpga()`'s unbounded CSR wait (`power status` stuck at
+`state: resuming`, all further power requests ignored).
+
+Root cause chain **[CODE, confirmed by syslog]**:
+
+1. `config_save()` (config.c:333) opened `config.bin` and **never closed it** — one
+   leaked SPIFFS file descriptor per settings change (9 call sites: every OSD-menu
+   change, `setcfg`, `USBCMD_SETINPUT`).
+2. The fd table (`fs_fds[32*4]`, spiflash.c:494) holds only ~2–3 descriptors.
+   `-10007` = `SPIFFS_ERR_OUT_OF_FILE_DESCS`. Two `setcfg` calls that session were
+   enough.
+3. With no bitstream, the FPGA never answers CSR → unbounded wait → permanent hang.
+
+Fixes: `5d80bee` (close the file — **upstream bug**, present verbatim in
+`Modos-Labs/Glider` `origin/main`; stock firmware's video-loss recovery dies the same
+way after ~3 settings changes) and `986c9e1` (failed load → `fatal()` parks with shell
+alive; successful load with no CSR response → bounded 5 s wait then reboot).
+
+**White rectangle explained** (~3×1 cm, sharp edges, OSD corner): OSD popups render as
+a blank white box when the OSD fonts fail to load (`osd_clear(0xff)` + text draw with
+NULL font = box, no text). Mode popups auto-hide via `osd_timeout` → **transient** box
+(workstation observation ✓); the no-signal/"Sleeping" popup has **no timeout** →
+**permanent** box while video is not live (Pi observation ✓). Why the fonts stopped
+loading is still open — run **`fs ls`** and check `fonts/font_quicksand_16.bin` etc.;
+if missing/zero-size, re-upload with `utils/flash_tool/flash.py`. Not panel damage.
+
+Also explained, no action: the "different startup" was the workstation's PD/data-capable
+USB-C port (`CC status 5 0`, USB MUX CONNECT, PD hard-reset dance) vs the previous dumb
+supply; and `syslog` printing nothing means *no new lines* — the shell command consumes
+the ring as it prints (tail pointer advances).
+
+**Upstream report, paste-ready:**
+
+> `config_save()` in `fw/User/config.c` opens `config.bin` with
+> `SPIFFS_open(... O_CREAT|O_TRUNC|O_WRONLY ...)`, writes, and returns without
+> `SPIFFS_close()`. The fd pool passed to `SPIFFS_mount` (`fs_fds[32*4]` in
+> `spiflash.c`) only fits a couple of descriptors, so after ~3 settings changes any
+> further `SPIFFS_open` fails with `SPIFFS_ERR_OUT_OF_FILE_DESCS` (-10007). From then
+> on the bitstream reload in the video-signal-loss path fails
+> (`Unable to open bitstream 'fpga.bit': -10007`) and the FPGA is left unconfigured
+> with `restart_fpga()` polling CSR forever — display dead until power cycle. One-line
+> fix: close the file after the write.
+
 **Remaining roadmap after Fix A**, in order: (1) resume latency polish — the double
 `ADV7611 initialization done` per resume (`resume_video_frontends()` at ui.c:970 then
 again via `apply_input_selection()` AUTO branch) restarts the HDMI handshake twice,
