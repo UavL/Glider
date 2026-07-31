@@ -1150,13 +1150,20 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             if (power_get_last_suspend_reason() == POWER_SUSPEND_RETAIN) {
                 // Fast path: FPGA, framebuffer and video frontends were kept
                 // alive; only the EPD rails were off. Bring the rails back,
-                // and only reconcile the panel if the framebuffer actually
-                // changed while retained -- enter_retain() waited for the
-                // glass to settle, so an unchanged damage counter means
-                // panel and framebuffer still agree and a redraw would just
-                // flash the image it is about to show again.
+                // and only reconcile the panel if the framebuffer changed
+                // meaningfully while retained. With live video a few pixels
+                // (cursor blink, clock digit) always change, and flashing
+                // the whole panel over them defeats the point of retain --
+                // those pixels stay stale until they next change, which is
+                // the acceptable cost. Real content changes (a page turn is
+                // orders of magnitude more pixels) still redraw. The
+                // counter is 21 bits; mask the delta against wrap.
                 power_on_epd();
-                if (caster_get_damage_counter() != retain_damage_last)
+                uint32_t retain_damage_delta =
+                        (caster_get_damage_counter() - retain_damage_last) &
+                        0x1fffffu;
+                if (retain_damage_delta >
+                        ((uint32_t)config.hact * config.vact) / 100u)
                     caster_redraw(0, 0, config.hact, config.vact);
                 power_resume_complete();
                 suspend_wait_initialized = false;
