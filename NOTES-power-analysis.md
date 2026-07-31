@@ -1117,6 +1117,49 @@ runs the FPGA reload + full OP_INIT waveform, which deep-cleans the glass.
 3. Gate `epd_sdclk`/driver-OE when idle (a few mW; removes retain electrical
    stress). DDR3 self-refresh when idle (part of the ~95 mW DDR budget).
 
+### 10.7 EPDC-stop retain made it WORSE — reverted (`05cfa68`); retain internals blocked on gateware
+
+`d53afdb` (stop the EPDC during retain) was flashed and **regressed**: retain→resume
+still scrambled, and after a manual refresh the panel went **inverted (black bg,
+white text) with progressive whitening on each page turn**. Reverted in `05cfa68`;
+tree is back to `4d24169` behavior (threshold skip-redraw, no ENABLE toggle).
+
+Root-cause status (honest): **not fully determined, and not determinable from the
+repo.** What I established:
+- On the board's actual gateware (`Caster@48c3e7d`, the commit the provisioned
+  `fpga.bit` predates 2f714ab / reads Input status 0x00), `CSR_ENABLE=0` *does*
+  cleanly park the scan FSM (`SCAN_IDLE` while `!global_en`). So the register write
+  was correct — the EPDC-stop theory was not a wiring mistake.
+- Since stopping the scan did **not** fix the scramble, the scramble's cause is
+  **not** "the EPDC consumes page-changes during retain." My earlier theory was
+  wrong.
+- The inversion correlated with the ENABLE toggle (driver OE stays asserted and
+  `epd_sdclk` free-runs even in SCAN_IDLE on this gateware, so a 0→1 transition
+  around a rail cut can apply an unbalanced pulse) — but this is unproven, and
+  accumulated panel DC-imbalance from the whole session's abnormal cycles is a
+  confound.
+
+**Architectural conclusion (3 retain-resume changes, each surfaced a new failure —
+`268cfba`, `4d24169`, `d53afdb`):** stop debugging EPD glass-state behavior on the
+legacy bitstream. I am reasoning about RTL I cannot build or simulate, on a panel
+whose physical state is confounded by session history. **Seamless retain reading
+mode is blocked on the gateware rebuild** (where the RTL is known and the input path
+works). Until then:
+- Retain reading mode = accept the current `4d24169` behavior (clean no-flash resume
+  when the framebuffer was static; scramble only if content changed *during* retain
+  — which the host-hook flow avoids, since page turns happen in active mode).
+- Or use `off` for anything non-instant.
+
+**Two diagnostics still wanted from hardware** (to close the root cause if we return
+to it): (D1) does retain→resume scramble even with **no** page change during retain?
+(D2) does `power off`→`power resume` reliably clear the inversion (tests glass-state
+recoverability vs. physical imbalance)?
+
+**Recovery for the current stressed panel** (no code): `power off` → `power resume`
+runs the FPGA reload + init waveform; repeat 2–3× if the inversion/ghost persists.
+If it survives that, it is physical DC-imbalance — leave it displaying a full-black
+then full-white a few times to rebalance.
+
 **Remaining roadmap after Fix A**, in order: (1) resume latency polish — the double
 `ADV7611 initialization done` per resume (`resume_video_frontends()` at ui.c:970 then
 again via `apply_input_selection()` AUTO branch) restarts the HDMI handshake twice,
