@@ -1058,6 +1058,65 @@ gateware).
 for VM setup). Until then: no MCU reboots occur (reload policy verified working —
 resume completed with continuous syslog), but LIVE-based features stay dormant.
 
+### 10.6 Reading-mode reframe: retain is the reading state (`d53afdb`, `9da093d`)
+
+**Power model corrected by the user (this overrides §8's framing):**
+- **Retain = reading mode.** HDMI stays up; page flips must not trigger a link
+  renegotiation or a full-panel refresh. This is where reading time is spent.
+- **Off = standby.** The 4 s bring-up and full refresh are fine for waking the
+  reader from a pause; not for a page turn.
+
+**Bug fixed: scrambled text after a page turn during retain** (photo evidence: old
+and new page superimposed). Root cause, code-verified: retain left `CSR_ENABLE=1`,
+so the EPDC kept processing live video with the EPD rails off — driving each new
+frame into an unpowered panel while updating its *internal glass-state model* to
+match. On wake, waveforms were selected against a state the glass never actually
+reached ⇒ ghosted/superimposed output. `d53afdb`: `enter_retain()` now stops the
+scan (`caster_set_enable(false)`, +50 ms for the in-flight frame) before cutting
+rails; retain resume re-enables it. Stopped, the scan FSM parks at a frame boundary
+with the framebuffer frozen and glass-consistent; on re-enable the first frame
+diffs live video against that framebuffer and applies whatever changed as a clean
+partial update — which *also* removes the resume flash (the thresholded redraw is
+gone).
+
+**Wake model in retain** (the EPDC scan is stopped, so the damage counter is frozen
+and autonomous wake-on-page-change no longer fires):
+- Board button (short press) — already in `wait_for_retain_wake`. **This is the
+  "end retain with a button" ask; it already works.**
+- Host command (shell `power resume`, HID `USBCMD_POWERUP`).
+- USB resume.
+- Frontend-side video-loss deepen (unaffected — MCU checks the frontend, not CSR).
+
+**Host-side reading loop: `utils/flash_tool/retain_hook.py`** (`9da093d`) supplies
+the wake trigger the firmware can no longer generate itself. On the Pi it watches
+input via evdev and sends `POWERUP` on activity (before the reader renders),
+`POWERDOWN retain-manual` after `--idle`, and full `off` after `--deep-idle`.
+Run under systemd later, e.g. a unit with
+`ExecStart=/usr/bin/python3 /path/utils/flash_tool/retain_hook.py --idle 60
+--deep-idle 600`, `After=multi-user.target`, in the `input` group with the glider
+udev rule. Validate first with `--dry-run` / `--list`.
+
+**Honest reading-mode power ceiling.** While HDMI is alive, `VIDEO IN ≈ 0.59 W` and
+the FPGA core/DDR ≈ 0.25 W are *unavoidable* — they are the cost of keeping the link
+and framebuffer up, which reading mode requires. So retain's realistic floor is
+~1.0–1.3 W even after MCU idle work, versus off at ~0.19 W. **The battery strategy
+is therefore tiered, not "make retain tiny":** retain for active reading and short
+gaps, drop to off for pauses beyond ~1 min (the deep-idle escalation does this
+automatically). Getting retain itself lower needs gateware (below); the biggest
+single lever remains not being in reading mode when you don't need to be.
+
+**Panel cleanup after the scramble** (no firmware): `power off` → `power resume`
+runs the FPGA reload + full OP_INIT waveform, which deep-cleans the glass.
+
+**Gateware wishlist (for when the ISE VM exists), in rough value order:**
+1. **Watch mode** — capture + damage counting with panel drive disabled, so retain
+   can autonomously wake on a page change without the host hook and without driving
+   the unpowered panel. This is the clean fix for the wake model above.
+2. CSR (and `vin_source_ctrl`) on `clk_sys` — removes the whole class of
+   video-clock register deadlocks (§10.3).
+3. Gate `epd_sdclk`/driver-OE when idle (a few mW; removes retain electrical
+   stress). DDR3 self-refresh when idle (part of the ~95 mW DDR budget).
+
 **Remaining roadmap after Fix A**, in order: (1) resume latency polish — the double
 `ADV7611 initialization done` per resume (`resume_video_frontends()` at ui.c:970 then
 again via `apply_input_selection()` AUTO branch) restarts the HDMI handshake twice,
