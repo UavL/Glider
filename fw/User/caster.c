@@ -142,6 +142,20 @@ uint8_t caster_wait_idle(uint32_t timeout_ms) {
     }
 }
 
+// Freeze/unfreeze input tracking. See CASTER_EN_HOLD: a no-op on gateware
+// that does not decode the bit, so callers must not depend on it alone.
+void caster_set_hold(bool hold) {
+    fpga_write_reg8(CSR_ENABLE,
+            (uint8_t)(CASTER_EN_REFRESH | (hold ? CASTER_EN_HOLD : 0u)));
+}
+
+// True while the gateware is still driving pixels. Reads false on gateware
+// without STATUS_PANEL_ACTIVE, so treat it as a lower bound on settle time.
+bool caster_panel_active(void) {
+    uint8_t status = fpga_write_reg8(CSR_STATUS, 0x00);
+    return !!(status & (1u << STATUS_PANEL_ACTIVE));
+}
+
 uint8_t caster_setinput(uint8_t input_src) {
 //    if (is_busy()) return 1;
 //    fpga_write_reg8(CSR_CFG_IN_SRC, input_src);

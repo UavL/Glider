@@ -1254,3 +1254,115 @@ worth ~0.5–1 s; the 688 ms SPIFFS-bound bitstream read; the 100 ms-quantized p
 draw (145 mW of the 190 mW floor): `key_scan_task` 10 ms poll first, then tickless
 idle (PR #17's regime, done right). (4) Upstream questions: CSR-on-`clk_sys` gateware
 change; report the pinned-TMDS reset loop to Modos.
+
+---
+
+## 11. Gateware plan for lossless retain (revised)
+
+Supersedes the "freeze writeback" sketch in §10.8/§10.10. Prompted by an external review
+whose central objection was **correct** and whose consequence turns out to make the change
+*smaller*, not larger. Everything below is **verified against the RTL** in the `Caster/`
+submodule at `2f714ab` unless marked otherwise.
+
+### 11.1 Why gating framebuffer writeback is the wrong primitive
+
+**Verified.** The per-pixel waveform timers live in the same 16-bit state word as the
+pixel values (`pixel_framecnt = proc_bi[9:4]`, pixel_processing.v:152) and decrement
+*only* by writing `proc_bo` back to VRAM. Deassert `bo_valid` mid-sequence and the counter
+is frozen non-zero; every following frame re-reads the same state, takes the
+`pixel_framecnt != 0` branch and re-asserts `DRIVE_WHITE`/`DRIVE_BLACK` — **indefinitely**.
+That is a DC-imbalance hazard on the glass, not merely an image artifact.
+
+### 11.2 The correct primitive: hold, and nothing else
+
+The fix is *not* the two-phase quiesce-then-hold the review proposed. **Phase one alone is
+already a stable terminal state.** With `pixel_framecnt == 0` and target == previous value,
+every basemode falls through to `proc_output = NO_DRIVE; proc_bo = proc_bi` — the
+framebuffer rewrites itself unchanged, forever. There is nothing left to gate, so the
+writeback gate is **dropped entirely**: it is the part that creates the timer hazard and it
+buys nothing.
+
+**And the hook already exists.** `pixel_processing` takes an input `framecap_en`, and in
+auto-LUT (Reading mode) it gates *every* change-initiating branch — pixel_processing.v:292,
+305, 333, 341, 359. In caster.v:342 it is hardwired:
+
+```verilog
+wire framecap_en = 1'b1;      // scaffolded, never wired to anything
+```
+
+Driving it from a CSR bit gives exactly the required semantics: in-flight waveforms run
+their timers to zero, no pixel starts a new transition, the state settles and stays.
+~3 lines in `caster.v` plus a CSR bit. Fast-mono/fast-grey do not consult `framecap_en`, so
+covering Browsing/Watching is a few lines more.
+
+### 11.3 The panel-idle status bit — the highest-value change
+
+**Verified that nothing equivalent exists.** `CSR_STATUS` is
+`{mig_error, mif_error, sys_ready, op_busy, op_queue, 2'd0, csr_en}` (csr.v:167).
+`op_busy`/`op_queue` track the **host operation queue**, so `caster_wait_idle()` returns
+when the queued command is dequeued, not when the glass has settled. `damage_counter` does
+not help either: `pixel_diff` is asserted only on the frame a transition *starts*
+(pixel_processing.v:394 etc.), so `damage_counter == 0` holds throughout an active drive.
+**Nothing in the system currently knows when the panel is done.**
+
+Cost: OR-reduce `pixel_comb != 0` during `s4_active`, latch at `vsync_trigger` alongside
+`damage_counter_last`, expose one `CSR_STATUS` bit. ~6 lines.
+
+**It fixes a real latent bug, not just a race in principle.** In Reading mode the gateware
+waits `AUTOLUT_QUIET_FRAMES = 60` (caster.v:102) of *global* quiet before releasing the
+shared greyscale phase, then follows the waveform for `csr_lut_frame = 38` frames — ~1.63 s
+at 60 Hz after the last change, and **neither phase asserts `pixel_diff`**, so the damage
+counter reads zero for all of it. `enter_retain()` was cutting the rails ~820 ms after the
+last change: *before the greyscale phase had even started*. Firmware mitigation in §11.5;
+the status bit is the only way to make it deterministic.
+
+### 11.4 Scope limits (both correct in the review)
+
+- **Losslessness only holds while FPGA and DDR3 stay powered** — i.e. retain. `off` erases
+  the FPGA configuration and DDR3 by definition, so that wake always needs a full refresh,
+  hold bit or not.
+- **This is a losslessness fix, not a power fix.** It does not turn off DDR3 or the video
+  frontend, so retain stays ≈1.40 W. Lowering reading-mode power is separate gateware work
+  (clock gating, DDR3 self-refresh) and should not be bundled in.
+- ⚠️ The review's figures (2.5 W → 1.3 W, "the 0.42 W one you measured") are **not from
+  this board**. Measured here via `sensor`: active **1.46 W**, retain **1.40 W**, off
+  **0.19 W** (§8). Do not build a battery budget on the review's numbers.
+
+### 11.5 Firmware landed ahead of the gateware
+
+Both new gateware features are already driven by the firmware, in a way that is a **no-op
+on the current bitstream** — verified safe, not assumed:
+
+- `CASTER_EN_HOLD` = `CSR_ENABLE` bit 2. `git log -p rtl/csr.v` shows the write path has
+  only ever taken `spi_req_wdata[1:0]` in every revision, so bit 2 is an ignored write on
+  any bitstream this board could be running.
+- `STATUS_PANEL_ACTIVE` = `CSR_STATUS` bit 1, currently a hardwired `2'd0` filler → reads
+  "idle", so the poll in `enter_retain()` exits immediately and can only ever *extend* the
+  open-loop wait, never shorten it.
+
+Changes:
+1. **`retain_settle_ms()`** — mode-aware open-loop settle: 700 ms as before, but
+   **1950 ms** for the auto-LUT modes, covering the 60+38-frame invisible tail from §11.3.
+   This one is a genuine fix on today's gateware and should be visible as Reading-mode
+   retain→resume no longer disturbing the image.
+2. **`caster_set_hold()`** asserted at the top of `enter_retain()`, released right after
+   `power_on_epd()` on resume — *before* the corrective redraw, since a held pixel ignores
+   the redraw too.
+3. **`caster_panel_active()`** polled after the open-loop wait, bounded at 1 s.
+
+**Hold and damage-wake are mutually exclusive by construction**, and the code enforces it:
+waking on image change requires the framebuffer to keep tracking the input, which is
+precisely what hold suppresses. So hold is asserted only for `POWER_REQ_RETAIN_NOWAKE`
+(HID `USBCMD_POWERDOWN` param 2 — what `retain_hook.py` sends). Plain `power retain` from
+the shell or the button keeps damage-wake and today's behaviour unchanged.
+
+### 11.6 Order of work
+
+1. Panel-idle status bit (~6 lines, zero behaviour change, immediately useful).
+2. Wire `framecap_en` to a CSR hold bit (~3 lines, Reading mode; a few more for the
+   fast-mono/fast-grey paths).
+3. Writeback gate — **dropped**, see §11.1.
+
+Under 20 lines of Verilog for both, and together they land lossless retain: the framebuffer
+never diverges from the glass, so a page turned during retain needs no clearing redraw and
+resume has no flash. **Prediction, not measured** — nothing here has been on hardware.

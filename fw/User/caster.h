@@ -114,6 +114,12 @@
 #define STATUS_SYS_READY    5
 #define STATUS_OP_BUSY      4
 #define STATUS_OP_QUEUE     3
+// Set while any pixel was driven during the last frame. OP_BUSY/OP_QUEUE only
+// track the host operation queue, so they go clear long before the glass has
+// settled. Bit 1 is unassigned in every bitstream built so far (CSR_STATUS
+// reads {mig,mif,sys_ready,op_busy,op_queue,2'd0,csr_en}), so on gateware
+// without this feature it reads 0 -- i.e. "idle", never a false busy.
+#define STATUS_PANEL_ACTIVE 1
 #define CTRL_ENABLE         0
 
 #define INPUT_CTRL_INTERNAL     (1u << 0)
@@ -133,6 +139,12 @@
 // CSR_ENABLE bits
 #define CASTER_EN_REFRESH   (1u << 0)
 #define CASTER_EN_BLANK     (1u << 1) // force input pixels white
+// Stop tracking the input: in-flight per-pixel waveforms run their frame
+// counters down as usual, but no pixel starts a new transition, so the
+// framebuffer state stops following the video and settles. Bit 2 has never
+// been decoded by any bitstream (csr.v only takes wdata[1:0]), so setting it
+// on older gateware is an ignored write.
+#define CASTER_EN_HOLD      (1u << 2)
 
 #define WAVEFORM_SIZE       (4*1024)
 
@@ -161,6 +173,8 @@ uint8_t caster_setmode(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
     update_mode_t mode);
 uint32_t caster_get_damage_counter(void);
 uint8_t caster_wait_idle(uint32_t timeout_ms);
+void caster_set_hold(bool hold);
+bool caster_panel_active(void);
 void caster_redraw_blank(void);
 uint8_t caster_osd_send_buf(uint8_t *buf);
 uint8_t caster_osd_set_window(uint16_t left, uint16_t top,

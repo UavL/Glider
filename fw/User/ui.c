@@ -988,6 +988,15 @@ static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
 #define RETAIN_QUIET_TIMEOUT_MS 2000
 #define RETAIN_SETTLE_MS        700
 #define RETAIN_CASTER_IDLE_MS   1000
+// The auto-LUT engine keeps driving the glass long after the damage counter
+// goes quiet. The gateware waits AUTOLUT_QUIET_FRAMES (60) of *global* quiet
+// before it releases the shared greyscale phase, then follows the waveform
+// for CSR_LUT_FRAME (38) frames -- ~1.63 s at 60 Hz. Neither phase asserts
+// pixel_diff, so the damage counter reads zero throughout and cannot see any
+// of it; the wait has to be open-loop. RETAIN_SETTLE_MS alone cut the rails
+// before the greyscale phase had even started.
+#define RETAIN_SETTLE_AUTOLUT_MS 1950
+#define RETAIN_IDLE_TIMEOUT_MS  1000
 
 // While a video source is present at the frontend but the FPGA has not yet
 // reported it live, the EPDC (CSR interface included) can be clocked from the
@@ -1006,7 +1015,20 @@ static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
 // seconds just prolongs the outage.
 #define FPGA_CSR_DEAD_LIMIT_MS  2000
 
-static bool enter_retain(uint32_t *damage_last, uint32_t *damage_accum) {
+// How long the panel may still be driven after the last observable change,
+// for the mode currently configured.
+static uint32_t retain_settle_ms(void) {
+    switch (config.update_mode) {
+    case UM_AUTO_LUT_NO_DITHER:
+    case UM_AUTO_LUT_ERROR_DIFFUSION:
+        return RETAIN_SETTLE_AUTOLUT_MS;
+    default:
+        return RETAIN_SETTLE_MS;
+    }
+}
+
+static bool enter_retain(bool damage_wake, uint32_t *damage_last,
+        uint32_t *damage_accum) {
     uint32_t quiet_ms = 0;
     uint32_t waited_ms = 0;
     uint32_t damage = caster_get_damage_counter();
@@ -1015,6 +1037,21 @@ static bool enter_retain(uint32_t *damage_last, uint32_t *damage_accum) {
 
     syslog_print("Entering retain suspend");
     caster_osd_set_enable(false);
+
+    // Stop the framebuffer from following the input. In-flight waveforms
+    // still run their per-pixel frame counters to zero -- freezing writeback
+    // instead would strand those counters mid-sequence -- but nothing new
+    // starts, so the state settles and then stays put for the whole retain.
+    // That is what keeps the framebuffer and the glass in agreement while
+    // the rails are off. No-op on gateware without CASTER_EN_HOLD, where the
+    // resume-time damage check below is still the only backstop.
+    //
+    // Mutually exclusive with damage wake, by construction: waking on image
+    // change needs the framebuffer to keep tracking the input, which is
+    // exactly what this suppresses. Callers that want lossless retain use
+    // POWER_REQ_RETAIN_NOWAKE and drive resume from the host instead.
+    if (!damage_wake)
+        caster_set_hold(true);
 
     // Wait for input-driven updates to go quiet so the retained image is
     // complete. Give up eventually and retain anyway; the resume redraw
@@ -1041,7 +1078,20 @@ static bool enter_retain(uint32_t *damage_last, uint32_t *damage_accum) {
         syslog_print("Caster op still busy; retaining anyway");
 
     // Let in-flight per-pixel waveforms finish on glass before cutting rails
-    sleep_ms(RETAIN_SETTLE_MS);
+    sleep_ms(retain_settle_ms());
+
+    // Then wait for the gateware to actually report the panel idle. This can
+    // only extend the open-loop wait above: on gateware without
+    // STATUS_PANEL_ACTIVE the bit reads 0 and the loop exits immediately.
+    uint32_t idle_ms = 0;
+    while (caster_panel_active()) {
+        if (idle_ms >= RETAIN_IDLE_TIMEOUT_MS) {
+            syslog_print("Panel still driving; retaining anyway");
+            break;
+        }
+        sleep_ms(RETAIN_POLL_MS);
+        idle_ms += RETAIN_POLL_MS;
+    }
 
     *damage_last = caster_get_damage_counter();
     power_suspend(POWER_SUSPEND_RETAIN);
@@ -1163,19 +1213,28 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                 // Fast path: FPGA, framebuffer and video frontends were kept
                 // alive; only the EPD rails were off.
                 //
-                // The EPDC kept scanning while retained, so anything that
-                // changed on the input was consumed with the rails dead: the
-                // framebuffer advanced for pixels the glass never moved, and
-                // the two are now out of sync. Repainting differentially
-                // from that baseline superimposes the old and new images, so
-                // a meaningful change needs a full redraw -- OP_EXT_REDRAW
-                // force-clears every pixel before repainting, which puts
-                // glass and framebuffer back in agreement.
+                // Without CASTER_EN_HOLD the EPDC kept scanning while
+                // retained, so anything that changed on the input was
+                // consumed with the rails dead: the framebuffer advanced for
+                // pixels the glass never moved, and the two are now out of
+                // sync. Repainting differentially from that baseline
+                // superimposes the old and new images, so a meaningful
+                // change needs a full redraw -- OP_EXT_REDRAW force-clears
+                // every pixel before repainting, which puts glass and
+                // framebuffer back in agreement.
                 //
                 // Small churn (cursor blink, a clock digit) is left alone --
                 // those pixels stay stale until they next change, which is
                 // the price of a flash-free resume.
+                //
+                // With hold supported the framebuffer never diverged, so the
+                // accumulator stays at zero and no redraw happens at all --
+                // the input simply resumes being tracked below.
                 power_on_epd();
+                // Release the hold before any redraw: while held, pixels
+                // ignore input changes, so a redraw issued first would be
+                // suppressed along with everything else.
+                caster_set_hold(false);
                 if (retain_damage_accum >
                         ((uint32_t)config.hact * config.vact) / 100u) {
                     syslog_printf("Image changed during retain (%u); "
@@ -1232,7 +1291,8 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             retain_damage_wake = (power_req == POWER_REQ_RETAIN);
             menu_open = false;
             osd_timeout = 0;
-            enter_retain(&retain_damage_last, &retain_damage_accum);
+            enter_retain(retain_damage_wake, &retain_damage_last,
+                    &retain_damage_accum);
             continue;
         }
 
