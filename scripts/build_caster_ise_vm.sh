@@ -14,13 +14,13 @@ SSH_PASSWORD="${GLIDER_ISE_VM_PASSWORD:-xilinx}"
 DRY_RUN="${DRY_RUN:-0}"
 
 SSH_OPTS=(
-    -o HostkeyAlgorithms=+ssh-rsa,ssh-dss
+    -o HostkeyAlgorithms=+ssh-rsa
     -o ControlMaster=auto
     -o ControlPersist=10m
     -o ControlPath=/tmp/caster-ise-vm-%r@%h:%p
 )
 SCP_OPTS=(
-    -o HostkeyAlgorithms=+ssh-rsa,ssh-dss
+    -o HostkeyAlgorithms=+ssh-rsa
     -o ControlMaster=auto
     -o ControlPersist=10m
     -o ControlPath=/tmp/caster-ise-vm-%r@%h:%p
@@ -32,7 +32,7 @@ Usage: scripts/build_caster_ise_vm.sh --host HOST [options]
 
 Build the Caster Spartan-6 bitstream through the official Xilinx ISE 14.7 VM.
 The VM's old SSH stack requires:
-  -o HostkeyAlgorithms=+ssh-rsa,ssh-dss
+  -o HostkeyAlgorithms=+ssh-rsa
 
 Options:
   --host HOST             ISE VM IP address or hostname. Required unless --help is used.
