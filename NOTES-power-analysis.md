@@ -1259,6 +1259,11 @@ change; report the pinned-TMDS reset loop to Modos.
 
 ## 11. Gateware plan for lossless retain (revised)
 
+> **What to flash:** nothing in this section, yet. The firmware side landed in `a7882e8`
+> (**needs an MCU flash**: `scripts/dev_flash_mcu.sh`); the gateware side is unwritten.
+> The two register bits the firmware drives are verified no-ops on every bitstream —
+> see §12 for the re-verification against the bitstream now on the board.
+
 Supersedes the "freeze writeback" sketch in §10.8/§10.10. Prompted by an external review
 whose central objection was **correct** and whose consequence turns out to make the change
 *smaller*, not larger. Everything below is **verified against the RTL** in the `Caster/`
@@ -1366,3 +1371,112 @@ the shell or the button keeps damage-wake and today's behaviour unchanged.
 Under 20 lines of Verilog for both, and together they land lossless retain: the framebuffer
 never diverges from the glass, so a page turned during retain needs no clearing redraw and
 resume has no flash. **Prediction, not measured** — nothing here has been on hardware.
+
+---
+
+## 12. The board is now on Caster `2f714ab` — the baseline moved
+
+> **What to flash, and when.** As of 2026-08-02 the board has:
+> - **Gateware:** Caster `2f714ab`, built and flashed 2026-08-02 via
+>   `scripts/dev_flash_fpga.sh --ise-host 192.168.56.102 --variant 8bit-mono`. **Done.**
+> - **MCU firmware:** unknown, but almost certainly *older than* `a7882e8` — the gateware
+>   script passes `--skip-mcu`, so it never touches the MCU. **Flash it**
+>   (`scripts/dev_flash_mcu.sh`, board in DFU mode) before running any retain test, or
+>   §11.5's settle fix is not present and the test re-measures the old bug.
+>
+> When a change spans both sides, `scripts/dev_flash_all.sh --ise-host HOST [--variant V]`
+> builds both and flashes both (DFU for the MCU, HID for the bitstream). It builds
+> everything before touching the board, so a gateware build failure cannot strand a fresh
+> MCU on a stale bitstream.
+
+Everything measured in §8–§10 was measured on the *previous* bitstream — roughly `48c3e7d`
+("Implement luma LUT"). **Those numbers are now a historical baseline, not a current one.**
+Re-measure before drawing any conclusion from a comparison against them.
+
+### 12.1 What `2f714ab` changes
+
+**Verified** from `git show 2f714ab` and the RTL. 1308 lines across 16 files, titled
+"Support internal clock and video timing check":
+
+- **New CSR registers** (`rtl/defines.vh`): `CSR_INPUT_CTRL` (51), `CSR_INPUT_STATUS` (133),
+  measured input timing (134–141), `CSR_DEBUG_MEMIF_STATE`/`CSR_DEBUG_FIFO_STATE` (142–143).
+  Read decode at csr.v:169-182, write decode at csr.v:297.
+- **`vin_source_ctrl.v`** — an input-source FSM (internal / FPD-Link / DPI) driven from
+  `CSR_INPUT_CTRL`, instantiated at top.v:618 on `clk_epdc`.
+- **`video_timing_monitor.v`** — measures incoming h/v active and total, read back over CSR.
+- **An internal clock source.** `vin.v:186` and `vin.v:228` instantiate `BUFGMUX`es that can
+  drive the EPDC from `clk_internal` — wired to `clk_sys`, the on-board oscillator, at
+  top.v:156 — instead of the recovered pixel clock.
+
+Corroboration that the board really was on the older build: the new bitstream transferred as
+461 KB, whereas the checked-in stock `utils/flash_tool/fpga.bit` is 450366 B (~440 KB).
+
+### 12.2 A large dormant firmware path just went live
+
+**Verified from the code.** `ui.c:850` probes `caster_input_status()` at pipeline start and
+sets `input_status_legacy` when it reads `0x00`. On the old bitstream that register did not
+exist, so the flag was **true**, which disabled three things that are now **live for the
+first time on this hardware**:
+
+1. The deferred input-switch gating (ui.c:664-748) — `INPUT_SOURCE_STABLE_MS` (500 ms) and
+   `INPUT_SWITCH_LIVE_TIMEOUT_MS` (5 s).
+2. The `INPUT_STATUS_LOST` recovery path (ui.c:1464-1478) — `reload_to_internal_source()` /
+   `recover_from_live_loss()`.
+3. The no-signal OSD (ui.c:1482).
+
+**Highest-risk consequence, needs a hardware check:** if `INPUT_STATUS_LIVE` never asserts
+for the Pi's HDMI within the 5 s window, the firmware reloads the pipeline to recover — and
+would do so repeatedly. Symptom in syslog: repeating `FPGA source lost while frontend is
+active; retrying internal source`. First boot after this flash should be watched for it.
+
+**Confirmation the flash took:** the line `Legacy bitstream: no input-control interface;
+live-source gating disabled` (ui.c:852) must be **gone** from the boot log. If it is still
+there, the new bitstream did not reach the FPGA and nothing else in this section applies.
+
+### 12.3 The internal clock may have removed the reading-mode power floor
+
+**Inference from the RTL — not measured. This is the highest-value thing to test.**
+
+§8/§10 put the reading-mode floor at ~1.0–1.3 W and attributed it to VIDEO IN (~0.59 W)
+having to stay powered, because losing the recovered pixel clock wedged the EPDC *and* the
+CSR bus (both live on `clk_epdc`; that coupling is the "CSR-on-video-clock trap" of §9).
+With a `BUFGMUX` fallback to `clk_sys`, that reasoning may no longer hold: the FPGA can
+keep its CSR bus alive without a live pixel clock.
+
+If that survives testing, it opens a direction that was previously closed — dropping the
+video frontend during retain without wedging the FPGA — worth more than the §11 hold bit.
+It does **not** automatically follow that reading-mode power drops: powering the ADV7611
+down deasserts HPD, which makes the Pi renegotiate the link, and §-model says a page turn
+must not cause that. The question to answer first is narrow: **does the CSR bus now survive
+video loss?**
+
+Test: with the board active, drop the HDMI signal and watch syslog for `FPGA access lost` /
+`FPGA CSR recovered after N ms dropout`. Riding through cleanly = the trap is gone.
+
+### 12.4 Re-verification of §11's free CSR bits against `2f714ab`
+
+The firmware in `a7882e8` drives two bits that do not exist yet. **Re-checked against the
+exact bitstream now on the board**, not against the older revision §11 was written from:
+
+| Bit | Where | Status on `2f714ab` |
+| --- | --- | --- |
+| `CASTER_EN_HOLD` = `CSR_ENABLE` bit 2 | csr.v:254-255 | Write decode still takes only `spi_req_wdata[1:0]` → **ignored write** ✅ |
+| `STATUS_PANEL_ACTIVE` = `CSR_STATUS` bit 1 | csr.v:166 | Still `{mig,mif,sys_ready,op_busy,op_queue,2'd0,csr_en}` → **reads 0 = "idle"** ✅ |
+| `framecap_en` | caster.v:342 | Still hardwired `1'b1`, still gating every change-initiating auto-LUT branch (pixel_processing.v:292,305,333,341,359) ✅ |
+
+So `a7882e8` remains a verified no-op on the running gateware, and §11's plan is unchanged:
+panel-idle status bit first (~6 lines), then `framecap_en` off a CSR hold bit (~3 lines),
+writeback gate still dropped.
+
+### 12.5 Order of work from here
+
+1. Flash the MCU (`scripts/dev_flash_mcu.sh`) — `a7882e8` has **never been through a
+   compiler**; `ui.c`/`caster.c` need the STM32 HAL headers, unavailable on the dev host.
+   Compile errors go back to the analysis session before anything else.
+2. Bring-up on `2f714ab`: boot log (§12.2), reload-loop watch (§12.2), no-signal OSD,
+   `power_survey.py` re-baseline (§12.1), retain regressions in Browsing *and* Reading mode.
+3. The video-loss / CSR-survival test (§12.3) — this one can redirect the whole plan.
+4. Only then the §11 Verilog.
+
+**Nothing in §12 has been on hardware.** Every behavioural statement here is a prediction
+derived from reading the RTL and the firmware.

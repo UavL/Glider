@@ -14,7 +14,11 @@ assert_file_contains() {
     local pattern="$2"
     local label="$3"
 
-    if ! grep -Eq "$pattern" "$path"; then
+    # run_cmd shell-quotes any argument containing a space, so a checkout under
+    # e.g. "~/Ereader Projekt" wraps every repo path in single quotes. Strip them
+    # before matching so the patterns below only have to describe the command,
+    # not where the repository happens to live.
+    if ! tr -d "'" <"$path" | grep -Eq "$pattern"; then
         fail "$label: '$path' does not contain pattern '$pattern'"
     fi
 }
@@ -44,8 +48,8 @@ release_root="$tmpdir/release"
 )
 
 assert_file_contains "$release_log" "stm32cubeide .*org.eclipse.cdt.managedbuilder.core.headlessbuild .*glider_ec_rtos/Debug" "headless CubeIDE MCU build"
-assert_file_contains "$release_log" "git -C .*/Glider submodule update --init --recursive" "recursive submodule update"
-assert_file_contains "$release_log" "build_caster_ise_vm.sh --host 192.168.56.101 --source .*/Glider/Caster --out .*/0.1-task2/caster --variants 8bit-mono,8bit-k3,16bit-mono,16bit-k3" "single Caster VM build for all release variants"
+assert_file_contains "$release_log" "git -C .* submodule update --init --recursive" "recursive submodule update"
+assert_file_contains "$release_log" "build_caster_ise_vm.sh --host 192.168.56.101 --source .*/Caster --out .*/0.1-task2/caster --variants 8bit-mono,8bit-k3,16bit-mono,16bit-k3" "single Caster VM build for all release variants"
 assert_file_contains "$release_log" "package_release.sh 0.1-task2 .*/0.1-task2" "release packaging"
 
 metadata="$release_root/0.1-task2/metadata.txt"
@@ -105,15 +109,31 @@ dev_mcu_log="$tmpdir/dev-mcu.log"
     export DRY_RUN=1
     "$REPO_ROOT/scripts/dev_flash_mcu.sh"
 ) >"$dev_mcu_log" 2>&1
-assert_file_contains "$dev_mcu_log" "build_mcu.sh dev .*/Glider/build/dev/mcu" "dev MCU script rebuilds firmware"
-assert_file_contains "$dev_mcu_log" "dfu-util -a 0 -i 0 -s 0x08000000:leave -D .*/Glider/build/dev/mcu/glider_ec_rtos_dev.bin" "dev MCU script flashes built firmware"
+assert_file_contains "$dev_mcu_log" "build_mcu.sh dev .*/build/dev/mcu" "dev MCU script rebuilds firmware"
+assert_file_contains "$dev_mcu_log" "dfu-util -a 0 -i 0 -s 0x08000000:leave -D .*/build/dev/mcu/glider_ec_rtos_dev.bin" "dev MCU script flashes built firmware"
 
 dev_fpga_log="$tmpdir/dev-fpga.log"
 (
     export DRY_RUN=1
     "$REPO_ROOT/scripts/dev_flash_fpga.sh" --ise-host 192.168.56.101 --variant 16bit-k3
 ) >"$dev_fpga_log" 2>&1
-assert_file_contains "$dev_fpga_log" "build_caster_ise_vm.sh --host 192.168.56.101 --source .*/Glider/Caster --out .*/Glider/build/dev/caster/16bit-k3 --variant 16bit-k3" "dev FPGA script builds one variant"
-assert_file_contains "$dev_fpga_log" "python3 .*/Glider/utils/flash_tool/flash.py --skip-mcu --bitstream .*/Glider/build/dev/caster/16bit-k3/fpga.bit --no-fonts --no-config" "dev FPGA script transfers only selected bitstream"
+assert_file_contains "$dev_fpga_log" "build_caster_ise_vm.sh --host 192.168.56.101 --source .*/Caster --out .*/build/dev/caster/16bit-k3 --variant 16bit-k3" "dev FPGA script builds one variant"
+assert_file_contains "$dev_fpga_log" "python3 .*/utils/flash_tool/flash.py --skip-mcu --bitstream .*/build/dev/caster/16bit-k3/fpga.bit --no-fonts --no-config" "dev FPGA script transfers only selected bitstream"
+
+dev_all_log="$tmpdir/dev-all.log"
+(
+    export DRY_RUN=1
+    "$REPO_ROOT/scripts/dev_flash_all.sh" --ise-host 192.168.56.101 --variant 8bit-k3
+) >"$dev_all_log" 2>&1
+assert_file_contains "$dev_all_log" "build_mcu.sh dev .*/build/dev/mcu" "combined script rebuilds MCU firmware"
+assert_file_contains "$dev_all_log" "build_caster_ise_vm.sh --host 192.168.56.101 --source .*/Caster --out .*/build/dev/caster/8bit-k3 --variant 8bit-k3" "combined script builds the selected variant"
+assert_file_contains "$dev_all_log" "dfu-util -a 0 -i 0 -s 0x08000000:leave -D .*/build/dev/mcu/glider_ec_rtos_dev.bin" "combined script flashes the MCU over DFU"
+assert_file_contains "$dev_all_log" "python3 .*/utils/flash_tool/flash.py --skip-mcu --bitstream .*/build/dev/caster/8bit-k3/fpga.bit --no-fonts --no-config" "combined script transfers the bitstream over HID"
+# Both builds must complete before anything reaches the board, so a gateware
+# build failure cannot strand a freshly flashed MCU on a stale bitstream.
+build_line="$(grep -n "build_caster_ise_vm.sh" "$dev_all_log" | head -n 1 | cut -d: -f1)"
+flash_line="$(grep -n "dfu-util" "$dev_all_log" | head -n 1 | cut -d: -f1)"
+[[ -n "$build_line" && -n "$flash_line" && "$build_line" -lt "$flash_line" ]] || \
+    fail "combined script must build the gateware before flashing the MCU"
 
 echo "PASS: Glider release dry-run"
