@@ -1480,3 +1480,114 @@ writeback gate still dropped.
 
 **Nothing in §12 has been on hardware.** Every behavioural statement here is a prediction
 derived from reading the RTL and the firmware.
+
+---
+
+## 13. 2026-08-02 hardware results on `2f714ab`
+
+> **What to flash:** gateware is done (`2f714ab`). MCU firmware state is **unconfirmed** —
+> run `ver` (prints build date/time) to check whether `a7882e8` is on the board.
+> See `NOTES-STATUS.md` for the compact current-state summary.
+
+Source: boot syslog plus a shell session, captured by the hardware owner. Everything in this
+section is **measured or logged**, not inferred, unless marked otherwise.
+
+### 13.1 Bring-up passed
+
+- `Legacy bitstream: no input-control interface; live-source gating disabled` is **absent**
+  from the boot log → `input_status_legacy` is false → the new bitstream is live.
+- `Input status 19, measured 0 x 0, total 0 x 0` while parked internal, then
+  `Input status 3a, measured 1448 x 1072, total 1528 x 1110` once the Pi's signal was
+  acquired. Decode: `0x19` = INTERNAL|STABLE|SUPPORTED, `0x3a` = TMDS|STABLE|SUPPORTED|LIVE.
+  The new `video_timing_monitor` reads the panel timing correctly.
+- Bitstream load 395 ms cold, 362 ms on reload — better than the 688 ms recorded in §10.
+
+### 13.2 The measurement that reframes the project
+
+`sensor`, retain vs. active, on `2f714ab`:
+
+| rail | retain | active | delta |
+| --- | --- | --- | --- |
+| MCU + IO | 559.1 mW | 565.8 mW | −6.7 |
+| VIDEO IN | 587.6 mW | 588.1 mW | −0.5 |
+| FPGA CORE | 151.2 mW | 168.0 mW | −16.8 |
+| FPGA DDR | 97.3 mW | 102.8 mW | −5.5 |
+| EPD HV | **0.0 mW** | 71.8 mW | −71.8 |
+| **total** | **1395 mW** | **1496 mW** | **−101 mW** |
+
+Rails confirmed down in retain: VP 2.63 V, VGH 0.34 V, VN −0.55 V, VGL −0.75 V, 5VES/5VEG
+0 mA. Retain is doing exactly what it is supposed to do.
+
+**Two conclusions, and they redirect the work:**
+
+1. **Retain saves 101 mW — 6.7%.** EPD HV is already zero, so retain has nothing further to
+   switch off. The §11 gateware plan (hold + panel-idle bit) therefore buys **correctness**
+   — lossless retain, no clearing flash — and **not power**. That was not obvious before
+   this measurement; §11 was implicitly justified on both.
+2. **MCU+IO + VIDEO IN = 1147 mW = 82% of retain power, and retain touches neither.** All
+   remaining headroom is there. VIDEO IN alone is 42%, which makes §12.3 (does the CSR bus
+   survive video loss on the internal clock?) the highest-value open question by a wide
+   margin.
+
+**`2f714ab` changed nothing about power** — retain matches the 1.40 W of the old bitstream
+exactly. Worth having measured rather than assumed.
+
+### 13.3 Damage wake works; the hold path has never run
+
+`power status` after `power retain` reported `state: active`, `last wake: 0x10 (damage)`,
+twice in a row. `0x10` is `POWER_WAKE_DAMAGE` (`1u << 4`, power_state.h:19) — **not**
+`POWER_WAKE_BUTTON` (`0x01`). The owner's reading ("it resumes when I press any buttons")
+is one step off: pressing a key on the Pi makes KOReader redraw, and the *image changing* is
+what resumes the Glider.
+
+The trigger is `damage != damage_last` (ui.c:1139) — **any** change, one pixel suffices. So
+shell `power retain` cannot hold under any KOReader activity at all, including a ticking
+clock in the footer. Working as designed, but it makes shell `power retain` useless for
+measuring retain or testing lossless retain.
+
+**Consequence for `a7882e8`: its hold path has never executed.** Hold and damage-wake are
+mutually exclusive (§11.5), so `caster_set_hold(true)` is reached only via
+`POWER_REQ_RETAIN_NOWAKE` — HID `USBCMD_POWERDOWN` param 2,
+`flash.py --powerdown retain-manual`, what `retain_hook.py` sends. Every retain test so far
+has gone through the damage-wake path.
+
+### 13.4 The live-timeout reload fired once, and self-corrected
+
+The §12.2 risk materialised, but as a one-shot rather than a loop:
+
+```
+[ 1.169] ADV7611 initialization done          <- Pi has no HDMI output yet
+[32.015] Input source stable; requesting auto  <- Pi finished booting (~31 s)
+[37.036] Input did not go live after switch; reloading pipeline
+[38.310] Input source stable; requesting auto
+[38.512] Input status 3a, measured 1448 x 1072
+```
+
+Cost: 6.5 s and a full bitstream reload on every cold boot. No `Input status` line appears
+between 32.015 and 37.036, so the status stayed `0x19` for the entire
+`INPUT_SWITCH_LIVE_TIMEOUT_MS` window — **the mux never left internal**. The reload
+re-initialized the ADV7611 with the source already present, and it then locked in 202 ms.
+
+**Inferred, not proven:** the ADV7611 must be initialized (or re-initialized) after the
+source is present. Consistent with the warning already in the code at ui.c:706-710, in the
+opposite direction.
+
+**A cheaper recovery is now possible, and the new gateware is what enables it.** The reload
+at ui.c:1324-1340 is justified by "the mux may be latched onto a clock that went away" —
+the FSM runs on that clock and cannot fall back. That is not this failure: `0x19` has
+`INPUT_STATUS_INTERNAL` set, so the mux is parked on internal, clocked from `clk_sys`, and
+healthy. The status register distinguishes the two cases:
+
+- `INPUT_STATUS_INTERNAL` set → mux alive → re-init the frontend, re-issue the request.
+- INTERNAL clear and not LIVE → mux on a dead clock → full reload, as today.
+
+~15 lines of C, saves ~6 s and a bitstream reload on every cold boot where the Pi is slower
+than the Glider — i.e. always. Not yet implemented.
+
+### 13.5 What this session did *not* establish
+
+- Whether `a7882e8` is on the board at all (`ver` will say).
+- Reading-mode (`UM_AUTO_LUT_NO_DITHER`) retain — the mode-aware settle fix is untested.
+- The hold path (§13.3).
+- Whether the CSR bus survives video loss (§12.3) — the test that matters most.
+- `off`-state power on the new bitstream (190 mW figure predates it).

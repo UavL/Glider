@@ -9,6 +9,12 @@ firmware (`fw/`); the FPGA gateware ("Caster") lives in the `Caster/` git submod
 (https://gitlab.com/zephray/Caster.git). `README.md` has deep background on EPD theory and the Caster/Glider
 design; `USAGE.md` has the practical board/flashing/dev workflow — read that first for anything hands-on.
 
+**Ongoing work on this branch: e-ink reader power modes (retain/suspend). Read
+`NOTES-STATUS.md` first** — it is the compact current state: what is flashed on the board,
+the measured power budget, what is verified vs. inferred vs. untested, and the ranked open
+work. `NOTES-power-analysis.md` is the 1500-line chronological record behind it and is partly
+superseded; consult it only for depth on a section `NOTES-STATUS.md` points you to.
+
 Repo layout:
 - `fw/` — STM32H750 MCU firmware (STM32CubeIDE project), FreeRTOS-based.
 - `Caster/` — FPGA gateware submodule (Spartan-6, built with Xilinx ISE 14.7).
