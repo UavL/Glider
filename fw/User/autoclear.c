@@ -39,6 +39,17 @@ uint32_t autoclear_scaled_threshold(int threshold, uint16_t hact, uint16_t vact)
     return (uint32_t)scaled;
 }
 
+// NOTE on sampling: current_damage comes from CSR_DAMAGE_COUNT, which the
+// gateware zeroes at every vsync -- it is a per-frame count of transition
+// starts, not a running total. A page turn starts all of its transitions in a
+// single frame, so a caller polling at 200 ms against a 75 Hz panel only
+// observes about one frame in fifteen and undercounts by roughly that factor.
+// The scaled thresholds below are calibrated for a complete sample stream
+// (AC_THRES_MED works out to ~6 page turns on a 1448x1072 panel, close to a
+// Kobo's default), so on the current gateware adaptive mode fires far less
+// often than the threshold implies. ui_task therefore arms the fixed-interval
+// timer in adaptive mode as well. A cumulative damage register in the gateware
+// is the real fix.
 bool autoclear_adaptive_update(uint32_t *accumulated_damage,
         uint32_t *last_damage, uint32_t current_damage, int threshold,
         uint16_t hact, uint16_t vact) {

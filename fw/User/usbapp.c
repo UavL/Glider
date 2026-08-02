@@ -81,8 +81,18 @@ void tud_resume_cb(void) {
 int usbapp_term_in(int mode, void *usr) {
     uint8_t c;
 
-    int timeout = 0;
-    if (mode != TERM_INPUT_DONT_WAIT)
+    // "mode" doubles as a millisecond timeout for values above TERM_INPUT_WAIT
+    // (see shell_xmodem_getchar), but TERM_INPUT_WAIT itself means "wait for a
+    // key". It used to map to a 2 ms timeout, so linenoise's read loop woke the
+    // MCU ~500 times a second forever -- including while the system was
+    // suspended -- just to be told there was nothing to read. Block instead;
+    // the shell has no periodic work to do between keystrokes.
+    TickType_t timeout;
+    if (mode == TERM_INPUT_DONT_WAIT)
+        timeout = 0;
+    else if (mode == TERM_INPUT_WAIT)
+        timeout = portMAX_DELAY;
+    else
         timeout = pdMS_TO_TICKS(mode + 1);
     BaseType_t result = xQueueReceive(rxqueue, &c, timeout);
     if (result == pdTRUE)

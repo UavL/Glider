@@ -170,6 +170,86 @@ Retain matched the old bitstream's 1.40 W exactly — **`2f714ab` changed nothin
 
 ---
 
+## Session 2026-08-02b: ghosting root-caused, hold/panel-idle/scan-stop implemented
+
+Code is written and builds; **nothing here has been on hardware.** The ISE VM at
+192.168.56.102 was down, so the RTL has never been through XST either — treat the first
+gateware build as a syntax check.
+
+**Ghosting in Reading mode — root cause (read from the RTL, certain).** In `BASEMODE_AUTO_LUT`
+a pixel whose target is pure black or pure white gets *one* unipolar drive of
+`fastg_g2w_frames[0]` / `fastg_g2b_frames[15]` = **9 frames** (~120 ms at 75 Hz) and then never
+runs the waveform LUT: `pixel_processing.v:348` skips `STAGE_GREY` when
+`autolut_binary_src == pixel_prev`, which is always true once the pixel has settled on a rail.
+So body text gets no DC-balancing pulse, ever, and unchanged pixels are never re-driven
+(`:359`, `:373-376`). The balanced `0->0` / `15->15` rows do exist in
+`rtl/spartan6/default_waveform.mem` — they are simply unreachable in auto-LUT.
+
+**`autoclear` was off by default** (`config.c:74` was `AC_OFF`), so there was no periodic
+refresh either. Also: **adaptive autoclear is structurally broken on this gateware.**
+`CSR_DAMAGE_COUNT` is per-frame and a page turn's transitions all start in one frame, so
+`ui_task`'s ~200 ms poll sees roughly 1 frame in 15 and undercounts by that factor. An
+event-counting rewrite does *not* fix this (same sampling problem). Fixed interval does.
+
+**Changes made (firmware, works on the currently flashed `2f714ab`):**
+
+- `config.c` — autoclear defaults to `AC_FIXED`/`AC_5MIN`, in both `config_init_settings()` and
+  the `config_validate_loaded()` repair path. **A config already saved with `AC_OFF` is in
+  range and is left alone**, so on this board it must still be switched on from the OSD menu.
+- `ui.c` — the interval timer is armed in adaptive mode too, as a backstop.
+- `ui.c` `park_unused_frontend()` — in `INPUT_SEL_AUTO`, power the PTN3460 down once the FPGA
+  has settled on TMDS. DP presence is detected via USB-PD (`dp_ready`) and the `DP_ACTIVE` pin,
+  never through the bridge, so this does not blind DP detection. Saves in *all* modes.
+- `freertos.c` / `FreeRTOSConfig.h` — `vApplicationIdleHook()` executing `__WFI()`. The MCU
+  previously never slept at all. Not tickless: the HAL timebase is on a TIM
+  (`stm32h7xx_hal_timebase_tim.c`), so it would keep firing at 1 kHz anyway.
+- `usbapp.c` — `TERM_INPUT_WAIT` now blocks on the queue instead of mapping to a 2 ms timeout;
+  the shell loop was waking the core ~500x/s forever, including while suspended.
+- `ui.c` — the retained loop's `is_selected_video_active()` I2C probe is rate-limited to 1 Hz
+  (`RETAIN_VIDEO_CHECK_MS`). The 30 ms damage poll stays: the counter is per-frame.
+- `usbpd.c` — `pdMS_TO_TICKS(timeout/1000)` truncated sub-ms waits to 0 ticks, a spin at
+  priority tskIDLE+4. Clamped to 1 tick.
+- `shell` — `caster frames [<b2w> <w2b>]` writes `CSR_CFG_B2WFRAME`/`W2BFRAME` live;
+  `power scanstop [on|off]`; `power status` now prints the gateware feature bitmap.
+
+**Changes made (Caster RTL, needs an ISE build):**
+
+- `csr.v` — `CSR_ENABLE` bit 2 decoded into a new `csr_hold` output; `CSR_STATUS` bit 1 now
+  carries `panel_active`; new read register **`CSR_FEATURES` (144)** returning a feature
+  bitmap. Undecoded reads return 0, so every older bitstream self-reports "no features" — the
+  firmware branches on `caster_has_feature(CASTER_FEATURE_HOLD)` instead of guessing, which
+  ends the "which half is flashed" class of bug.
+- `caster.v` — `framecap_en = !csr_hold` (was hardwired 1); `panel_frame_active` OR-reduced
+  from `pixel_comb` and latched at vsync together with `autolut_frame_pending` and
+  `autolut_running`; **`vin_ready = s1_active || !global_en`** so the video FIFO keeps draining
+  while the scan is stopped — this is what makes clearing `CASTER_EN_REFRESH` survivable.
+- `pixel_processing.v` — auto-LUT mono drive from a *binary* source now takes its length from
+  `csr_b2wframe`/`csr_w2bframe` instead of the hardcoded tables (identical at the default of 9;
+  the point is runtime tunability). `framecap_en` now also gates the change-initiating branches
+  in `BASEMODE_FAST_MONO` and `BASEMODE_FAST_GREY`, which it never did — hold only ever worked
+  in Reading mode. While held, a settled pixel that differs from the input asserts `pixel_diff`
+  without driving or writing back, so **the damage counter becomes a level** ("pixels that no
+  longer match the glass") rather than an edge, and a slow poll cannot miss a page turn.
+
+**What that buys, if it works on hardware:**
+
+- Retain resume needs no `caster_redraw()` at all — hence no flash. `ui.c` drops it when the
+  feature bit is set and keeps the old redraw path when it is not.
+- Hold and damage-wake are no longer mutually exclusive.
+- Retain entry is closed-loop on `STATUS_PANEL_ACTIVE` instead of the open-loop 1950 ms sleep.
+- Wake threshold is ~1% of the panel in damage-counter *groups* (`retain_damage_threshold()`),
+  so a cursor blink no longer bounces retain straight back to active.
+
+**Untested and gated:** `power scanstop on` clears `CASTER_EN_REFRESH` during retain. This is
+the only change here that should move the power numbers meaningfully (NOTES §, line ~828: ~420
+of the 559 mW "MCU + IO" is FPGA I/O). It is **off by default, RAM-only, and requires the
+feature bit plus damage-wake off** — stopping the scan freezes the damage counter, so the two
+cannot coexist. A firmware-only version of this was tried before (`d53afdb`) and reverted for
+panel inversion (`05cfa68`); that failure was writeback continuing while stopped, which the
+hold bit now prevents. Recovery remains `power off` -> `power resume` x2-3.
+
+**Estimated, not measured:** scan-stop 250-400 mW, MCU idle 40-80 mW, PTN3460 unknown.
+
 ## Open work, ranked
 
 **1. Does the CSR bus now survive video loss? (highest value — can redirect everything)**
@@ -242,7 +322,12 @@ Only worth doing once (1) is answered, since it buys correctness rather than pow
 ## Gotchas that have bitten more than once
 
 - **Flashing gateware does not flash the MCU.** Check `ver` before trusting a behavioural test.
-- **`CSR_DAMAGE_COUNT` is per-frame.** Any snapshot-delta logic is silently dead.
+- **`CSR_DAMAGE_COUNT` is per-frame.** Any snapshot-delta logic is silently dead. It also means
+  anything sampling it from the ~200 ms `ui_task` loop (adaptive autoclear) misses ~14 frames
+  out of 15. Only the held-mode level semantics added this session are poll-rate independent.
+- **Check `power status` for `caster features`** before trusting any retain behaviour: `0x00`
+  means the gateware predates the hold/panel-idle/tunable-frames bundle and the firmware has
+  silently fallen back to the old redraw-on-resume path.
 - **`power retain` from the shell keeps damage wake**, so it will not stay in retain and will
   not assert hold. Use `--powerdown retain-manual` for anything hold- or power-related.
 - **`ui_task` reboots the MCU** (`NVIC_SystemReset()`) if a sanity `fpga_write_reg8(CSR_ID0)`
@@ -253,6 +338,30 @@ Only worth doing once (1) is answered, since it buys correctness rather than pow
   `test_release_scripts.sh`; fixed in `abd7db1`, but suspect it if other script tests fail.
 - Recovery for a stressed/inverted panel: `power off` → `power resume` ×2–3 (full init
   waveform).
+
+## Battery budget (5000 mAh integrated cell + low-power SoM)
+
+Assumptions, which must be quoted alongside any number here: single-cell Li-ion 5000 mAh at
+3.7 V = 18.5 Wh; ~92 % usable to cutoff and ~90 % through the boost to the board's 5 V input,
+so **15.3 Wh delivered**. `sensor` figures are post-buck, so board input = rail sum / 0.88
+(four SY8113C bucks). Reading time = retain time, since the power model keeps the link up.
+SoM budget 0.8 W for an RK3566 / i.MX8MM / CM4-class part; Pi 4 (~2.7 W) shown for contrast.
+
+| Glider state | rail sum | board input | Glider alone | + 0.8 W SoM | + 2.7 W Pi 4 |
+| --- | --- | --- | --- | --- | --- |
+| Active | 1496 mW | 1.70 W | 9.0 h | 6.1 h | 3.5 h |
+| **Retain today** | 1412 mW | 1.61 W | 9.5 h | 6.4 h | 3.6 h |
+| Retain, this session's work *(est.)* | ~970 mW | ~1.10 W | 13.9 h | **8.1 h** | 4.0 h |
+| Retain + ADV7611 down *(est., round 2)* | ~540 mW | ~0.61 W | 25 h | 10.8 h | 4.6 h |
+| Off / standby | 190 mW | 0.22 W | 71 h | 57 h *(SoM suspended)* | — |
+
+**The ceiling is hardware, not firmware.** 82 % of retain power sits on rails that cannot be
+gated at all: `pcb/mainboard/pcb.kicad_pcb` shows the SY8113C EN pins for `+3V3_DCDC`,
+`+1V8_DCDC`, `+1V35_DCDC` and `+1V2_DCDC` tied to `+5V`, and `power.kicad_sch` has no global
+labels — no MCU net reaches that sheet. The only firmware-switchable supplies are the EPD HV
+chain and the `HPD_EN` load switch. A ~1-day reader is the realistic target for this board
+revision; Kobo-class runtime needs `+1V8_VID`/`+3V3_VID` and the FPGA rails made switchable in
+silicon.
 
 ## Test commands
 

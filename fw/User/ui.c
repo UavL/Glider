@@ -684,6 +684,10 @@ static TickType_t input_live_deadline;
 // autonomous in hardware, LIVE never asserts, and the live-timeout reload
 // would cycle the pipeline forever -- detect and disable the gating.
 static bool input_status_legacy;
+// Set while the DP-to-LVDS bridge has been powered down because it is not the
+// source in use. See park_unused_frontend(); anything that re-powers the video
+// frontends must clear it.
+static bool ptn3460_parked;
 
 static void issue_pending_input_request(void) {
     switch (config.input_sel) {
@@ -720,6 +724,7 @@ static void apply_input_selection(bool *tmds_mode, bool reinit_frontends) {
             adv7611_early_init();
             adv7611_init();
             ptn3460_powerdown();
+            ptn3460_parked = true;
         }
         caster_input_force_internal();
         break;
@@ -730,6 +735,7 @@ static void apply_input_selection(bool *tmds_mode, bool reinit_frontends) {
             ptn3460_init();
             usbpd_resume_displayport();
             adv7611_powerdown();
+            ptn3460_parked = false;
         }
         caster_input_force_internal();
         break;
@@ -858,6 +864,40 @@ static void resume_video_frontends(void) {
     adv7611_init();
     ptn3460_init();
     usbpd_resume_displayport();
+    ptn3460_parked = false;
+}
+
+// INPUT_SEL_AUTO brings both video frontends up unconditionally, so the
+// PTN3460 stays powered on +1V8_VID for the whole session even when the source
+// is HDMI and the bridge has nothing to do. Nothing about DP *detection* runs
+// through it -- a DP source announces itself over USB-PD (dp_ready) and on the
+// DP_ACTIVE pin -- so it can be parked until DP actually shows up. The explicit
+// TMDS and DP selections already do the equivalent in apply_input_selection().
+static void park_unused_frontend(uint8_t input_status) {
+    if (config.input_sel != INPUT_SEL_AUTO)
+        return;
+
+    bool dp_present = is_dp_active() || is_dp_video_active() ||
+            !!(input_status & INPUT_STATUS_DP);
+
+    if (dp_present) {
+        if (ptn3460_parked) {
+            syslog_print("DP source appeared; restoring the DP bridge");
+            ptn3460_init();
+            ptn3460_parked = false;
+        }
+        return;
+    }
+
+    // Only park once the FPGA has actually settled on the TMDS source, so a
+    // still-negotiating DP link is never mistaken for "HDMI won".
+    bool tmds_selected = ((input_status & INPUT_STATUS_TMDS) != 0) &&
+            ((input_status & INPUT_STATUS_LIVE) != 0);
+    if (!ptn3460_parked && tmds_selected) {
+        syslog_print("Auto input settled on TMDS; parking the DP bridge");
+        ptn3460_powerdown();
+        ptn3460_parked = true;
+    }
 }
 
 static void update_input_tracking(uint8_t input_status, bool *tmds_mode,
@@ -997,6 +1037,39 @@ static uint32_t wait_for_wake_source(bool *usbpd_wake_armed,
 // before the greyscale phase had even started.
 #define RETAIN_SETTLE_AUTOLUT_MS 1950
 #define RETAIN_IDLE_TIMEOUT_MS  1000
+// How often the retained loop re-checks that the video frontend still has a
+// signal. The damage counter has to be polled at RETAIN_POLL_MS (it is a
+// per-frame count and a page turn only marks one frame), but the frontend
+// probe is an I2C transaction and does not.
+#define RETAIN_VIDEO_CHECK_MS   1000
+static TickType_t retain_video_check_due;
+// Upper bound on the closed-loop settle wait once STATUS_PANEL_ACTIVE is
+// trustworthy (CASTER_FEATURE_HOLD). Comfortably longer than the worst case
+// the open-loop wait was sized for; it should never be reached.
+#define RETAIN_SETTLE_TIMEOUT_MS 4000
+// Experimental: stop the panel scan engine as well while retained. Off by
+// default so it can be enabled and backed out from the shell without a
+// reflash. See caster_set_refresh().
+static bool retain_scan_stop;
+
+void ui_set_retain_scan_stop(bool enable) {
+    retain_scan_stop = enable;
+}
+
+bool ui_get_retain_scan_stop(void) {
+    return retain_scan_stop;
+}
+
+// Wake threshold while retained, in damage-counter units. The counter tracks
+// groups of four horizontally adjacent pixels, so the full panel is
+// hact/4 * vact; wake on about one percent of it. A KOReader page turn is far
+// above that and a blinking cursor far below, which is what stops retain from
+// bouncing straight back to active under any activity at all.
+static uint32_t retain_damage_threshold(void) {
+    uint32_t groups = ((uint32_t)config.hact / 4u) * (uint32_t)config.vact;
+    uint32_t threshold = groups / 100u;
+    return (threshold == 0) ? 1u : threshold;
+}
 
 // While a video source is present at the frontend but the FPGA has not yet
 // reported it live, the EPDC (CSR interface included) can be clocked from the
@@ -1034,24 +1107,12 @@ static bool enter_retain(bool damage_wake, uint32_t *damage_last,
     uint32_t damage = caster_get_damage_counter();
 
     *damage_accum = 0;
+    retain_video_check_due = xTaskGetTickCount();
 
     syslog_print("Entering retain suspend");
     caster_osd_set_enable(false);
 
-    // Stop the framebuffer from following the input. In-flight waveforms
-    // still run their per-pixel frame counters to zero -- freezing writeback
-    // instead would strand those counters mid-sequence -- but nothing new
-    // starts, so the state settles and then stays put for the whole retain.
-    // That is what keeps the framebuffer and the glass in agreement while
-    // the rails are off. No-op on gateware without CASTER_EN_HOLD, where the
-    // resume-time damage check below is still the only backstop.
-    //
-    // Mutually exclusive with damage wake, by construction: waking on image
-    // change needs the framebuffer to keep tracking the input, which is
-    // exactly what this suppresses. Callers that want lossless retain use
-    // POWER_REQ_RETAIN_NOWAKE and drive resume from the host instead.
-    if (!damage_wake)
-        caster_set_hold(true);
+    bool hold_works = caster_has_feature(CASTER_FEATURE_HOLD);
 
     // Wait for input-driven updates to go quiet so the retained image is
     // complete. Give up eventually and retain anyway; the resume redraw
@@ -1077,23 +1138,64 @@ static bool enter_retain(bool damage_wake, uint32_t *damage_last,
     if (caster_wait_idle(RETAIN_CASTER_IDLE_MS) != 0)
         syslog_print("Caster op still busy; retaining anyway");
 
-    // Let in-flight per-pixel waveforms finish on glass before cutting rails
-    sleep_ms(retain_settle_ms());
+    // Only now stop the framebuffer from following the input. In-flight
+    // waveforms still run their per-pixel frame counters to zero -- freezing
+    // writeback instead would strand those counters mid-sequence -- but
+    // nothing new starts, so the state settles and then stays put for the
+    // whole retain. That is what keeps the framebuffer and the glass in
+    // agreement while the rails are off, and it is why resume needs no redraw.
+    //
+    // Ordering matters: this has to come *after* the input has gone quiet.
+    // Holding first would freeze the framebuffer part-way through a page
+    // being drawn, and those pixels would then read as permanently differing
+    // from the input -- an immediate spurious damage wake, every time.
+    //
+    // Hold used to be mutually exclusive with damage wake, because the damage
+    // counter only registered transition *starts* and hold suppresses those.
+    // With CASTER_FEATURE_HOLD the gateware reports a held pixel that differs
+    // from the input as damage without acting on it, so the counter reads
+    // "pixels that no longer match the glass" and the two work together.
+    // On older gateware the write is ignored and the resume-time redraw below
+    // is still the only backstop.
+    caster_set_hold(true);
 
-    // Then wait for the gateware to actually report the panel idle. This can
-    // only extend the open-loop wait above: on gateware without
-    // STATUS_PANEL_ACTIVE the bit reads 0 and the loop exits immediately.
+    // Let in-flight per-pixel waveforms finish on glass before cutting rails.
+    // With a trustworthy STATUS_PANEL_ACTIVE this is closed-loop and usually
+    // much shorter than the open-loop wait it replaces; the timeout is only a
+    // backstop. Without it the bit reads 0 always, so the fixed sleep is the
+    // only thing standing between the auto-LUT greyscale phase and dead rails.
     uint32_t idle_ms = 0;
+    uint32_t idle_timeout = RETAIN_IDLE_TIMEOUT_MS;
+    if (hold_works) {
+        idle_timeout = RETAIN_SETTLE_TIMEOUT_MS;
+    }
+    else {
+        sleep_ms(retain_settle_ms());
+    }
     while (caster_panel_active()) {
-        if (idle_ms >= RETAIN_IDLE_TIMEOUT_MS) {
+        if (idle_ms >= idle_timeout) {
             syslog_print("Panel still driving; retaining anyway");
             break;
         }
         sleep_ms(RETAIN_POLL_MS);
         idle_ms += RETAIN_POLL_MS;
     }
+    if (hold_works)
+        syslog_printf("Panel settled after %u ms", (unsigned)idle_ms);
 
-    *damage_last = caster_get_damage_counter();
+    // The counter means different things on the two gatewares: a level ("how
+    // much of the image no longer matches the glass", starts at zero because
+    // the panel just settled) versus a per-frame edge count. Seed accordingly.
+    *damage_last = hold_works ? 0u : caster_get_damage_counter();
+
+    // Stopping the scan is the only thing here that reduces the FPGA's draw,
+    // but it also freezes the damage counter, so it cannot coexist with waking
+    // on image change.
+    if (retain_scan_stop && hold_works && !damage_wake) {
+        syslog_print("Stopping panel scan for retain");
+        caster_set_refresh(false);
+    }
+
     power_suspend(POWER_SUSPEND_RETAIN);
     return power_is_retained();
 }
@@ -1118,27 +1220,47 @@ static uint32_t wait_for_retain_wake(bool tmds_mode, bool damage_wake,
     (void)usbapp_take_resume_event();
 
     // With live video selected the FPGA runs off the input clock, so check
-    // the frontends (MCU-side) before touching FPGA registers.
-    if (!is_selected_video_active(tmds_mode)) {
-        syslog_print("Video lost during retain; deepening retain suspend");
-        power_retain_deepen(POWER_SUSPEND_VIDEO_LOSS);
-        return POWER_WAKE_NONE;
+    // the frontends (MCU-side) before touching FPGA registers. That check is
+    // an ADV7611 register read over I2C, and at the RETAIN_POLL_MS rate it was
+    // the most expensive thing the retained system did -- retain kept the MCU
+    // busier than being awake. Video does not disappear on a 30 ms timescale,
+    // so probe it about once a second instead.
+    TickType_t now = xTaskGetTickCount();
+    if ((int32_t)(now - retain_video_check_due) >= 0) {
+        retain_video_check_due = now + pdMS_TO_TICKS(RETAIN_VIDEO_CHECK_MS);
+        if (!is_selected_video_active(tmds_mode)) {
+            syslog_print("Video lost during retain; deepening retain suspend");
+            power_retain_deepen(POWER_SUSPEND_VIDEO_LOSS);
+            return POWER_WAKE_NONE;
+        }
     }
 
-    // CSR_DAMAGE_COUNT is a per-frame count -- the gateware zeroes it every
-    // vsync -- so accumulate the samples to measure how much of the image
-    // changed while retained. Comparing snapshots taken at retain entry and
-    // at resume reads ~0 in both cases (the image is quiet at each end) and
-    // never detects the change in between.
-    uint32_t damage = caster_get_damage_counter();
-    if (damage != 0) {
-        uint32_t accum = *damage_accum + damage;
-        *damage_accum = (accum < *damage_accum) ? 0xffffffffu : accum;
+    if (caster_has_feature(CASTER_FEATURE_HOLD)) {
+        // Held, so the counter is a level: how much of the image currently
+        // differs from what is on the glass. It stays asserted until the
+        // difference is resolved, so a slow poll cannot miss a page turn, and
+        // a threshold filters out cursor blinks instead of waking on one pixel.
+        uint32_t damage = caster_get_damage_counter();
+        *damage_accum = damage;
+        if (damage_wake && (damage > retain_damage_threshold()))
+            return POWER_WAKE_DAMAGE;
     }
+    else {
+        // CSR_DAMAGE_COUNT is a per-frame count -- the gateware zeroes it every
+        // vsync -- so accumulate the samples to measure how much of the image
+        // changed while retained. Comparing snapshots taken at retain entry and
+        // at resume reads ~0 in both cases (the image is quiet at each end) and
+        // never detects the change in between.
+        uint32_t damage = caster_get_damage_counter();
+        if (damage != 0) {
+            uint32_t accum = *damage_accum + damage;
+            *damage_accum = (accum < *damage_accum) ? 0xffffffffu : accum;
+        }
 
-    if (damage_wake && (damage != *damage_last)) {
-        *damage_last = damage;
-        return POWER_WAKE_DAMAGE;
+        if (damage_wake && (damage != *damage_last)) {
+            *damage_last = damage;
+            return POWER_WAKE_DAMAGE;
+        }
     }
 
     if (xQueueReceive(btn_queue, &btn_event,
@@ -1227,15 +1349,24 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                 // those pixels stay stale until they next change, which is
                 // the price of a flash-free resume.
                 //
-                // With hold supported the framebuffer never diverged, so the
-                // accumulator stays at zero and no redraw happens at all --
-                // the input simply resumes being tracked below.
+                // With hold supported none of that applies: the framebuffer
+                // never diverged, so releasing the hold is the entire resume.
+                // Whatever changed on the input is repainted as an ordinary
+                // per-pixel update -- no clear phase, no flash.
                 power_on_epd();
+                // Restart the scan before releasing the hold, so the first
+                // frame the pixels see is a real one.
+                caster_set_refresh(true);
                 // Release the hold before any redraw: while held, pixels
                 // ignore input changes, so a redraw issued first would be
                 // suppressed along with everything else.
                 caster_set_hold(false);
-                if (retain_damage_accum >
+                if (caster_has_feature(CASTER_FEATURE_HOLD)) {
+                    if (retain_damage_accum != 0)
+                        syslog_printf("Image changed during retain (%u); "
+                                "repainting", (unsigned)retain_damage_accum);
+                }
+                else if (retain_damage_accum >
                         ((uint32_t)config.hact * config.vact) / 100u) {
                     syslog_printf("Image changed during retain (%u); "
                             "redrawing", (unsigned)retain_damage_accum);
@@ -1391,8 +1522,12 @@ portTASK_FUNCTION(ui_task, pvParameters) {
                     &autoclear_damage_last);
         }
 
-        if (autoclear && (config.autoclear_mode == AC_FIXED) &&
-                (autoclear_timeout == 0)) {
+        // Arm the interval timer in adaptive mode too. Adaptive reads a
+        // per-frame damage counter (the gateware zeroes it every vsync) from
+        // this ~200 ms loop, so at 75 Hz it only sees about one frame in
+        // fifteen and misses most page turns; without a backstop it can go a
+        // very long time without clearing. Whichever fires first wins.
+        if (autoclear && (autoclear_timeout == 0)) {
             autoclear_timeout = xTaskGetTickCount() +
                     pdMS_TO_TICKS(autoclear_fixed_interval_ms(
                             config.autoclear_interval));
@@ -1455,6 +1590,7 @@ portTASK_FUNCTION(ui_task, pvParameters) {
             last_logged_input_status = input_status;
         }
         update_input_tracking(input_status, &tmds_mode, &live_was_selected);
+        park_unused_frontend(input_status);
         if (live_was_selected)
             input_live_deadline = 0;
         // Suppress the LOST reload only during the acquisition grace period:

@@ -91,7 +91,17 @@ portTASK_FUNCTION(usb_pd_task, pvParameters) {
     sleep_ms(50);
     int timeout = 0;
     while (1) {
-        BaseType_t rtos_result = xSemaphoreTake(isr_sem, pdMS_TO_TICKS(timeout/1000));
+        // pd_run_state_machine returns microseconds until the next scheduled
+        // event. Dividing by 1000 truncates anything under a millisecond to
+        // zero ticks, which turns this into a non-blocking spin at priority
+        // tskIDLE+4 -- so clamp to one tick. Interrupt-driven events are not
+        // delayed by this: the ISR gives the semaphore, and the inner loop
+        // below already services a still-asserted TCPC_INT without waiting.
+        TickType_t wait_ticks = (timeout > 0) ?
+                pdMS_TO_TICKS((uint32_t)timeout / 1000u) : 0;
+        if (wait_ticks == 0)
+            wait_ticks = 1;
+        BaseType_t rtos_result = xSemaphoreTake(isr_sem, wait_ticks);
 //        if (rtos_result) {
 //            syslog_printf("FUSB302 interrupt");
 //            //tcpc_alert(0);

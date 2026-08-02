@@ -32,7 +32,7 @@ static int test_config_defaults_match_button_design(void) {
     ASSERT_EQ(ACT_POFF, config.button_actions[3]);
     ASSERT_EQ(ACT_CLEAR, config.button_actions[4]);
     ASSERT_EQ(ACT_TOGGLE_AC, config.button_actions[5]);
-    ASSERT_EQ(AC_OFF, config.autoclear_mode);
+    ASSERT_EQ(AC_FIXED, config.autoclear_mode);
     ASSERT_EQ(AC_5MIN, config.autoclear_interval);
     ASSERT_EQ(AC_THRES_MED, config.autoclear_threshold);
     ASSERT_EQ(0, config.osd_scale_2x);
@@ -65,7 +65,7 @@ static int test_legacy_config_validation_repairs_appended_fields(void) {
     ASSERT_EQ(0, config.lightness);
     ASSERT_EQ(0, config.contrast);
     ASSERT_EQ(0, config.reserved_tone);
-    ASSERT_EQ(AC_OFF, config.autoclear_mode);
+    ASSERT_EQ(AC_FIXED, config.autoclear_mode);
     ASSERT_EQ(AC_5MIN, config.autoclear_interval);
     ASSERT_EQ(AC_THRES_MED, config.autoclear_threshold);
     ASSERT_EQ(0, config.osd_scale_2x);
@@ -120,7 +120,7 @@ static int test_config_validation_repairs_invalid_values(void) {
     ASSERT_EQ(3, config.lightness);
     ASSERT_EQ(-1, config.contrast);
     ASSERT_EQ(0, config.reserved_tone);
-    ASSERT_EQ(AC_OFF, config.autoclear_mode);
+    ASSERT_EQ(AC_FIXED, config.autoclear_mode);
     ASSERT_EQ(AC_5MIN, config.autoclear_interval);
     ASSERT_EQ(AC_THRES_MED, config.autoclear_threshold);
     ASSERT_EQ(1, config.osd_scale_2x);

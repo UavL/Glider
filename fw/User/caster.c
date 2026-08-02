@@ -28,6 +28,12 @@
 static size_t last_update;
 static size_t last_update_duration;
 static uint8_t waveform_frames;
+static uint8_t mono_b2w_frames;
+static uint8_t mono_w2b_frames;
+// CSR_ENABLE is write-only and holds three independent bits, so track it here
+// rather than having each setter guess at the others.
+static uint8_t csr_enable_shadow;
+static uint8_t csr_features;
 
 enum {
     CASTER_MIN_DRV = 2,
@@ -67,8 +73,7 @@ void caster_init(void) {
     fpga_write_reg8(CSR_CFG_FBYTES_B1, (frame_bytes >> 8) & 0xff);
     fpga_write_reg8(CSR_CFG_FBYTES_B2, (frame_bytes >> 16) & 0xff);
     fpga_write_reg8(CSR_CFG_MINDRV, CASTER_MIN_DRV);
-    fpga_write_reg8(CSR_CFG_B2WFRAME, CASTER_FASTM_B2W_FRAMES);
-    fpga_write_reg8(CSR_CFG_W2BFRAME, CASTER_FASTM_W2B_FRAMES);
+    caster_set_mono_frames(CASTER_FASTM_B2W_FRAMES, CASTER_FASTM_W2B_FRAMES);
     fpga_write_reg8(CSR_CFG_FASTG_B2GFRAME, CASTER_FASTG_B2G_FRAMES);
     fpga_write_reg8(CSR_CFG_FASTG_W2GFRAME, CASTER_FASTG_W2G_FRAMES);
     fpga_write_reg8(CSR_LUT_FRAME, 38);
@@ -76,7 +81,20 @@ void caster_init(void) {
     fpga_write_reg8(CSR_OSD_EN, 0);
     fpga_write_reg8(CSR_CFG_MIRROR, config.mirror);
     caster_set_tone(config.lightness, config.contrast);
-    fpga_write_reg8(CSR_ENABLE, CASTER_EN_REFRESH); // Enable refresh
+    csr_enable_shadow = CASTER_EN_REFRESH;
+    fpga_write_reg8(CSR_ENABLE, csr_enable_shadow); // Enable refresh
+    // Cache the feature bitmap: the FPGA is reconfigured from the same file on
+    // every pipeline start, so it can only change here.
+    csr_features = fpga_write_reg8(CSR_FEATURES, 0x00);
+    syslog_printf("Caster features %02x", (unsigned)csr_features);
+}
+
+uint8_t caster_features(void) {
+    return csr_features;
+}
+
+bool caster_has_feature(uint8_t mask) {
+    return (csr_features & mask) == mask;
 }
 
 static uint8_t is_busy() {
@@ -142,11 +160,56 @@ uint8_t caster_wait_idle(uint32_t timeout_ms) {
     }
 }
 
+// Mono drive length for a black<->white transition, in panel frames. The CSR
+// space is write-only below 128, so keep a shadow for readback.
+//
+// In Reading mode (auto LUT) a pixel whose target is pure black or pure white
+// gets exactly one unipolar drive of this length and then nothing else -- the
+// waveform LUT is skipped for binary targets -- so this is the single knob
+// that controls how hard body text is driven, and therefore how much it
+// ghosts. Tunable at runtime so it can be swept against a real page of text
+// (see the 'caster frames' shell command).
+void caster_set_mono_frames(uint8_t b2w, uint8_t w2b) {
+    mono_b2w_frames = b2w;
+    mono_w2b_frames = w2b;
+    fpga_write_reg8(CSR_CFG_B2WFRAME, b2w);
+    fpga_write_reg8(CSR_CFG_W2BFRAME, w2b);
+}
+
+void caster_get_mono_frames(uint8_t *b2w, uint8_t *w2b) {
+    if (b2w != NULL)
+        *b2w = mono_b2w_frames;
+    if (w2b != NULL)
+        *w2b = mono_w2b_frames;
+}
+
+static void csr_enable_update(uint8_t mask, bool set) {
+    if (set)
+        csr_enable_shadow |= mask;
+    else
+        csr_enable_shadow &= (uint8_t)~mask;
+    fpga_write_reg8(CSR_ENABLE, csr_enable_shadow);
+}
+
 // Freeze/unfreeze input tracking. See CASTER_EN_HOLD: a no-op on gateware
-// that does not decode the bit, so callers must not depend on it alone.
+// without CASTER_FEATURE_HOLD, so callers must not depend on it alone.
 void caster_set_hold(bool hold) {
-    fpga_write_reg8(CSR_ENABLE,
-            (uint8_t)(CASTER_EN_REFRESH | (hold ? CASTER_EN_HOLD : 0u)));
+    csr_enable_update(CASTER_EN_HOLD, hold);
+}
+
+// Start/stop the panel scan engine. With the scan stopped the gateware drives
+// nothing: the EPD source/gate bus stops toggling and the framebuffer read
+// traffic stops, which is where the FPGA's share of the always-on rails goes.
+//
+// Only safe on gateware with CASTER_FEATURE_HOLD. Before that the video input
+// FIFO had no drain path while the scan was stopped and desynced permanently,
+// with no way to flush it. It also blinds the damage counter, which is only
+// updated while the scan runs -- so this and damage wake are mutually
+// exclusive.
+void caster_set_refresh(bool enable) {
+    if (!caster_has_feature(CASTER_FEATURE_HOLD))
+        return;
+    csr_enable_update(CASTER_EN_REFRESH, enable);
 }
 
 // True while the gateware is still driving pixels. Reads false on gateware
@@ -168,7 +231,7 @@ void caster_redraw_blank(void) {
     fpga_write_reg16(CSR_OP_RIGHT, config.hact);
     fpga_write_reg16(CSR_OP_BOTTOM, config.vact);
     fpga_write_reg8(CSR_OP_LENGTH, get_update_frames());
-    fpga_write_reg8(CSR_ENABLE, CASTER_EN_REFRESH | CASTER_EN_BLANK);
+    csr_enable_update(CASTER_EN_BLANK, true);
     fpga_write_reg8(CSR_OP_CMD, OP_EXT_REDRAW);
 }
 

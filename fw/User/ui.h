@@ -23,5 +23,9 @@
 #pragma once
 
 void ui_init(void);
+// Experimental retain option: also stop the panel scan engine while retained.
+// Off by default; see caster_set_refresh() for why it is gated.
+void ui_set_retain_scan_stop(bool enable);
+bool ui_get_retain_scan_stop(void);
 portTASK_FUNCTION(ui_task, pvParameters);
 portTASK_FUNCTION(key_scan_task, pvParameters);

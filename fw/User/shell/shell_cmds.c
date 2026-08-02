@@ -731,11 +731,15 @@ void shell_setvolt(shell_context_t *ctx, int argc, char **argv) {
 }
 #endif
 
-const char shell_help_power[] = "[status|off|retain|resume]\n"
-  "  status - Show suspend state, last wake source, and counters.\n"
-  "  off    - Enter device-level suspend.\n"
-  "  retain - EPD rails off, image retained on panel, fast resume.\n"
-  "  resume - Request resume from retain or suspend.\n";
+const char shell_help_power[] = "[status|off|retain|resume|scanstop [on|off]]\n"
+  "  status   - Show suspend state, last wake source, and counters.\n"
+  "  off      - Enter device-level suspend.\n"
+  "  retain   - EPD rails off, image retained on panel, fast resume.\n"
+  "  resume   - Request resume from retain or suspend.\n"
+  "  scanstop - Also stop the panel scan engine while retained. Saves FPGA\n"
+  "             I/O power but freezes the damage counter, so it only applies\n"
+  "             to retain requested without image-change wake. Off by\n"
+  "             default and not persisted.\n";
 const char shell_help_summary_power[] = "Show or change power state";
 
 static const char *power_shell_state_name(power_state_t state) {
@@ -821,12 +825,23 @@ void shell_power(shell_context_t *ctx, int argc, char **argv) {
         return;
     }
 
+    if ((argc > 1) && (strcmp(argv[1], "scanstop") == 0)) {
+        if (argc > 2)
+            ui_set_retain_scan_stop(strcmp(argv[2], "on") == 0);
+        printf("retain scan stop: %s\n",
+                ui_get_retain_scan_stop() ? "on" : "off");
+        return;
+    }
+
     if ((argc > 1) && (strcmp(argv[1], "status") != 0)) {
-        printf("Usage: power [status|off|retain|resume]\n");
+        printf("Usage: power [status|off|retain|resume|scanstop [on|off]]\n");
         return;
     }
 
     printf("state: %s\n", power_shell_state_name(power_get_state()));
+    printf("caster features: 0x%02x\n", (unsigned)caster_features());
+    printf("retain scan stop: %s\n",
+            ui_get_retain_scan_stop() ? "on" : "off");
     printf("current reason: %s\n",
             power_shell_suspend_reason_name(
                 power_get_current_suspend_reason()));
@@ -1119,5 +1134,39 @@ void shell_damage(shell_context_t *ctx, int argc, char **argv) {
         if (i + 1 < samples)
             vTaskDelay(pdMS_TO_TICKS(200));
     }
+}
+
+const char shell_help_caster[] = "frames [<b2w> <w2b>]\n"
+  "  Show or set the mono drive length, in frames, for a black<->white\n"
+  "  transition. Longer drives darken blacks and reduce ghosting at the\n"
+  "  cost of latency; the panel runs at the input frame rate, so 9 frames\n"
+  "  is only ~120 ms at 75 Hz. Takes effect immediately, and is not\n"
+  "  persisted -- caster_init() restores the compiled-in defaults.\n";
+const char shell_help_summary_caster[] = "Show/set Caster drive frame counts";
+
+void shell_caster(shell_context_t *ctx, int argc, char **argv) {
+    if ((argc < 2) || (strcmp(argv[1], "frames") != 0)) {
+        printf("Usage: caster frames [<b2w> <w2b>]\n");
+        return;
+    }
+
+    if (argc == 4) {
+        long b2w = strtol(argv[2], NULL, 0);
+        long w2b = strtol(argv[3], NULL, 0);
+        // The gateware field is 6 bits, and 0 would mean "never finish".
+        if ((b2w < 1) || (b2w > 63) || (w2b < 1) || (w2b > 63)) {
+            printf("Frame counts must be 1..63\n");
+            return;
+        }
+        caster_set_mono_frames((uint8_t)b2w, (uint8_t)w2b);
+    }
+    else if (argc != 2) {
+        printf("Usage: caster frames [<b2w> <w2b>]\n");
+        return;
+    }
+
+    uint8_t b2w, w2b;
+    caster_get_mono_frames(&b2w, &w2b);
+    printf("b2w=%u w2b=%u frames\n", (unsigned)b2w, (unsigned)w2b);
 }
 #endif

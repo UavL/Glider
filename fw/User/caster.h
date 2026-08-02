@@ -90,6 +90,16 @@
 #define CSR_INPUT_MEAS_VTOT_LO  141
 #define CSR_DEBUG_MEMIF_STATE   142
 #define CSR_DEBUG_FIFO_STATE    143
+// Gateware feature bitmap. Undecoded read addresses return 0, so every
+// bitstream built before this register existed reports "no features" -- which
+// is the correct answer for all of them. Use caster_has_feature() rather than
+// probing behaviour.
+#define CSR_FEATURES            144
+// CSR_ENABLE bit 2 (CASTER_EN_HOLD) really holds the framebuffer, CSR_STATUS
+// bit 1 (STATUS_PANEL_ACTIVE) really reports panel activity, and the auto-LUT
+// mono drive length for binary sources comes from CSR_CFG_B2WFRAME/W2BFRAME.
+// These ship together; retain relies on all three, so they share one bit.
+#define CASTER_FEATURE_HOLD     (1u << 0)
 // Alias for 16bit registers
 #define CSR_LUT_ADDR        CSR_LUT_ADDR_HI
 #define CSR_OP_LEFT         CSR_OP_LEFT_HI
@@ -175,6 +185,11 @@ uint32_t caster_get_damage_counter(void);
 uint8_t caster_wait_idle(uint32_t timeout_ms);
 void caster_set_hold(bool hold);
 bool caster_panel_active(void);
+void caster_set_mono_frames(uint8_t b2w, uint8_t w2b);
+void caster_get_mono_frames(uint8_t *b2w, uint8_t *w2b);
+uint8_t caster_features(void);
+bool caster_has_feature(uint8_t mask);
+void caster_set_refresh(bool enable);
 void caster_redraw_blank(void);
 uint8_t caster_osd_send_buf(uint8_t *buf);
 uint8_t caster_osd_set_window(uint16_t left, uint16_t top,

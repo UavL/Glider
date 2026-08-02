@@ -71,7 +71,13 @@ static void config_init_settings(void) {
     config.lightness = 0;
     config.contrast = 0;
     config.reserved_tone = 0;
-    config.autoclear_mode = AC_OFF;
+    // Reading mode never re-drives a settled pixel and never runs the
+    // DC-balanced LUT rows for pure black/white, so ghosting accumulates with
+    // nothing to clear it. A periodic full refresh is what every e-reader does;
+    // default it on. Fixed interval rather than adaptive because adaptive
+    // samples a per-frame damage counter from a 200 ms loop -- see
+    // autoclear_adaptive_update().
+    config.autoclear_mode = AC_FIXED;
     config.autoclear_interval = AC_5MIN;
     config.autoclear_threshold = AC_THRES_MED;
     config.osd_scale_2x = 0;
@@ -295,8 +301,12 @@ void config_validate_loaded(size_t loaded_size) {
     config.contrast = clamp_int(config.contrast, -1, 6);
     config.reserved_tone = 0;
 
+    // Same default as config_init_settings(): a config saved by firmware that
+    // predates the autoclear fields lands here, and it should come up with a
+    // periodic refresh enabled rather than with ghosting left to accumulate.
+    // A stored AC_OFF is in range and is left alone -- that is a user choice.
     if ((config.autoclear_mode < 0) || (config.autoclear_mode >= AC_MODE_COUNT))
-        config.autoclear_mode = AC_OFF;
+        config.autoclear_mode = AC_FIXED;
     if ((config.autoclear_interval < 0) || (config.autoclear_interval >= AC_INTERVAL_COUNT))
         config.autoclear_interval = AC_5MIN;
     if ((config.autoclear_threshold < 0) || (config.autoclear_threshold >= AC_THRES_COUNT))
