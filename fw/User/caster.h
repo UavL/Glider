@@ -94,7 +94,15 @@
 // bitstream built before this register existed reports "no features" -- which
 // is the correct answer for all of them. Use caster_has_feature() rather than
 // probing behaviour.
-#define CSR_FEATURES            144
+//
+// This was 144 until upstream claimed that address for CSR_INPUT_DEBUG. The
+// read returns CASTER_FEATURE_MAGIC in the top nibble and the bitmap in the
+// bottom one; caster_init() rejects anything else, so a firmware/bitstream
+// pair straddling the move reports "no features" instead of misreading
+// CSR_INPUT_DEBUG -- whose bit 0 is set whenever DPI is the selected input.
+#define CSR_FEATURES            145
+#define CASTER_FEATURE_MAGIC    0x50u
+#define CASTER_FEATURE_MASK     0x0fu
 // CSR_ENABLE bit 2 (CASTER_EN_HOLD) really holds the framebuffer, CSR_STATUS
 // bit 1 (STATUS_PANEL_ACTIVE) really reports panel activity, and the auto-LUT
 // mono drive length for binary sources comes from CSR_CFG_B2WFRAME/W2BFRAME.

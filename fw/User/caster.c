@@ -85,8 +85,14 @@ void caster_init(void) {
     fpga_write_reg8(CSR_ENABLE, csr_enable_shadow); // Enable refresh
     // Cache the feature bitmap: the FPGA is reconfigured from the same file on
     // every pipeline start, so it can only change here.
-    csr_features = fpga_write_reg8(CSR_FEATURES, 0x00);
-    syslog_printf("Caster features %02x", (unsigned)csr_features);
+    uint8_t raw = fpga_write_reg8(CSR_FEATURES, 0x00);
+    // Trust the bitmap only if the signature nibble is intact. An undecoded
+    // address reads 0 and a stale bitstream can alias this address onto an
+    // unrelated register, so anything else means "assume no features".
+    csr_features = ((raw & ~CASTER_FEATURE_MASK) == CASTER_FEATURE_MAGIC) ?
+            (raw & CASTER_FEATURE_MASK) : 0u;
+    syslog_printf("Caster features %02x (raw %02x)", (unsigned)csr_features,
+            (unsigned)raw);
 }
 
 uint8_t caster_features(void) {
