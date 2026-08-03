@@ -6,4 +6,13 @@
 	url = https://www.github.com/hathach/tinyusb
 [submodule "Caster"]
 	path = Caster
-	url = https://gitlab.com/zephray/Caster.git
+	# Points at our fork, not zephray's, because this branch references Caster
+	# commits that exist only here: the hold bit / panel-idle / tunable mono
+	# drive work, the upstream merge that moved CSR_FEATURES off the address
+	# upstream took for CSR_INPUT_DEBUG, and the frame-count underflow fix.
+	# `git clone --recursive` cannot resolve those from upstream.
+	#
+	# To pull upstream changes in again:
+	#   git -C Caster remote add upstream https://gitlab.com/zephray/Caster.git
+	#   git -C Caster fetch upstream && git -C Caster merge upstream/master
+	url = https://github.com/UavL/Caster.git
