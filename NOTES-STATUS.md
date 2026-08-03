@@ -1,9 +1,18 @@
-# Glider power work — current state (read this first)
+# Glider R1 power work — current state
 
-Last updated **2026-08-02**. Branch `power-analysis`.
+Last updated **2026-08-03**. Branch `power-analysis`; still current for anything hands-on with
+the existing board.
 
-This file is the handoff: current hardware state, what is settled, what is open, what to do
-next. **`NOTES-power-analysis.md` is 1400+ lines of chronological working notes and is
+> **This work concluded: the ceiling is hardware.** See the end of this file — 82 % of retain
+> power sits on rails with no enable pin. That conclusion is what started R2.
+> **For the board design that follows from it, read `NOTES-R2-plan.md` and
+> `NOTES-R2-hardware-facts.md` on branch `Board-Design`.**
+>
+> **Still open here:** the firmware and gateware from `613e8ee` have never been flashed or
+> tested on hardware. The gateware half needs the ISE VM (192.168.56.102, down as of 2026-08-03).
+
+This file is the handoff for R1: current hardware state, what is settled, what is open, what to
+do next. **`NOTES-power-analysis.md` is 1400+ lines of chronological working notes and is
 partly superseded** — read it only for depth on a specific section, and prefer the later
 sections (§8 onward) over the earlier ones. Section pointers are at the bottom.
 

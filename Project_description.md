@@ -1,4 +1,10 @@
 # Project: Open Low-Latency E-Ink Reader (working name: Specter)
+
+> This file is the standing brief — who I am, what I want, and the requirements. It has not been
+> superseded. For where the work actually stands, see `NOTES-R2-plan.md` (the board being
+> designed) and `NOTES-STATUS.md` (the existing dev-kit board). The Pi 4 named below is the
+> current dev machine and is being replaced by a soldered-down AM62x module, exactly as the
+> power measurements in this file concluded it must be.
  
 ## Who I am
  
