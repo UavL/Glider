@@ -136,6 +136,31 @@ not reuse the "420 mW of FPGA I/O" figure; it is not supported by measurement.
 123 mW does not change the conclusion. Retain with everything firmware can do is ~1266 mW
 against a 164.5 mW `off`, and the gap is still rails with no enable pin.
 
+### `caster frames`: lowering the count used to corrupt the panel (fixed)
+
+Found while sweeping the mono drive length against real text. `pixel_processing.v` computed the
+reversal count for an in-flight fast-mono transition as plain 6-bit unsigned:
+
+```verilog
+wire [5:0] pixel_framecnt_2w = csr_b2wframe - pixel_framecnt + 1;
+```
+
+`pixel_framecnt` comes out of the framebuffer state word, so it holds the count loaded when that
+pixel started moving — not necessarily the current `csr_*frame`. **Lowering the frame count at
+runtime therefore underflowed:** going `24 24` → `9 9` with a pixel at framecnt 20 gives
+`9 - 20 + 1 = -10`, wrapping to **54**, so those pixels drove ~720 ms in one direction instead of
+~120 ms. A DC-balance hazard, not just cosmetic.
+
+Observed exactly that way on hardware: raising looked great, returning to the default `9 9` made
+a mess, a mode change spread it, and it cleared on the next autoclear. The registers pre-date
+this work; what made the underflow reachable was exposing them at runtime via the shell command.
+
+Fixed in `373c7b5` — compute in 8-bit signed and saturate to `[1,63]`. Verified exhaustively over
+all 4096 `(csr, framecnt)` pairs: identical on the 2079 inputs where the old expression was in
+range, zero differences there, and only the 2017 wrapping inputs change.
+
+**Sweep results taken before this fix are not usable** — they measured the bug, not the setting.
+
 ### ⚠ scanstop still corrupts the panel. Do not enable it.
 
 **The measurement above was taken, but the state it measured is not safe.** Immediately after
