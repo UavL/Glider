@@ -85,6 +85,40 @@ DFU bootloader are untouched by gateware work.
 
 ---
 
+## Re-measured 2026-08-03 on `4f7829d` + merged gateware (`power_survey.py`)
+
+Firmware and gateware from `613e8ee`/`5385304` are now flashed and verified on hardware:
+`ver` reports `4f7829d`, `power status` reports **`caster features: 0x01`**, and retain resume
+no longer flashes the panel — confirmed by the hardware owner.
+
+| Rail (AVG mW) | active | retain | retain-manual | off |
+| --- | --- | --- | --- | --- |
+| MCU + IO | 558.1 | 552.9 | 550.4 | **123.6** |
+| FPGA DDR | 101.5 | 98.8 | 96.3 | 2.7 |
+| FPGA CORE | 165.6 | 164.5 | 164.9 | 12.0 |
+| VIDEO IN | 574.4 | 573.4 | 573.8 | 26.2 |
+| EPD HV | 67.0 | **0.0** | **0.0** | 0.0 |
+| **TOTAL** | **1466.6** | **1389.6** | **1385.4** | **164.5** |
+
+Against the `2f714ab` baseline below:
+
+- **`off` improved 190 → 164.5 mW (−13%).** This is the `__WFI` idle hook (`freertos.c`) plus the
+  shell loop no longer waking the core ~500x/s (`usbapp.c`) and the `usbpd.c` sub-ms spin fix,
+  measured where they matter most. The pre-measurement estimate was 40-80 mW for MCU idle alone;
+  the real total is ~25 mW.
+- **`active` improved 1496 → 1466.6 mW (−29 mW).** ~13 mW of it on MCU + IO, ~11 mW on VIDEO IN
+  (parking the PTN3460 when auto-select settles on TMDS — previously "unknown", now quantified).
+- **`retain` is unchanged: 1395 → 1389.6 mW, within noise.** Exactly as predicted. Retain now
+  works *correctly* (no flash, no ghosting accumulation) but it cannot work *cheaply*, because
+  the rails it would need to switch have no enable pins. **The hardware wall is re-confirmed on
+  the new stack; R2 remains the only path to e-reader battery life.**
+- retain vs retain-manual differ by ~4 mW, i.e. not at all.
+
+**Still untested: `power scanstop on`** — the one remaining firmware-side lever, and the only
+change expected to move retain meaningfully (~420 of the 559 mW "MCU + IO" is FPGA I/O
+switching). It now has its prerequisites for the first time: the feature bit reads `0x01` and
+hold genuinely works. See the risk note further down before enabling it.
+
 ## The central measurement (2026-08-02, `sensor`, on `2f714ab`)
 
 | rail | retain | active |
