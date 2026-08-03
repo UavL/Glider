@@ -136,10 +136,32 @@ not reuse the "420 mW of FPGA I/O" figure; it is not supported by measurement.
 123 mW does not change the conclusion. Retain with everything firmware can do is ~1266 mW
 against a 164.5 mW `off`, and the gap is still rails with no enable pin.
 
-**Relevance to R2:** on-demand scan is core to R2's reading state (`NOTES-R2-plan.md`), and this
-is the first evidence it works at all — hold plus scan-stop is a stable, recoverable state on
-real hardware, where the earlier firmware-only attempt (`d53afdb`, reverted in `05cfa68`)
-inverted the panel. But budget it at ~120 mW, not ~400.
+### ⚠ scanstop still corrupts the panel. Do not enable it.
+
+**The measurement above was taken, but the state it measured is not safe.** Immediately after
+the test the panel looked clean and the electrical side was correct — clean resume, matched
+suspend/resume counts. **The corruption was latent:** on subsequent page scrolls the hardware
+owner saw words scrambling, and recovery took several `power off` → `power resume` cycles plus
+scrolling to work the panel back to a good state.
+
+This is the same failure `d53afdb` produced and `05cfa68` reverted it for. The claim in this
+file's earlier revision — that the hold bit prevents it because the old failure was writeback
+continuing while stopped — **is contradicted by evidence.** Hold works (feature bit `0x01`,
+retain resume is flash-free), and scan-stop still corrupts. Whatever the mechanism is, it is not
+the one that was assumed.
+
+Consequences:
+
+- **`power scanstop on` must stay off.** It is off by default and RAM-only, so a replug clears
+  it; nothing persists. The 123 mW is not available.
+- **A clean panel immediately after the transition does not mean the state was safe.** Any future
+  test of this must scroll several pages before drawing any conclusion.
+- **For R2:** on-demand scan is core to the planned reading state (`NOTES-R2-plan.md` step 3),
+  and it is now *less* proven than before this test, not more. Treat it as an open gateware
+  problem to be root-caused, not as a mechanism that works. Budget nothing for it until it does.
+- Root-causing it is the natural next gateware task: hold freezes `framecap_en`, but stopping
+  `CASTER_EN_REFRESH` also stops the panel scan the source/gate drivers need, and the EPD glass
+  may be integrating charge with no drive. That is a hypothesis, not a finding.
 
 ## The central measurement (2026-08-02, `sensor`, on `2f714ab`)
 
