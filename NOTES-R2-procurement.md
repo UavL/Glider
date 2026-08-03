@@ -6,6 +6,104 @@ Everything below was verified against a primary source — PHYTEC's own hardware
 LCSC/JLCPCB catalogue, or the Caster sources — not from device-class knowledge. Where a fact is
 *not* verified it says so.
 
+> **Revised 2026-08-03 against the current manuals.** The first pass used `L-1038e.A1`, the
+> revision PHYTEC's website links. The hardware owner supplied **`L-1038e.A5`** (PCM-071,
+> connectorised) and **`L-1041e.A3`** (PCL-071, DSC solder-down), both dated 2026. Three
+> corrections and one new hazard, detailed in the next section:
+> idle power is **1.62 W**, not 1.47 W; the two Samtec connectors are one logical connector
+> **X1 with columns A–D**, not "X1 and X2"; and **`VOUT0_DATA16..23` double as the
+> `BOOTMODE_8..15` straps**, which the manual says must not be driven during reset.
+
+---
+
+## Correction pass against L-1038e.A5 / L-1041e.A3
+
+### The block diagram does show the interface — under the name "DPI"
+
+PHYTEC's [block diagram](https://www.phytec.eu/en/fileadmin/phytec_base/images/01-Products/Block-Diagrams/Block-diagram-phyCORE-AM62x.png)
+has no line labelled "RGB". It has one labelled **`DPI`**, immediately below `OLDI/LVDS`, running
+from the SoC to the left-hand Samtec connector. **DPI *is* parallel RGB** — Display Pixel
+Interface, the MIPI name for the 24-bit-plus-sync parallel bus that everyone else calls "RGB
+parallel" or "TTL". Both names appear in PHYTEC's own material: the product page says "24-bit RGB
+parallel", the block diagram says "DPI", the pinout tables say `VOUT0_*`. Same pins.
+
+### Idle power was revised upward
+
+| Revision | `IVIN` idle | Stated idle power |
+| --- | --- | --- |
+| `L-1038e.A1` | 293 mA | 1.47 W |
+| **`L-1038e.A5`** | **324 mA** | **1.62 W** |
+| `L-1041e.A3` (DSC) | — | **1.6 W** |
+
+A5's changelog says "Idle and Underload currents updated in Table 4". Under load it is now 651 mA
+(3.26 W), up from 490 mA. **The reading state cannot be idle** — this only sharpens the point that
+everything depends on suspend-to-RAM, which is still unpublished in either manual.
+
+### Connector naming
+
+PHYTEC treats the **240-pin interconnect as a single logical connector `X1` with four columns
+A, B, C, D** (Tables 7–10), physically realised as two 2×60 Samtec `BSH-060-01-L-D-A-TR`. So the
+earlier "DATA16..23 are on the second connector X2" should read **"column D"**. The floorplan
+consequence is unchanged — the red channel arrives on a different column from green and blue.
+
+### The new hazard: the top 8 RGB bits are the boot-mode straps
+
+`L-1038e.A5` Table 31 / `L-1041e.A3` Table 30. Every one of `VOUT0_DATA16..23` is shared:
+
+| Signal | X1 (PCM-071) | DSC pin (PCL-071) | Shared with | Pull on SOM |
+| --- | --- | --- | --- | --- |
+| `VOUT0_DATA16` | D2 | 12 | `GPMC0_AD8` / `BOOTMODE_8` | 100 K **up** |
+| `VOUT0_DATA17` | D4 | 13 | `GPMC0_AD9` / `BOOTMODE_9` | 100 K **up** |
+| `VOUT0_DATA18` | D5 | 14 | `GPMC0_AD10` / `BOOTMODE_10` | 100 K **up** |
+| `VOUT0_DATA19` | D6 | 15 | `GPMC0_AD11` / `BOOTMODE_11` | 100 K **down** |
+| `VOUT0_DATA20` | D7 | 16 | `GPMC0_AD12` / `BOOTMODE_12` | 100 K **up** |
+| `VOUT0_DATA21` | D8 | 17 | `GPMC0_AD13` / `BOOTMODE_13` | 100 K **up** |
+| `VOUT0_DATA22` | D10 | 18 | `GPMC0_AD14` / `BOOTMODE_14` | 100 K **down** |
+| `VOUT0_DATA23` | D11 | 19 | `GPMC0_AD15` / `BOOTMODE_15` | 100 K **down** |
+
+The manual footnotes all eight: *"This signal should not be driven during reset."*
+
+**Why this bites us specifically.** With TI's RGB888 mapping, `DATA23..16` is the **red channel**,
+and Caster's 18-bit input wants the top six bits of each channel — `R7..R2` = `DATA23..18`. That is
+six of the eight strapped pins, including all three with 100 K pull-**downs**.
+
+Our side of the link is an FPGA *input*, so we never drive it. The risk is subtler: **Spartan-6
+I/O have weak pull-ups enabled during configuration**, before `DONE` goes high. A Spartan-6
+internal pull-up is far stronger than 100 K. If the FPGA is powered and unconfigured while the SoM
+comes out of reset, it could pull `BOOTMODE_11/14/15` high and **boot the module into the wrong
+mode**. Same failure class as the CSR-on-video-clock trap in `NOTES-power-analysis.md` §9: a
+power-sequencing dependency that only appears at one specific moment.
+
+Options, cheapest first — to be settled with PHYTEC's [pinmux tool](https://pinmux.phytec.com/)
+before schematic capture:
+
+1. **Ask the DSS for an 18-bit output mapping that avoids the strap group.** If `VOUT0` can emit
+   RGB666 on `DATA17..0`, only `DATA16/17` are straps — and both are 100 K pull-**ups**, which a
+   Spartan-6 pull-up *agrees* with, so no conflict at all. This is the clean answer if it exists.
+2. **Set the bitstream so those pins float during configuration** (`-g UnusedPin:Pullnone` plus
+   explicit no-pull constraints on the six nets). Verify against UG380 — Spartan-6's
+   configuration-time I/O state needs checking, it is not something to assume.
+3. **Sequence the rails**: hold the FPGA unpowered or in `PROG_B` reset until the SoM has booted.
+   Costs an enable net, which the R2 power tree has anyway.
+4. Series resistors on the six nets — crude, and it degrades a 127 MHz edge. Last resort.
+
+### I/O voltage is jumper-selectable, and the default is what we want
+
+The `3.3V1` footnote in both manuals: *"The voltage level for this signal is configurable for
+1.8 V or 3.3 V. The default voltage level is listed here."* All the `VOUT0_*` signals sit in the
+**`VDDSHV3`** domain (Table 6, jumper `J4`) together with the `GPMC0_*` group. Default is 3.3 V,
+which matches Caster's `IOSTANDARD = LVCMOS33`. **Specify 3.3 V on `VDDSHV3` when ordering** —
+one jumper moves the whole group, so this is a build-configuration item, not a board choice.
+
+### The DSC variant is now the more attractive of the two
+
+`L-1041e.A3` puts the same 24 `VOUT0` bits on plain numbered castellated pads — `PCLK` 27,
+`VSYNC` 29, `HSYNC` 30, `DE` 28, `DATA0..15` on 46–31, `DATA16..23` on 12–19 — on a **270-pin,
+0.8 mm pitch castellated edge, 40 × 40 mm**, idle 1.6 W, same 4.5–5.5 V `VIN`. Castellated edges
+are ordinary reflow soldering, so **JLCPCB could in principle place it**, which removes the
+`BTH-060` stock risk and the mated-height stack. It becomes a consigned part rather than a
+catalogue one. Worth pricing alongside `PCM-071` — see Request 1.
+
 ---
 
 ## Summary of what changed while checking these
@@ -16,8 +114,8 @@ Three findings that move the design, before the request list itself:
    A 1S Li-ion cell is 3.0–4.2 V, so the module needs a **boost converter**, and the R2 plan's
    "run the bucks straight from the cell, remove a conversion stage" applies to everything
    *except* the SoM. Boost efficiency (~92 %) has to be folded into the budget.
-2. **PHYTEC publishes an idle figure of 1.47 W** (`L-1038e` Table 3, calculated from
-   `IVIN` = 293 mA at 5 V, "idle in Linux with external interfaces down"). That is *worse* than
+2. **PHYTEC publishes an idle figure of 1.62 W** (`L-1038e.A5` Table 3, calculated from
+   `IVIN` = 324 mA at 5 V, "idle in Linux with external interfaces down"). That is *worse* than
    the 0.89–1.20 W the plan assumed, and it confirms the design cannot live in idle. **No
    suspend-to-RAM figure is published anywhere in the manual.** The entire battery estimate
    rests on a number PHYTEC has not stated — this is the single most important thing to ask.
@@ -32,7 +130,7 @@ Three findings that move the design, before the request list itself:
 
 ## Verified: the module's parallel RGB reaches the connector at the right voltage
 
-From `L-1038e.A1_phyCORE-AM62xx_HW_Manual.pdf` §8.1 "VOUT Connections at the phyCORE-Connector":
+From `L-1038e.A5` §8.1 Table 31 "VOUT Connections at the phyCORE-Connector":
 
 | Fact | Evidence |
 | --- | --- |
@@ -41,8 +139,8 @@ From `L-1038e.A1_phyCORE-AM62xx_HW_Manual.pdf` §8.1 "VOUT Connections at the ph
 | Caster's DPI pins are `IOSTANDARD = LVCMOS33` | `Caster/rtl/spartan6/constraint.ucf:229-237` |
 
 **So no level shifting is needed between the SoM and the FPGA.** That was an open risk; it is
-closed. Note that `DATA0…15` sit on connector **X1** (rows A/B) and `DATA16…23` on **X2**
-(rows C/D), so the red channel comes off the second connector — a floorplan constraint, since
+closed. Note that `DATA0…15` sit on connector X1 **columns A/B** and `DATA16…23` on **column D**,
+so the red channel comes off a different column — a floorplan constraint, since
 Caster wants `R7..R2` from `DATA23..18`.
 
 ## Verified: the carrier-side connector is buyable and JLCPCB-placeable
@@ -96,8 +194,8 @@ build-to-order; these are the axes:
 the design.
 
 > 1. **What is the module's power consumption in suspend-to-RAM (Linux `mem` / DDR in
->    self-refresh, wake sources armed)?** Your hardware manual L-1038e gives idle as 1.47 W
->    (293 mA at 5 V) but does not state a suspend figure. Our product is a battery e-reader that
+>    self-refresh, wake sources armed)?** Your hardware manual L-1038e.A5 gives idle as 1.62 W
+>    (324 mA at 5 V) but does not state a suspend figure. Our product is a battery e-reader that
 >    spends almost all of its life suspended with the display content retained externally, so
 >    this single number decides the battery life. A measured figure in mA at `VIN` is ideal.
 > 2. **What is the wake-to-usable latency from that suspend state?** Specifically, time from a
@@ -120,6 +218,18 @@ the design.
 > 7. **Do you have a 1 GB RAM / small-eMMC variant**, and is an on-module WiFi/BT option
 >    available? Please quote with and without.
 > 8. Lead time and MOQ for `PCM-071` at 10 and 100 pieces.
+> 9. **`VOUT0_DATA16..23` are shared with `GPMC0_AD8..15` / `BOOTMODE_8..15`** and your manual
+>    says they must not be driven during reset. We need the top six bits of each colour channel,
+>    which with the standard RGB888 mapping means `DATA23..18` — six strapped pins, three of them
+>    with 100 K pull-downs on the SOM. **Can the DSS be muxed to output 18-bit RGB666 on
+>    `DATA17..0` instead**, so the strap group is avoided? If not, what do you recommend for a
+>    carrier that has an FPGA (with weak pull-ups active during its own configuration) on the
+>    other end of those nets?
+> 10. Please confirm we can order the module with **`VDDSHV3` set to 3.3 V** (jumper J4 default),
+>     since that domain carries all the `VOUT0` signals and our FPGA is LVCMOS 3.3 V.
+> 11. Please **also quote `PCL-071` (DSC)**. Its 270-pin castellated edge can be reflow-soldered
+>     by a normal assembly house, which for us removes a connector-stock risk. Same questions 1,
+>     2, 5, 6 apply to it.
 
 **What a good outcome looks like:** a suspend figure under ~100 mW and a resume under 500 ms.
 If suspend comes back above ~250 mW, the AM62x route is in trouble and the fallback in
@@ -217,9 +327,17 @@ rail — costs a few square millimetres) and revisit it later, rather than block
 
 ## Sources
 
-- PHYTEC, *phyCORE-AM62xx System on Module Hardware Manual*, L-1038e.A1 — §4.2 (mating
-  connectors), Table 3 (dimensions, 1.47 W idle), Table 4 (`VIN` 4.5–5.5 V, `IVIN` 293 mA),
-  §8.1 (VOUT pinout, 3.3 V domain).
+- **PHYTEC, *phyCORE-AM62x System on Module Hardware Manual*, `L-1038e.A5`** (PCM-071, supplied
+  by the hardware owner) — §4.2 (mating connectors), Table 3 (43 × 32 mm, **1.62 W** idle),
+  Table 4 (`VIN` 4.5–5.5 V, `IVIN` **324 mA** idle / 651 mA loaded), Table 6 (voltage domains,
+  `VDDSHV3` jumper J4), Tables 7–10 (connector X1 columns A–D), **Table 31** (VOUT pinout,
+  3.3 V domain, `BOOTMODE` sharing and the "not driven during reset" footnote).
+- **PHYTEC, *phyCORE-AM62x DSC Hardware Manual*, `L-1041e.A3`** (PCL-071) — 270-pin 0.8 mm
+  castellated edge, 40 × 40 mm, 1.6 W idle, Table 30 VOUT pinout on numbered pads.
+- PHYTEC block diagram, showing `DPI` and `OLDI/LVDS` as separate lines to the Samtec connector:
+  <https://www.phytec.eu/en/fileadmin/phytec_base/images/01-Products/Block-Diagrams/Block-diagram-phyCORE-AM62x.png>
+- PHYTEC pin-mux tool (to settle question 9): <https://pinmux.phytec.com/>
+- Earlier revision `L-1038e.A1` (linked from phytec.eu, superseded) gave 293 mA / 1.47 W idle.
   <https://www.phytec.eu/fileadmin/phytec_base/images/04-Support/L-1038e.A1_phyCORE-AM62xx_HW_Manual.pdf>
 - PHYTEC product pages: phyCORE-AM62x (`PCM-071`, `PCL-071`, 43 × 32 × 7.6 mm mated, "24-bit RGB
   parallel, OLDI/LVDS"), phyCORE-AM62x-DSC, phyBOARD-AM62x (`PB-07124`), phyBOARD-AM62x
