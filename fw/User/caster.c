@@ -37,8 +37,21 @@ static uint8_t csr_features;
 
 enum {
     CASTER_MIN_DRV = 2,
-    CASTER_FASTM_B2W_FRAMES = 9,
-    CASTER_FASTM_W2B_FRAMES = 9,
+    // Swept against real text on hardware, 2026-08-04: 9 (the old value, ~120 ms
+    // at 75 Hz) leaves body text grey and the background visibly off-white,
+    // because in auto-LUT a pixel whose target is pure black or white gets this
+    // one unipolar drive and then never runs the waveform LUT again. 12/16/20/24
+    // were compared with a full clear between each; 12 was the point where the
+    // background went clean without the page turn feeling sluggish. w2b is two
+    // frames longer so that pixels arriving at black from different histories
+    // land closer together -- that shows up as ghost text inside large solid
+    // black areas, which nothing else fixes short of a full refresh.
+    //
+    // These feed BASEMODE_FAST_MONO as well as BASEMODE_AUTO_LUT
+    // (pixel_processing.v:460 and :338/:379), so they also lengthen transitions
+    // in the fast-mono display mode. Tuned for Reading; see NOTES-STATUS.md.
+    CASTER_FASTM_B2W_FRAMES = 12,
+    CASTER_FASTM_W2B_FRAMES = 14,
     CASTER_FASTG_B2G_FRAMES = 2,
     CASTER_FASTG_W2G_FRAMES = 2,
 };
