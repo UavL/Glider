@@ -383,3 +383,86 @@ Worth substituting Basic parts for the passives during Stage 3, where it is free
 - **SoM: PHYTEC phyCORE-AM62x**, the only candidate exposing 24-bit RGB DPI on its connector
   with clock headroom (165 MHz vs 127 MHz needed). Toradex Verdin AM62 is the OLDI-path
   fallback and second vendor.
+
+---
+
+# Stage 2 — already done upstream (2026-08-03)
+
+**The DPI receiver the R2 plan schedules as "Stage 2, the riskiest change" already exists in
+Caster, and it is the path the board runs on today.** Verified from the sources, not inferred:
+
+| Evidence | File | What it shows |
+| --- | --- | --- |
+| `vin_dpi.v` (203 lines) | `Caster/rtl/spartan6/vin_dpi.v` | A complete DPI receiver: `IBUFG` + `DCM_SP` on `dpi_pclk`, IOB-packed capture registers, a DE-edge phase detector that picks between two pixel alignments, and a 2:1 pixel pack so the core runs at half the pin rate |
+| `vin.v:101` | `Caster/rtl/spartan6/vin.v` | `vin_dpi` is **instantiated** and is `SRC_DPI = 3'd1` in the source mux, alongside `SRC_INTERNAL` and `SRC_FPDLINK` |
+| `top.v:56-60` | `Caster/rtl/spartan6/top.v` | Top-level ports `DPI_PCLK`, `DPI_DE`, `DPI_VSYNC`, `DPI_HSYNC`, `DPI_PIXEL[17:0]` |
+| `constraint.ucf:16-17` | same dir | `TIMESPEC TS_DPI_CLK = PERIOD "DPI_CLK" 165 MHz HIGH 50%` — the DPI clock is **already constrained to 165 MHz** |
+| `constraint.ucf:228-255` | same dir | All 22 DPI pins placed, `IOSTANDARD = LVCMOS33`, with `# R7 # G6 # B2 …` comments naming the RGB bit each carries |
+| `pcb/mainboard/tmds_in.kicad_sch` | R1 schematic | The 22 nets `DPI_PCLK/DE/HS/VS/R2..R7/G2..G7/B2..B7` originate on the **ADV7611 sheet** and land in `fpga_io.kicad_sch` |
+
+So the ADV7611 does not feed Caster over anything exotic — it decodes HDMI and hands the FPGA a
+plain 18-bit parallel RGB bus. **R2 does not add a video path; it deletes the chip in front of an
+existing one.**
+
+Consequences for the plan:
+
+1. **Stage 2 is closed.** No Verilator work, no new RTL, no sim campaign. The single largest
+   schedule risk in the plan does not exist. Gateware changes for R2 reduce to a `vin_source_ctrl`
+   default and whatever the SoM's sync polarity turns out to need.
+2. **The DPI bus is 18 data bits, not 24.** RGB666. `vin.v:117-123` expands it to RGB888 by
+   replicating each channel's top two bits, and the panel is mono or 4-bit grey anyway, so the
+   6 discarded bits cost nothing visible. **22 signals total**, not 28 — a materially smaller
+   connector and an easier floorplan than the plan assumed.
+3. **165 MHz is already the declared timing target**, against 127 MHz needed at 75 Hz and 85 MHz
+   at 50 Hz. The ISE timing report from any existing build is the proof that the capture path
+   closes — no new analysis needed, just read `par/*.twr` after the next gateware build.
+4. **The core runs at half the pin rate.** `vin_dpi` packs two pixels per word and hands the EPDC
+   `v_halfpclk` = `dpi_pclk/4`. That is why a 127 MHz input does not need a 127 MHz fabric.
+5. **FPD-Link (LVDS) ingest also already exists** — `vin_fpdlink.v`, 6 lanes, `SRC_FPDLINK`. The
+   "route both DPI and OLDI" decision costs nothing in gateware either. Note the existing module
+   is FPD-Link (the PTN3460's output format), and OLDI/JEIDA differs in bit mapping and lane
+   count — a `CH_INVERT`/remap parameter change, not a rewrite.
+
+---
+
+# The module attachment question — resolved (2026-08-03)
+
+The blocker was: the hardware owner wants **one board that arrives finished from JLCPCB**, and
+cannot hand-solder a module. Facts gathered from the LCSC/JLCPCB catalogue:
+
+| Part | LCSC | Stock | US$ @1 | Meaning |
+| --- | --- | --- | --- | --- |
+| `DF40C-40DS-0.4V(51)` board-to-board | C424644 | 5 554 | 0.51 | **Available.** A normal SMD connector — JLCPCB solders it, the module plugs in |
+| 200-pin SO-DIMM socket | — | **none** | — | Not in the catalogue under any spelling. Would need consignment |
+| `T113-S3` (Allwinner, 2×A7, **128 MB DDR3 in package**) | C5197687 | 1 810 | 5.60 | **Available.** No external DRAM to route at all |
+| `T507` (Allwinner, 4×A53) | C669217 | 278 | 8.05 | Available, needs external DDR3/4 |
+| `A40i-H` (Allwinner, 4×A7) | C2921072 | 90 | 6.73 | Available but thin stock |
+| `AXP2101` PMIC | C3036461 | 1 443 | 1.40 | The matching Allwinner PMIC — available |
+| `AM6254ATCGGAALW` | C6120421 | 205 | 19.42 | Available, but its **LPDDR4 is not** |
+| `RK3566` | C2943786 | 95 | 13.96 | Same problem — LPDDR4 not in the catalogue |
+| `MT41K64M16TW-107` (R1's own DDR3L) | C2060943 | 1 949 | 4.49 | DDR3L is well stocked; LPDDR4 is not |
+
+**The decisive asymmetry: LCSC stocks DDR3/DDR3L and does not stock LPDDR4.** Every modern
+low-power application processor (AM62x, RK3566, i.MX8M) is an LPDDR4 part. So "bare SoC on the
+main board, fully assembled by JLCPCB" is only reachable with a DDR3-era or RAM-in-package SoC.
+
+Three routes, and why the socket one is not what it sounded like:
+
+- **A. SoM on a board-to-board connector (DF40).** JLCPCB assembles the whole board *including the
+  connector*; the module is a separate purchase that **plugs in by hand with no soldering**. This
+  is the route the plan assumed, and the "SO-DIMM" wording was the problem, not the concept — a
+  SO-DIMM edge connector is 69.6 × 35 mm of module hanging off a bulky socket, which is genuinely
+  wrong for a thin reader. DF40 is ~4 × 20 mm and 0.4 mm pitch. Mechanically this is one board.
+- **B. RAM-in-package SoC soldered down (T113-S3 + AXP2101).** Everything on one board, everything
+  in LCSC, nothing to plug in. Cost: 2×Cortex-A7 at 1.2 GHz and 128 MB — enough for a framebuffer
+  reader, not for much else — and the T113's parallel-RGB clock ceiling is **unverified** and is
+  the thing that would kill it.
+- **C. Bare AM62x + LPDDR4 soldered down.** Requires consignment of the DRAM to JLCPCB, a PMIC
+  sequencing design, and LPDDR4 fly-by routing on a 6-layer stack-up. This is the "real product"
+  answer and the wrong first prototype.
+
+**Recommendation: A, with the R2 board designed so B remains possible.** Reasons: it keeps the
+verified 165 MHz DPI path and the AM62x's measured 60 mW suspend, both of which the whole battery
+estimate rests on; it needs no soldering skill; and it decouples the risky part (the compute
+module) from the part that is already proven (the Caster half of the board, every part of which
+was confirmed in-catalogue in the Stage-1 LCSC pass).
