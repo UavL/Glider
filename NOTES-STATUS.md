@@ -114,10 +114,32 @@ Against the `2f714ab` baseline below:
   the new stack; R2 remains the only path to e-reader battery life.**
 - retain vs retain-manual differ by ~4 mW, i.e. not at all.
 
-**Still untested: `power scanstop on`** — the one remaining firmware-side lever, and the only
-change expected to move retain meaningfully (~420 of the 559 mW "MCU + IO" is FPGA I/O
-switching). It now has its prerequisites for the first time: the feature bit reads `0x01` and
-hold genuinely works. See the risk note further down before enabling it.
+### `power scanstop on` — measured 2026-08-03, and the estimate was wrong
+
+Enabled from the shell, entered via **retain-manual** (it is gated on `!damage_wake`, since
+stopping the scan freezes the damage counter — `ui.c:1194`), sampled twice, then resumed and
+disabled. The board resumed cleanly; suspend/resume counts matched.
+
+| Rail (mW) | retain | retain + scanstop | delta |
+| --- | --- | --- | --- |
+| FPGA DDR | 98.8 | **22.5** | **−76.3** |
+| FPGA CORE | 164.5 | **134.1** | **−30.4** |
+| MCU + IO | 552.9 | 537.3 | −15.6 |
+| VIDEO IN | 573.4 | 572.6 | −0.8 |
+| **TOTAL** | **1389.6** | **1266.5** | **−123.1 (−8.9%)** |
+
+**The 250-400 mW estimate was wrong, and so was the reasoning behind it.** It rested on "~420 of
+the 559 mW MCU + IO is FPGA I/O switching" (NOTES §, line ~828) — but MCU + IO moved only
+15.6 mW. Almost the whole saving is the framebuffer *read* traffic stopping: DDR fell 77%. Do
+not reuse the "420 mW of FPGA I/O" figure; it is not supported by measurement.
+
+123 mW does not change the conclusion. Retain with everything firmware can do is ~1266 mW
+against a 164.5 mW `off`, and the gap is still rails with no enable pin.
+
+**Relevance to R2:** on-demand scan is core to R2's reading state (`NOTES-R2-plan.md`), and this
+is the first evidence it works at all — hold plus scan-stop is a stable, recoverable state on
+real hardware, where the earlier firmware-only attempt (`d53afdb`, reverted in `05cfa68`)
+inverted the panel. But budget it at ~120 mW, not ~400.
 
 ## The central measurement (2026-08-02, `sensor`, on `2f714ab`)
 
