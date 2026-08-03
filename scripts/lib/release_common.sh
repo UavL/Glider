@@ -54,6 +54,49 @@ run_cmd() {
     "$@"
 }
 
+# Flash the MCU over DFU.
+#
+# dfu-util's ':leave' tells the STM32 to reboot into the application as soon as
+# the download finishes, so the device detaches before dfu-util can read the
+# final status and it exits non-zero with "Error during download get_status"
+# -- every time, on a completely successful flash. Under 'set -e' that aborts
+# the caller, which in dev_flash_all.sh meant the bitstream transfer that comes
+# afterwards never ran at all: the MCU was updated and the gateware silently
+# was not, leaving exactly the mismatched pair those scripts exist to prevent.
+#
+# So: treat the detach-at-leave failure as success, but only when dfu-util
+# actually reported the download completing. Any other failure still aborts.
+flash_mcu_dfu() {
+    local firmware="$1"
+
+    if [[ "${DRY_RUN:-0}" == "1" ]]; then
+        run_cmd dfu-util -a 0 -i 0 -s 0x08000000:leave -D "$firmware"
+        return 0
+    fi
+
+    log "+ $(format_cmd dfu-util -a 0 -i 0 -s 0x08000000:leave -D "$firmware")"
+
+    local output status
+    set +e
+    output="$(dfu-util -a 0 -i 0 -s 0x08000000:leave -D "$firmware" 2>&1)"
+    status=$?
+    set -e
+
+    printf '%s\n' "$output"
+
+    if [[ "$status" -eq 0 ]]; then
+        return 0
+    fi
+
+    if grep -q "File downloaded successfully" <<<"$output"; then
+        log "dfu-util exited $status after a successful download; this is the" \
+            "expected detach on ':leave'. Continuing."
+        return 0
+    fi
+
+    die "dfu-util failed (exit $status) without completing the download"
+}
+
 run_logged_step() {
     local label="$1"
     local logfile="$2"

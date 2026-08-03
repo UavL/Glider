@@ -73,14 +73,19 @@ log "Flashing; the board must be in DFU mode now"
 # directly here (as dev_flash_mcu.sh does) and let flash.py handle the HID
 # transfer only. ':leave' reboots into the application; flash.py already retries
 # until the HID interface re-enumerates.
-run_cmd dfu-util \
-    -a 0 \
-    -i 0 \
-    -s 0x08000000:leave \
-    -D "$mcu_dir/glider_ec_rtos_$version.bin"
+flash_mcu_dfu "$mcu_dir/glider_ec_rtos_$version.bin"
 
 run_cmd python3 "$repo/utils/flash_tool/flash.py" \
     --skip-mcu \
     --bitstream "$fpga_dir/fpga.bit" \
     --no-fonts \
     --no-config
+
+# The FPGA has no configuration flash of its own: fpga_init() loads the
+# bitstream from SPIFFS on every boot. The MCU rebooted into the application
+# when dfu-util left DFU mode, which was *before* the transfer above, so the
+# FPGA is still running whatever bitstream was there previously. Replug to make
+# the new one take effect -- see USAGE.md.
+log "Done. Unplug and replug the board: the bitstream just written only loads"
+log "on the next boot, so until then the new firmware is paired with the old"
+log "gateware."
