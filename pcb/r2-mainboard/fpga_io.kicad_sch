@@ -1,0 +1,15 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "42cafb44-c4a2-4885-8a35-a2a05165e7e7")
+	(paper "A3")
+	(title_block
+		(title "Glider-R2 / Specter mainboard")
+		(date "2026-08-05")
+		(rev "A")
+		(comment 1 "Spartan-6 banks and panel I/O")
+		(comment 2 "Branch Board-Design. See NOTES-R2-plan.md and docs/ for the per-sheet specs.")
+	)
+	(lib_symbols)
+)

@@ -1,0 +1,15 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "bfb4a282-c959-4a7b-92d0-a4a500453c0c")
+	(paper "A3")
+	(title_block
+		(title "Glider-R2 / Specter mainboard")
+		(date "2026-08-05")
+		(rev "A")
+		(comment 1 "microSD, unpopulated touch / pen FPC")
+		(comment 2 "Branch Board-Design. See NOTES-R2-plan.md and docs/ for the per-sheet specs.")
+	)
+	(lib_symbols)
+)

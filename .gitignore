@@ -19,3 +19,8 @@ Debug/
 fw/User/git_hash.h
 *.o
 utils/flash_tool/cfggen/bin
+
+# KiCad per-user state
+pcb/r2-mainboard/*.kicad_prl
+pcb/r2-mainboard/fp-info-cache
+pcb/r2-mainboard/*-backups/

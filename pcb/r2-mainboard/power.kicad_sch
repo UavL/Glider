@@ -1,0 +1,15 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "3c7f0f04-b337-4425-b9f6-94d0a6934c0f")
+	(paper "A3")
+	(title_block
+		(title "Glider-R2 / Specter mainboard")
+		(date "2026-08-05")
+		(rev "A")
+		(comment 1 "rail tree from +VSYS, every rail with an enable")
+		(comment 2 "Branch Board-Design. See NOTES-R2-plan.md and docs/ for the per-sheet specs.")
+	)
+	(lib_symbols)
+)

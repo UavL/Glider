@@ -1,0 +1,173 @@
+# `battery.kicad_sch` — spec
+
+R2 work package 1. Status: **spec, not yet captured.** Last updated 2026-08-05.
+
+Cell → charger with power path → `+VSYS`, plus USB-C (charge *and* data) and a fuel gauge.
+Everything on this sheet is independent of the PHYTEC/`PCL-071` answer, which is why it is first.
+
+Datasheets live in `../datasheets/`. Every claim below marked ‡ is read from one of them; anything
+unmarked is a design choice or still to be verified.
+
+---
+
+## 1. The part that changed, and why
+
+`NOTES-R2-hardware-facts.md` §5 picked `BQ25896RTWR` (LCSC `C181475`) but flagged **127 units in
+stock — find a second source**. Re-queried 2026-08-05: still 127. That is too thin for a part we
+need for a prototype plus spares.
+
+Reading the three TI datasheets settles it. **Four devices share one RTW WQFN-24 4×4 footprint and
+one register map**, differing only in pins 2, 3 and 24 ‡:
+
+| Pin | `BQ25892` / `BQ25896` | `BQ25890` / `BQ25895` |
+| --- | --- | --- |
+| 2 | `PSEL` (digital in — high = USB host, low = adapter) | `D+` (analog I/O) |
+| 3 | `PG` (open-drain power-good out) | `D−` (analog I/O) |
+| 24 | `NC` | `DSEL` (open-drain D+/D− mux control) |
+
+Pins 1 and 4–23 are identical across all four ‡ (`bq25896.pdf` p.5 Fig., `bq25895.pdf` Fig. 6-1,
+`bq25890.pdf` Fig. 7-1 — the last document covers `BQ25890` *and* `BQ25892`, showing both pinouts on
+one page).
+
+LCSC stock, queried 2026-08-05:
+
+| Part | LCSC | Stock | Pin variant |
+| --- | --- | --- | --- |
+| `BQ25896RTWR` | `C181475` | 127 | PSEL/PG/NC |
+| `BQ25892RTWR` | `C165480` | 832 | PSEL/PG/NC |
+| `BQ25895RTWR` | `C80200` | 1 851 | D+/D−/DSEL |
+| `BQ25890RTWR` | `C130451` | 830 | D+/D−/DSEL |
+
+**Decision: `BQ25892RTWR` (`C165480`) as the primary**, with a **three-resistor option field on pins
+2, 3 and 24** so any of the four drops in. 832 units against 127, same family, and the PSEL/PG
+variant is the one we actually want.
+
+Why the PSEL variant is the *right* choice and not merely the available one: we decided D+/D− go to
+the SoM so books can be sideloaded over USB. A `BQ25890`/`BQ25895` would want those same two lines
+for its BC1.2 detection and would need an external analog mux driven by `DSEL` — a part, a rail and
+a failure mode we do not need. The PSEL devices have no D+/D− pins at all and use the Input Current
+Optimizer instead, probing the source by loading it until `VBUS` droops ‡.
+
+Option field (three 0402 pads, decided at assembly):
+
+| Net | PSEL variant fitted | D+/D− variant fitted |
+| --- | --- | --- |
+| pin 2 | `R_PSEL` strap: 0 Ω to GND (adapter) **or** to `+VSYS` | 0 Ω to `USB_DP` |
+| pin 3 | 10 kΩ pull-up to `+3V3_AON`, net `CHG_PG#` | 0 Ω to `USB_DM` |
+| pin 24 | not fitted | 10 kΩ pull-up to `+3V3_AON`, net `CHG_DSEL#` |
+
+## 2. Part list
+
+| Ref | Part | LCSC | Notes |
+| --- | --- | --- | --- |
+| `U1` | `BQ25892RTWR` | `C165480` | charger, power path, I²C, boost, ship mode. WQFN-24 4×4, EP to GND |
+| `U2` | `MAX17048G+T10` | `C2682616` | fuel gauge, TDFN-8 2×2, ~3 µA, no sense resistor |
+| `U3` | `USBLC6-2SC6` | `C7519` | ESD on `USB_DP`/`USB_DM` + `VBUS` clamp, SOT-23-6 |
+| `J1` | USB-C receptacle, 16-pin USB 2.0 | `C165948` (`TYPE-C-31-M-12`) | **pinout to be verified against the connector drawing before capture** |
+| `J2` | JST-PH 3-pin, vertical | verify | `BAT+`, `NTC`, `BAT−` |
+| `L1` | 1 µH, ≥3 A sat, low DCR | verify | ‡ typical app, 1.5 MHz switcher |
+| `F1` | fuse / PTC on `VBUS` | verify | |
+| passives | see §4 | | |
+
+Open: `MAX17048` pin assignment. **analog.com, Mouser, Farnell and the LCSC CDN all time out or
+return HTML from this machine — only ti.com is reachable.** Its datasheet must be fetched by hand
+(see §7). Nothing about `U2` is drawn until it is in `../datasheets/`.
+
+## 3. Topology decisions
+
+- **`+VSYS` feeds the rail tree, not raw `+VBAT`.** The charger's power-path `SYS` output is held
+  above `SYS_MIN` (3.5 V default ‡) by the switcher even when the cell is flat or absent, so the
+  board boots on USB alone. This refines `NOTES-R2-plan.md`, which said "run the bucks from the
+  cell".
+- **D+/D− go to the SoM.** See §1. Input current is bounded by `R_ILIM` and the register, not by
+  BC1.2 detection.
+- **Ship mode is in scope.** `REG09[5]` disables the BATFET for a true near-zero-draw off state; a
+  low on `QON` for ~1 s exits it ‡. The "weeks" row of the battery budget in `NOTES-R2-plan.md`
+  depends on this existing, so `QON` must reach both the power button and the MCU (open-drain).
+- **Only 5 V is ever drawn.** Plain 5.1 kΩ `Rd` on both CC lines advertises a sink; without a PD
+  controller we cannot read the source's advertised current, so the ceiling is set in hardware
+  (§4) and the ICO finds the rest.
+
+## 4. Values, with the arithmetic
+
+External components, from the typical application ‡ (`bq25896.pdf` §10.2, p.48):
+
+| Node | Value | Source |
+| --- | --- | --- |
+| `VBUS`–GND | 1 µF | ‡ |
+| `PMID`–GND | 8.2 µF (≥25 V rating) | ‡ §10.2.2.2, "8.2 µF suggested for 3–5 A charging" |
+| `BTST`–`SW` | 47 nF | ‡ pin 21 description |
+| `REGN`–GND | 4.7 µF / 10 V | ‡ pin 22 description |
+| `SYS`–GND | 20 µF (2× 10 µF) | ‡ pin 15,16 description |
+| `BAT`–GND | 10 µF | ‡ pin 13,14 description |
+| `SW`–`SYS` | 1 µH | ‡ typical app |
+| `SDA`/`SCL`/`INT`/`STAT`/`PG` pull-ups | 10 kΩ | ‡ pin descriptions |
+
+**Input current limit.** `IINMAX = KILIM / RILIM`, `KILIM` = 320/355/390 A·Ω (min/typ/max) ‡.
+Using the max so the limit is never *under*-estimated: `RILIM` = 260 Ω → 390/260 = **1.5 A**, which
+is also the datasheet's own typical-application value ‡. That is 7.5 W in — enough to run the board
+(~2.5 W active) and still put ~5 W into the cell. **`RILIM` = 130 Ω raises the ceiling to 3 A** if a
+known-good 3 A source is used; it is a one-resistor change and the ICO backs off from a weaker
+source regardless.
+
+**TS network.** Use the pack's 103AT-class 10 kΩ NTC ‡ (recommended part). `RT1` from `REGN` to
+`TS`, `RT2` from `TS` to GND, NTC in parallel with `RT2`. JEITA thresholds as a percentage of
+`REGN` ‡: `V(T1)` 73.25 % (0 °C, charge suspended below), `V(T5)` 34.375 % (60 °C, suspended
+above).
+
+Solving both endpoints simultaneously — with `x = RT2 ∥ R_NTC(T)`, `V_TS/V_REGN = x/(RT1+x)`:
+
+```
+0 °C : R_NTC = 27.28 kΩ → RT1 = x₀·(1−0.7325)/0.7325   = 0.3652·x₀
+60 °C: R_NTC =  3.021 kΩ → RT1 = x₅·(1−0.34375)/0.34375 = 1.9091·x₅
+⇒ x₀/x₅ = 5.2276 ⇒ RT2 = 30.3 kΩ, x₅ = 2.747 kΩ ⇒ RT1 = 5.24 kΩ
+```
+
+**`RT1` = 5.23 kΩ, `RT2` = 30.1 kΩ (E96).** The datasheet's typical application shows 5.23 kΩ on
+`RT1` ‡, which is the same number — the derivation checks out against TI's own figure.
+
+*If the chosen pack has no NTC*, fit `RT1` = 7.68 kΩ / `RT2` = 10 kΩ instead (no NTC): that places
+`TS` at 56.6 % of `REGN`, near the centre of the full-rate window between `V(T3)` 44.75 % and
+`V(T2)` 68.25 % ‡, so the charger sees a permanently "room temperature" cell. **This defeats
+thermal protection and is a bring-up fallback, not a shipping configuration.** Lay both networks
+out; fit one.
+
+## 5. Sheet interface
+
+Hierarchical labels leaving the sheet:
+
+| Net | Dir | Goes to |
+| --- | --- | --- |
+| `+VSYS` | out | `power` — the whole rail tree |
+| `+VBAT` | out | `power_mon`, and `U2` locally |
+| `+3V3_AON` | in | pull-ups (generated on `power`) |
+| `SDA_AON` / `SCL_AON` | bidir | `mcu` — shared with gauge and INA3221s |
+| `CHG_INT#` | out | `mcu` |
+| `CHG_PG#` | out | `mcu` |
+| `CHG_STAT#` | out | `mcu` |
+| `CHG_CE#` | in | `mcu` — must be driven, not floated ‡ |
+| `CHG_OTG` | in | `mcu` |
+| `CHG_QON#` | bidir | `mcu` + power button |
+| `GAUGE_ALRT#` | out | `mcu` |
+| `USB_DP` / `USB_DM` | bidir | `som` — USB2 device port |
+| `VBUS_DET` | out | `mcu` |
+
+## 6. Traps to check at review
+
+- `CE` must be pulled high or low, never left floating ‡ (pin 9 description).
+- `QON` has an internal pull-up ‡; do not add a second one, and drive it open-drain only.
+- `PMID` needs ≥8.2 µF with OTG unused, but **40 µF for OTG up to 2.4 A** ‡ (`bq25895.pdf` pin 23).
+  We declare `CHG_OTG`; decide whether OTG is actually used before fixing this capacitor.
+- The WQFN exposed pad is the thermal and electrical ground path — it must be stitched, not just
+  soldered.
+- `REGN` is also the `TS` bias rail ‡; the divider loads it. 4.7 µF is not optional.
+- USB-C: 5.1 kΩ `Rd` on **both** `CC1` and `CC2`, each to GND separately — never bridged.
+- `USBLC6-2SC6` covers `D±` and `VBUS` only. `CC1`/`CC2` protection is a separate decision.
+
+## 7. Blocking on
+
+1. **`MAX17048` datasheet** — must be downloaded by hand; every vendor CDN except ti.com is
+   unreachable from this machine. Until then `U2` is a placeholder.
+2. **`J1` connector drawing** — the 16-pin USB-C part number needs its pinout confirmed before the
+   symbol is drawn.
+3. **Cell choice** — decides `J2`'s pin count and whether the NTC or the fixed divider is fitted.

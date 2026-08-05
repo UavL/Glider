@@ -1,0 +1,15 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "a89f58f8-b115-4f71-9806-30f9bff6e587")
+	(paper "A3")
+	(title_block
+		(title "Glider-R2 / Specter mainboard")
+		(date "2026-08-05")
+		(rev "A")
+		(comment 1 "STM32G0 housekeeping, buttons, VCOM DAC")
+		(comment 2 "Branch Board-Design. See NOTES-R2-plan.md and docs/ for the per-sheet specs.")
+	)
+	(lib_symbols)
+)
