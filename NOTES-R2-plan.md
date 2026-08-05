@@ -129,12 +129,28 @@ reading — it matters only for deep standby. Keep it gateable, but **do not bui
 powering a VCCO bank down while the die is configured** (real I/O-clamp constraints, UG393 bank
 rules); rely on scan-stop for the reading state.
 
-Other changes from R1: run the bucks **from the cell, not from a 5 V intermediate** (R1 does
+Other changes from R1: run the converters **from the cell, not from a 5 V intermediate** (R1 does
 VBUS → 5 V → four bucks, ~10 % wasted); add a **charger with power path** (`BQ25896` or
 `MP2762A`) and a **fuel gauge** (`MAX17048`, ~3 µA, no sense resistor); add a **4 MB SPI NOR** on
 the FPGA's config pins so it self-boots — R1 streams the bitstream from the MCU's SPIFFS on every
 pipeline start (~360–400 ms measured), and removing the MCU from the boot path is what lets the
 H750 become a G0.
+
+**Superseded by capture, 2026-08-06 — see `pcb/r2-mainboard/docs/`:**
+
+- The charger is a **`BQ25892`**, not a `BQ25896`. Same footprint and register map; the `BQ25896`
+  had 127 units in stock and the `BQ25892` is also the correct variant on merit, because D+/D− go
+  to the SoM for sideloading. `docs/battery.md` §1.
+- **"Run the bucks from the cell" holds for 1.2 V and 1.35 V but not for 3.3 V.** `+VSYS` runs from
+  ~4.4 V down to ~3.0 V, so a step-down converter drops out halfway down the discharge curve;
+  `+3V3` is a **buck-boost** (`TPS63802`). `docs/power.md` §2.1.
+- `+3V3_SYS` and `+3V3_FPGA_IO` are **one rail**, since each 3.3 V rail costs a whole buck-boost and
+  the note above already says not to build around powering a `VCCO` bank down. Per-rail measurement
+  survives through `power_mon`'s shunts. `docs/power.md` §6.
+- `+5V_SOM` is **`+5V_DCDC`** (it feeds the EPD HV chain too) and needs a **load switch on the
+  boost input**: a boost has no load
+  disconnect, so disabling it alone would leave ~3.4 V on the SoM's `VIN`. `docs/power.md` §2.2.
+- The **frontlight boost moves to `frontlight.kicad_sch`** and runs from `+VSYS` directly.
 
 ---
 

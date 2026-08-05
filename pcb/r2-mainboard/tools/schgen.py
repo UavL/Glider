@@ -203,7 +203,10 @@ class Placed:
 class Sheet:
     def __init__(self, sheet_uuid: str, root_uuid: str, project: str,
                  paper: str = "A3", title: str = "", rev: str = "",
-                 date: str = "", comments: tuple[str, ...] = ()):
+                 date: str = "", comments: tuple[str, ...] = (),
+                 pwr_base: int = 0):
+        """`pwr_base` offsets this sheet's #PWRnnn designators. References must
+        be unique across the whole design, so each sheet takes its own block."""
         self.uuid, self.root_uuid, self.project = sheet_uuid, root_uuid, project
         self.paper, self.title, self.rev, self.date = paper, title, rev, date
         self.comments = comments
@@ -211,7 +214,7 @@ class Sheet:
         self._used: dict[str, Symbol] = {}
         self._symbols: list[str] = []
         self._graphics: list[str] = []
-        self._pwr_n = 0
+        self._pwr_n = pwr_base
 
     # ---------- placement ----------
 

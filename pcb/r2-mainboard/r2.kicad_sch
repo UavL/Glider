@@ -188,6 +188,76 @@
 				(justify left top)
 			)
 		)
+		(pin "MCU_EN_5V" input
+			(at 177.8 35.56 0)
+			(uuid "c5bc64dd-8853-4db0-9e63-d6ead926f571")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "MCU_EN_3V3" input
+			(at 177.8 38.1 0)
+			(uuid "77182959-3f31-4529-9126-edd74f1b503e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "MCU_EN_FPGA_CORE" input
+			(at 177.8 40.64 0)
+			(uuid "e33d250d-3637-464c-ab63-cf814a9440fc")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "MCU_EN_DDR" input
+			(at 177.8 43.18 0)
+			(uuid "5afd65d3-5c53-45ce-8825-be942af10f64")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "PG_3V3" output
+			(at 177.8 45.72 0)
+			(uuid "12de5ade-9803-42c0-a3b2-388f42fb186d")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "PG_1V2" output
+			(at 177.8 48.26 0)
+			(uuid "b0d748ff-186a-47d3-b158-73e149712c61")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "PG_1V35" output
+			(at 177.8 50.8 0)
+			(uuid "16948554-128c-4c56-a447-bc7dc91b46bd")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8"
