@@ -336,7 +336,7 @@
 	)
 	(sheet
 		(at 22.86 30.48)
-		(size 55.88 25.4)
+		(size 55.88 38.1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -362,7 +362,7 @@
 			)
 		)
 		(property "Sheetfile" "battery.kicad_sch"
-			(at 22.86 56.4646 0)
+			(at 22.86 69.1646 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -370,6 +370,126 @@
 					(size 1.27 1.27)
 				)
 				(justify left top)
+			)
+		)
+		(pin "SDA_AON" bidirectional
+			(at 78.74 35.56 0)
+			(uuid "2fc519a7-7637-47ed-a7e9-ec48858e20da")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SCL_AON" bidirectional
+			(at 78.74 38.1 0)
+			(uuid "3f32d3b4-85fa-4fd0-8759-8cf69e4ad296")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "CHG_INT#" output
+			(at 78.74 40.64 0)
+			(uuid "fbab8f64-e2d4-48cc-9aba-4d6532ac2da9")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "CHG_PG#" output
+			(at 78.74 43.18 0)
+			(uuid "4d71d248-d702-45e2-9eb0-230226073add")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "CHG_STAT#" output
+			(at 78.74 45.72 0)
+			(uuid "07a7905a-834d-4db1-82f9-2c88d45fcd79")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "CHG_CE#" input
+			(at 78.74 48.26 0)
+			(uuid "f5d07b2d-149c-4ae8-8cc0-076d3f6778f6")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "CHG_OTG" input
+			(at 78.74 50.8 0)
+			(uuid "93d57fed-0afa-46d7-a788-acc65ce358f4")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "CHG_QON#" bidirectional
+			(at 78.74 53.34 0)
+			(uuid "87c9135a-1945-4676-b48a-d9231148c7de")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "GAUGE_ALRT#" output
+			(at 78.74 55.88 0)
+			(uuid "bf5ec76e-218f-402f-ad8b-c1ce2e9c4cf7")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VBUS_DET" output
+			(at 78.74 58.42 0)
+			(uuid "fe89854f-22d0-40e8-802f-ad7c6ae1e04e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "USB_DP" bidirectional
+			(at 78.74 60.96 0)
+			(uuid "a2763046-68d6-499d-aa40-9fe985b1ce55")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "USB_DM" bidirectional
+			(at 78.74 63.5 0)
+			(uuid "e7f57710-89d5-4f4d-8acc-c5cf09a63190")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 			)
 		)
 		(instances
