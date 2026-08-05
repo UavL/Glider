@@ -24,3 +24,10 @@ utils/flash_tool/cfggen/bin
 pcb/r2-mainboard/*.kicad_prl
 pcb/r2-mainboard/fp-info-cache
 pcb/r2-mainboard/*-backups/
+
+# Vendor reference manuals -- too large to version, fetch from TI instead
+# (AM62x TRM: https://www.ti.com/lit/pdf/spruiv7)
+AM62xTechnicalReferenceManual*.pdf
+
+# Scratch output from schematic-analysis tooling
+analysis/
