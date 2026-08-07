@@ -16,6 +16,15 @@ Two symbols are not in KiCad's standard libraries:
               tables. TPS61022 is *not* here -- KiCad's Converter_DCDC has it
               already, with the correct RWU0007A footprint.
 
+  SY8120, MT9700
+              lifted verbatim from R1's epd_power.kicad_sch embedded
+              lib_symbols. Both are used by R1 but neither is in pcb_common at
+              the pinned commit, so in R1 they survive only as definitions
+              embedded in the sheet -- the library link is dead there. Lifting
+              them into r2.kicad_sym gives R2 a live link to a version-
+              controlled copy. Note SY8120 is the *symbol* R1 reuses for the
+              LGS5145; the value on each instance is what names the real part.
+
 Run once. After that r2.kicad_sym is edited in the KiCad symbol editor.
 """
 import pathlib
@@ -390,8 +399,32 @@ def make_usblc6():
     return _flatten(parent, child, "USBLC6-2P6", "USBLC6-2SC6")
 
 
+
+R1_EPD_POWER = pathlib.Path(__file__).resolve().parents[2] / "mainboard" / "epd_power.kicad_sch"
+
+
+def lift_from_r1(name: str) -> str:
+    """Copy a symbol definition verbatim out of R1's embedded lib_symbols.
+
+    R1 is read-only: this only ever reads it. The block comes back with one
+    extra level of indentation (it lives inside `lib_symbols`), so strip it.
+    """
+    text = R1_EPD_POWER.read_text()
+    lib = text[text.index("(lib_symbols"):]
+    # entries inside lib_symbols are keyed by full lib_id, and the sub-units
+    # by "<lib_id>_0_1" etc.; strip the library prefix everywhere so the
+    # symbol stands alone in r2.kicad_sym.
+    block = _extract_symbol_block(lib, f"symbols:{name}")
+    if block is None:
+        raise KeyError(f"{name!r} not found in {R1_EPD_POWER}")
+    block = block.replace(f'"symbols:{name}', f'"{name}')
+    lines = [ln[1:] if ln.startswith("\t") else ln for ln in block.splitlines()]
+    return "\n".join(lines)
+
+
 def main():
     blocks = [make_bq25892(), make_max17048(), make_usblc6()]
+    blocks += [lift_from_r1(n) for n in ("SY8120", "MT9700")]
     for spec in (TPS7A0233, TPS22965, TPS63802, TPS62A02):
         spec = dict(spec)
         blocks.append(make_ic(spec.pop("name"), **spec))

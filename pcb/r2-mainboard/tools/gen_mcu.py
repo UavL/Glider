@@ -80,7 +80,7 @@ RIGHT = [
     ("45", "MCU_SWDIO"),         # PA13 SWDIO
     ("46", "MCU_SWCLK"),         # PA14 SWCLK / BOOT0
     ("47", "SOM_RESET#"),        # PA15
-    ("27", "EPD_PWR_EN"),        # PB0
+    ("27", "EPD_PWR_EN_MCU"),    # PB0  -- via R45, see block F
     ("28", "EPD_POS_EN"),        # PB1
     ("29", "VCOM_EN"),           # PB2
     ("57", "CHG_OTG"),           # PB3
@@ -392,6 +392,29 @@ def build():
          "pin, so firmware must leave that pin's internal pull-up/pull-down",
          "DISABLED (Table 21 note 2). A 15 s hold forces a BATFET reset, so a "
          "clean shutdown has to finish well inside 12 s.")
+
+    # ================================================================
+    # Block F — EPD_PWR_EN series resistor, carried over from R1.
+    #
+    # R1 puts a 1 k in series between the MCU pin and EPD_PWR_EN (R22 on its
+    # mcu sheet) because power_mon's U21 has its open-drain CRITICAL output on
+    # the same net: an INA3221 over-current trip has to be able to pull the EPD
+    # rail's enable low even while the MCU is driving it high. Without the
+    # resistor the two fight and the protection does nothing.
+    # ================================================================
+    sh.text(299.72, 177.8, "EPD_PWR_EN series", 2.0)
+    r45 = sh.place("Device:R", "R45", "1k", 320.04, 190.5, 90,
+                   footprint=R_FP,
+                   ref_at=(320.04, 185.42), val_at=(320.04, 196.85),
+                   justify="left")
+    sh.wire((299.72, 190.5), r45.pin("1"))
+    sh.label(299.72, 190.5, "EPD_PWR_EN_MCU", justify="right")
+    sh.wire(r45.pin("2"), (345.44, 190.5))
+    sh.label(345.44, 190.5, "EPD_PWR_EN", justify="left")
+    note(299.72, 198.12,
+         "power_mon's U21 drives this net open-drain from CRITICAL, so an",
+         "over-current trip must win against the MCU. R45 limits that fight to",
+         "~3.3 mA. PB0 can also be read back to see the trip. docs/epd-port.md §4.")
 
     # ================================================================
     # Sheet interface.

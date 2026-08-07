@@ -185,7 +185,7 @@ it is the reason `LED_STAT#` is on `PC2` and not on the otherwise-convenient `PC
 | 45 | `PA13` | `MCU_SWDIO` | `SWDIO` (AF0) | Table 13 |
 | 46 | `PA14` | `MCU_SWCLK` | `SWCLK` (AF0), = `BOOT0` | Table 12 p.53 |
 | 47 | `PA15` | `SOM_RESET#` | GPIO out, open-drain | §4 |
-| 27 | `PB0` | `EPD_PWR_EN` | GPIO out | |
+| 27 | `PB0` | `EPD_PWR_EN_MCU` | GPIO out, via `R45` 1 k | `epd-port.md` §2 |
 | 28 | `PB1` | `EPD_POS_EN` | GPIO out | |
 | 29 | `PB2` | `VCOM_EN` | GPIO out | |
 | 57 | `PB3` | `CHG_OTG` | GPIO out | |
@@ -396,7 +396,7 @@ interrupt-driven and measured in microseconds per event.
 
 `+3V3_AON` and `GND` are power symbols, which are global in KiCad and need no hierarchical label.
 `KEY_PREV#`, `KEY_NEXT#`, `QON_SNS`, `MCU_SWDIO`, `MCU_SWCLK`, `MCU_NRST`, `LED_STAT#`,
-`+3V3_VREF`, `OSC32_IN` and `OSC32_OUT` stay on this sheet.
+`EPD_PWR_EN_MCU`, `+3V3_VREF`, `OSC32_IN` and `OSC32_OUT` stay on this sheet.
 
 **`MCU_TXD` and `MCU_RXD` are named from the MCU's point of view.** On `som.kicad_sch`, `MCU_TXD`
 lands on the SoM's UART **RX** and `MCU_RXD` on its **TX**. Written down because it is the classic
@@ -408,15 +408,16 @@ error and the sheets are drawn months apart.
   and `C49` are 18 pF on the assumption of 12.5 pF and ~3 pF stray (§5.4). Confirm from the Epson
   datasheet before layout, and check the crystal's drive-level rating against the G0's LSE drive
   setting — an overdriven watch crystal ages badly.
-- **`INA3221` supply and shutdown current** — §5.3 puts all three on `+3V3_AON` at an estimated
-  2 µA each in power-down. WP4 must confirm from the `INA3221` datasheet, because if the real figure
-  is tens of microamps the argument for a single bus weakens.
+- ~~**`INA3221` supply and shutdown current**~~ — **confirmed in WP4**: 0.5 µA typ / 2 µA max in
+  power-down ‡ (`ina3221.pdf`). All three are on `+3V3_AON` in `power_mon.kicad_sch`, ~1.5 µA typ
+  total, and §5.3's single-bus argument holds.
 - **`VBUS_MEA` may be redundant.** The `BQ25892` has its own ADC reporting `VBUS`, `VBAT`, `SYS` and
   `TS` over I²C ‡, which R1 had no equivalent of. The divider is kept as an independent cross-check
   and costs one pin; WP4 may delete it, and `PA7` becomes a twelfth spare.
-- **Negative-rail measurement.** `VN_MEA` and `VGL_MEA` read rails below ground. R1's arrangement on
-  `power_mon.kicad_sch` has to be read carefully in WP4 — a plain divider cannot present a negative
-  rail to an ADC, and whatever level shift R1 uses has to come across with it.
+- ~~**Negative-rail measurement.**~~ **Answered in WP4** (`epd-port.md` §4.2): R1 divides between
+  the negative rail and `+3V3_DCDC` rather than to ground. Carried over unchanged. One consequence
+  for firmware: `VREF+` is `+3V3_AON` here but the divider references `+3V3_DCDC`, so `VN_MEA` and
+  `VGL_MEA` can only be interpreted together with the `+3V3` bus voltage read from `U21` ch3.
 - **`SOM_*` handshake.** Three signals are reserved (`WAKE#`, `IRQ#`, `RESET#`) plus the UART. What
   the SoM actually needs — and whether `SOM_RESET#` is even accessible on `PCL-071` — is WP8, and
   waits on PHYTEC.

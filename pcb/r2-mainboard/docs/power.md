@@ -279,13 +279,18 @@ that four bucks could not be turned off at all. The result here is that they can
 
 ## 9. Open
 
-- **`+3V3_AON` is not current-monitored.** R1 had no always-on domain, so `power_mon` has no channel
-  convention for one. Decide in WP4 whether to spend an `INA3221` channel on it — the standby figure
-  above is the one number in the whole budget that nothing else can measure.
+- **`+3V3_AON` is now current-monitored — and this sheet needs a one-net change for it.** WP4 gave
+  `U22` ch2 to the always-on domain (`epd-port.md` §3), freed by deleting the video rails. For that
+  shunt to have an upstream net, **`U10`'s output must be renamed from `+3V3_AON` to
+  `+3V3_AON_DCDC`** — one power symbol, matching the `*_DCDC` convention every other rail follows.
+  Left for this sheet's reviewer rather than edited underneath them; until it is done,
+  `+3V3_AON_DCDC` has no source and ERC says so.
 - **Rail load estimates.** Every current in §1 and §3.2 is an estimate. The SoM figure in particular
   waits on PHYTEC; if `VIN` peak is materially above 1.2 A, re-run §3.2's peak calculation.
-- **`+5V` for the EPD HV chain.** R1 feeds `LGS5145` from 5 V. WP4 must check its input range — if
-  it tolerates 3.0 V, the EPD chain can run from `+VSYS` directly and skip a conversion.
+- ~~**`+5V` for the EPD HV chain.**~~ **Answered in WP4** (`epd-port.md` §4.1): no. The `LGS5145`
+  is a buck with a 4.5 V minimum input, run here as an inverting buck-boost. In steady state its
+  `GND` pin sits on the negative rail so it sees ~25 V, but **at startup that rail is at 0 V** and
+  the part sees `+VSYS` alone — 3.0 V from a flat cell will not start it. The 5 V feed stays.
 - **Spartan-6 sequencing** — §5.
 - **The `DLA0010A` footprint and the `RWU0007A` thermal pad** — §7.
 - **`battery.kicad_sch`'s `+3V3_AON` `PWR_FLAG` is now an ERC error, and it is the only one.**
