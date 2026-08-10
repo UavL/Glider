@@ -6027,7 +6027,7 @@
 			(uuid "ff5d28ea-93aa-4d51-b0eb-287ed6b38e65")
 		)
 		(instances
-			(project ""
+			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a2610316-2c52-4df4-b890-bf21654f6608"
 					(reference "J3")
 					(unit 1)
@@ -6267,7 +6267,7 @@
 			(uuid "7e08865b-b133-4e9e-b599-2302a84b1760")
 		)
 		(instances
-			(project ""
+			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a2610316-2c52-4df4-b890-bf21654f6608"
 					(reference "J6")
 					(unit 1)

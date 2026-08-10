@@ -157,7 +157,7 @@
 			)
 		)
 		(pin "VGH_DAC" input
-			(at 177.8 127.0 0)
+			(at 177.8 127 0)
 			(uuid "e99a6a8f-621b-4a91-9253-8d33d6e3e5fc")
 			(effects
 				(font
@@ -477,7 +477,7 @@
 			)
 		)
 		(pin "EPDC_CLKP" input
-			(at 78.74 127.0 0)
+			(at 78.74 127 0)
 			(uuid "cefee811-fe14-44a2-84e3-9ec3a6eaeecb")
 			(effects
 				(font
@@ -1399,7 +1399,7 @@
 			)
 		)
 		(pin "MCU_TXD" output
-			(at 276.86 127.0 0)
+			(at 276.86 127 0)
 			(uuid "4882bf20-2540-47ce-97bb-73c2688d2540")
 			(effects
 				(font
@@ -1725,4 +1725,5 @@
 			(page "1")
 		)
 	)
+	(embedded_fonts no)
 )

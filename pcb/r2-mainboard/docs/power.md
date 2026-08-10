@@ -1,6 +1,9 @@
 # `power.kicad_sch` — rail tree — R2 work package 2
 
-Status: **drawn, not reviewed.** Companion to `battery.md`. Everything here cites either a datasheet
+Status: **drawn, review in progress by the hardware owner.** Companion to `battery.md`, which has
+now been through one review round — its §10 shows the format the answers take: each point restated,
+answered from a datasheet with the page or table cited, and closed with either "changed, here is
+what and why" or "correct as drawn, here is the evidence". Do the same here. Everything here cites either a datasheet
 in `../datasheets/` (with the page or table), the LCSC catalogue, or a file in this repo. Estimates
 are marked **(est.)** and are the things a bench measurement has to replace.
 
@@ -279,6 +282,10 @@ that four bucks could not be turned off at all. The result here is that they can
 
 ## 9. Open
 
+- **This doc still owes a "Layout guidelines" section**, in the shape of `battery.md` §11 — the
+  switching-return / quiet-return separation, hot-loop minimisation and `SW`-node rules, per
+  regulator. To be written with the review of this sheet, while the datasheets are open. Nothing
+  in it is actionable until Stage D, but it has to be captured before the datasheets are closed.
 - **`+3V3_AON` is now current-monitored — and this sheet needs a one-net change for it.** WP4 gave
   `U22` ch2 to the always-on domain (`epd-port.md` §3), freed by deleting the video rails. For that
   shunt to have an upstream net, **`U10`'s output must be renamed from `+3V3_AON` to

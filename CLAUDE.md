@@ -12,7 +12,11 @@ design; `USAGE.md` has the practical board/flashing/dev workflow — read that f
 **Ongoing work on branch `Board-Design`: designing R2, a battery e-reader board.** R1's power
 work hit a hardware wall — 82 % of the idle draw sits on bucks whose enable pins are hardwired
 on, so no firmware change can fix it. Read in this order:
-- **`NOTES-R2-plan.md`** — what R2 is and what to do next. Start here.
+- **`NOTES-R2-plan.md`** — what R2 is and what to do next. Start here; its "Stage C progress"
+  table says which sheets are drawn, which are reviewed, and what is waiting on the owner.
+- **`pcb/r2-mainboard/docs/<sheet>.md`** — one spec per schematic sheet: part choices with LCSC
+  codes, values with the arithmetic shown, the sheet's hierarchical interface, review answers and
+  the layout guidelines for that circuit. Read the sheet's doc before touching its `.kicad_sch`.
 - **`NOTES-R2-hardware-facts.md`** — the evidence base: every verified fact with its source
   (TI TRM/app notes, PHYTEC manuals, LCSC catalogue, this repo).
 - **`NOTES-STATUS.md`** — R1's state: what is flashed on the board, the measured power budget,
@@ -30,6 +34,9 @@ Repo layout:
 - `Caster/` — FPGA gateware submodule (Spartan-6, built with Xilinx ISE 14.7).
 - `fw/User/tinyusb/` — TinyUSB submodule (USB stack).
 - `pcb/` — KiCad board design (`pcb/pcb_common` submodule for shared library parts).
+  `pcb/mainboard/` is R1 (KiCad 8, **read-only**); `pcb/r2-mainboard/` is R2 (KiCad 10), with
+  `docs/` specs, `datasheets/`, and `tools/` — the generators and patch scripts that produced the
+  sheets. A sheet that has been saved in Eeschema is edited surgically, never regenerated.
 - `utils/flash_tool/` — `flash.py` (HID-based flashing/config tool), `cfggen` (display timing config generator),
   `power_survey.py` (compares power draw across suspend states over HID+shell).
 - `scripts/` — build/release automation (see Commands below).

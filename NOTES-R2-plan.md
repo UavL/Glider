@@ -1,6 +1,9 @@
 # Glider-R2 — plan
 
-Branch `Board-Design`. Last updated **2026-08-03**.
+Branch `Board-Design`. Last updated **2026-08-10**.
+
+Capture is under way — see **Stage C progress** below for which sheets exist and
+which have been reviewed. Per-sheet specs live in `pcb/r2-mainboard/docs/`.
 
 Evidence for every claim here is in **`NOTES-R2-hardware-facts.md`**. R1's state is in
 `NOTES-STATUS.md`. This file is only what to do and in what order.
@@ -239,6 +242,49 @@ module consignment logistics here, not at order time.
 **In parallel, independent of all of the above:** flash and test the R1 firmware and gateware from
 `613e8ee`. The gateware half needs the ISE VM back up. This is the only thing that can make
 progress today.
+
+### Stage C progress — capture
+
+Project: `pcb/r2-mainboard/`, KiCad 10 native. **`pcb/mainboard/` (R1, KiCad 8) is
+read-only** — opening it in KiCad 10 upgrades it irreversibly; copy out, never
+save in.
+
+Working loop, agreed with the hardware owner: **assistant draws → owner reviews
+and edits in Eeschema → assistant reviews the edits back and redraws.** Once a
+sheet has been saved in Eeschema its `.kicad_sch` is the source of truth and is
+patched surgically; the `tools/gen_*.py` generators are not re-run over it.
+
+| WP | Sheets | Drawn | Reviewed by owner | Notes |
+| --- | --- | --- | --- | --- |
+| WP1 | `battery` | yes | **yes — round 1 done** | `Analyse_battery.md` → answered in `docs/battery.md` §10; four fixes applied |
+| WP2 | `power` | yes | in progress | |
+| WP3 | `mcu` | yes | pending | |
+| WP4 | `epd`, `epd_power`, `power_mon` | yes — ported from R1 | pending | `epd`/`epd_power` provably net-identical to R1; `power_mon` differs in 4 intended groups |
+| WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | no | — | `fpga_config` gains a SPI NOR for FPGA self-boot |
+| WP6 | `frontlight`, `io_expansion` | no | — | FL driver, unpopulated touch/pen FPC, microSD |
+| WP7 | `dpi_in` | no | — | the 22-signal link |
+| WP8 | `som` + DSC landing footprint | no | — | **held last**, pending PHYTEC |
+
+**Root sheet is still unwired.** Sheet pins exist on `r2.kicad_sch` but carry no
+nets between sheets, so e.g. `MCU_EN_5V` on `mcu` and on `power` are two
+different nets today. This is why ERC reports ~270 `isolated_pin_label` /
+`pin_not_connected` / `power_pin_not_driven` violations — they are an artifact of
+that, not of the sheets. Wire the root once the sheet symbols stop moving.
+
+Standing asks for the owner, carried across sessions:
+
+1. Delete the `+3V3_AON` `PWR_FLAG` at (360.68, 205.74) on `battery.kicad_sch` —
+   rightmost of five. Clears the last `pin_to_pin`.
+2. Rename `U10`'s output on `power.kicad_sch` from `+3V3_AON` to `+3V3_AON_DCDC`,
+   so `power_mon`'s U22 ch2 has an upstream net to measure across.
+3. Fix KiCad's **global** library tables (Preferences → Configure Paths →
+   `~/Apps/kicad-10.0.4/usr/share/kicad/`). They still point at a dead AppImage
+   mount, which is the sole cause of the ~210 `footprint_link_issues`. Outside
+   the repo, so not the assistant's to change.
+
+Recommended, not yet done: retype `QON` in `r2.kicad_sym` from `input` to
+`passive` (clears a permanent `pin_not_driven`); deferred because
+`battery.kicad_sch` embeds a copy of the symbol.
 
 ---
 

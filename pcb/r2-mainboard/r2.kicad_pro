@@ -261,7 +261,7 @@
       "internal_id": "",
       "mfg": "",
       "mpn": "",
-      "sch_revision": ""
+      "sch_revision": "A"
     },
     "layer_pairs": [],
     "layer_presets": [],
@@ -735,16 +735,16 @@
       {
         "filename": "r2.kicad_sch",
         "name": "r2",
-        "uuid": "00000000-0000-0000-0000-000000000000"
+        "uuid": "dee825bf-c2f1-415d-afdf-cf702072a6e8"
       }
     ],
-    "used_designators": "",
+    "used_designators": "#PWR45,R37,D7",
     "variants": []
   },
   "sheets": [
     [
       "dee825bf-c2f1-415d-afdf-cf702072a6e8",
-      "Root"
+      "r2"
     ],
     [
       "a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee",
