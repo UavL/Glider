@@ -263,7 +263,7 @@ patched surgically; the `tools/gen_*.py` generators are not re-run over it.
 | WP1 | `battery` | yes | **yes — round 1 done** | `manual-analysis/Analyse_battery.md` → answered in `docs/battery.md` §10; four fixes applied |
 | WP2 | `power` | yes | **yes — round 1 done** | `manual-analysis/Analysis_power.md` → answered in `docs/power.md` §10. **The `TPS22965` load switch is deleted** — the boost already has true output disconnect; layout guidelines written (§11) |
 | WP3 | `mcu` | yes | **yes — round 1 done** | `manual-analysis/Analysis_mcu.md` → answered in `docs/mcu.md` §10. `C42` deleted (Figure 15 asks for no `VBAT` cap); page buttons → `EVQPLHA15` for **500 k cycles** instead of 100 k; layout guidelines written (§11). Opened a real gap: **the MCU has no field-update or brick-recovery path** (§5.7) |
-| WP4 | `epd`, `epd_power`, `power_mon` | yes — ported from R1 | pending | `epd`/`epd_power` provably net-identical to R1; `power_mon` differs in 4 intended groups |
+| WP4 | `epd`, `epd_power`, `power_mon` | yes — ported from R1 | **yes — round 1 done, accepted as a 1:1 port** | `manual-analysis/Analysis_epd_files.md` → answered in `docs/epd-port.md` §9. `epd`/`epd_power` provably net-identical to R1; `power_mon` differs in 4 intended groups. **No schematic change.** Two items opened: keep the panel adapter board for now (the panel model is still deferred), and `J3` (16p) is probably droppable once the panel is chosen |
 | WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | no | — | `fpga_config` gains a SPI NOR for FPGA self-boot |
 | WP6 | `frontlight`, `io_expansion` | no | — | FL driver, unpopulated touch/pen FPC, microSD |
 | WP7 | `dpi_in` | no | — | the 22-signal link |

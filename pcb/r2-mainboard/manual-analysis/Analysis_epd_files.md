@@ -1,0 +1,1 @@
+General question: The display is not connected directly into the main pcb on the glider board on the dev kit by modos. Is that because its a dev kit and should we do it diffrently or also keep a seperate small psb for the display connector. Maybe if we would offer diffrent device sizes or something? Other than that it looks like a 1 to 1 port and is fine for me.

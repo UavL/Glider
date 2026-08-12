@@ -1,6 +1,8 @@
 # `epd`, `epd_power`, `power_mon` — the R1 port — R2 work package 4
 
-Status: **ported, not reviewed.** Companion to `battery.md`, `power.md` and `mcu.md`.
+Status: **ported; reviewed once — accepted as a 1:1 port.** The review raised one question, about
+why the panel connector lives on a separate adapter board; it is answered in §9. Companion to
+`battery.md`, `power.md` and `mcu.md`.
 
 These three sheets are **copied** from `pcb/mainboard/`, not redrawn. The acceptance criterion here
 is "is it the same as R1", so every part, value, coordinate and wire is carried over byte-for-byte
@@ -201,6 +203,13 @@ from — but only in R1's rail context.
 - **`epd`'s `J3`/`J6` pinouts were carried pin-for-pin and not re-checked** against the panel.
   `NOTES-R2-plan.md`'s verification list asks for that diff explicitly — it is a WP-E task, not a
   port task, but it is still owed.
+- **`J3` (the 16-pin connector) is probably dead weight for R2, and dropping it is free only until
+  the panel is chosen.** It carries nothing but `EPDC_D8`–`D11`, a clock pair and six grounds — the
+  width/LVDS extension (§9.3). An 8- or 16-bit reader panel needs `J6` alone. Decide with the panel.
+- **Layout guidelines are still owed for these three sheets.** `battery.md`, `power.md` and `mcu.md`
+  each carry a §11; this document has none, because the port's answer to "how should it be laid out"
+  was "the same as R1". That is a real answer for the HV chain but not a written one, and the EPD
+  supply is the most layout-sensitive circuit on the board. Write it before Stage D.
 - **The root sheet is still unwired**, so most of §6's ERC count is noise and cross-sheet
   connectivity is verified by script instead of by ERC. See §8.
 
@@ -216,3 +225,101 @@ are still two nets (`/mcu/...` and `/power/...`). Wiring it is mechanical — a 
 — but it should happen when the sheet symbols stop moving, since wires follow them. Until then,
 cross-sheet agreement is checked by comparing hierarchical label names and directions between
 sheets directly, which is what WP3 §11 and §6 above do.
+
+## 9. Review 1 (2026-08-12) — the analysis note, answered
+
+The note is `../manual-analysis/Analysis_epd_files.md`, and it accepts the port: *"it looks like a
+1 to 1 port and is fine for me."* One question remains, and it is a good one because the answer is
+not in these three sheets at all.
+
+> The display is not connected directly into the main pcb on the Glider board on the dev kit by
+> Modos. Is that because it's a dev kit and should we do it differently, or also keep a separate
+> small PCB for the display connector? Maybe if we would offer different device sizes?
+
+### 9.1 Why R1 does it — not a dev-kit compromise, a deliberate architecture
+
+`README.md` says it in as many words, under "Screen Adapters":
+
+> "**Different screen panels have different connectors.** It would take a huge amount of space to
+> have every possible screen connector on the motherboard. Instead, a series of different screen
+> adapters are provided to adapt to the screen with different pinouts.
+>
+> The motherboard uses a **50 pin + 16 pin** connector. A single 50 pin connector is enough for
+> 8/16-bit screens, the 16 pin connector additionally adds support for LVDS screens and 32-bit /
+> 64-bit screens."
+
+The repo backs that up: `pcb/` contains **ten** adapter projects — `34p-adapter-a`, `34p-adapter-b`,
+`35p-adapter-a`, `39p-adapter-b`, `39p-adapter-c`, `40p-adapter-ab`, `50p-adapter-b`,
+`50p-adapter-c`, `mega_adapter` and `u133_adapter` — each a four-file KiCad project whose whole job
+is to map one panel family's FPC pinout onto the mainboard's bus. README's mapping:
+
+| Adapter | Panels |
+| --- | --- |
+| 33P-A | `ED097OC1-4`/`TC1` |
+| 34P-A | `ED060XC3`/`XD4`/`XG1` etc. |
+| 39P-A | `ED133UT1-3`, `ED050SU3` etc. |
+| 40P-A / 40P-B | `ED078KC1`, `ED103TC2` — **A inserts contacts-down, B contacts-up** |
+| 50P-A | `ED113TC1` |
+
+Two things follow. First, the driver is **board area**: EPD FPCs come in 33, 34, 35, 39, 40 and 50
+pin variants and you cannot fit them all on one mainboard edge. Second — and this is the part that
+cannot be designed away — the **A/B distinction is mechanical**, contacts facing up versus down. No
+pinout cleverness on a single connector satisfies both; only a different land pattern does. So even a
+mainboard willing to spend the area could not be panel-agnostic without adapters.
+
+So: it is not because it is a dev kit. It is because the dev kit's job is to drive *any* panel, and
+`README.md`'s Appendix 1 screen list has an "Adapter" column precisely so a user can look theirs up.
+
+### 9.2 What R2 inherited, and what I recommend
+
+R2 carries the same bus, ported unchanged: `J6` = `FPC-05F-50PH20` (50-pin, 0.5 mm, horizontal) and
+`J3` = `FPC-05F-16PH20` (16-pin). So R2 is on the adapter model today by inheritance, not by
+decision.
+
+**Recommendation: keep it for now, and revisit at Stage D — because the panel is not chosen yet.**
+`NOTES-R2-plan.md`'s open-questions table still lists "Panel model — no, deferred with touch/pen,
+read it off the tail/back label". Direct-mounting means committing the mainboard to one panel's exact
+pin count, pinout *and* FPC exit geometry. On a board whose stated premise is that there is no
+respin, that is betting the most expensive PCB on the one variable still undecided. The adapter is
+the cheap hedge: if the panel changes, a $2 board changes.
+
+**But the trade is real, and it goes the other way once the panel is locked.** For a battery reader,
+against R1's monitor:
+
+| | Adapter board | Direct-mount |
+| --- | --- | --- |
+| Z-height | two connector stacks + a second PCB | one FPC connector |
+| Cost | extra PCB, extra connector, extra assembly | — |
+| Drop reliability in a sealed handheld | two more joints to fail, unserviceable | one joint |
+| Signal integrity | two extra discontinuities on a wide parallel bus | clean run |
+| Panel flexibility | **one mainboard, N panels** | one panel, or a respin |
+
+Thickness and drop reliability are the ones that actually matter for a reader and do not matter for a
+desk monitor, which is why this question deserves a different answer in R2 than in R1 — **once there
+is a panel to answer it about.**
+
+**And the note's own hypothesis is the strongest argument for keeping it.** If R2 ever ships in more
+than one size, the adapter model is exactly how: one mainboard, one adapter per panel. That is not a
+dev-kit artefact — it is a product-line decision, and R1 already paid the engineering cost of it. If
+multiple sizes are a real intention rather than a maybe, the question is settled and the adapter
+stays permanently.
+
+### 9.3 One thing worth deciding early: `J3` is probably dead weight
+
+Reading the exported netlist, `J3`'s sixteen pins carry **only** `EPDC_D8P/N`, `D9P/N`, `D10P/N`,
+`D11P/N`, `EPDC_CLKP/N` and six grounds. Everything a normal panel needs is on `J6`: `EPDC_D0`–`D7`,
+the gate strobes (`GDCLK`, `GDOE`, `GDSP`), the source strobes (`SDCE0`, `SDLE`, `SDOE`, `SE_CLK`),
+all five HV rails (`+VGH`, `+VP`, `-VCOM`, `-VGL`, `-VN`), `+3V3`, the frontlight (`+5V2_FL`,
+`FL_EN`, `FL_PWM1/2`) and ten grounds — with five pins spare.
+
+That matches README exactly: 50-pin alone covers 8/16-bit panels, and the 16-pin adds LVDS and
+32/64-bit. **A 6″–8″ reader panel is 8- or 16-bit, so `J3` would never be populated.** Deleting it
+saves a 0.5 mm-pitch FPC connector, ten routed signals and its share of board edge — on a device
+where edge space is scarce. It cannot be added back after fab, so this is a decide-with-the-panel
+item, now in §7 rather than a change made on a guess.
+
+### 9.4 Nothing changed in the schematics
+
+This review round is answers only. `epd`, `epd_power` and `power_mon` are untouched, so §6's
+verification — `epd` and `epd_power` provably net-identical to R1, `power_mon` differing in exactly
+four intended groups — still stands as run.
