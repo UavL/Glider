@@ -953,7 +953,7 @@
 		)
 	)
 	(sheet
-		(at 320.04 119.38)
+		(at 320.04 124.46)
 		(size 55.88 25.4)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -969,7 +969,7 @@
 		)
 		(uuid "5c8ce93f-26c8-4450-ba3a-dff03cacb9ae")
 		(property "Sheetname" "frontlight"
-			(at 320.04 118.6674 0)
+			(at 320.04 123.7474 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -980,7 +980,7 @@
 			)
 		)
 		(property "Sheetfile" "frontlight.kicad_sch"
-			(at 320.04 145.3646 0)
+			(at 320.04 150.4446 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2028,7 +2028,7 @@
 	)
 	(sheet
 		(at 320.04 68.58)
-		(size 55.88 38.1)
+		(size 55.88 43.18)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -2054,7 +2054,7 @@
 			)
 		)
 		(property "Sheetfile" "fpga_config.kicad_sch"
-			(at 320.04 107.2646 0)
+			(at 320.04 112.3446 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2066,7 +2066,7 @@
 		)
 		(pin "FPGA_CLK33" input
 			(at 375.92 73.66 0)
-			(uuid "7b04cc88-8ee5-445b-80a6-b0e21d3cf464")
+			(uuid "4ede8fe2-51cc-4b3c-abba-e2e7066db61d")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2076,7 +2076,7 @@
 		)
 		(pin "FPGA_CS" input
 			(at 375.92 76.2 0)
-			(uuid "1b22d991-f341-4af5-932a-e41a4a705de5")
+			(uuid "9c6fe878-1a89-4868-9aae-fa46574cd55f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2086,7 +2086,17 @@
 		)
 		(pin "FPGA_DONE" output
 			(at 375.92 78.74 0)
-			(uuid "9b6c39c5-c0b6-4330-bcbd-0b47cfc030ab")
+			(uuid "336e73ef-1f7e-44f1-a723-6bd26e3d57f9")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_INIT" output
+			(at 375.92 81.28 0)
+			(uuid "da20b3e1-0d6d-4f5d-a344-4c123d6eb562")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2095,8 +2105,8 @@
 			)
 		)
 		(pin "FPGA_MISO" output
-			(at 375.92 81.28 0)
-			(uuid "3277654e-55ef-4c0a-86b0-39b2909bd92a")
+			(at 375.92 83.82 0)
+			(uuid "5c36dce0-db55-4dc6-8bfc-fd42a0b00f66")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2105,8 +2115,8 @@
 			)
 		)
 		(pin "FPGA_MOSI" input
-			(at 375.92 83.82 0)
-			(uuid "c2e34a01-12e7-4e13-9edc-305c383cd016")
+			(at 375.92 86.36 0)
+			(uuid "21c1e0e0-7d21-413d-859e-b8e228d8e0b8")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2115,8 +2125,8 @@
 			)
 		)
 		(pin "FPGA_PROG#" input
-			(at 375.92 86.36 0)
-			(uuid "3e636302-6cb0-4d95-86ba-2772686160e6")
+			(at 375.92 88.9 0)
+			(uuid "f20f284b-e065-429b-9ea6-b3e7b9e55f1a")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2125,8 +2135,8 @@
 			)
 		)
 		(pin "FPGA_SCLK" input
-			(at 375.92 88.9 0)
-			(uuid "d0a1dece-d172-4128-92d7-fd52fcf8e902")
+			(at 375.92 91.44 0)
+			(uuid "47088c16-48d8-47da-b2cf-c473347ae2c7")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2135,8 +2145,8 @@
 			)
 		)
 		(pin "FPGA_SUSP" input
-			(at 375.92 91.44 0)
-			(uuid "9e1a9fc8-10f1-4b03-a110-9ccfe305ee51")
+			(at 375.92 93.98 0)
+			(uuid "59f9f63b-ce59-438c-80fd-99efb2f6e2e0")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2145,8 +2155,8 @@
 			)
 		)
 		(pin "FPGA_TCK" input
-			(at 375.92 93.98 0)
-			(uuid "02656597-efe0-4788-8f8b-c52e3c4c2d33")
+			(at 375.92 96.52 0)
+			(uuid "87cb83ca-11f7-4622-bd17-d5bd918c2d78")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2155,8 +2165,8 @@
 			)
 		)
 		(pin "FPGA_TDI" input
-			(at 375.92 96.52 0)
-			(uuid "f8aa25d3-e40b-460a-bdd2-49e223c6fc86")
+			(at 375.92 99.06 0)
+			(uuid "835f331a-b958-4a25-bc13-a47d2f2c6ac3")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2165,8 +2175,8 @@
 			)
 		)
 		(pin "FPGA_TDO" output
-			(at 375.92 99.06 0)
-			(uuid "07d631e6-abea-4110-94bb-8fd7ba059521")
+			(at 375.92 101.6 0)
+			(uuid "762f6641-bca9-4fc7-b44e-5c77f4c7d8e4")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2175,8 +2185,18 @@
 			)
 		)
 		(pin "FPGA_TMS" input
-			(at 375.92 101.6 0)
-			(uuid "125833e0-729d-4ab4-8c5c-aa1b3fb6ddcc")
+			(at 375.92 104.14 0)
+			(uuid "81cea6ec-77dc-4341-a3c0-c65cb3e3b6a0")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "NOR_CS" input
+			(at 375.92 106.68 0)
+			(uuid "cf5879f1-fe9c-48e4-a291-16d5bbb06f39")
 			(effects
 				(font
 					(size 1.27 1.27)
