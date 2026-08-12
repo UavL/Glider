@@ -1572,7 +1572,7 @@
 	)
 	(sheet
 		(at 220.98 30.48)
-		(size 55.88 111.76)
+		(size 55.88 124.46000000000001)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -1598,7 +1598,7 @@
 			)
 		)
 		(property "Sheetfile" "mcu.kicad_sch"
-			(at 220.98 142.8246 0)
+			(at 220.98 155.5246 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -1608,89 +1608,9 @@
 				(justify left top)
 			)
 		)
-		(pin "MCU_EN_5V" output
+		(pin "CHG_CE#" output
 			(at 276.86 35.56 0)
-			(uuid "7987a92b-de3e-4fe0-b023-699aa4bb7f9f")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "MCU_EN_3V3" output
-			(at 276.86 38.1 0)
-			(uuid "67169f42-2b77-4df5-b146-4fbb5f519d96")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "MCU_EN_FPGA_CORE" output
-			(at 276.86 40.64 0)
-			(uuid "115d0f4b-92a0-4ff1-baae-7f7cfb503207")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "MCU_EN_DDR" output
-			(at 276.86 43.18 0)
-			(uuid "904e433c-1f08-4d92-90fa-bcfb507fcb71")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "PG_3V3" input
-			(at 276.86 45.72 0)
-			(uuid "cc048b37-f1d3-45fc-9f0d-133871ce2b37")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "PG_1V2" input
-			(at 276.86 48.26 0)
-			(uuid "570e90fa-0217-4dcc-a82f-ed2eb26fbe02")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "PG_1V5" input
-			(at 276.86 50.8 0)
-			(uuid "4d3b0a8a-b857-4a2d-aa8d-9948359dca70")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "SDA_AON" bidirectional
-			(at 276.86 53.34 0)
-			(uuid "e4ab708c-f70d-4751-aa43-0690d0b52e0f")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "SCL_AON" bidirectional
-			(at 276.86 55.88 0)
-			(uuid "10967fa6-7ff5-4d19-ab2d-c3c0183ed97e")
+			(uuid "b1fc9fd1-c5a8-4b94-97d8-5024b62cf566")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1699,38 +1619,8 @@
 			)
 		)
 		(pin "CHG_INT#" input
-			(at 276.86 58.42 0)
-			(uuid "9d6f095e-70c9-498c-b72a-67904b6dd891")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "CHG_PG#" input
-			(at 276.86 60.96 0)
-			(uuid "edf157d4-5133-44ee-8006-7b5329185fb4")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "CHG_STAT#" input
-			(at 276.86 63.5 0)
-			(uuid "dc18b68a-15cd-4b91-acf8-77f8c4b5b740")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "CHG_CE#" output
-			(at 276.86 66.04 0)
-			(uuid "d32c51cb-9b42-4c09-b53d-65b38680e74c")
+			(at 276.86 38.1 0)
+			(uuid "54036607-2aff-4984-8943-799e075cd2cd")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1739,8 +1629,18 @@
 			)
 		)
 		(pin "CHG_OTG" output
-			(at 276.86 68.58 0)
-			(uuid "6560e734-8ecf-4de4-b188-a8f53e64031a")
+			(at 276.86 40.64 0)
+			(uuid "6ebf7fc9-ecb7-45bb-a8c7-82c91d3cb9fd")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "CHG_PG#" input
+			(at 276.86 43.18 0)
+			(uuid "3f451138-8d6c-4eec-bb2f-5ba2154076ab")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1749,8 +1649,8 @@
 			)
 		)
 		(pin "CHG_QON#" bidirectional
-			(at 276.86 71.12 0)
-			(uuid "77e29e19-a3a4-4d97-936c-bfdcf62fe655")
+			(at 276.86 45.72 0)
+			(uuid "2025e4f9-ed13-4c92-88a6-84e3e669fdd7")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1758,29 +1658,9 @@
 				(justify right)
 			)
 		)
-		(pin "GAUGE_ALRT#" input
-			(at 276.86 73.66 0)
-			(uuid "1656c2af-e511-48b9-91d8-74c7f9edfcf1")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "VBUS_DET" input
-			(at 276.86 76.2 0)
-			(uuid "5bd85b51-1973-4ab6-a9de-84885b5b213e")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "EPD_PWR_EN" output
-			(at 276.86 78.74 0)
-			(uuid "c0ac66a4-a616-432c-a266-3cf301ab31f9")
+		(pin "CHG_STAT#" input
+			(at 276.86 48.26 0)
+			(uuid "9e5edbea-41b4-4e1e-a258-2870e33e5a29")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1789,8 +1669,8 @@
 			)
 		)
 		(pin "EPD_POS_EN" output
-			(at 276.86 81.28 0)
-			(uuid "cb52d9d9-554e-4944-b071-2f7d02045ca3")
+			(at 276.86 50.8 0)
+			(uuid "f0b984fc-166f-4c3d-a856-ad9c59dfbce9")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1798,19 +1678,9 @@
 				(justify right)
 			)
 		)
-		(pin "VCOM_EN" output
-			(at 276.86 83.82 0)
-			(uuid "fe1d381e-6651-4b55-81f7-ff1f510a0905")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "VCOM_MEA_EN" output
-			(at 276.86 86.36 0)
-			(uuid "17bb3f2c-f02c-4a51-a2d3-ba110a7634a6")
+		(pin "EPD_PWR_EN" output
+			(at 276.86 53.34 0)
+			(uuid "0ab6283c-d997-4046-acae-b39779fc85ad")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1819,168 +1689,8 @@
 			)
 		)
 		(pin "EPD_THROT" output
-			(at 276.86 88.9 0)
-			(uuid "059fb9b3-cbd6-4ba4-b158-abd43c6e6a45")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "VCOM_DAC" output
-			(at 276.86 91.44 0)
-			(uuid "5e37cb6b-4bf8-4272-aed4-e390ce7a28cc")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "VGH_DAC" output
-			(at 276.86 93.98 0)
-			(uuid "9b116350-00a9-4410-9a27-ad65543d5588")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "VCOM_MEA" input
-			(at 276.86 96.52 0)
-			(uuid "a9e81d4f-8cac-41da-9514-6b413b918487")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "VP_MEA" input
-			(at 276.86 99.06 0)
-			(uuid "3388a791-2dbc-4e69-852f-c4000ecb3086")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "VN_MEA" input
-			(at 276.86 101.6 0)
-			(uuid "d218ac7f-44d4-4d1f-a927-13ae0ec2d5b0")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "VGH_MEA" input
-			(at 276.86 104.14 0)
-			(uuid "48b4b9f8-69a6-4305-9f70-8534e4bebab4")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "VGL_MEA" input
-			(at 276.86 106.68 0)
-			(uuid "97058d00-4f47-4da4-add4-8cc0edc559bd")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "VBUS_MEA" input
-			(at 276.86 109.22 0)
-			(uuid "567315e8-0d89-426f-bbeb-e31b6b3fd0fb")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "FPGA_PROG#" output
-			(at 276.86 111.76 0)
-			(uuid "b55c8b97-07aa-4c07-932f-92c663fea639")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "FPGA_DONE" input
-			(at 276.86 114.3 0)
-			(uuid "3037dbc3-ee85-4848-aa5d-df50940683b0")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "FPGA_SUSP" output
-			(at 276.86 116.84 0)
-			(uuid "a5effe75-54fb-488f-be36-65c914583df7")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "SOM_WAKE#" output
-			(at 276.86 119.38 0)
-			(uuid "f0239d7c-fcc1-4f18-bedb-7f23885391aa")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "SOM_IRQ#" output
-			(at 276.86 121.92 0)
-			(uuid "cab9d0e7-22ef-446e-92b2-b725e0067ba5")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "SOM_RESET#" output
-			(at 276.86 124.46 0)
-			(uuid "2195ff0b-4a0a-4b89-a9d9-566d41c6cd1b")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "MCU_TXD" output
-			(at 276.86 127 0)
-			(uuid "4882bf20-2540-47ce-97bb-73c2688d2540")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "MCU_RXD" input
-			(at 276.86 129.54 0)
-			(uuid "36ea6e8d-6721-4d38-97c3-5701f18341f8")
+			(at 276.86 55.88 0)
+			(uuid "e0d6c6c5-1bc9-4122-a912-4a98e0a10cfe")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1989,8 +1699,8 @@
 			)
 		)
 		(pin "FL_EN" output
-			(at 276.86 132.08 0)
-			(uuid "7d02890f-1b1c-400f-beda-6fb3102b6b33")
+			(at 276.86 58.42 0)
+			(uuid "1427c3d0-96de-4c09-92e4-40a61dba3628")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1999,8 +1709,8 @@
 			)
 		)
 		(pin "FL_PWM1" output
-			(at 276.86 134.62 0)
-			(uuid "f134fd08-4c87-41d0-a787-f9722d0fa16d")
+			(at 276.86 60.96 0)
+			(uuid "5f11f824-c767-44fc-869d-e894e62a9f6f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2009,8 +1719,348 @@
 			)
 		)
 		(pin "FL_PWM2" output
+			(at 276.86 63.5 0)
+			(uuid "6c3ee735-4deb-4910-b8df-f32db66b301b")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_DONE" input
+			(at 276.86 66.04 0)
+			(uuid "13ac4502-2732-46b9-b0d1-0a5fa3a0c45c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_INIT" input
+			(at 276.86 68.58 0)
+			(uuid "05b0013d-9529-4692-8785-13bb3638312d")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_PROG#" output
+			(at 276.86 71.12 0)
+			(uuid "bf24cab1-b3e6-42f4-8258-816d078de683")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_SUSP" output
+			(at 276.86 73.66 0)
+			(uuid "1e7586fa-47af-4a9e-b46c-29fac1a2e658")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_TCK" output
+			(at 276.86 76.2 0)
+			(uuid "2a11de94-5cdc-4ae1-b8cc-f9fab4fe8e7a")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_TDI" output
+			(at 276.86 78.74 0)
+			(uuid "c7d6c71f-72c8-4b66-8865-983ff1a4ac58")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_TDO" input
+			(at 276.86 81.28 0)
+			(uuid "655f1bf1-bb43-405d-92ec-fffd205d4ef5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_TMS" output
+			(at 276.86 83.82 0)
+			(uuid "e4e06573-acf7-4856-9abe-49b38d56617c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "GAUGE_ALRT#" input
+			(at 276.86 86.36 0)
+			(uuid "295d3c32-87ab-4adc-93a6-325a66a4bec9")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "MCU_EN_3V3" output
+			(at 276.86 88.9 0)
+			(uuid "e600c776-0952-4121-b0df-8608cb95e1e2")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "MCU_EN_5V" output
+			(at 276.86 91.44 0)
+			(uuid "1bf63303-74b0-4af2-8bd4-593c59716478")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "MCU_EN_DDR" output
+			(at 276.86 93.98 0)
+			(uuid "416319f8-4275-40c1-8451-e826e83fea3f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "MCU_EN_FPGA_CORE" output
+			(at 276.86 96.52 0)
+			(uuid "e578923f-37bb-4c94-afe3-f37c4ba75cab")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "MCU_RXD" input
+			(at 276.86 99.06 0)
+			(uuid "0e285a06-a16d-4922-868e-b6817f82b238")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "MCU_TXD" output
+			(at 276.86 101.6 0)
+			(uuid "652a8558-75ec-4bf6-b9bc-c991cb405413")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "PG_1V2" input
+			(at 276.86 104.14 0)
+			(uuid "1f34d0b5-53f4-4798-a961-d45de6ca61d5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "PG_1V5" input
+			(at 276.86 106.68 0)
+			(uuid "fa273c95-330a-448f-b31f-32c1b165b06e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "PG_3V3" input
+			(at 276.86 109.22 0)
+			(uuid "1a1d2a90-6927-40e2-a8cf-1220ad2db1b5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SCL_AON" bidirectional
+			(at 276.86 111.76 0)
+			(uuid "4966de6c-5a29-414b-b533-c66c00ac9ea5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SDA_AON" bidirectional
+			(at 276.86 114.3 0)
+			(uuid "6c48b6c9-e88f-47cd-a517-f467c971432e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SOM_IRQ#" output
+			(at 276.86 116.84 0)
+			(uuid "3787efb0-646b-4aa6-850b-ec5dda4573f9")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SOM_RESET#" output
+			(at 276.86 119.38 0)
+			(uuid "6a07a321-d053-484f-be95-aab92e326a72")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SOM_WAKE#" output
+			(at 276.86 121.92 0)
+			(uuid "d6e6b97f-0221-4dfd-8a1f-5e8dd4813758")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VBUS_DET" input
+			(at 276.86 124.46 0)
+			(uuid "47894cfa-bd52-4bf9-a878-d7aeb78ede64")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VBUS_MEA" input
+			(at 276.86 127.0 0)
+			(uuid "3cf4148d-f1bb-4cf3-b664-35101569080c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VCOM_DAC" output
+			(at 276.86 129.54 0)
+			(uuid "8f3196bb-d98f-40a1-b6b0-85e7ffb56cc6")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VCOM_EN" output
+			(at 276.86 132.08 0)
+			(uuid "523b2d25-f811-43b7-897f-872464434e11")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VCOM_MEA" input
+			(at 276.86 134.62 0)
+			(uuid "e9d28db5-3b6a-4c54-a291-02a2de324222")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VCOM_MEA_EN" output
 			(at 276.86 137.16 0)
-			(uuid "b5cf7ac3-184e-4d59-acaa-8630c048829b")
+			(uuid "cd9c66ec-ae3e-44bc-9c15-54abb6944045")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VGH_DAC" output
+			(at 276.86 139.7 0)
+			(uuid "655095d5-a95e-450c-837b-22f8dcf1c1db")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VGH_MEA" input
+			(at 276.86 142.24 0)
+			(uuid "dfdb9548-c2e8-4c53-adab-ce273d7e3e62")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VGL_MEA" input
+			(at 276.86 144.78 0)
+			(uuid "259758bc-56cf-4e05-a8a6-9a8843e29aed")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VN_MEA" input
+			(at 276.86 147.32 0)
+			(uuid "ba90babb-56fe-4b55-a6e7-c26dd23af60e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "VP_MEA" input
+			(at 276.86 149.86 0)
+			(uuid "d702171e-e1a9-4d29-b353-2b5430e6a941")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2213,7 +2263,7 @@
 		)
 	)
 	(sheet
-		(at 220.98 193.04)
+		(at 220.98 205.74)
 		(size 55.88 27.94)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2229,7 +2279,7 @@
 		)
 		(uuid "ba07d81a-25ab-477b-a3a6-9eea9be2fd08")
 		(property "Sheetname" "power_mon"
-			(at 220.98 192.3274 0)
+			(at 220.98 205.0274 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2240,7 +2290,7 @@
 			)
 		)
 		(property "Sheetfile" "power_mon.kicad_sch"
-			(at 220.98 221.5646 0)
+			(at 220.98 234.2646 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2251,7 +2301,7 @@
 			)
 		)
 		(pin "EPD_PWR_EN" bidirectional
-			(at 276.86 198.12 0)
+			(at 276.86 210.82 0)
 			(uuid "74a8b811-1c42-4ed8-8de9-570b8ea6d7bc")
 			(effects
 				(font
@@ -2261,7 +2311,7 @@
 			)
 		)
 		(pin "SCL_AON" bidirectional
-			(at 276.86 200.66 0)
+			(at 276.86 213.36 0)
 			(uuid "12f41f24-e6ef-4e02-a8a9-7bcdbfc097e5")
 			(effects
 				(font
@@ -2271,7 +2321,7 @@
 			)
 		)
 		(pin "SDA_AON" bidirectional
-			(at 276.86 203.2 0)
+			(at 276.86 215.9 0)
 			(uuid "3c35c4e9-115b-46d6-b720-9ad34215ca9b")
 			(effects
 				(font
@@ -2281,7 +2331,7 @@
 			)
 		)
 		(pin "VBUS_MEA" output
-			(at 276.86 205.74 0)
+			(at 276.86 218.44 0)
 			(uuid "fad0c39b-75dd-47b6-8029-31da800e8305")
 			(effects
 				(font
@@ -2291,7 +2341,7 @@
 			)
 		)
 		(pin "VGH_MEA" output
-			(at 276.86 208.28 0)
+			(at 276.86 220.98 0)
 			(uuid "8b38055c-75d7-4a47-952d-9de6e74d51f3")
 			(effects
 				(font
@@ -2301,7 +2351,7 @@
 			)
 		)
 		(pin "VGL_MEA" output
-			(at 276.86 210.82 0)
+			(at 276.86 223.52 0)
 			(uuid "44fb30f0-513e-44d3-a29b-7c920ba97dec")
 			(effects
 				(font
@@ -2311,7 +2361,7 @@
 			)
 		)
 		(pin "VN_MEA" output
-			(at 276.86 213.36 0)
+			(at 276.86 226.06 0)
 			(uuid "ba722b20-fa9e-48b9-be49-5623a1e5645c")
 			(effects
 				(font
@@ -2321,7 +2371,7 @@
 			)
 		)
 		(pin "VP_MEA" output
-			(at 276.86 215.9 0)
+			(at 276.86 228.6 0)
 			(uuid "b1958db0-6786-483f-a1e5-81da7d38d0bb")
 			(effects
 				(font
@@ -2385,7 +2435,7 @@
 		)
 	)
 	(sheet
-		(at 220.98 154.94)
+		(at 220.98 167.64)
 		(size 55.88 25.4)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2401,7 +2451,7 @@
 		)
 		(uuid "d76cd508-468f-4593-a9f9-b14344d2001b")
 		(property "Sheetname" "fpga_ddr"
-			(at 220.98 154.2274 0)
+			(at 220.98 166.9274 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2412,7 +2462,7 @@
 			)
 		)
 		(property "Sheetfile" "fpga_ddr.kicad_sch"
-			(at 220.98 180.9246 0)
+			(at 220.98 193.6246 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
