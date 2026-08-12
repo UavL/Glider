@@ -80,7 +80,7 @@ through three of the shunts, which is a net-name edit:
 | `U22` | 0x41 | 1 | `+1V8_DCDC` → `+1V8_VID` | **`+5V_DCDC` → `+5V_SOM`** | video rail gone; the SoM's input current is the biggest unknown in the whole budget |
 | `U22` | | 2 | `+3V3_DCDC` → `+3V3_VID` | **`+3V3_AON_DCDC` → `+3V3_AON`** | video rail gone; closes `power.md` §9's first open item |
 | `U22` | | 3 | `+5V_DCDC` → `+5V2_FL` | **`+VSYS` → `+VSYS_FL`** | the frontlight runs from the cell in R2, not from 5 V |
-| `U27` | 0x43 | 1 | `+1V35_DCDC` → `+1V35` | unchanged | |
+| `U27` | 0x43 | 1 | `+1V5_DCDC` → `+1V5` | unchanged | |
 | `U27` | | 2 | `+1V2_DCDC` → `+1V2_FPGA` | unchanged | |
 | `U27` | | 3 | unused, tied to GND | unchanged | R1 left it spare; so does R2 |
 
@@ -148,7 +148,7 @@ would have been simpler arithmetic but would leak ~6 µA continuously.
 
 Rails cross as power symbols, which are global in KiCad and need no label: `+5V_DCDC`, `+5V_EPD`,
 `+5V_ES`, `+5V_EG`, `+3V3`, `+3V3_AON`, `+VSYS`, `+VBUS`, `+VP`, `+VGH`, `-VN`, `-VGL`, `-VCOM`,
-`+1V35`, `+1V2_FPGA`, `+VSYS_FL`.
+`+1V5`, `+1V2_FPGA`, `+VSYS_FL`.
 
 `EPD_PWR_EN` is declared **bidirectional** on `power_mon` because `U21` drives it as well as
 listening — §2.

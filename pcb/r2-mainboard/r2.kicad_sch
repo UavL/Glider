@@ -318,7 +318,7 @@
 				(justify right)
 			)
 		)
-		(pin "PG_1V35" output
+		(pin "PG_1V5" output
 			(at 177.8 50.8 0)
 			(uuid "16948554-128c-4c56-a447-bc7dc91b46bd")
 			(effects
@@ -1098,7 +1098,7 @@
 				(justify right)
 			)
 		)
-		(pin "PG_1V35" input
+		(pin "PG_1V5" input
 			(at 276.86 50.8 0)
 			(uuid "4d3b0a8a-b857-4a2d-aa8d-9948359dca70")
 			(effects

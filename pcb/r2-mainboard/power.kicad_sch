@@ -2092,7 +2092,7 @@
 		)
 		(uuid "9fcc180b-411c-4b3c-8bd2-961f272459d2")
 	)
-	(text "+1V35_DCDC  —  DDR3L and the FPGA's DDR bank VCCO"
+	(text "+1V5_DCDC  —  DDR3L at 1.5 V and the FPGA's DDR bank VCCO"
 		(exclude_from_sim no)
 		(at 275.59 140.97 0)
 		(effects
@@ -3780,7 +3780,7 @@
 		)
 		(uuid "90fd0c9e-2e70-47c9-8219-5a3cefa3e5d2")
 	)
-	(label "PG_1V35"
+	(label "PG_1V5"
 		(at 370.84 191.77 0)
 		(effects
 			(font
@@ -3800,7 +3800,7 @@
 		)
 		(uuid "b4c6d2f7-e580-4a78-9efb-db4854892b18")
 	)
-	(label "PG_1V35"
+	(label "PG_1V5"
 		(at 372.11 99.06 180)
 		(effects
 			(font
@@ -3850,7 +3850,7 @@
 		)
 		(uuid "ff8acf1a-9a9f-417b-bdf7-f2f6efea4dd5")
 	)
-	(hierarchical_label "PG_1V35"
+	(hierarchical_label "PG_1V5"
 		(shape output)
 		(at 379.73 99.06 0)
 		(effects
@@ -4030,7 +4030,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "124k/1%"
+		(property "Value" "150k/1%"
 			(at 350.52 165.862 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4269,7 +4269,7 @@
 				)
 			)
 		)
-		(property "Value" "+1V35_DCDC"
+		(property "Value" "+1V5_DCDC"
 			(at 370.84 147.32 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5905,7 +5905,7 @@
 				)
 			)
 		)
-		(property "Value" "+1V35_DCDC"
+		(property "Value" "+1V5_DCDC"
 			(at 260.35 246.38 0)
 			(show_name no)
 			(do_not_autoplace no)

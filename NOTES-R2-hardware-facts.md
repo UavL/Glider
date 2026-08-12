@@ -208,7 +208,7 @@ board, fully assembled by JLCPCB" is not reachable with an AM62x-class device.
 
 | Part | Role | LCSC | Stock | US$ @1 |
 | --- | --- | --- | --- | --- |
-| `XC6SLX9-2FTG256C` | the FPGA, unchanged from R1 | C95351 | 1 163 | 6.10 |
+| `XC6SLX16-3FTG256` | the FPGA, unchanged from R1 — **corrected, see below** | re-query | — | — |
 | `MT41K64M16TW-107` | R1's DDR3L | C2060943 | 1 949 | 4.49 |
 | `W25Q128JVSIQ` | FPGA config flash — the **only JLC Basic part** in the list | C97521 | 110 435 | 1.22 |
 | `BTH-060-01-L-D-A-K-TR` | `PCM-071` mating connector (fallback route only) | C3646540 | 63 | 5.56 |
@@ -222,6 +222,16 @@ board, fully assembled by JLCPCB" is not reachable with an AM62x-class device.
 | — | any multi-touch capacitive controller IC | **absent** | — | — |
 
 Notes:
+- **The FPGA is an LX16, not an LX9. Corrected 2026-08-12 in WP5.** This row previously read
+  `XC6SLX9-2FTG256C`, LCSC `C95351`, 1 163 in stock, $6.10 — a price and stock figure for the
+  wrong device. The gateware targets `xc6slx16-ftg256-3` in four independent places
+  (`Caster/rtl/spartan6/caster.xise` `Device`/`Package`/`Speed Grade`, `par/ise_flow.sh`
+  `-p xc6slx16-ftg256-3`, `par/ise_run.txt`, and `ipcore_dir/s6_ddr3/user_design/mig.prj`
+  `<TargetFPGA>xc6slx16-ftg256/-3`), and R1's own schematic says `XC6SLX16-FTG256`. An LX9 is
+  **not** a drop-in: the MIG's `C3_SMALL_DEVICE` parameter (`s6_ddr3.v:234`, currently `"FALSE"`)
+  exists specifically for "all packages of xc6slx9", so an LX9 needs the memory controller
+  regenerated in ISE. **LCSC stock and price still need re-querying for the LX16** — this was
+  found while the catalogue was unreachable.
 - **Every R1 part is in the catalogue.** The Caster half of the board could be assembled today.
 - **No touch controller exists as a loose IC** — `GT911`, `GT9110`, `FT5316`, `FT6336`, `CST328`,
   `CST816`, `GSL1680` all return nothing. That is not a catalogue gap: the controller ships bonded

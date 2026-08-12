@@ -162,7 +162,7 @@ alternate functions from Tables 13–20; ADC and DAC channels from Table 12's "A
 | 55 | `PD5` | `CHG_CE#` | GPIO out | |
 | 56 | `PD6` | `QON_SNS` | GPIO in, **EXTI6**, no pull | §2.2 |
 | 64 | `PC10` | — | spare | |
-| 1 | `PC11` | `PG_1V35` | GPIO in | |
+| 1 | `PC11` | `PG_1V5` | GPIO in | |
 | 2 | `PC12` | `PG_1V2` | GPIO in | |
 | 3 | `PC13` | `PG_3V3` | GPIO in | note below |
 | 4 | `PC14` | `OSC32_IN` | LSE | Table 12 p.47 |
@@ -517,7 +517,7 @@ interrupt-driven and measured in microseconds per event.
 
 | Group | Nets |
 | --- | --- |
-| `power` | `MCU_EN_5V`, `MCU_EN_3V3`, `MCU_EN_FPGA_CORE`, `MCU_EN_DDR`, `PG_3V3`, `PG_1V2`, `PG_1V35` |
+| `power` | `MCU_EN_5V`, `MCU_EN_3V3`, `MCU_EN_FPGA_CORE`, `MCU_EN_DDR`, `PG_3V3`, `PG_1V2`, `PG_1V5` |
 | `battery` (+ `power_mon` for I²C) | `SDA_AON`, `SCL_AON`, `CHG_INT#`, `CHG_PG#`, `CHG_STAT#`, `CHG_CE#`, `CHG_OTG`, `CHG_QON#`, `GAUGE_ALRT#`, `VBUS_DET` |
 | `epd_power`, `power_mon` | `EPD_PWR_EN`, `EPD_POS_EN`, `VCOM_EN`, `VCOM_MEA_EN`, `EPD_THROT`, `VCOM_DAC`, `VGH_DAC`, `VCOM_MEA`, `VP_MEA`, `VN_MEA`, `VGH_MEA`, `VGL_MEA`, `VBUS_MEA` |
 | `fpga_config`, `som`, `frontlight` | `FPGA_PROG#`, `FPGA_DONE`, `FPGA_SUSP`, `SOM_WAKE#`, `SOM_IRQ#`, `SOM_RESET#`, `MCU_TXD`, `MCU_RXD`, `FL_EN`, `FL_PWM1`, `FL_PWM2` |

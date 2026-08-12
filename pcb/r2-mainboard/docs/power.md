@@ -29,7 +29,7 @@ Here **every rail below `+3V3_AON` has a named enable net, a named owner, and a 
   +-- U12  TPS61022    boost      -> +5V_DCDC        MCU_EN_5V
   +-- U13  TPS63802    buck-boost -> +3V3_DCDC       MCU_EN_3V3
   +-- U14  TPS62A02    buck       -> +1V2_DCDC       MCU_EN_FPGA_CORE
-  +-- U15  TPS62A02    buck       -> +1V35_DCDC      MCU_EN_DDR
+  +-- U15  TPS62A02    buck       -> +1V5_DCDC      MCU_EN_DDR
 ```
 
 `U11` is deliberately absent: it was a `TPS22965` load switch in front of the boost, deleted in
@@ -38,8 +38,8 @@ stay legible.
 
 `*_DCDC` is R1's naming convention: the converter output goes to a shunt on `power_mon`, and the
 load-side net that comes back out of that shunt is the plain rail name. So this sheet ends at
-`+3V3_AON_DCDC` / `+5V_DCDC` / `+3V3_DCDC` / `+1V2_DCDC` / `+1V35_DCDC`, and `power_mon` produces
-`+3V3_AON`, `+5V`, `+3V3`, `+1V2_FPGA`, `+1V35`. Keeping the convention makes WP4's port of
+`+3V3_AON_DCDC` / `+5V_DCDC` / `+3V3_DCDC` / `+1V2_DCDC` / `+1V5_DCDC`, and `power_mon` produces
+`+3V3_AON`, `+5V`, `+3V3`, `+1V2_FPGA`, `+1V5`. Keeping the convention makes WP4's port of
 `power_mon` from R1 a straight copy.
 
 | Rail | Topology | Part | LCSC | Stock | Enable | Loads |
@@ -48,7 +48,7 @@ load-side net that comes back out of that shunt is the plain rail name. So this 
 | `+5V_DCDC` | boost 5.0 V | `TPS61022RWUR` | `C915088` | 39457 | `MCU_EN_5V` | SoM `VIN`, EPD HV chain |
 | `+3V3_DCDC` | buck-boost 2 A | `TPS63802DLAR` | `C2845237` | 1338 | `MCU_EN_3V3` | FPGA `VCCO`/`VCCAUX`, config NOR, microSD, panel logic |
 | `+1V2_DCDC` | buck 2 A | `TPS62A02DRLR` | `C5350187` | 3202 | `MCU_EN_FPGA_CORE` | Spartan-6 `VCCINT` |
-| `+1V35_DCDC` | buck 2 A | `TPS62A02DRLR` | `C5350187` | 3202 | `MCU_EN_DDR` | DDR3L, FPGA DDR bank `VCCO` |
+| `+1V5_DCDC` | buck 2 A | `TPS62A02DRLR` | `C5350187` | 3202 | `MCU_EN_DDR` | DDR3L, FPGA DDR bank `VCCO` |
 
 Four rails, four identical control patterns: one `MCU_EN_*` net, one 100 kΩ pull-down, one
 enable pin. That uniformity is a review-1 result — before it, the 5 V rail was the odd one out.
@@ -62,7 +62,7 @@ from `+5V`), and `+3V3_TOUCH` / `+3V3_PEN` (`io_expansion.kicad_sch`, WP6).
 ### 2.1 A 1S cell cannot buck to 3.3 V — `+3V3` needs a buck-boost
 
 `NOTES-R2-plan.md` says "run the bucks from the cell, not from a 5 V intermediate", and for 1.2 V
-and 1.35 V that is exactly right. It does not work for 3.3 V: `+VSYS` runs from about 4.4 V down to
+and 1.5 V that is exactly right. It does not work for 3.3 V: `+VSYS` runs from about 4.4 V down to
 3.0 V, so a step-down converter drops out somewhere around half the discharge curve and the FPGA's
 I/O rail sags with the battery.
 
@@ -132,13 +132,24 @@ not a load switch.
 | `+5V_DCDC` | 0.600 V | `R21` 732 k | `R22` 100 k | 0.600 × (1 + 7.32) = **4.992 V** | `tps61022.pdf` §6.5, §8.2.2.1 |
 | `+3V3_DCDC` | 0.500 V | `R24` 511 k | `R25` 91 k | 0.500 × (1 + 5.615) = **3.308 V** | `tps63802.pdf` Table 10-5 — TI's own row for 3.3 V |
 | `+1V2_DCDC` | 0.600 V | `R29` 100 k | `R30` 100 k | 0.600 × 2 = **1.200 V** | `tps62a01.pdf` §8.2.2.1 |
-| `+1V35_DCDC` | 0.600 V | `R33` 124 k | `R34` 100 k | 0.600 × (1 + 1.24) = **1.344 V** | as above |
+| `+1V5_DCDC` | 0.600 V | `R33` 150 k | `R34` 100 k | 0.600 × (1 + 1.50) = **1.500 V** | as above |
 
 All E96, all 1 %, all stocked at LCSC in 0402 (checked 2026-08-06).
 
 Margin checks. SoM `VIN` is 4.5–5.5 V; 4.992 V ±2.5 % reference tolerance gives 4.87–5.12 V, inside
-with room for load regulation. DDR3L wants 1.35 V ±5 % = 1.283–1.417 V; 1.344 V sits 0.4 % low,
-which leaves the whole +5 % for the power-save-mode output rise the datasheet warns about.
+with room for load regulation.
+
+**The DDR bank is 1.5 V, not 1.35 V — changed in WP5, 2026-08-12.** The binding number is
+not the DRAM's but the FPGA's: `ds162.pdf` Table 7 specifies `SSTL15_II` over VCCO **1.425–1.575 V**
+(VREF 0.69–0.81 V), and Caster's UCF constrains all 48 DDR pins to that standard. The previous
+1.344 V sat 81 mV below the minimum, and Spartan-6 has no 1.35 V I/O standard to relabel to. At
+1.500 V the two windows coincide exactly — DDR3 1.5 V ±0.075 V is also 1.425–1.575 V — which is no
+accident, since `SSTL15` exists to drive DDR3. `mt41k64m16.pdf` p.1 makes it legal on the memory
+side: "Backward compatible to VDD = VDDQ = 1.5V ±0.075V", so `MT41K64M16TW` stays the fitted part
+and simply runs in its 1.5 V compatible mode. **One consequence to carry into WP5:** that same page
+says "Refer to the DDR3 (1.5V) SDRAM data sheet specifications when running in 1.5V compatible
+mode", so the AC/DC tables in `mt41k64m16.pdf` no longer apply and Micron's DDR3 datasheet is
+needed for `fpga_ddr`'s timing and termination work.
 
 `R_bot` is held at or below 100 kΩ everywhere, which is what all three datasheets ask for
 (noise sensitivity, and keeping divider current at least 100× the FB leakage). Worst case is
@@ -155,7 +166,7 @@ Ratings re-read off the LCSC catalogue 2026-08-11, because the schematic's `Valu
 | `L10` | `+5V_DCDC` | 1 µH | `DFE322512F-1R0M` | `C3224227` | 1210 | 4.8 A | 3.8 A | 32 mΩ |
 | `L11` | `+3V3_DCDC` | 0.47 µH | `DFE252012F-R47M` | `C703140` | 1008 | 7.4 A | 4.9 A | 23 mΩ |
 | `L12` | `+1V2_DCDC` | 1 µH | `DFE322512F-1R0M` | `C3224227` | 1210 | 4.8 A | 3.8 A | 32 mΩ |
-| `L13` | `+1V35_DCDC` | 1 µH | `DFE322512F-1R0M` | `C3224227` | 1210 | 4.8 A | 3.8 A | 32 mΩ |
+| `L13` | `+1V5_DCDC` | 1 µH | `DFE322512F-1R0M` | `C3224227` | 1210 | 4.8 A | 3.8 A | 32 mΩ |
 
 Values: 1 µH for the boost (`tps61022.pdf` Fig. 8-1), 0.47 µH for the buck-boost
 (`tps63802.pdf` Table 10-1), 1 µH for both bucks (`tps62a01.pdf` Table 8-3, row `1.2 ≤ VOUT < 1.8`).
@@ -236,7 +247,7 @@ input bulk, or firmware enabling the rail before the panel rails rather than aft
 | `MCU_EN_DDR` | in | `U15.EN` | **low** — `R35` 100 k pull-down | as above |
 | `PG_3V3` | out | `U13.PG` | open-drain, `R28` 470 k to `+3V3_AON` | |
 | `PG_1V2` | out | `U14.PG` | open-drain, `R32` 470 k to `+3V3_AON` | |
-| `PG_1V35` | out | `U15.PG` | open-drain, `R36` 470 k to `+3V3_AON` | |
+| `PG_1V5` | out | `U15.PG` | open-drain, `R36` 470 k to `+3V3_AON` | |
 
 Every one of those four `EN` pins carries an explicit "do not leave floating" instruction in its
 datasheet, and a pull-down satisfies it in the safe direction. The rails come up **only** because
@@ -276,10 +287,24 @@ enable-chaining. The MCU asserts, waits for `PG`, then asserts the next.
 
 Xilinx recommends `VCCINT → VCCAUX → VCCO` for Spartan-6, which for this board means
 `MCU_EN_FPGA_CORE`, then `MCU_EN_3V3` (which carries both `VCCAUX` and `VCCO`), then
-`MCU_EN_DDR`. **Whether Spartan-6 actually requires that order or merely prefers it is not verified
-here** — DS162 is not in `datasheets/`. WP5 must read it and either confirm the ordering is
-advisory or add the interlock. R1 brings all rails up together and works, which is evidence but not
-proof.
+`MCU_EN_DDR`.
+
+~~**Whether Spartan-6 actually requires that order or merely prefers it is not verified here.**~~
+**Closed in WP5, 2026-08-12: the order is advisory, not required.** `ds162.pdf` is now in
+`../datasheets/`, and note 2 under Table 6 says it in one sentence: *"Spartan-6 devices do not have
+a required power-on sequence."* So no interlock is needed and firmware's ordering is a preference —
+R1 bringing all rails up together was not getting away with something.
+
+**But DS162 replaces that question with a stricter one nobody has checked: Table 6 requires each
+supply to ramp within 0.20–50.0 ms.** It applies to `VCCINT`, `VCCAUX` and `VCCO2` alike (`VCCINTR`,
+`VCCAUXR`, `VCCO2` — all "0.20 to 50.0 ms"). A rail that ramps *too slowly* is a violation, not just
+an inelegance, and nothing in this document has yet been checked against it: the soft-start times of
+`U13` (`TPS63802`), `U14`/`U15` (`TPS62A02`) and the `+3V3` buck-boost all need comparing against
+that 50 ms ceiling, including the worst case of a nearly-flat cell. **New open item in §9.**
+
+Two smaller requirements from the same table, both already satisfied: `VCCO2` must be ≥ 1.65 V for
+power-on reset and configuration (bank 2 is on `+3V3`, so fine), and `VCCO2` is explicitly *not*
+required for data retention.
 
 `+3V3_AON` needs no sequencing: it is up whenever `+VSYS` is, which is whenever a cell or USB is
 present.
@@ -297,7 +322,7 @@ than by a pin.
 | `+5V_SOM`, enable `MCU_EN_SOM` | `+5V_DCDC`, enable `MCU_EN_5V` | the rail feeds the SoM *and* the EPD HV chain, so naming it after one consumer misleads |
 | "needs a load switch on the boost input" | no load switch | the plan's premise — that a disabled boost passes its input through — is not true of `TPS61022`. §2.2, §10.7 |
 | `+3V3_SYS` and `+3V3_FPGA_IO` as two rails | one `+3V3_DCDC` | each 3.3 V rail costs a whole buck-boost (§2.1), and the plan itself says not to build around powering a `VCCO` bank down while the die is configured. Per-rail *measurement* is not lost: `power_mon`'s shunts can still split them |
-| bucks direct from the cell | true for 1.2 V and 1.35 V; 3.3 V is buck-boost | §2.1 |
+| bucks direct from the cell | true for 1.2 V and 1.5 V; 3.3 V is buck-boost | §2.1 |
 | `+5V2_FL` in the rail table | moved to `frontlight.kicad_sch` | an LED boost from `+VSYS` is one conversion, not two |
 
 ## 7. Footprints
@@ -371,6 +396,25 @@ that four bucks could not be turned off at all. The result here is that they can
 
 ## 9. Open
 
+- **No rail on this sheet has been checked against Spartan-6's supply ramp-time window.** DS162
+  Table 6 requires `VCCINT`, `VCCAUX` and `VCCO2` each to ramp in **0.20–50.0 ms** — a rail that
+  comes up *too slowly* violates it. Compare the soft-start of `U13` (`TPS63802`), `U14`/`U15`
+  (`TPS62A02`) and the `+3V3` buck-boost against that ceiling, worst case being a nearly-flat cell
+  where a buck-boost takes longest to reach regulation. Opened by WP5 (§5); it belongs to this sheet
+  because the converters are here.
+- ~~**Bank 3's voltage is under review and may move `+1V35_DCDC`.**~~ **Closed 2026-08-12: the rail
+  is now 1.500 V and the net is `+1V5_DCDC`.** `R33` 124 k → 150 k; see §3.1's margin check.
+  Decided by the hardware owner once `ds162.pdf` and `mt41k64m16.pdf` were both in hand.
+- **The 1.5 V decision costs ~1.9 mW of standby and the budget in §8 has not been re-run.**
+  `mt41k64m16.pdf` gives `IDD6` room-temperature self-refresh as 8 mA (Rev. G) / **12 mA** (Rev. J),
+  and the die revision is not selectable at LCSC, so worst case the DDR rail goes from 16.1 mW to
+  **18.0 mW** in the reading state. Two things follow that this document should confront rather than
+  absorb: the DDR in self-refresh is now the **largest single term** in the reading state, and at
+  16–18 mW it alone exceeds the ~10 mW figure `NOTES-R2-plan.md` quotes for standby. Either the two
+  states are being conflated or the budget needs restating. **The bigger lever is architectural, not
+  electrical:** if the SoM re-pushed the framebuffer on wake, `MCU_EN_DDR` could be off in the
+  reading state and the whole 16–18 mW would go, at the cost of resume latency and a full redraw.
+  That is a WP8 question, noted here because this is where the number lives.
 - ~~**This doc still owes a "Layout guidelines" section.**~~ **Written — §11.**
 - ~~**`U10`'s output must be renamed to `+3V3_AON_DCDC`.**~~ **Done by the reviewer** in the
   2026-08-11 save: `#PWR205` now reads `+3V3_AON_DCDC`, so `power_mon`'s `U22` ch2 shunt (`R208`) has
@@ -456,7 +500,7 @@ R1 = R2 × (VOUT / VFB − 1),  VFB = 0.6 V
 
 1.8 V:  R1 = 100 k × (1.8/0.6 − 1) = 100 k × 2 = 200 k     <- TI's figure
 1.2 V:  R1 = 100 k × (1.2/0.6 − 1) = 100 k × 1 = 100 k     <- R29
-1.35 V: R1 = 100 k × (1.35/0.6 − 1) = 100 k × 1.25 = 125 k  -> E96 124 k gives 1.344 V, R33
+1.50 V: R1 = 100 k × (1.50/0.6 − 1) = 100 k × 1.50 = 150 k  -> exactly 1.500 V, R33
 ```
 
 So 200 kΩ is right for 1.8 V and wrong for 1.2 V; `R29` = 100 kΩ is the same equation at our voltage.
@@ -571,7 +615,7 @@ produce `pin_to_pin: Pins of type Power output and Power output are connected`, 
 error the redundant `+3V3_AON` flag used to cause (§9). ERC currently reports **nothing** on
 `/power/`, which is the check.
 
-The two `PWR_FLAG`s this sheet *does* carry are on `+1V2_DCDC` and `+1V35_DCDC`, and they are needed
+The two `PWR_FLAG`s this sheet *does* carry are on `+1V2_DCDC` and `+1V5_DCDC`, and they are needed
 for a different reason: those rails are the far side of an inductor, so no pin on them is a driver
 either. The other two rails need none because `U12.3(VOUT)` and `U13.6(VOUT)` are typed `power_out`.
 The on-sheet note under "ERC power flags" says exactly this.
@@ -853,7 +897,7 @@ the easy ones. ‡ §8.4.1, all four bullets:
    tucked in beside the inductor.
 4. "Use a common ground. `GND` layers can be used for shielding." ‡ Figure 8-24 shows the intended
    arrangement for the SOT-563 part specifically.
-5. `+1V35_DCDC` feeds DDR3L, so the two circuits are not interchangeable at layout time even though
+5. `+1V5_DCDC` feeds DDR3L, so the two circuits are not interchangeable at layout time even though
    they are identical on the schematic: `U15` goes near the DDR3L/FPGA bank it supplies, `U14` near
    the FPGA core pins. That is a WP5 constraint, recorded here so it is not discovered late.
 
@@ -884,7 +928,7 @@ matters about it: not noise, but that its 25 nA quiescent current is a *measured
    (§3.2), pulsed at 1 MHz. Its path from the `+VSYS` plane through `C22`/`C25` to `U12` is a power
    path and wants real copper, not a 0.25 mm trace.
 3. **Keep the three `PG` nets away from the switching nodes.** They are 470 kΩ pull-ups (§10.6), so
-   they are the highest-impedance signals here, and they run to the MCU. `PG_1V2` and `PG_1V35` in
+   they are the highest-impedance signals here, and they run to the MCU. `PG_1V2` and `PG_1V5` in
    particular leave their converters right past `L12`/`L13`.
 4. **`MCU_EN_5V` now runs the length of the 5 V block** (a consequence of deleting `U11` — `R20`
    stayed where it was and the net reaches across to `U12.EN`). On the schematic that is fine; at
@@ -957,7 +1001,7 @@ Re-run 2026-08-11 against the reviewed sheet, with `~/Apps/kicad-10.0.4/usr/bin/
   - `+3V3_AON_DCDC` = `C21.1, R208.2, U10.5(OUT), U22.15(IN+2)` and `+3V3_AON` = `R208.1,
     U22.14(IN-2)` plus every always-on load. The shunt is in the path, not bypassed.
   - `Net-(U12-FB)` = `C28.2, R21.2, R22.1, U12.4` — divider midpoint with the DNP feedforward.
-  - `+1V2_DCDC` = `C32.1, L12.2, R29.1` and `+1V35_DCDC` = `C34.1, L13.2, R33.1` — the rail is the
+  - `+1V2_DCDC` = `C32.1, L12.2, R29.1` and `+1V5_DCDC` = `C34.1, L13.2, R33.1` — the rail is the
     far side of the inductor, not the `SW` pin.
   - `GND` picks up `U13.3(AGND)` + `U13.8(GND)`, which is §10.5.
   - Every `MCU_EN_*` net is exactly its pull-down plus one enable pin; every `PG_*` is exactly its

@@ -41,7 +41,7 @@ high-refresh drive.
 DPI 18b + PCLK/DE/   │ I2C, UART, GPIO
 HS/VS  (22 signals)  │
    ┌──▼──────────────▼─────────────┐     ┌──────────────┐
-   │  XC6SLX9 (Caster, unchanged)  │◄───►│ DDR3L 1 Gbit │ 3.0 MB waveform state
+   │  XC6SLX16 (Caster, unchanged) │◄───►│ DDR3L 1 Gbit │ 3.0 MB waveform state
    └──┬────────────────────────────┘     └──────────────┘
       │ 8-12 diff pairs + GD/SD          ┌──────────────┐
    ┌──▼────────────────────────────┐     │ SPI cfg NOR  │ FPGA self-boot
@@ -121,7 +121,7 @@ domain.**
 | `+3V3_SYS` | `MCU_EN_SYS` | on | FPGA config flash, housekeeping |
 | `+1V2_FPGA` | `MCU_EN_FPGA_CORE` | on | off in standby |
 | `+3V3_FPGA_IO` | `MCU_EN_FPGA_IO` | on, not toggling | see note |
-| `+1V35_DDR` | `MCU_EN_DDR` | on, self-refresh | holds the waveform state |
+| `+1V5_DDR` | `MCU_EN_DDR` | on, self-refresh | holds the waveform state |
 | `+VP/+VGH/−VN/−VGL/VCOM` | `EPD_PWR_EN`, `EPD_POS_EN`, `VCOM_EN` | **off** | carried from R1 |
 | `+5V2_FL` frontlight | `FL_EN` + PWM | off unless lit | R1 declares `FL_EN`/`EPD_THROT` but never drives them — wire and use them |
 | `+3V3_TOUCH` / `+3V3_PEN` | `MCU_EN_TOUCH` / `_PEN` | off (unpopulated in R2) | |
@@ -144,7 +144,12 @@ H750 become a G0.
 - The charger is a **`BQ25892`**, not a `BQ25896`. Same footprint and register map; the `BQ25896`
   had 127 units in stock and the `BQ25892` is also the correct variant on merit, because D+/D− go
   to the SoM for sideloading. `docs/battery.md` §1.
-- **"Run the bucks from the cell" holds for 1.2 V and 1.35 V but not for 3.3 V.** `+VSYS` runs from
+- **The DDR bank rail is 1.5 V, not 1.35 V. Changed in WP5, 2026-08-12.** Caster's UCF constrains
+  all 48 DDR pins as `SSTL15_II`, which `ds162.pdf` Table 7 specifies only over VCCO 1.425–1.575 V,
+  and Spartan-6 has no 1.35 V I/O standard to relabel to. `mt41k64m16.pdf` p.1 makes 1.5 V legal on
+  the memory side ("Backward compatible to VDD = VDDQ = 1.5V ±0.075V"), so the DRAM part is
+  unchanged. Costs ~1.9 mW of standby; `docs/power.md` §3.1 and §9.
+- **"Run the bucks from the cell" holds for 1.2 V and 1.5 V but not for 3.3 V.** `+VSYS` runs from
   ~4.4 V down to ~3.0 V, so a step-down converter drops out halfway down the discharge curve;
   `+3V3` is a **buck-boost** (`TPS63802`). `docs/power.md` §2.1.
 - `+3V3_SYS` and `+3V3_FPGA_IO` are **one rail**, since each 3.3 V rail costs a whole buck-boost and

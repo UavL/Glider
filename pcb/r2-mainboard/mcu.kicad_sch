@@ -6105,7 +6105,7 @@
 		)
 		(uuid "89ebeba4-cc40-45e9-bd22-9e14654a8f9f")
 	)
-	(label "PG_1V35"
+	(label "PG_1V5"
 		(at 114.3 180.34 180)
 		(effects
 			(font
@@ -6215,7 +6215,7 @@
 		)
 		(uuid "9c54154b-4b55-4d05-830e-9a3696919280")
 	)
-	(label "PG_1V35"
+	(label "PG_1V5"
 		(at 220.98 82.55 180)
 		(effects
 			(font
@@ -6710,7 +6710,7 @@
 		)
 		(uuid "48d066f8-ffb0-4cee-8f36-d01e1224e65c")
 	)
-	(hierarchical_label "PG_1V35"
+	(hierarchical_label "PG_1V5"
 		(shape input)
 		(at 228.6 82.55 0)
 		(effects

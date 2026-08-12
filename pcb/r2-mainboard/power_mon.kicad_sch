@@ -5893,7 +5893,7 @@
 				)
 			)
 		)
-		(property "Value" "+1V35"
+		(property "Value" "+1V5"
 			(at 58.42 147.32 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6303,7 +6303,7 @@
 				)
 			)
 		)
-		(property "Value" "+1V35_DCDC"
+		(property "Value" "+1V5_DCDC"
 			(at 87.63 147.32 0)
 			(show_name no)
 			(do_not_autoplace no)
