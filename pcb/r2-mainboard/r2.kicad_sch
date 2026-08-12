@@ -59,7 +59,7 @@
 		)
 	)
 	(sheet
-		(at 121.92 106.68)
+		(at 121.92 233.68)
 		(size 55.88 25.4)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -75,7 +75,7 @@
 		)
 		(uuid "13941b93-7b75-42c9-83ea-8df9b6f98edc")
 		(property "Sheetname" "epd_power"
-			(at 121.92 105.9674 0)
+			(at 121.92 232.9674 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -86,7 +86,7 @@
 			)
 		)
 		(property "Sheetfile" "epd_power.kicad_sch"
-			(at 121.92 132.6646 0)
+			(at 121.92 259.6646 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -97,7 +97,7 @@
 			)
 		)
 		(pin "EPD_POS_EN" input
-			(at 177.8 111.76 0)
+			(at 177.8 238.76 0)
 			(uuid "3200f016-3c78-4c20-8df5-8c2af6409cc2")
 			(effects
 				(font
@@ -107,7 +107,7 @@
 			)
 		)
 		(pin "EPD_PWR_EN" input
-			(at 177.8 114.3 0)
+			(at 177.8 241.3 0)
 			(uuid "5ae8e8ac-7a46-4918-8df7-39323fe28361")
 			(effects
 				(font
@@ -117,7 +117,7 @@
 			)
 		)
 		(pin "VCOM_DAC" input
-			(at 177.8 116.84 0)
+			(at 177.8 243.84 0)
 			(uuid "998e2a5d-d8f2-46e4-aa09-85f1b81e7470")
 			(effects
 				(font
@@ -127,7 +127,7 @@
 			)
 		)
 		(pin "VCOM_EN" input
-			(at 177.8 119.38 0)
+			(at 177.8 246.38 0)
 			(uuid "89528251-48d4-4810-8f8f-5e2aedf9901b")
 			(effects
 				(font
@@ -137,7 +137,7 @@
 			)
 		)
 		(pin "VCOM_MEA" output
-			(at 177.8 121.92 0)
+			(at 177.8 248.92 0)
 			(uuid "0a7eec9d-ae55-411f-9cea-98b4d4e2aeca")
 			(effects
 				(font
@@ -147,7 +147,7 @@
 			)
 		)
 		(pin "VCOM_MEA_EN" input
-			(at 177.8 124.46 0)
+			(at 177.8 251.46 0)
 			(uuid "55c59d73-6912-4f41-929e-7682eb006689")
 			(effects
 				(font
@@ -157,7 +157,7 @@
 			)
 		)
 		(pin "VGH_DAC" input
-			(at 177.8 127 0)
+			(at 177.8 254.0 0)
 			(uuid "e99a6a8f-621b-4a91-9253-8d33d6e3e5fc")
 			(effects
 				(font
@@ -338,7 +338,7 @@
 	)
 	(sheet
 		(at 121.92 68.58)
-		(size 55.88 25.4)
+		(size 55.88 152.4)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -364,7 +364,7 @@
 			)
 		)
 		(property "Sheetfile" "fpga_io.kicad_sch"
-			(at 121.92 94.5646 0)
+			(at 121.92 221.5646 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -372,6 +372,576 @@
 					(size 1.27 1.27)
 				)
 				(justify left top)
+			)
+		)
+		(pin "DPI_B2" input
+			(at 177.8 73.66 0)
+			(uuid "6dc3cfc7-1f1e-4868-a844-b3e4d5d50fde")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_B3" input
+			(at 177.8 76.2 0)
+			(uuid "2f5ed15e-1d33-4afc-b8c2-59e487719a3c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_B4" input
+			(at 177.8 78.74 0)
+			(uuid "90dbad34-5b95-4c70-8771-82d4873d2911")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_B5" input
+			(at 177.8 81.28 0)
+			(uuid "576d42db-42bf-46b4-befb-afe3f8dcca73")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_B6" input
+			(at 177.8 83.82 0)
+			(uuid "8d1fda18-e801-41b6-bb47-d3f1c1217056")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_B7" input
+			(at 177.8 86.36 0)
+			(uuid "0e9937be-f3d0-442f-8972-f6529881666f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_DE" input
+			(at 177.8 88.9 0)
+			(uuid "913eb1ac-37e4-43e7-8149-5fe40f360708")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_G2" input
+			(at 177.8 91.44 0)
+			(uuid "7b021e6a-713b-4c49-8e0c-23f43a294088")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_G3" input
+			(at 177.8 93.98 0)
+			(uuid "4d0f1c4c-e7c2-4143-bd02-88e002292249")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_G4" input
+			(at 177.8 96.52 0)
+			(uuid "043ad6c3-33a8-45c8-88e6-ed614d18d579")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_G5" input
+			(at 177.8 99.06 0)
+			(uuid "dbc29f02-6dd3-4861-80f0-4ec1c654cdc5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_G6" input
+			(at 177.8 101.6 0)
+			(uuid "550329ce-0699-46de-ae10-9f0355c2724e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_G7" input
+			(at 177.8 104.14 0)
+			(uuid "729ed227-d33a-4ee0-86b1-e07af7d2a818")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_HS" input
+			(at 177.8 106.68 0)
+			(uuid "2980e10f-2ac5-4ef6-9286-3c3e00439f0f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_PCLK" input
+			(at 177.8 109.22 0)
+			(uuid "677b6c9a-af8a-48ac-a271-73c6a45afd4b")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_R2" input
+			(at 177.8 111.76 0)
+			(uuid "5ceed9cd-cd1a-4e25-be1b-daa94ce40a2e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_R3" input
+			(at 177.8 114.3 0)
+			(uuid "178e613f-d56b-4a82-accd-02f99fc8e3be")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_R4" input
+			(at 177.8 116.84 0)
+			(uuid "30b36bd1-7bb0-475d-962a-2b86da832937")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_R5" input
+			(at 177.8 119.38 0)
+			(uuid "f82eb434-cf6f-4b26-b16c-076db6675b52")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_R6" input
+			(at 177.8 121.92 0)
+			(uuid "3b34f6d1-aee0-4c3f-893c-2b17aa26a147")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_R7" input
+			(at 177.8 124.46 0)
+			(uuid "ac685085-467a-4641-a006-134528f77657")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "DPI_VS" input
+			(at 177.8 127.0 0)
+			(uuid "e83089f6-2a46-4411-a88f-2528ce563699")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_CLKN" output
+			(at 177.8 129.54 0)
+			(uuid "e44ef2c6-1fd8-4ed3-8ba0-caab5404464f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_CLKP" output
+			(at 177.8 132.08 0)
+			(uuid "9b389345-88cb-461f-9a89-069b99f296c5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D0N" output
+			(at 177.8 134.62 0)
+			(uuid "db9697cf-6312-4841-878b-8f2062a12b4e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D0P" output
+			(at 177.8 137.16 0)
+			(uuid "6f400b29-46bb-41c8-920a-9bee41086ad4")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D10N" output
+			(at 177.8 139.7 0)
+			(uuid "60df590f-4427-4ca6-82eb-3a527d85e6a3")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D10P" output
+			(at 177.8 142.24 0)
+			(uuid "e827b7f9-787c-43a6-9716-0ef1fb34fa78")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D11N" output
+			(at 177.8 144.78 0)
+			(uuid "118b2ccd-9d89-4967-9eac-7806cc408d46")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D11P" output
+			(at 177.8 147.32 0)
+			(uuid "818aeeca-a388-4720-8a8a-d5eb883dfaef")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D1N" output
+			(at 177.8 149.86 0)
+			(uuid "db4a59e6-3686-4014-8991-437585a5a8e8")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D1P" output
+			(at 177.8 152.4 0)
+			(uuid "12840981-d783-4550-a557-8f6cb286463b")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D2N" output
+			(at 177.8 154.94 0)
+			(uuid "bf5eeb78-b2d9-4382-a1b7-c640186843d2")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D2P" output
+			(at 177.8 157.48 0)
+			(uuid "e7d8cde4-e5e3-4a8d-9f85-d5d540dc5ab5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D3N" output
+			(at 177.8 160.02 0)
+			(uuid "0d35fb1f-b023-4365-b1af-ec9846472d25")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D3P" output
+			(at 177.8 162.56 0)
+			(uuid "d6551872-4579-4792-b4ab-9801e5497f6d")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D4N" output
+			(at 177.8 165.1 0)
+			(uuid "aa785cc2-365b-49b8-b545-dc4f7e61ddde")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D4P" output
+			(at 177.8 167.64 0)
+			(uuid "f276f60c-1ec2-4754-ad25-b4e8863ab941")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D5N" output
+			(at 177.8 170.18 0)
+			(uuid "80599de7-3f63-41a8-83d4-6ff449593865")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D5P" output
+			(at 177.8 172.72 0)
+			(uuid "e1a03b77-fca3-4e9b-84b9-dcc7f185c463")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D6N" output
+			(at 177.8 175.26 0)
+			(uuid "8777a31a-c1c6-4f0e-a93c-e00c75bc577e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D6P" output
+			(at 177.8 177.8 0)
+			(uuid "d5b8e881-56c2-4ec6-8376-3cc2528d85cf")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D7N" output
+			(at 177.8 180.34 0)
+			(uuid "a70b48c6-71d2-404c-a654-394fd47f476e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D7P" output
+			(at 177.8 182.88 0)
+			(uuid "8c26dc31-5250-43d2-9647-8cb7981fcf50")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D8N" output
+			(at 177.8 185.42 0)
+			(uuid "8fbebfba-bf8c-4e1e-8359-7395dce712dd")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D8P" output
+			(at 177.8 187.96 0)
+			(uuid "2a320d8f-37ad-45d5-8b5d-5d7cc5f4af62")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D9N" output
+			(at 177.8 190.5 0)
+			(uuid "884a77cf-6da9-4873-9cbc-9a3828a03dbb")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_D9P" output
+			(at 177.8 193.04 0)
+			(uuid "366320fb-c38f-4ac0-b3c9-b3fdf2108d03")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_GDCLK" output
+			(at 177.8 195.58 0)
+			(uuid "81898e9f-0878-4aaa-af81-854793887ab0")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_GDOE" output
+			(at 177.8 198.12 0)
+			(uuid "f5c0531c-6d5f-470b-ac00-6ce7bf5b045f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_GDSP" output
+			(at 177.8 200.66 0)
+			(uuid "f3fa3842-0c7b-4da9-ad10-d15249dd2e92")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_SDCE0" output
+			(at 177.8 203.2 0)
+			(uuid "146dfe83-3af0-45b0-ad38-6304e8b328da")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_SDLE" output
+			(at 177.8 205.74 0)
+			(uuid "866207c6-57c8-4d5f-ad58-8c9b53039e63")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_SDOE" output
+			(at 177.8 208.28 0)
+			(uuid "639f1459-bab2-4199-8707-87267a71834f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPDC_SE_CLK" output
+			(at 177.8 210.82 0)
+			(uuid "217a6fdb-ac8b-4b74-90d5-eee32b80ec9f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "EPD_THROT" input
+			(at 177.8 213.36 0)
+			(uuid "ef035a19-bda2-4689-8e32-8a3574766a71")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_CLK33" input
+			(at 177.8 215.9 0)
+			(uuid "3ff31b3b-b637-45e0-81de-6eda5c7c9b8d")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 			)
 		)
 		(instances

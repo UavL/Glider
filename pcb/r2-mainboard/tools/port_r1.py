@@ -39,6 +39,7 @@ import pathlib
 import re
 import subprocess
 import sys
+import uuid
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -61,6 +62,11 @@ RENAMES = {
         "U11": "U31",
     },
     "power_mon": {"R7": "R207", "R8": "R208"},
+    # WP5. The FPGA sheets add U/+40 and C,R,D/+300 -- R1's U1 (the FPGA) and
+    # U12 (the DRAM) collide with battery's U1 and power's U12, and R11/R35-R37/
+    # R40/R44/C26/C207 collide with blocks already issued. Offsets keep the R1
+    # number legible inside the new one, as epd-port.md §1 does with +200.
+    "fpga_io": {"U1": "U41", "R11": "R311", "D8": "D308"},
 }
 
 # --- 3. library links ----------------------------------------------------
@@ -92,6 +98,28 @@ HIER = {
         "VCOM_DAC": ("VCOM_DAC", "input"),
         "VGH_DAC": ("VGH_DAC", "input"),
         "VCOM_MEA": ("VCOM_MEA", "output"),
+    },
+    # fpga_io is the other end of `epd`'s 33 EPDC labels, so every shape is the
+    # complement of the one above: the FPGA drives the panel bus and receives
+    # DPI. R1 already had these shapes right, but they are restated rather than
+    # inherited so a wrong one cannot survive the port silently.
+    "fpga_io": {
+        **{f"EPDC_{s}": (f"EPDC_{s}", "output") for s in (
+            "CLKN", "CLKP", "GDCLK", "GDOE", "GDSP", "SDCE0", "SDLE", "SDOE",
+            "SE_CLK", *[f"D{i}{p}" for i in range(12) for p in ("N", "P")])},
+        # 18-bit RGB666: bits 2..7 of each channel, which is what the DSS
+        # presents and what the UCF's B2..B7/G2..G7/R2..R7 comments name.
+        **{f"DPI_{c}{b}": (f"DPI_{c}{b}", "input")
+           for c in ("R", "G", "B") for b in range(2, 8)},
+        **{n: (n, "input") for n in ("DPI_PCLK", "DPI_DE", "DPI_HS", "DPI_VS")},
+        # MCU -> FPGA throttle. Declared on mcu.kicad_sch since WP3 but
+        # terminated nowhere until now; in R1 it lands on U1.M16.
+        "EPD_THROT": ("EPD_THROT", "input"),
+        # R1's bare "GCLK" says nothing about what it is. The net is X1's
+        # 33.33 MHz through R409, and it reaches K11 here and M9 on
+        # fpga_config -- the UCF keeps M9 active and K11 commented as the
+        # alternative, so the board can move the constraint without a respin.
+        "GCLK": ("FPGA_CLK33", "input"),
     },
     "power_mon": {
         # R1 called the housekeeping bus I2C1_*; R2 calls it *_AON because it
@@ -127,11 +155,46 @@ RAILS = {
     },
 }
 
+# --- 5. signals to delete outright ---------------------------------------
+# R1 wires a 12-signal parallel bus between the H750's FMC and the FPGA, but
+# *no* .ucf in Caster assigns any of it -- the gateware has never used it. R2
+# has no MCU-side parallel bus at all, so the labels and their stubs go and the
+# freed bank-1 pins get no-connect flags, which is this project's convention for
+# a spare pin (docs/mcu.md §3.2).
+DROP = {
+    "fpga_io": frozenset(("FMC_A16", "FMC_NE1", "FMC_NOE", "FMC_NWE",
+                          *[f"FMC_D{i}" for i in range(8)])),
+}
+
+# --- 6. spare pins R1 leaves bare ----------------------------------------
+# R1's fpga_io has 24 unused balls but flags only 12 of them, so the other 12
+# come across as `pin_not_connected`. docs/mcu.md §3.2's convention is that
+# every spare carries a no-connect flag: ERC stays honest, and claiming the pin
+# later is a matter of deleting the flag. Coordinates and pin names read off the
+# ERC report after the first port run.
+NO_CONNECT = {
+    "fpga_io": (
+        (114.30, 45.72),   # E13  IO_L1P_A25_1
+        (114.30, 48.26),   # E12  IO_L1N_A24_VREF_1
+        (114.30, 55.88),   # F12  IO_L30P_A21_M1RESET_1
+        (114.30, 58.42),   # G11  IO_L30N_A20_M1A11_1
+        (114.30, 66.04),   # F13  IO_L32P_A17_M1A8_1
+        (114.30, 68.58),   # F14  IO_L32N_A16_M1A9_1
+        (114.30, 99.06),   # H11  IO_L38N_A4_M1CLKN_1
+        (114.30, 106.68),  # J11  IO_L40P_GCLK11_M1A5_1
+        (114.30, 152.40),  # R15  IO_L49P_M1DQ10_1
+        (114.30, 160.02),  # T15  IO_L50N_M1UDQSN_1
+        (213.36, 119.38),  # F9   IO_L40P_0
+        (213.36, 121.92),  # D9   IO_L40N_0
+    ),
+}
+
 TITLE = "Glider-R2 / Specter mainboard"
 NOTE = {
     "epd": "epd — panel connectors, ported from R1 pin-for-pin. See docs/epd-port.md.",
     "epd_power": "epd_power — EPD HV chain, ported unchanged from R1. See docs/epd-port.md.",
     "power_mon": "power_mon — 3x INA3221, ported from R1; three channels repurposed.",
+    "fpga_io": "fpga_io — XC6SLX16 banks 0/1: EPD panel bus, DPI in. See docs/fpga.md.",
 }
 
 
@@ -202,6 +265,75 @@ def rewrite_labels(text: str, mapping: dict) -> str:
     if unused:
         raise KeyError(f"mapping has names the sheet never used: {sorted(unused)}")
     return out
+
+
+def _wires(text: str):
+    """Yield (start, end, x1, y1, x2, y2) for every two-point wire block."""
+    for s, e in each_block(text, "wire"):
+        m = re.search(r"\(pts\s*\n\s*\(xy ([-\d.]+) ([-\d.]+)\) "
+                      r"\(xy ([-\d.]+) ([-\d.]+)\)", text[s:e])
+        if m:
+            yield (s, e, *(float(v) for v in m.groups()))
+
+
+def drop_labels(text: str, names) -> str:
+    """Delete each named global label and its stub wire; no-connect the pin.
+
+    On `fpga_io` every dropped label sits at one end of exactly one 5.08 mm wire
+    whose far end is the FPGA pin.  The label and that wire go, and a
+    `no_connect` takes the pin's place so the pin stays accounted for in ERC
+    instead of becoming a silent `pin_not_connected`.
+
+    If a label turns out to be served by anything other than exactly one wire,
+    this raises rather than guessing which segment to remove -- the whole point
+    of a port is that no edit is left to inference.
+    """
+    if not names:
+        return text
+
+    def near(a, b):
+        return abs(a - b) < 0.01
+
+    spans, opens, seen = [], [], set()
+    wires = list(_wires(text))
+    for s, e in each_block(text, "global_label"):
+        blk = text[s:e]
+        name = re.match(r'\(global_label "([^"]+)"', blk).group(1)
+        if name not in names:
+            continue
+        at = re.search(r"\(at ([-\d.]+) ([-\d.]+) (\d+)\)", blk)
+        lx, ly = float(at.group(1)), float(at.group(2))
+        hits = [w for w in wires
+                if (near(w[2], lx) and near(w[3], ly))
+                or (near(w[4], lx) and near(w[5], ly))]
+        if len(hits) != 1:
+            raise AssertionError(
+                f"{name} at ({lx},{ly}) is served by {len(hits)} wires, not 1")
+        w = hits[0]
+        far = (w[4], w[5]) if near(w[2], lx) and near(w[3], ly) else (w[2], w[3])
+        spans += [(s, e), (w[0], w[1])]
+        opens.append(far)
+        seen.add(name)
+
+    missing = set(names) - seen
+    if missing:
+        raise KeyError(f"labels marked for deletion never appeared: {sorted(missing)}")
+
+    for s, e in sorted(spans, key=lambda p: -p[0]):
+        text = text[:s] + text[e:]
+
+    return add_no_connects(text, opens)
+
+
+def add_no_connects(text: str, points) -> str:
+    """Append a `no_connect` flag at each (x, y)."""
+    if not points:
+        return text
+    assert text.endswith(")\n")
+    add = "".join(
+        f'\t(no_connect\n\t\t(at {x} {y})\n\t\t(uuid "{uuid.uuid4()}")\n\t)\n'
+        for x, y in points)
+    return text[:-2] + add + ")\n"
 
 
 def _props(blk: str, name: str):
@@ -278,6 +410,10 @@ def port(sheet: str, root_uuid: str, sheet_uuid: str) -> str:
         text = text.replace(f'(symbol "{old}"', f'(symbol "{new}"')
 
     text = rewrite_rails(text, RAILS.get(sheet, {}))
+    # drop before rewriting: rewrite_labels refuses to leave any global label
+    # unmapped, so anything being deleted has to be gone by the time it runs.
+    text = drop_labels(text, DROP.get(sheet, frozenset()))
+    text = add_no_connects(text, NO_CONNECT.get(sheet, ()))
     text = rewrite_labels(text, HIER[sheet])
 
     # project identity: every symbol's instance path moves under r2's root
@@ -297,9 +433,26 @@ def port(sheet: str, root_uuid: str, sheet_uuid: str) -> str:
     return text
 
 
+# Sheets that have been ported, reviewed by the hardware owner and committed.
+# Re-porting one would silently discard everything since -- power_mon, for
+# instance, carries the 1.5 V rail rename from tools/patch_ddr_15v.py.
+FROZEN = frozenset(("epd", "epd_power", "power_mon"))
+
+
 def main():
+    names = sys.argv[1:]
+    if not names:
+        sys.exit(f"usage: port_r1.py <sheet>...   (portable: "
+                 f"{', '.join(sorted(set(HIER) ))})")
+    for name in names:
+        if name in FROZEN and "--force" not in sys.argv:
+            sys.exit(f"refusing to re-port {name!r}: it is reviewed and "
+                     f"committed, and re-porting would discard later edits. "
+                     f"Pass --force only if that is genuinely what you want.")
+    names = [n for n in names if not n.startswith("--")]
+
     root_uuid, sheets = sheet_uuids(PROJ / "r2.kicad_sch")
-    for name in ("epd", "epd_power", "power_mon"):
+    for name in names:
         out = PROJ / f"{name}.kicad_sch"
         out.write_text(port(name, root_uuid, sheets[name]))
         # The symbol refresh injects KiCad 10 syntax, so the file has to be in
@@ -311,7 +464,7 @@ def main():
         print(f"wrote {out}  (refreshed {n} stock symbol definitions)")
 
     from sheet_pins import set_sheet_pins
-    for name in ("epd", "epd_power", "power_mon"):
+    for name in names:
         pins = sorted({v for v in HIER[name].values()})
         set_sheet_pins(PROJ / "r2.kicad_sch", name, pins)
 
