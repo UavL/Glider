@@ -67,6 +67,14 @@ RENAMES = {
     # R40/R44/C26/C207 collide with blocks already issued. Offsets keep the R1
     # number legible inside the new one, as epd-port.md §1 does with +200.
     "fpga_io": {"U1": "U41", "R11": "R311", "D8": "D308"},
+    "fpga_config": {
+        "U1": "U41",
+        **{f"R{n}": f"R{n + 300}" for n in (35, 36, 37, 109)},
+        **{f"C{n}": f"C{n + 300}" for n in (16, 26, 92, 93, 148, 149, 150, 156,
+                                            157, 182, 183, 184, 185, 186, 187,
+                                            188, 189, 190, 207)},
+        # X1 keeps its number: nothing else on the board uses X.
+    },
 }
 
 # --- 3. library links ----------------------------------------------------
@@ -121,6 +129,30 @@ HIER = {
         # alternative, so the board can move the constraint without a respin.
         "GCLK": ("FPGA_CLK33", "input"),
     },
+    # Bank 2 plus the dedicated config pins. Directions are from the FPGA's
+    # side: the SoM is the CSR master in R2 (docs/mcu.md §2.1), so SCLK/MOSI/CS
+    # come in and MISO goes out. INIT_B is open-drain and both driven and
+    # sensed, hence bidirectional.
+    "fpga_config": {
+        "FPGA_SCLK": ("FPGA_SCLK", "input"),
+        "FPGA_MOSI": ("FPGA_MOSI", "input"),
+        "FPGA_MISO": ("FPGA_MISO", "output"),
+        "FPGA_CS": ("FPGA_CS", "input"),
+        # FPGA_INIT is deliberately absent: on R1 it is a *local* label whose net
+        # has exactly one member, U1.R3. R1 leaves INIT_B unconnected with no
+        # pull-up at all. It stays local through the port so the sheet matches;
+        # giving it a pull-up and a route to the MCU is a separate change, and it
+        # matters more in R2 than R1 because with self-boot INIT_B low is how you
+        # tell a CRC error from "still configuring" when DONE never arrives.
+        "FPGA_PROG": ("FPGA_PROG#", "input"),
+        "FPGA_DONE": ("FPGA_DONE", "output"),
+        "FPGA_SUSP": ("FPGA_SUSP", "input"),
+        "FPGA_TCK": ("FPGA_TCK", "input"),
+        "FPGA_TDI": ("FPGA_TDI", "input"),
+        "FPGA_TMS": ("FPGA_TMS", "input"),
+        "FPGA_TDO": ("FPGA_TDO", "output"),
+        "GCLK": ("FPGA_CLK33", "input"),
+    },
     "power_mon": {
         # R1 called the housekeeping bus I2C1_*; R2 calls it *_AON because it
         # is the one bus that stays alive with every switched rail down.
@@ -141,6 +173,12 @@ HIER = {
 # Keyed by reference rather than by value because several instances share a
 # value and only some of them move. docs/epd-port.md §3 has the channel table.
 RAILS = {
+    # R1 spreads the FPGA's decoupling across sheets, so five of the DDR bank's
+    # VCCO capacitors are drawn on fpga_config rather than fpga_ddr. That rail is
+    # 1.5 V in R2 (tools/patch_ddr_15v.py), so the symbol has to move with it --
+    # caught by the netlist diff, which showed a stale `+1V35` net appearing with
+    # 5 nodes. fpga_ddr carries the same name and will need the same treatment.
+    "fpga_config": {"#PWR0259": "+1V5"},
     "power_mon": {
         "#PWR0182": "+5V_DCDC",        # was +1V8_DCDC  -- U22 ch1 in
         "#PWR0243": "+5V_SOM",         # was +1V8_VID   -- U22 ch1 out
@@ -164,6 +202,16 @@ RAILS = {
 DROP = {
     "fpga_io": frozenset(("FMC_A16", "FMC_NE1", "FMC_NOE", "FMC_NWE",
                           *[f"FMC_D{i}" for i in range(8)])),
+    # The FPD-Link/LVDS video input. R2 deletes the PTN3460 that drove it, so
+    # these 14 balls have no source. They are dropped here *and* deconstrained
+    # in Caster's constraint.ucf (owner's decision, 2026-08-12): left as
+    # constrained-but-floating LVDS_33 inputs with DIFF_TERM enabled, seven
+    # differential buffers would sit at an indeterminate common mode where they
+    # can self-oscillate and draw current -- in the reading state, which is the
+    # one number R2 exists to reduce. Removing the constraint removes the buffer.
+    "fpga_config": frozenset(
+        [f"LVDS_{h}_{l}{p}" for h in ("EVEN", "ODD") for l in "ABC" for p in "PN"]
+        + ["LVDS_ODD_CKP", "LVDS_ODD_CKN"]),
 }
 
 # --- 6. spare pins R1 leaves bare ----------------------------------------
@@ -195,6 +243,7 @@ NOTE = {
     "epd_power": "epd_power — EPD HV chain, ported unchanged from R1. See docs/epd-port.md.",
     "power_mon": "power_mon — 3x INA3221, ported from R1; three channels repurposed.",
     "fpga_io": "fpga_io — XC6SLX16 banks 0/1: EPD panel bus, DPI in. See docs/fpga.md.",
+    "fpga_config": "fpga_config — XC6SLX16 bank 2, config and CSR SPI, 33.33 MHz clock. See docs/fpga.md.",
 }
 
 

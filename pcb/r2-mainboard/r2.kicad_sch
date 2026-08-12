@@ -953,7 +953,7 @@
 		)
 	)
 	(sheet
-		(at 320.04 106.68)
+		(at 320.04 119.38)
 		(size 55.88 25.4)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -969,7 +969,7 @@
 		)
 		(uuid "5c8ce93f-26c8-4450-ba3a-dff03cacb9ae")
 		(property "Sheetname" "frontlight"
-			(at 320.04 105.9674 0)
+			(at 320.04 118.6674 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -980,7 +980,7 @@
 			)
 		)
 		(property "Sheetfile" "frontlight.kicad_sch"
-			(at 320.04 132.6646 0)
+			(at 320.04 145.3646 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2028,7 +2028,7 @@
 	)
 	(sheet
 		(at 320.04 68.58)
-		(size 55.88 25.4)
+		(size 55.88 38.1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -2054,7 +2054,7 @@
 			)
 		)
 		(property "Sheetfile" "fpga_config.kicad_sch"
-			(at 320.04 94.5646 0)
+			(at 320.04 107.2646 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2062,6 +2062,126 @@
 					(size 1.27 1.27)
 				)
 				(justify left top)
+			)
+		)
+		(pin "FPGA_CLK33" input
+			(at 375.92 73.66 0)
+			(uuid "7b04cc88-8ee5-445b-80a6-b0e21d3cf464")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_CS" input
+			(at 375.92 76.2 0)
+			(uuid "1b22d991-f341-4af5-932a-e41a4a705de5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_DONE" output
+			(at 375.92 78.74 0)
+			(uuid "9b6c39c5-c0b6-4330-bcbd-0b47cfc030ab")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_MISO" output
+			(at 375.92 81.28 0)
+			(uuid "3277654e-55ef-4c0a-86b0-39b2909bd92a")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_MOSI" input
+			(at 375.92 83.82 0)
+			(uuid "c2e34a01-12e7-4e13-9edc-305c383cd016")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_PROG#" input
+			(at 375.92 86.36 0)
+			(uuid "3e636302-6cb0-4d95-86ba-2772686160e6")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_SCLK" input
+			(at 375.92 88.9 0)
+			(uuid "d0a1dece-d172-4128-92d7-fd52fcf8e902")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_SUSP" input
+			(at 375.92 91.44 0)
+			(uuid "9e1a9fc8-10f1-4b03-a110-9ccfe305ee51")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_TCK" input
+			(at 375.92 93.98 0)
+			(uuid "02656597-efe0-4788-8f8b-c52e3c4c2d33")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_TDI" input
+			(at 375.92 96.52 0)
+			(uuid "f8aa25d3-e40b-460a-bdd2-49e223c6fc86")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_TDO" output
+			(at 375.92 99.06 0)
+			(uuid "07d631e6-abea-4110-94bb-8fd7ba059521")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "FPGA_TMS" input
+			(at 375.92 101.6 0)
+			(uuid "125833e0-729d-4ab4-8c5c-aa1b3fb6ddcc")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 			)
 		)
 		(instances
