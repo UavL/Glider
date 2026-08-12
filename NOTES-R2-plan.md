@@ -262,7 +262,7 @@ patched surgically; the `tools/gen_*.py` generators are not re-run over it.
 | --- | --- | --- | --- | --- |
 | WP1 | `battery` | yes | **yes — round 1 done** | `manual-analysis/Analyse_battery.md` → answered in `docs/battery.md` §10; four fixes applied |
 | WP2 | `power` | yes | **yes — round 1 done** | `manual-analysis/Analysis_power.md` → answered in `docs/power.md` §10. **The `TPS22965` load switch is deleted** — the boost already has true output disconnect; layout guidelines written (§11) |
-| WP3 | `mcu` | yes | pending | |
+| WP3 | `mcu` | yes | **yes — round 1 done** | `manual-analysis/Analysis_mcu.md` → answered in `docs/mcu.md` §10. `C42` deleted (Figure 15 asks for no `VBAT` cap); page buttons → `EVQPLHA15` for **500 k cycles** instead of 100 k; layout guidelines written (§11). Opened a real gap: **the MCU has no field-update or brick-recovery path** (§5.7) |
 | WP4 | `epd`, `epd_power`, `power_mon` | yes — ported from R1 | pending | `epd`/`epd_power` provably net-identical to R1; `power_mon` differs in 4 intended groups |
 | WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | no | — | `fpga_config` gains a SPI NOR for FPGA self-boot |
 | WP6 | `frontlight`, `io_expansion` | no | — | FL driver, unpopulated touch/pen FPC, microSD |
@@ -279,15 +279,18 @@ that, not of the sheets. Wire the root once the sheet symbols stop moving.
 is why the rail tree verifies today and the control signals do not
 (`docs/power.md` §10.8).
 
-Whole-project ERC as of 2026-08-11: **491 violations. Read the JSON report
+Whole-project ERC as of 2026-08-12: **490 violations. Read the JSON report
 (`--format json`), not the text one** — the text report files
 `footprint_link_issues`, `isolated_pin_label` and `four_way_junction` under
 `***** Sheet /` no matter which child sheet the item is really on. Per sheet:
-`/` 473 (208 `footprint_link_issues` = standing ask 3; 255 root-unwired
+`/` 472 (207 `footprint_link_issues` = standing ask 3; 255 root-unwired
 artifacts; 9 `four_way_junction`; 1 `lib_symbol_mismatch`), `/battery/` 1
-(`CHG_QON#`), `/epd/` 2, `/epd_power/` 8, `/power_mon/` 7, and **`/power/` 0.**
-`docs/power.md` §13 has the breakdown and traces the nine `four_way_junction`
-warnings back to the sheets they actually sit on.
+(`CHG_QON#`), `/epd/` 2, `/epd_power/` 8, `/power_mon/` 7, and **`/power/` 0,
+`/mcu/` 0.** `docs/power.md` §13 has the breakdown and traces the nine
+`four_way_junction` warnings back to the sheets they actually sit on;
+`docs/mcu.md` §13 carries the same table plus a by-type before/after comparison
+across the WP3 patch. The drop from 491 is `C42`'s footprint link, deleted with
+the part.
 
 Standing asks for the owner, carried across sessions:
 

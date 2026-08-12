@@ -3369,7 +3369,7 @@
 	)
 	(text "VREF+ (7)"
 		(exclude_from_sim no)
-		(at 80.01 71.12 0)
+		(at 76.2 74.168 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3840,7 +3840,7 @@
 		)
 		(uuid "e9d7cc14-df00-495a-9e0e-ad8956e59348")
 	)
-	(text "VDD/VDDA (8)        VBAT (6)"
+	(text "VDD/VDDA (8) + VBAT (6) - one net"
 		(exclude_from_sim no)
 		(at 21.59 68.58 0)
 		(effects
@@ -3890,12 +3890,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "124f7bde-0ef0-4fc6-9da6-1984b95cf295")
-	)
-	(junction
-		(at 50.8 45.72)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "141eabd7-841d-4c88-ad89-39f99ae4f482")
 	)
 	(junction
 		(at 48.26 129.54)
@@ -4433,16 +4427,6 @@
 	)
 	(wire
 		(pts
-			(xy 50.8 53.34) (xy 50.8 60.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3ba74049-1b12-4561-ae53-aa4ce3044c66")
-	)
-	(wire
-		(pts
 			(xy 289.56 62.23) (xy 297.18 62.23)
 		)
 		(stroke
@@ -4753,7 +4737,7 @@
 	)
 	(wire
 		(pts
-			(xy 299.72 190.5) (xy 316.23 190.5)
+			(xy 318.77 187.96) (xy 335.28 187.96)
 		)
 		(stroke
 			(width 0)
@@ -4933,7 +4917,7 @@
 	)
 	(wire
 		(pts
-			(xy 323.85 190.5) (xy 345.44 190.5)
+			(xy 342.9 187.96) (xy 364.49 187.96)
 		)
 		(stroke
 			(width 0)
@@ -6142,7 +6126,7 @@
 		(uuid "8c952f01-a630-4d62-9546-87caefd3d0cc")
 	)
 	(label "EPD_PWR_EN"
-		(at 345.44 190.5 0)
+		(at 364.49 187.96 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6432,7 +6416,7 @@
 		(uuid "d83957c7-4a53-4239-aee0-f92b940197de")
 	)
 	(label "EPD_PWR_EN_MCU"
-		(at 299.72 190.5 180)
+		(at 318.77 187.96 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7045,7 +7029,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A"
+		(property "Footprint" "Button_Switch_SMD:SW_SPST_Panasonic_EVQPL_3PL_5PL_PT_A15"
 			(at 165.1 246.38 0)
 			(hide yes)
 			(show_name no)
@@ -7067,7 +7051,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Page-turn tact switch — 1.6 N, 1.5 mm travel, 500 k cycles, 4.9×4.9 mm J-lead (Panasonic EVQPLHA15, LCSC C79172). Chosen for cycle life: the 100 k-cycle TS-1187A is ~1.4 years at 200 turns/day"
 			(at 165.1 246.38 0)
 			(hide yes)
 			(show_name no)
@@ -7078,7 +7062,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C318884"
+		(property "LCSC" "C79172"
 			(at 165.1 246.38 0)
 			(hide yes)
 			(show_name no)
@@ -7236,7 +7220,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "LSE load capacitor for Y20 — 18 pF assumes a 12.5 pF crystal and ~3 pF stray (docs/mcu.md §5.4). Y20's actual CL is unconfirmed; AN2867 is the selection reference named by Table 43"
 			(at 48.26 133.35 0)
 			(hide yes)
 			(show_name no)
@@ -7394,7 +7378,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "1 µF on VREF+ — stm32g0b1.pdf Figure 15 p.65 (100 nF + 1 µF)"
 			(at 88.9 69.85 0)
 			(hide yes)
 			(show_name no)
@@ -7753,7 +7737,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "32.768 kHz LSE crystal for the RTC (Epson FC-135, LCSC C32346, JLC Basic). This is the LSE, not the HSE: no HSE is fitted, and the 8 MHz in stm32g0b1.pdf Table 42 / Figure 20 is fOSC_IN typ for the HSE. LSE spec is Table 43 p.85; tSU 2 s. CL unconfirmed — see §9"
 			(at 60.96 129.54 0)
 			(hide yes)
 			(show_name no)
@@ -7922,7 +7906,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "4.7 µF bulk for VDD/VDDA (pin 8) and VBAT (pin 6), which share +3V3_AON — stm32g0b1.pdf Figure 15 p.65: 1 × 100 nF + 1 × 4.7 µF"
 			(at 25.4 49.53 0)
 			(hide yes)
 			(show_name no)
@@ -8270,87 +8254,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C")
-		(at 50.8 49.53 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "3eff21df-9801-48dc-b06f-1626352efdd6")
-		(property "Reference" "C42"
-			(at 53.34 48.26 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "100nF/16V"
-			(at 53.34 51.562 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-			(at 50.8 49.53 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 50.8 49.53 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 50.8 49.53 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "814fdbbf-c347-489b-99c4-d10a87bf2ffe")
-		)
-		(pin "2"
-			(uuid "94e8f74c-1a9e-48d2-b24e-4e6e719172be")
-		)
-		(instances
-			(project "r2"
-				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a89f58f8-b115-4f71-9806-30f9bff6e587"
-					(reference "C42")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "symbols:+V")
 		(at 205.74 226.06 0)
 		(unit 1)
@@ -8482,7 +8385,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Ferrite bead 120 Ω @ 100 MHz, DCR 190 mΩ, 550 mA, 0402 (Murata BLM15AG121SN1D, LCSC C85812). Isolates VREF+ from the digital rail. The low DCR is the load-bearing spec: stm32g0b1.pdf Table 21 caps VREF+ at min(VDD + 0.4, 4.0) V, so nothing with real series impedance may sit here — a resistor would be a hazard, this is <0.2 mV at 1 mA. Not required by Figure 15; see docs/mcu.md §12.2"
 			(at 76.2 49.53 0)
 			(hide yes)
 			(show_name no)
@@ -8521,7 +8424,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 320.04 190.5 90)
+		(at 339.09 187.96 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8531,7 +8434,7 @@
 		(dnp no)
 		(uuid "550baa6a-eaff-4e74-9431-39ff04fe575c")
 		(property "Reference" "R45"
-			(at 320.04 185.42 270)
+			(at 339.09 182.88 270)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8542,7 +8445,7 @@
 			)
 		)
 		(property "Value" "1k"
-			(at 320.04 196.85 270)
+			(at 339.852 185.166 270)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8553,7 +8456,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
-			(at 320.04 190.5 270)
+			(at 339.09 187.96 270)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8564,7 +8467,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 320.04 190.5 270)
+			(at 339.09 187.96 270)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8575,7 +8478,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 320.04 190.5 270)
+			(at 339.09 187.96 270)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9275,7 +9178,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "100 nF decoupling at VDD/VDDA pin 8 — stm32g0b1.pdf Figure 15 p.65. With C40 this is the whole of ST's scheme for this pin pair; no separate VBAT capacitor is called for"
 			(at 38.1 49.53 0)
 			(hide yes)
 			(show_name no)
@@ -9411,7 +9314,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A"
+		(property "Footprint" "Button_Switch_SMD:SW_SPST_Panasonic_EVQPL_3PL_5PL_PT_A15"
 			(at 220.98 246.38 0)
 			(hide yes)
 			(show_name no)
@@ -9433,7 +9336,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Page-turn tact switch — 1.6 N, 1.5 mm travel, 500 k cycles, 4.9×4.9 mm J-lead (Panasonic EVQPLHA15, LCSC C79172). Chosen for cycle life: the 100 k-cycle TS-1187A is ~1.4 years at 200 turns/day"
 			(at 220.98 246.38 0)
 			(hide yes)
 			(show_name no)
@@ -9444,7 +9347,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C318884"
+		(property "LCSC" "C79172"
 			(at 220.98 246.38 0)
 			(hide yes)
 			(show_name no)
@@ -9868,83 +9771,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 50.8 60.96 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "a7fbca0a-0e7e-4a5c-bbd9-4c4961427128")
-		(property "Reference" "#PWR305"
-			(at 50.8 60.96 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 50.8 64.77 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 50.8 60.96 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 50.8 60.96 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 50.8 60.96 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "4278fe96-4b13-47a8-aa1d-62cd82f03d5f")
-		)
-		(instances
-			(project "r2"
-				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a89f58f8-b115-4f71-9806-30f9bff6e587"
-					(reference "#PWR305")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
 		(at 149.86 256.54 0)
 		(unit 1)
@@ -10080,7 +9906,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power button — shorts CHG_QON# to GND galvanically, the only ship-mode exit needing neither a cable nor a live I²C host (bq25890.pdf §9.2.10.2). 1.6 N, 100 k cycles is ample for a rarely-pressed key (XKB TS-1187A-B-A-B, LCSC C318884, JLC Basic)"
 			(at 276.86 246.38 0)
 			(hide yes)
 			(show_name no)
@@ -10407,7 +10233,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "LSE load capacitor for Y20 — 18 pF assumes a 12.5 pF crystal and ~3 pF stray (docs/mcu.md §5.4). Y20's actual CL is unconfirmed; AN2867 is the selection reference named by Table 43"
 			(at 73.66 133.35 0)
 			(hide yes)
 			(show_name no)
@@ -10892,7 +10718,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "100 nF on VREF+ — stm32g0b1.pdf Figure 15 p.65 (100 nF + 1 µF)"
 			(at 101.6 69.85 0)
 			(hide yes)
 			(show_name no)
