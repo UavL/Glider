@@ -123,8 +123,18 @@ domain.**
 | `+3V3_FPGA_IO` | `MCU_EN_FPGA_IO` | on, not toggling | see note |
 | `+1V5_DDR` | `MCU_EN_DDR` | on, self-refresh | holds the waveform state |
 | `+VP/+VGH/−VN/−VGL/VCOM` | `EPD_PWR_EN`, `EPD_POS_EN`, `VCOM_EN` | **off** | carried from R1 |
-| `+5V2_FL` frontlight | `FL_EN` + PWM | off unless lit | R1 declares `FL_EN`/`EPD_THROT` but never drives them — wire and use them |
+| `+5V2_FL` frontlight | `FL_EN` + PWM | off unless lit | R1 declares `FL_EN`/`EPD_THROT` but never drives them — wire and use them. **`FL_EN`/`FL_PWM*` are firmware-only and straightforward. `EPD_THROT` is not: see below.** |
 | `+3V3_TOUCH` / `+3V3_PEN` | `MCU_EN_TOUCH` / `_PEN` | off (unpopulated in R2) | |
+
+**On `EPD_THROT` — "wire and use them" is not available for this one.** Found in WP5 by
+`tools/check_ucf.py`: the net runs MCU → FPGA (`U41.M16`) on both boards, but **the string "throt"
+does not appear anywhere in Caster's RTL, headers or constraints.** There is no gateware port to
+receive it, so it is a wired-but-unimplemented signal exactly like the FMC bus that WP5 deleted.
+Driving it from firmware would do nothing. Three honest options, none of them free: implement a
+throttle in Caster (a gateware feature, not a wiring fix), delete the net and reclaim `M16`, or keep
+it reserved and say so. R2 currently keeps it reserved — `mcu.kicad_sch` declares it and `fpga_io`
+terminates it — which costs one ball and leaves the option open. **Decide before Stage D**, since
+reclaiming the ball later is free but adding the net back is not.
 
 **On `+3V3_FPGA_IO`:** R1's ~420 mW of FPGA I/O is *dynamic* switching power (CV²f), not static.
 Stopping the scan removes essentially all of it, so cutting the bank rail buys little while
