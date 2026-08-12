@@ -3,7 +3,7 @@
 R2 work package 1. Status: **reviewed once; review-1 fixes applied.**
 Last updated 2026-08-10.
 
-§10 answers the points raised in `../Analyse_battery.md` and lists what changed
+§10 answers the points raised in `../manual-analysis/Analyse_battery.md` and lists what changed
 in the schematic as a result. Read that section first if you are coming from
 those notes.
 
@@ -231,7 +231,7 @@ one and refuses to run twice — the `.kicad_sch` remains the source of truth.
 
 ## 10. Review 1 (2026-08-10) — the analysis notes, answered
 
-Source: `../Analyse_battery.md`. Everything below marked ‡ is read out of
+Source: `../manual-analysis/Analyse_battery.md`. Everything below marked ‡ is read out of
 `../datasheets/bq25890.pdf` (SLUSC86D, which covers `BQ25890` **and**
 `BQ25892`), `../datasheets/max17048.pdf`, `../datasheets/stm32g0b1.pdf` or
 `~/Downloads/L-1038e.A5_phyCORE-AM62x_HW Manual.pdf`.

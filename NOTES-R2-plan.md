@@ -150,9 +150,13 @@ H750 become a G0.
 - `+3V3_SYS` and `+3V3_FPGA_IO` are **one rail**, since each 3.3 V rail costs a whole buck-boost and
   the note above already says not to build around powering a `VCCO` bank down. Per-rail measurement
   survives through `power_mon`'s shunts. `docs/power.md` §6.
-- `+5V_SOM` is **`+5V_DCDC`** (it feeds the EPD HV chain too) and needs a **load switch on the
-  boost input**: a boost has no load
-  disconnect, so disabling it alone would leave ~3.4 V on the SoM's `VIN`. `docs/power.md` §2.2.
+- `+5V_SOM` is **`+5V_DCDC`** (it feeds the EPD HV chain too). ~~and needs a **load switch on the
+  boost input**: a boost has no load disconnect, so disabling it alone would leave ~3.4 V on the
+  SoM's `VIN`.~~ **Withdrawn in review 1 of `power.kicad_sch`, 2026-08-11.** That is true of boosts
+  in general but not of the `TPS61022`: its p.1 feature list says "True disconnection between input
+  and output during shutdown", §7.3.2 repeats it, and §6.5 backs it with `IVOUT_LKG` = 1 µA typ
+  measured with `VOUT` forced to 5.5 V and `VIN` at 0 V. The `TPS22965` load switch has been deleted;
+  `MCU_EN_5V` drives the boost's `EN` directly. `docs/power.md` §2.2 and §10.7.
 - The **frontlight boost moves to `frontlight.kicad_sch`** and runs from `+VSYS` directly.
 
 ---
@@ -256,8 +260,8 @@ patched surgically; the `tools/gen_*.py` generators are not re-run over it.
 
 | WP | Sheets | Drawn | Reviewed by owner | Notes |
 | --- | --- | --- | --- | --- |
-| WP1 | `battery` | yes | **yes — round 1 done** | `Analyse_battery.md` → answered in `docs/battery.md` §10; four fixes applied |
-| WP2 | `power` | yes | in progress | |
+| WP1 | `battery` | yes | **yes — round 1 done** | `manual-analysis/Analyse_battery.md` → answered in `docs/battery.md` §10; four fixes applied |
+| WP2 | `power` | yes | **yes — round 1 done** | `manual-analysis/Analysis_power.md` → answered in `docs/power.md` §10. **The `TPS22965` load switch is deleted** — the boost already has true output disconnect; layout guidelines written (§11) |
 | WP3 | `mcu` | yes | pending | |
 | WP4 | `epd`, `epd_power`, `power_mon` | yes — ported from R1 | pending | `epd`/`epd_power` provably net-identical to R1; `power_mon` differs in 4 intended groups |
 | WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | no | — | `fpga_config` gains a SPI NOR for FPGA self-boot |
@@ -270,17 +274,40 @@ nets between sheets, so e.g. `MCU_EN_5V` on `mcu` and on `power` are two
 different nets today. This is why ERC reports ~270 `isolated_pin_label` /
 `pin_not_connected` / `power_pin_not_driven` violations — they are an artifact of
 that, not of the sheets. Wire the root once the sheet symbols stop moving.
+**Global power symbols are exempt**: `+VSYS`, `GND`, `+3V3_AON` and every
+`*_DCDC` rail already connect across sheets without the root being wired, which
+is why the rail tree verifies today and the control signals do not
+(`docs/power.md` §10.8).
+
+Whole-project ERC as of 2026-08-11: **491 violations. Read the JSON report
+(`--format json`), not the text one** — the text report files
+`footprint_link_issues`, `isolated_pin_label` and `four_way_junction` under
+`***** Sheet /` no matter which child sheet the item is really on. Per sheet:
+`/` 473 (208 `footprint_link_issues` = standing ask 3; 255 root-unwired
+artifacts; 9 `four_way_junction`; 1 `lib_symbol_mismatch`), `/battery/` 1
+(`CHG_QON#`), `/epd/` 2, `/epd_power/` 8, `/power_mon/` 7, and **`/power/` 0.**
+`docs/power.md` §13 has the breakdown and traces the nine `four_way_junction`
+warnings back to the sheets they actually sit on.
 
 Standing asks for the owner, carried across sessions:
 
-1. Delete the `+3V3_AON` `PWR_FLAG` at (360.68, 205.74) on `battery.kicad_sch` —
-   rightmost of five. Clears the last `pin_to_pin`.
-2. Rename `U10`'s output on `power.kicad_sch` from `+3V3_AON` to `+3V3_AON_DCDC`,
-   so `power_mon`'s U22 ch2 has an upstream net to measure across.
+1. ~~Delete the `+3V3_AON` `PWR_FLAG` at (360.68, 205.74) on `battery.kicad_sch`.~~
+   **Withdrawn 2026-08-11 — keep it.** Once ask 2 was done, `U10` drives
+   `+3V3_AON_DCDC` and the only thing feeding `+3V3_AON` is `power_mon`'s passive
+   shunt, so that flag is now the net's sole ERC driver. Deleting it would turn
+   one warning into `power_pin_not_driven` errors on the STM32G0 and all three
+   `INA3221`s. The `pin_to_pin` violation is gone anyway — the rename fixed it.
+   `docs/power.md` §9.
+2. ~~Rename `U10`'s output on `power.kicad_sch` to `+3V3_AON_DCDC`.~~ **Done by
+   the owner**, 2026-08-11 save. Verified in the exported netlist.
 3. Fix KiCad's **global** library tables (Preferences → Configure Paths →
    `~/Apps/kicad-10.0.4/usr/share/kicad/`). They still point at a dead AppImage
-   mount, which is the sole cause of the ~210 `footprint_link_issues`. Outside
-   the repo, so not the assistant's to change.
+   mount, which is the sole cause of the ~208 `footprint_link_issues`. Outside
+   the repo, so not the assistant's to change. **Still open.**
+4. New, from WP2: two items on `power` need a bench measurement once there is
+   hardware — how fast `+5V_DCDC` decays when the boost is disabled, and how far
+   `+VSYS` dips when the boost's ~2.4 A pre-charge starts with the cell near
+   3.3 V. Both are consequences of deleting the load switch. `docs/power.md` §9.
 
 Recommended, not yet done: retype `QON` in `r2.kicad_sym` from `input` to
 `passive` (clears a permanent `pin_not_driven`); deferred because

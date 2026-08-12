@@ -6,7 +6,7 @@ the source of truth. This script therefore patches the file in place, item by
 item, and refuses to run twice.
 
 What it changes, and why (long form in `docs/battery.md` and
-`Analyse_battery.md`):
+`manual-analysis/Analyse_battery.md`):
 
 1. PSEL is strapped HIGH, not LOW. Low means "adapter" and arms a 3.25 A
    default input limit before firmware exists; high means "USB host" and 500 mA
