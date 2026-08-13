@@ -176,7 +176,12 @@ HIER = {
         "FPGA_TDI": ("FPGA_TDI", "input"),
         "FPGA_TMS": ("FPGA_TMS", "input"),
         "FPGA_TDO": ("FPGA_TDO", "output"),
-        "GCLK": ("FPGA_CLK33", "input"),
+        # `output`, not `input` as fpga_io sees it: X1 and its series resistor
+        # R409 are on *this* sheet, so the 33.33 MHz clock is generated here and
+        # exported. The sheet consumes it too (ball M9), which is why R1 has two
+        # labels of the same name -- but the direction a sheet pin advertises is
+        # the direction the net leaves the sheet.
+        "GCLK": ("FPGA_CLK33", "output"),
     },
     # fpga_ddr has no interface at all. Every net on R1's sheet is a *local*
     # label -- the DDR bus runs from unit 4 of the FPGA to the DRAM and stops

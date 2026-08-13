@@ -7058,7 +7058,7 @@
 		(uuid "43895a9c-e7d8-4394-b676-a5ccd2a73e87")
 	)
 	(hierarchical_label "FPGA_CLK33"
-		(shape input)
+		(shape output)
 		(at 88.9 96.52 0)
 		(effects
 			(font
@@ -7135,7 +7135,7 @@
 		(uuid "e39bd62b-afe0-4282-bb75-3966d592505c")
 	)
 	(hierarchical_label "FPGA_CLK33"
-		(shape input)
+		(shape output)
 		(at 259.08 55.88 0)
 		(effects
 			(font
