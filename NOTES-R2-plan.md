@@ -279,33 +279,47 @@ patched surgically; the `tools/gen_*.py` generators are not re-run over it.
 | WP2 | `power` | yes | **yes — round 1 done** | `manual-analysis/Analysis_power.md` → answered in `docs/power.md` §10. **The `TPS22965` load switch is deleted** — the boost already has true output disconnect; layout guidelines written (§11) |
 | WP3 | `mcu` | yes | **yes — round 1 done** | `manual-analysis/Analysis_mcu.md` → answered in `docs/mcu.md` §10. `C42` deleted (Figure 15 asks for no `VBAT` cap); page buttons → `EVQPLHA15` for **500 k cycles** instead of 100 k; layout guidelines written (§11). Opened a real gap: **the MCU has no field-update or brick-recovery path** (§5.7) |
 | WP4 | `epd`, `epd_power`, `power_mon` | yes — ported from R1 | **yes — round 1 done, accepted as a 1:1 port** | `manual-analysis/Analysis_epd_files.md` → answered in `docs/epd-port.md` §9. `epd`/`epd_power` provably net-identical to R1; `power_mon` differs in 4 intended groups. **No schematic change.** Two items opened: keep the panel adapter board for now (the panel model is still deferred), and `J3` (16p) is probably droppable once the panel is chosen |
-| WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | no | — | `fpga_config` gains a SPI NOR for FPGA self-boot |
+| WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | **yes** | — **waiting on owner** | `docs/fpga.md`. All three drawn plus the **root sheet wired**. Verified against the gateware by `tools/check_ucf.py`: 113 constrained balls, **0 failures**. Corrected two documented errors (the FPGA is an **XC6SLX16**, not LX9; R1 fits a **1 Gb** DRAM, not 4 Gb). Bank 3 moved 1.35 V → **1.5 V** (`LVCMOS15`/`SSTL15` have no 1.35 V form), which reached back into `power`, `power_mon` and `fpga_config`. `fpga_config` gains the SPI NOR, master-SPI strap, and **IO2/IO3 wired to `N12`/`P12`** so x4 boot stays a software change. Found three signal groups the board wires that Caster does not implement — which settles `J3` (§2.1) |
 | WP6 | `frontlight`, `io_expansion` | no | — | FL driver, unpopulated touch/pen FPC, microSD |
 | WP7 | `dpi_in` | no | — | the 22-signal link |
 | WP8 | `som` + DSC landing footprint | no | — | **held last**, pending PHYTEC |
 
-**Root sheet is still unwired.** Sheet pins exist on `r2.kicad_sch` but carry no
-nets between sheets, so e.g. `MCU_EN_5V` on `mcu` and on `power` are two
-different nets today. This is why ERC reports ~270 `isolated_pin_label` /
-`pin_not_connected` / `power_pin_not_driven` violations — they are an artifact of
-that, not of the sheets. Wire the root once the sheet symbols stop moving.
-**Global power symbols are exempt**: `+VSYS`, `GND`, `+3V3_AON` and every
-`*_DCDC` rail already connect across sheets without the root being wired, which
-is why the rail tree verifies today and the control signals do not
-(`docs/power.md` §10.8).
+**Root sheet is wired** as of WP5 (2026-08-13). `tools/wire_root.py` stubs each of
+the 187 sheet pins and attaches a local label; a local label on the root *is* a
+root-sheet net, so same-named pins are one net. Wires would have been several
+hundred crossings across 13 boxes and unreadable. **75 names joined, 34 still
+one-sided** — 22 `DPI_*` waiting on WP7, and 12 waiting on WP8 — each checked
+against a table of expected-dangling names, so anything dangling and *not* in
+that table is reported as a finding. `docs/fpga.md` §8.
 
-Whole-project ERC as of 2026-08-12: **490 violations. Read the JSON report
-(`--format json`), not the text one** — the text report files
-`footprint_link_issues`, `isolated_pin_label` and `four_way_junction` under
-`***** Sheet /` no matter which child sheet the item is really on. Per sheet:
-`/` 472 (207 `footprint_link_issues` = standing ask 3; 255 root-unwired
-artifacts; 9 `four_way_junction`; 1 `lib_symbol_mismatch`), `/battery/` 1
-(`CHG_QON#`), `/epd/` 2, `/epd_power/` 8, `/power_mon/` 7, and **`/power/` 0,
-`/mcu/` 0.** `docs/power.md` §13 has the breakdown and traces the nine
-`four_way_junction` warnings back to the sheets they actually sit on;
-`docs/mcu.md` §13 carries the same table plus a by-type before/after comparison
-across the WP3 patch. The drop from 491 is `C42`'s footprint link, deleted with
-the part.
+Wiring it exposed a direction error the split nets had been hiding: `FPGA_CLK33`
+was declared `input` on both `fpga_io` and `fpga_config`, though `X1` is on
+`fpga_config` and the net leaves it. Two `input`s meeting is the one interface
+shape combination on this board that is never legitimate.
+
+Whole-project ERC as of 2026-08-13: **387 violations, of which 282 are
+`footprint_link_issues`** (standing ask 3, the owner's broken library tables).
+Excluding those: **105**, down from 295 before the root was wired.
+**Read the JSON report (`--format json`), not the text one** — the text report
+files `footprint_link_issues`, `isolated_pin_label` and `four_way_junction` under
+`***** Sheet /` no matter which child sheet the item is really on.
+
+By type, with everything accounted for:
+
+| Type | n | What it is |
+| --- | ---: | --- |
+| `isolated_pin_label` | 68 | the 34 interfaces waiting on WP7/WP8, counted at both ends |
+| `power_pin_not_driven` | 15 | rails with no `PWR_FLAG`; `+DRAM_VREF` genuinely has no driver |
+| `four_way_junction` | 11 | R1-inherited geometry, style only |
+| `label_dangling` | 5 | the same pending interfaces (`USB_D*`, `FPGA_S*`) |
+| `multiple_net_names` | 3 | 2 from the DRAM symbol's `VDD`/`VSS` pin names, 1 on `epd_power` |
+| `lib_symbol_mismatch` | 2 | library-table artifacts; the embedded copies are byte-identical |
+| `pin_to_pin` | 1 | the `M1` mode strap hard-tied to GND, which UG380 requires |
+
+Per sheet: `/fpga_ddr/` 4 (one *fewer* than R1's 5 for the same sheet),
+`/fpga_config/` 2, `/epd/` 2, `/epd_power/` 6, `/power_mon/` 5, and **`/power/`
+0, `/mcu/` 0, `/battery/` 0, `/fpga_io/` 0.** `docs/power.md` §13 and
+`docs/mcu.md` §13 carry the older breakdowns; `docs/fpga.md` §10 has this one.
 
 Standing asks for the owner, carried across sessions:
 
