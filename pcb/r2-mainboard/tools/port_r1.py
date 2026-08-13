@@ -75,7 +75,32 @@ RENAMES = {
                                             188, 189, 190, 207)},
         # X1 keeps its number: nothing else on the board uses X.
     },
+    # fpga_ddr collides in only four places, so 27 of its 31 parts keep their R1
+    # designator and the sheet diffs against R1 almost cleanly. `U1` must become
+    # `U41` -- it is the *same* FPGA, unit 4, so the reference has to match the
+    # one fpga_io/fpga_config already use or KiCad splits it into two parts.
+    "fpga_ddr": {
+        "U1": "U41",
+        "U12": "U52",
+        "R40": "R340",
+        "R44": "R344",
+        # Two power symbols only; R2 issued #PWR039/#PWR042 on other sheets.
+        # These are two of the five that RAILS then moves to +1V5, so they are
+        # renamed first and RAILS is keyed on the new names.
+        "#PWR039": "#PWR0439",
+        "#PWR042": "#PWR0442",
+    },
 }
+
+# --- 1b. paper size ------------------------------------------------------
+# R1 draws all three FPGA sheets on A4 and fpga_ddr fills it (content reaches
+# x=276.9, y=191.8 of 297x210). R2 has to fit unit 6 of the FPGA symbol on here
+# as well -- 42 power/ground pins that R1 keeps on its own power.kicad_sch,
+# which in R2 is reviewed and has no FPGA on it at all. A3 is what the R2 stub
+# was already generated as, and enlarging the page moves no symbol: KiCad
+# measures from the top-left corner, so the extra 123 x 87 mm appears to the
+# right of and below existing content.
+PAPER = {"fpga_ddr": "A3"}
 
 # --- 3. library links ----------------------------------------------------
 LIB_REMAP = {
@@ -153,6 +178,12 @@ HIER = {
         "FPGA_TDO": ("FPGA_TDO", "output"),
         "GCLK": ("FPGA_CLK33", "input"),
     },
+    # fpga_ddr has no interface at all. Every net on R1's sheet is a *local*
+    # label -- the DDR bus runs from unit 4 of the FPGA to the DRAM and stops
+    # there, and the rails arrive as power symbols, which are global by name.
+    # So this sheet gets zero sheet pins, which is also what the root already
+    # has for it.
+    "fpga_ddr": {},
     "power_mon": {
         # R1 called the housekeeping bus I2C1_*; R2 calls it *_AON because it
         # is the one bus that stays alive with every switched rail down.
@@ -179,6 +210,11 @@ RAILS = {
     # caught by the netlist diff, which showed a stale `+1V35` net appearing with
     # 5 nodes. fpga_ddr carries the same name and will need the same treatment.
     "fpga_config": {"#PWR0259": "+1V5"},
+    # The DDR bank itself. Five symbols carry the rail into VCCO_3, the VREF
+    # divider and 16 decoupling caps; all five move together or the sheet ends
+    # up with two rails that look the same and are not connected.
+    "fpga_ddr": {r: "+1V5" for r in ("#PWR0439", "#PWR0442", "#PWR0137",
+                                     "#PWR0139", "#PWR0144")},
     "power_mon": {
         "#PWR0182": "+5V_DCDC",        # was +1V8_DCDC  -- U22 ch1 in
         "#PWR0243": "+5V_SOM",         # was +1V8_VID   -- U22 ch1 out
@@ -244,6 +280,10 @@ NOTE = {
     "power_mon": "power_mon — 3x INA3221, ported from R1; three channels repurposed.",
     "fpga_io": "fpga_io — XC6SLX16 banks 0/1: EPD panel bus, DPI in. See docs/fpga.md.",
     "fpga_config": "fpga_config — XC6SLX16 bank 2, config and CSR SPI, 33.33 MHz clock. See docs/fpga.md.",
+    # Keep these under ~84 characters: past that the title block's comment field
+    # runs off its own box. fpga_config's 85-char line already sits exactly on
+    # the right border.
+    "fpga_ddr": "fpga_ddr — XC6SLX16 bank 3 (MCB3), 1 Gb DDR3L, core rails. See docs/fpga.md.",
 }
 
 
@@ -470,6 +510,11 @@ def port(sheet: str, root_uuid: str, sheet_uuid: str) -> str:
     text = re.sub(r'\(path "/[0-9a-f-]{36}/[0-9a-f-]{36}"',
                   f'(path "/{root_uuid}/{sheet_uuid}"', text)
 
+    if sheet in PAPER:
+        text, n = re.subn(r'\(paper "[^"]*"\)', f'(paper "{PAPER[sheet]}")',
+                          text, count=1)
+        assert n == 1, f"{sheet}: no (paper ...) to resize"
+
     text = re.sub(r'\(title "[^"]*"\)', f'(title "{TITLE}")', text, count=1)
     text = re.sub(r'\(rev "[^"]*"\)', '(rev "A")', text, count=1)
     text = re.sub(r'\(date "[^"]*"\)', '(date "2026-08-07")', text, count=1)
@@ -482,10 +527,11 @@ def port(sheet: str, root_uuid: str, sheet_uuid: str) -> str:
     return text
 
 
-# Sheets that have been ported, reviewed by the hardware owner and committed.
-# Re-porting one would silently discard everything since -- power_mon, for
-# instance, carries the 1.5 V rail rename from tools/patch_ddr_15v.py.
-FROZEN = frozenset(("epd", "epd_power", "power_mon"))
+# Sheets that have been ported and committed, and then edited by hand or by a
+# patch script. Re-porting one would silently discard everything since --
+# power_mon carries the 1.5 V rail rename from tools/patch_ddr_15v.py, and
+# fpga_config carries the whole config NOR from tools/patch_fpga_config_nor.py.
+FROZEN = frozenset(("epd", "epd_power", "power_mon", "fpga_io", "fpga_config"))
 
 
 def main():

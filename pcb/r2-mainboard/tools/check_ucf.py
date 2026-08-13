@@ -50,11 +50,13 @@ SYMBOL = "XC6SLX-FTG256"
 
 # Which sheet holds which unit of the symbol, for reporting what is not drawn.
 UNIT_SHEET = {1: "fpga_io", 2: "fpga_io", 3: "fpga_config", 4: "fpga_ddr",
-              5: "fpga_config", 6: "(unassigned -- was power.kicad_sch on R1)"}
+              5: "fpga_config", 6: "fpga_ddr"}
 
-# VCCO each bank must be at, and what each IOSTANDARD needs. Bank voltages come
-# from docs/power.md; the IOSTANDARD figures from ds162.pdf Table 7 and Table 8.
-BANK_RAIL = {0: "+3V3", 1: "+3V3", 2: "+3V3", 3: "+1V5"}
+# What each IOSTANDARD needs on VCCO, from ds162.pdf Table 7. The bank voltages
+# themselves are *not* listed here -- they are read out of the schematic's own
+# `VCCO_n` balls (see bank_rails()), because a hand-maintained table is exactly
+# the thing that goes stale when a rail is renamed, which is the mistake this
+# script exists to catch.
 IOSTD_VOLTS = {
     "LVCMOS33": "+3V3", "LVDS_33": "+3V3",
     "LVCMOS15": "+1V5", "SSTL15_II": "+1V5", "DIFF_SSTL15_II": "+1V5",
@@ -75,15 +77,61 @@ EXPLICIT = {
     "EPD_SDCLK": "EPDC_SE_CLK",
     **{f"EPD_{s}": f"EPDC_{s}" for s in ("GDCLK", "GDOE", "GDSP", "SDCE0",
                                          "SDLE", "SDOE")},
+    # The DDR bank. None of these lines carry a trailing comment, so without this
+    # table all 48 MCB3 balls fell through to "no expected-name rule" and the one
+    # bank where a single swap is fatal and invisible was checked for nothing at
+    # all. The board's names predate the gateware's, hence DATA/ADDR vs DQ/A and
+    # the trailing B for the active-low strobes.
+    **{f"DDR_DQ[{n}]": f"DRAM_DATA{n}" for n in range(16)},
+    **{f"DDR_A[{n}]": f"DRAM_ADDR{n}" for n in range(13)},
+    **{f"DDR_BA[{n}]": f"DRAM_BA{n}" for n in range(3)},
+    "DDR_RAS_N": "DRAM_RASB", "DDR_CAS_N": "DRAM_CASB",
+    "DDR_WE_N": "DRAM_WEB", "DDR_ODT": "DRAM_ODT",
+    "DDR_RESET_N": "DRAM_RST", "DDR_CKE": "DRAM_CKE",
+    "DDR_LDM": "DRAM_LDM", "DDR_UDM": "DRAM_UDM",
+    "DDR_CK_P": "DRAM_CKP", "DDR_CK_N": "DRAM_CKN",
+    "DDR_LDQS_P": "DRAM_LDQSP", "DDR_LDQS_N": "DRAM_LDQSN",
+    "DDR_UDQS_P": "DRAM_UDQSP", "DDR_UDQS_N": "DRAM_UDQSN",
+}
+
+# The two MCB calibration balls, which have no net name to compare against and
+# have to be checked for shape instead. Both are mandatory because
+# `s6_ddr3.v` sets `C3_CALIB_SOFT_IP = "TRUE"`.
+#   RZQ: one resistor to GND, and its value follows the IOSTANDARD -- the UCF
+#        asks for OUT_TERM = UNTUNED_50 / IN_TERM = UNTUNED_SPLIT_50, and the MCB
+#        wants 2x the target impedance on RZQ, so 100 ohm. R1 fits 100R/1%.
+#   ZIO: must be left open. It is an internal calibration probe, not a spare pin,
+#        so anything attached to it is a fault however harmless it looks.
+STRUCTURAL = {
+    "DDR_RZQ": ("resistor-to-gnd", "100R"),
+    "DDR_ZIO": ("open", None),
 }
 
 # Ports the board deliberately does not connect, with the reason. Anything here
 # is expected to be unconnected in the schematic; anything unconnected and *not*
 # here is a finding.
+_LVDS_GONE = ("FPD-Link input: R2 deletes the PTN3460 that drove it, and the "
+              "constraint is being removed from the UCF (docs/fpga.md)")
 INTENTIONALLY_UNCONNECTED = {
-    **{n: "FPD-Link input: R2 deletes the PTN3460 that drove it, and the "
-          "constraint is being removed from the UCF (docs/fpga.md)"
-       for n in ("LVDS_ODD_CK_P", "LVDS_ODD_CK_N")},
+    "LVDS_ODD_CK_P": _LVDS_GONE, "LVDS_ODD_CK_N": _LVDS_GONE,
+    # All 14, not just the clock pair: asserting that each one really is open
+    # is the check that catches a half-finished deletion, which is what
+    # "no expected-name rule" quietly let through before.
+    **{f"LVDS_{h}_{p}[{i}]": _LVDS_GONE
+       for h in ("EVEN", "ODD") for p in ("P", "N") for i in range(3)},
+}
+
+# Balls the board wires that no .ucf assigns, where that is settled and not a
+# question. Without this the useful part of the report -- signals nothing in the
+# gateware implements -- is buried under things already decided.
+BOARD_ONLY_OK = {
+    "F6": "DRAM_ADDR13 / F7: the fitted 1 Gb MT41K64M16 does not bond ball T3, "
+          "and top.v declares DDR_A as [12:0]. Kept routed so a denser part "
+          "stays a gateware-only change (docs/fpga.md).",
+    "F5": "DRAM_ADDR14 -- see F6.",
+    "A3": "VREF for bank 3. A dual-purpose IO/VREF ball used as VREF, so no "
+          "IOSTANDARD applies and no .ucf line can name it.",
+    "M3": "VREF for bank 3 -- see A3.",
 }
 
 
@@ -150,9 +198,10 @@ def parse_symbol():
 
 
 def parse_netlist(path: pathlib.Path):
-    """-> ({ball: net}, {net: {nodes}}) for the FPGA reference."""
+    """-> ({ball: net}, {net: {nodes}}, {ref: value}) for the FPGA reference."""
     t = path.read_text()
     ball2net, nets = {}, {}
+    values = dict(re.findall(r'\(ref "([^"]+)"\)\s*\n\s*\(value "([^"]*)"\)', t))
     for m in re.finditer(r'\(net\s+\(code "\d+"\)\s+\(name "([^"]*)"\)', t):
         name, i = m.group(1), m.start()
         d = 0
@@ -171,7 +220,60 @@ def parse_netlist(path: pathlib.Path):
             if n.group(1) == FPGA_REF:
                 ball2net[n.group(2)] = name
         nets[name] = nodes
-    return ball2net, nets
+    return ball2net, nets, values
+
+
+def bank_rails(sym: dict, ball2net: dict) -> tuple[dict, list]:
+    """Read each bank's VCCO out of the schematic. -> ({bank: rail}, [problems])
+
+    A bank whose VCCO balls do not all sit on one net is reported rather than
+    guessed at: that is a real defect, and it is the kind ERC will not raise
+    because two differently-named rails on one bank is perfectly legal.
+    """
+    per = {}
+    for ball, (pin_name, _) in sym.items():
+        m = re.fullmatch(r"VCCO_(\d)", pin_name)
+        if m:
+            per.setdefault(int(m.group(1)), {}).setdefault(
+                ball2net.get(ball, "<absent>"), []).append(ball)
+    rails, problems = {}, []
+    for bank, by_net in sorted(per.items()):
+        if len(by_net) == 1:
+            rails[bank] = next(iter(by_net))
+            continue
+        problems.append(
+            f"bank {bank} VCCO is split across {len(by_net)} nets: "
+            + "; ".join(f"{n} on {','.join(sorted(b))}"
+                        for n, b in sorted(by_net.items())))
+    return rails, problems
+
+
+def check_structural(port: str, kind: str, want_value: str, loc: str,
+                     ball2net: dict, nets: dict, values: dict) -> str | None:
+    """-> an error string, or None if the ball is wired the way the MCB needs."""
+    net = ball2net.get(loc, "<absent>")
+    others = sorted(n for n in nets.get(net, ()) if not n.startswith(FPGA_REF + "."))
+    if kind == "open":
+        if not net.startswith("unconnected-"):
+            return (f"{port}: {loc} must be left open (MCB calibration probe), "
+                    f"but it is on {net!r} with {others}")
+        return None
+    if kind == "resistor-to-gnd":
+        if len(others) != 1:
+            return (f"{port}: {loc} should reach exactly one resistor, found "
+                    f"{others or 'nothing'} on {net!r}")
+        ref = others[0].split(".")[0]
+        if not ref.startswith("R"):
+            return f"{port}: {loc} reaches {others[0]}, which is not a resistor"
+        val = values.get(ref, "?")
+        if not val.startswith(want_value):
+            return (f"{port}: {loc} needs {want_value} to GND for the UCF's "
+                    f"UNTUNED_50 terminations, {ref} is {val!r}")
+        gnd = [n for n in nets.get("GND", ()) if n.split(".")[0] == ref]
+        if not gnd:
+            return f"{port}: {ref} on {loc} does not reach GND"
+        return None
+    raise AssertionError(kind)
 
 
 def expected_net(port: str, info: dict):
@@ -203,10 +305,14 @@ def main() -> int:
 
     ucf, alts = parse_ucf(UCF.read_text())
     sym = parse_symbol()
-    ball2net, nets = parse_netlist(net_path)
+    ball2net, nets, values = parse_netlist(net_path)
 
     placed_units = {u for (_, u) in (sym[b] for b in ball2net if b in sym)}
     bad, pending, notes = [], [], []
+    structural = []
+
+    BANK_RAIL, rail_problems = bank_rails(sym, ball2net)
+    bad.extend(rail_problems)
 
     # --- 1. every constrained ball carries the net the gateware expects ------
     checked = 0
@@ -228,6 +334,16 @@ def main() -> int:
             if not got.startswith("unconnected-"):
                 bad.append(f"{port}: expected no board connection on {loc}, "
                            f"found {got}")
+            continue
+        if port in STRUCTURAL:
+            kind, want_value = STRUCTURAL[port]
+            err = check_structural(port, kind, want_value, loc, ball2net, nets,
+                                   values)
+            if err:
+                bad.append(err)
+            else:
+                structural.append(f"{port:<16} {loc:<5} {kind} -- OK")
+                checked += 1
             continue
         if want is None:
             notes.append(f"{port:<16} {loc:<5} -> {got}   (no expected-name rule)")
@@ -270,6 +386,8 @@ def main() -> int:
             expected_extra.append(row + "   dedicated config/JTAG pin")
         elif ball in alt_locs:
             expected_extra.append(row + "   UCF's commented-out alternative")
+        elif ball in BOARD_ONLY_OK:
+            expected_extra.append(row + "   settled: " + BOARD_ONLY_OK[ball])
         else:
             board_only.append(row)
 
@@ -279,6 +397,8 @@ def main() -> int:
     print(f"  commented-out alternatives : {len(alts)}"
           + (f"  ({', '.join(f'{p}->{l}' for p, l in alts)})" if alts else ""))
     print(f"  FPGA units placed          : {sorted(placed_units)}")
+    print("  VCCO read from schematic   : "
+          + ", ".join(f"bank {b} = {r}" for b, r in sorted(BANK_RAIL.items())))
     print()
     print(f"MATCHED  {checked} balls carry exactly the net the gateware expects")
     print(f"PENDING  {len(pending)} balls on units not yet drawn")
@@ -287,6 +407,10 @@ def main() -> int:
     print()
     for b in bad:
         print(f"  FAIL  {b}")
+    if structural:
+        print("  Checked by shape rather than by net name:")
+        for s in structural:
+            print(f"        {s}")
     if board_only:
         print(f"\n  RESERVED BUT NOT DRIVEN -- {len(board_only)} balls the board wires"
               f" and no .ucf assigns.")

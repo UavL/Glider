@@ -225,7 +225,7 @@ class Sheet:
               ref_at: tuple[float, float] | None = None,
               val_at: tuple[float, float] | None = None,
               hide_value: bool = False, hide_ref: bool = False,
-              justify: str | None = None) -> Placed:
+              justify: str | None = None, unit: int = 1) -> Placed:
         sym = self.lib.get(lib_id)
         self._used[lib_id] = sym
         uid = u()
@@ -250,7 +250,7 @@ class Sheet:
             "\t(symbol\n",
             f'\t\t(lib_id "{lib_id}")\n',
             f"\t\t(at {_fmt(x)} {_fmt(y)} {rot})\n",
-            "\t\t(unit 1)\n",
+            f"\t\t(unit {unit})\n",
             "\t\t(exclude_from_sim no)\n\t\t(in_bom yes)\n\t\t(on_board yes)\n",
             f"\t\t(dnp {'yes' if dnp else 'no'})\n",
             f'\t\t(uuid "{uid}")\n',
@@ -266,7 +266,7 @@ class Sheet:
             "\t\t(instances\n"
             f'\t\t\t(project "{self.project}"\n'
             f'\t\t\t\t(path "/{self.root_uuid}/{self.uuid}"\n'
-            f'\t\t\t\t\t(reference "{ref}")\n\t\t\t\t\t(unit 1)\n'
+            f'\t\t\t\t\t(reference "{ref}")\n\t\t\t\t\t(unit {unit})\n'
             "\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n"
         )
         self._symbols.append("".join(s))
