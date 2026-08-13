@@ -201,9 +201,10 @@ the 1.5 V sibling of the same density, with `C3_MEM_ADDR_WIDTH = 13`, `C3_MEM_NU
 addressable**. `C3_MEMCLK_PERIOD = 3000` ps → 333 MHz → **666 MT/s**, against a part rated for at
 least 1066 MT/s: a lot of margin, and it is what relaxes the layout (§11).
 
-`NOTES-R2-plan.md` claimed R1 fits a 4 Gb `MT41K256M16HA` and wastes three quarters of it. That was
-wrong, and it came from reading the *symbol* name rather than the Value field. The symbol is drawn
-to the 4 Gb ballout; the part fitted is the 1 Gb one.
+The WP5 work-package plan claimed R1 fits a 4 Gb `MT41K256M16HA` and wastes three quarters of it.
+That was wrong, and it came from reading the *symbol* name rather than the Value field. The symbol
+is drawn to the 4 Gb ballout; the part fitted is the 1 Gb one, and
+`NOTES-R2-hardware-facts.md` had it right all along (`MT41K64M16TW-107`, LCSC `C2060943`).
 
 That mismatch has one visible consequence. **`DRAM_ADDR13`/`DRAM_ADDR14` reach `U52` balls `T3`/`T7`,
 which the 1 Gb part does not bond** (Micron 1Gb_DDR3L Rev L Figure 7 p.18 shows `T3`, `T7` and `M7`
@@ -336,14 +337,18 @@ work and is worse — it would push all 109 names into every sheet's namespace.
    belongs on `power.kicad_sch` where `U15` makes the rail; that sheet is reviewed, so it is listed
    here rather than edited in silently. R1 reports the identical violation on `+1V35`.
 3. **`IDD6` at 1.5 V is unverified** (§5.2). Needs the 1 Gb DDR3 (not DDR3L) datasheet.
-4. **The LX16 has never been priced.** `NOTES-R2-hardware-facts.md` carries an LCSC line for the
-   wrong device, marked "re-query".
+4. **The LX16 has never been priced.** `NOTES-R2-hardware-facts.md`'s BOM row is marked "re-query"
+   after the LX9 correction. The DRAM (`MT41K64M16TW-107`, `C2060943`, $4.49) and the NOR
+   (`W25Q128JVSIQ`, `C97521`, $1.22, the only JLC Basic part in the list) are both already priced
+   there; the FPGA is the one gap.
 5. **10 duplicate `#PWR` references** across `battery` and the ported sheets make every netlist
    export print "schematic has annotation errors". Power symbols carry their net in the Value field
    so nothing is electrically wrong, but a standing warning trains you to ignore warnings. Cheap to
    fix; touches `battery.kicad_sch`.
-6. **`MT41K64M16TW` needs an LCSC line too**, and the exact suffix should be confirmed against what
-   is actually orderable.
+6. **`ExtMasterCclk_en` is an unexplored option.** UG380 p.54: `USERCCLK` (ball `T8` — freed by the
+   LVDS deletion) can supply the configuration clock instead of the internal oscillator, which
+   would remove the ±50 % `FMCCKTOL` spread from the boot-time figures in §4.2. It needs one more
+   trace from `X1` and it is not needed to make the NOR worthwhile; noted so the option is not lost.
 
 ## 10. Verification — what was actually run
 
