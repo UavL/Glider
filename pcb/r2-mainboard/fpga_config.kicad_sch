@@ -6296,10 +6296,6 @@
 		(uuid "24286b7e-42cd-447e-8064-22b02c9363db")
 	)
 	(no_connect
-		(at 83.82 73.66)
-		(uuid "25cc8272-1924-4cc7-86aa-ac88fa817459")
-	)
-	(no_connect
 		(at 83.82 91.44)
 		(uuid "3af27550-d791-4ad1-8ced-7b59b02477ef")
 	)
@@ -6334,10 +6330,6 @@
 	(no_connect
 		(at 83.82 104.14)
 		(uuid "807d1274-490f-4a26-b555-d6138afabf48")
-	)
-	(no_connect
-		(at 83.82 71.12)
-		(uuid "9e708558-533a-411e-887d-fa54d4cd3276")
 	)
 	(no_connect
 		(at 83.82 114.3)
@@ -12966,28 +12958,6 @@
 	)
 	(wire
 		(pts
-			(xy 33.02 177.8) (xy 33.02 180.34)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d043559a-7a5f-4bc2-85b1-9a9fa05f575f")
-	)
-	(junction
-		(at 33.02 177.8)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "9bc667b5-97f2-47e5-afe5-91bba77365f6")
-	)
-	(junction
-		(at 33.02 180.34)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "4cdc4ca2-136a-4c36-9760-f1539f685ae4")
-	)
-	(wire
-		(pts
 			(xy 71.12 162.56) (xy 71.12 160.02)
 		)
 		(stroke
@@ -13289,68 +13259,6 @@
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/ac91c73b-f814-42ae-af8a-320dce668ff8"
 					(reference "U42")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "symbols:+V")
-		(at 33.02 177.8 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "28544253-0cbe-430e-8ae9-c09ad10c35e4")
-		(property "Reference" "#PWR271"
-			(at 33.02 177.8 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+3V3"
-			(at 33.02 173.99 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 33.02 177.8 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 33.02 177.8 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 33.02 177.8 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(instances
-			(project "r2"
-				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/ac91c73b-f814-42ae-af8a-320dce668ff8"
-					(reference "#PWR271")
 					(unit 1)
 				)
 			)
@@ -13905,6 +13813,455 @@
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/ac91c73b-f814-42ae-af8a-320dce668ff8"
 					(reference "#PWR276")
+					(unit 1)
+				)
+			)
+		)
+	)
+	
+
+	(wire
+		(pts
+			(xy 83.82 71.12) (xy 101.6 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f41e4d71-098c-4e35-83fd-a59de063b257")
+	)
+	(label "NOR_IO2"
+		(at 101.6 71.12 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b9ef58cc-026f-4209-afdc-29a9deb89fc4")
+	)
+	(wire
+		(pts
+			(xy 83.82 73.66) (xy 101.6 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c84afba8-8358-4f2b-a7b2-57bf47633d44")
+	)
+	(label "NOR_IO3"
+		(at 101.6 73.66 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "561a6b7e-c806-4907-98c9-72bd8fbb2de8")
+	)
+	(label "NOR_IO2"
+		(at 33.02 177.8 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "77841cbb-eba0-410e-9e3d-89a49d5908ff")
+	)
+	(label "NOR_IO3"
+		(at 33.02 180.34 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "92336e5b-9300-4e55-9b35-e26d26cf3c4e")
+	)
+	(wire
+		(pts
+			(xy 114.3 92.71) (xy 114.3 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7212bacd-8320-4d1f-9fb9-833bff1d158f")
+	)
+	(wire
+		(pts
+			(xy 114.3 100.33) (xy 114.3 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f3ac3822-27a7-412b-b44a-73884ee62ef1")
+	)
+	(label "NOR_IO2"
+		(at 114.3 104.14 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "c9bb59b7-56c2-4602-a597-36c3224411ec")
+	)
+	(wire
+		(pts
+			(xy 139.7 92.71) (xy 139.7 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cf17cdeb-5d7b-423c-8648-984b2c1c403f")
+	)
+	(wire
+		(pts
+			(xy 139.7 100.33) (xy 139.7 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8a583ad4-6995-4cc7-a658-a6c95aa43f88")
+	)
+	(label "NOR_IO3"
+		(at 139.7 104.14 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "72871249-05fb-4043-be94-6eb99ff8b92a")
+	)
+	(text "R412/R413 and the two nets to N12/P12 exist so that master-SPI x4 boot is"
+		(exclude_from_sim no)
+		(at 101.6 118.11 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b8156123-b7a0-480b-a087-aca6b355e2de")
+	)
+	(text "a gateware change, not a respin. UG380 Fig 2-13; its note 4 requires these"
+		(exclude_from_sim no)
+		(at 101.6 121.412 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "87725742-2624-48f2-ad54-cf30149cdb75")
+	)
+	(text "pull-ups to VCCO_2, which is why pins 3/7 are no longer tied hard to +3V3."
+		(exclude_from_sim no)
+		(at 101.6 124.714 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a6e8fa72-2315-49fa-a45e-922d639145ed")
+	)
+	(text "Nothing changes in x1: the pull-ups hold WP#/HOLD# high as the tie did."
+		(exclude_from_sim no)
+		(at 101.6 128.016 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ab438714-e877-4539-bf4e-4fdbe040859e")
+	)
+	(text "Owed in Caster: -g ConfigRate 2 -> 22 (2 makes self-boot 1.9 s, five times"
+		(exclude_from_sim no)
+		(at 101.6 131.318 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6f4bf038-c3e8-425d-86a9-f13df0b2903f")
+	)
+	(text "slower than R1's 360-400 ms), -g Binary:no -> yes, and a PULLUP constraint"
+		(exclude_from_sim no)
+		(at 101.6 134.62 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7fb07fef-b7a3-4562-a004-52bdb2a50232")
+	)
+	(text "on N12/P12 so -g UnusedPin:PullDown does not fight R412/R413."
+		(exclude_from_sim no)
+		(at 101.6 137.922 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "c139eb4c-54ba-4134-b1e1-ef079a6642b6")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 114.3 96.52 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "89a68eea-99c4-45b4-962d-490cfe52c0cb")
+		(property "Reference" "R412"
+			(at 116.84 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10k"
+			(at 116.84 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 114.3 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 114.3 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "UG380 Fig 2-13 note 4: MISO[2]/MISO[3] need pull-ups to VCCO_2."
+			(at 114.3 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/ac91c73b-f814-42ae-af8a-320dce668ff8"
+					(reference "R412")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "symbols:+V")
+		(at 114.3 88.9 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "47084d9e-43bd-4265-a91f-5ac154e51b00")
+		(property "Reference" "#PWR601"
+			(at 114.3 88.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 114.3 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 114.3 88.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 114.3 88.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 114.3 88.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/ac91c73b-f814-42ae-af8a-320dce668ff8"
+					(reference "#PWR601")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 139.7 96.52 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b08710a0-d2fa-45a0-8004-dac1f2d476a7")
+		(property "Reference" "R413"
+			(at 142.24 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10k"
+			(at 142.24 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 139.7 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 139.7 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "UG380 Fig 2-13 note 4: MISO[2]/MISO[3] need pull-ups to VCCO_2."
+			(at 139.7 96.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/ac91c73b-f814-42ae-af8a-320dce668ff8"
+					(reference "R413")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "symbols:+V")
+		(at 139.7 88.9 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e707933d-4bf3-4518-b3a9-dea3674a9a78")
+		(property "Reference" "#PWR602"
+			(at 139.7 88.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 139.7 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 139.7 88.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 139.7 88.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 139.7 88.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/ac91c73b-f814-42ae-af8a-320dce668ff8"
+					(reference "#PWR602")
 					(unit 1)
 				)
 			)

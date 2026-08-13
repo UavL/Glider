@@ -371,7 +371,11 @@ def main() -> int:
     # undriven signals.
     DEDICATED = re.compile(
         r"^(TMS|TDI|TCK|TDO|DONE|SUSPEND|PROGRAM_B|AWAKE)"
-        r"|(INIT_B|CSO_B|CMPCS_B|_M0_|_M1_|_M1$|CMPMISO|CMPMOSI|CMPCLK)")
+        r"|(INIT_B|CSO_B|CMPCS_B|_M0_|_M1_|_M1$|CMPMISO|CMPMOSI|CMPCLK)"
+        # MISO2/MISO3 carry the upper two bits in master-SPI x4 boot (UG380
+        # Figure 2-13). Like every other configuration pin they are never named
+        # by a .ucf, so without this they read as unexplained board-only nets.
+        r"|(MISO2|MISO3)")
     constrained = {i["loc"] for i in ucf.values() if i.get("loc")}
     alt_locs = {l for _, l in alts}
     board_only, expected_extra = [], []
