@@ -31,3 +31,7 @@ AM62xTechnicalReferenceManual*.pdf
 
 # Scratch output from schematic-analysis tooling
 analysis/
+
+# KiCad Local History restore leftovers -- see the memory note; Restore moves the
+# *newer* work here, so check before deleting one of these.
+pcb/r2-mainboard/_restore_backup_*/

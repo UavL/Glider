@@ -110,9 +110,38 @@ a device-tree property, not a board change.
 
 ## 3. The compute module
 
-**Chosen: PHYTEC `PCL-071`, phyCORE-AM62x DSC** — the solder-down variant. The connectorised
-`PCM-071` is ruled out by the hardware owner's constraint that nothing may be plugged onto the
-board (a mated module stacks to ~7.6 mm).
+**Chosen: PHYTEC `PCM-071`, phyCORE-AM62x** — the **connectorised** variant. Changed 2026-08-13
+by the hardware owner; `PCL-071` (solder-down) was the previous choice and is now the *second
+revision* target. `NOTES-R2-plan.md` constraint 1 carries the reasoning; in short, PHYTEC quoted
+`PCL-071-001-R` at €281 @1–9 with a **reel-only MOQ of 5**, the price includes ~€190 of memory-
+shortage surcharge, and a soldered module would have to be consigned to the fab in China. The
+board is still fully machine-assembled — the mating connectors are LCSC stock — and only the
+module is plugged in afterwards. **The first prototype is allowed to be thick.**
+
+The two variants are the same electrical module; what changes is how it attaches, so the DPI link,
+the rails and the FPGA side of the design are unaffected. Only `som.kicad_sch` (WP8) and the pin
+assignments feeding `dpi_in` (WP7) depend on which one is fitted, and neither is drawn yet.
+
+### 3.1 `PCM-071` — what is known and what is not
+
+| Property | Value | Source | Confidence |
+| --- | --- | --- | --- |
+| Dimensions | 43 × 32 mm; ~7.6 mm mated stack | prior note, this file | carried over |
+| Attachment | **240 pins as 2 × 120-pin 0.5 mm** board-to-board | PHYTEC product page, 2026-08-13 | verified |
+| Module-side connector | `BSH-060-01-L-D-A-TR` ×2 (Samtec Razor Beam) | prior note | **reconcile** — the product page names the pair as `ASP-205225-01` |
+| Board-side mate | **`BTH-060-01-L-D-A-K-TR` ×2**, LCSC `C3646540`, 63 in stock, $5.56 | LCSC, 2026-08-03 | verified |
+| Parallel display | **"Parallel Display (24bpp)" is listed** — 18 bpp is a subset, so the DPI link survives the change | PHYTEC product page, 2026-08-13 | verified |
+| **DPI pin assignments** | — | — | **NOT KNOWN.** `PCL-071`'s are in L-1041e.A3 Table 30; `PCM-071` has its own manual and its own numbering |
+| `VIN` range | assumed 4.5–5.5 V, same as `PCL-071` | — | **inferred, needs the manual** |
+| `VDDSHV3` 1.8/3.3 V selection | assumed present, default 3.3 V | — | **inferred, needs the manual** |
+| PCB cut-out | **not required** — this is the advantage of the connectorised part; `PCL-071` needs a ~14.4 × 22.4 mm hole for its bottom-side components | L-1041e.A3 Fig. 11 NOTE 2 | verified for `PCL` |
+| Price and MOQ | **unquoted** — PHYTEC's mail covered `PCL-071-001-R` only | — | **ask Emma** |
+
+**Neither PHYTEC manual is in this repo** (`L-1041e`, `L-1038e` were read online). The `PCM-071`
+hardware manual has to be obtained before WP7 or WP8 can be drawn — it is the sole source for the
+three "needs the manual" rows above, and the DPI pin numbers are the whole content of WP7.
+
+### 3.2 `PCL-071` — the second-revision target, kept for reference
 
 | Property | Value | Source |
 | --- | --- | --- |
@@ -125,9 +154,10 @@ board (a mated module stacks to ~7.6 mm).
 | DPI pins | `PCLK` 27, `DE` 28, `VSYNC` 29, `HSYNC` 30, `DATA0..15` on 46–31, `DATA16..23` on 12–19 | L-1041e.A3 Table 30 |
 | I/O voltage | `VDDSHV3` domain, **jumper-selectable 1.8 V / 3.3 V, default 3.3 V** — matches Caster's `LVCMOS33`, **no level shifting** | L-1038e.A5 Table 6, Table 31 footnote 1 |
 
-The connectorised `PCM-071` remains documented as the fallback: 43 × 32 mm, 240 pins as two
-Samtec `BSH-060-01-L-D-A-TR`, mating with **`BTH-060-01-L-D-A-K-TR` ×2** — which *is* in LCSC's
-catalogue (`C3646540`, 63 in stock, $5.56 as of 2026-08-03).
+Everything in the table above stays true of `PCL-071` and is what a second revision goes back to.
+The two properties that made it the first choice — 2.84 mm instead of a ~7.6 mm mated stack, and
+one machine-assembled board with nothing plugged on — are still real; they were outweighed by a
+€1 405 minimum order and a consignment shipment for a prototype that needs one module.
 
 ---
 
@@ -211,7 +241,7 @@ board, fully assembled by JLCPCB" is not reachable with an AM62x-class device.
 | `XC6SLX16-3FTG256` | the FPGA, unchanged from R1 — **corrected, see below** | re-query | — | — |
 | `MT41K64M16TW-107` | R1's DDR3L | C2060943 | 1 949 | 4.49 |
 | `W25Q128JVSIQ` | FPGA config flash — the **only JLC Basic part** in the list | C97521 | 110 435 | 1.22 |
-| `BTH-060-01-L-D-A-K-TR` | `PCM-071` mating connector (fallback route only) | C3646540 | 63 | 5.56 |
+| `BTH-060-01-L-D-A-K-TR` ×2 | `PCM-071` mating connector — **now the chosen route**, §3 | C3646540 | 63 | 5.56 |
 | `STM32G0B1CBT6` | housekeeping MCU | C2847904 | 12 153 | 1.75 |
 | `BQ25896RTWR` | charger with power path — **thin stock, find a second source** | C181475 | 127 | 1.40 |
 | `MAX17048G+T10` | fuel gauge | C2682616 | 4 403 | 2.32 |
