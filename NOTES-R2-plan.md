@@ -216,12 +216,15 @@ orderable variants, and the schematic existing.
 - DPI ingest gateware — **exists and runs** (`vin_dpi.v`, `SRC_DPI`).
 - DPI max pixel clock — **165 MHz**, TRM Table 12-361, vs 127 MHz needed at 75 Hz.
 - 18-bit RGB666 bit mapping — **identical to Caster's**, TRM Fig. 12-471.
-- ~~`BOOTMODE` strap conflict — **avoided entirely by 18-bit mode**.~~ **Reopened 2026-08-14.**
-  `L-1038e.A5` Table 31 shows `VOUT0_DATA16`–`DATA23` on `X_GPMC0_AD8`–`AD15`, which are also
-  `BOOTMODE_8`–`BOOTMODE_15` with 100 K straps on the module, and note 2 says the signal "should
-  not be driven during reset". Whether 18-bit mode touches 2 of them or 6 depends on the DSS's
-  RGB666 bit mapping, which needs the AM62x TRM Fig. 12-471. **Not "avoided entirely" either way.**
-  WP7 settles it. Facts §3.1.
+- ~~`BOOTMODE` strap conflict — **avoided entirely by 18-bit mode**.~~ **Reopened and re-closed
+  2026-08-14, with a correction and a new requirement.** 18-bit mode does *not* avoid it entirely:
+  TRM Fig. 12-471 shows the video port driving `DATA[17:0]`, and `L-1038e.A5` Table 31 puts
+  `DATA17`/`DATA16` on `BOOTMODE_9`/`BOOTMODE_8` — i.e. **`DPI_R7` and `DPI_R6`, two of the
+  eighteen**. (24-bit mode would have used all eight strap pins, which is what the original claim
+  was really about.) `BOOTMODE[9:3]` is the *primary boot mode* field, so this matters.
+  **New hard requirement out of it: `+3V3` must be up before the SoM leaves reset**, or the FPGA's
+  unpowered input clamps drag `BOOTMODE_9` low and the module boots from the wrong device. Firmware
+  ordering, since §5 of `docs/power.md` says enables are not interlocked. Facts §3.1.
 - Level shifting between SoM and FPGA — **not needed**, both 3.3 V LVCMOS.
 - Touch controller sourcing — **wrong question**; it ships bonded to the touch film.
 

@@ -309,6 +309,35 @@ required for data retention.
 `+3V3_AON` needs no sequencing: it is up whenever `+VSYS` is, which is whenever a cell or USB is
 present.
 
+### 5.1 ⚠ `+3V3` must precede `+5V_SOM`, or the SoM boots from the wrong device
+
+Added 2026-08-14, from WP7's investigation. This is the one ordering constraint on this board that
+is a *requirement* rather than a preference, and it is invisible in the schematic.
+
+Two of the eighteen DPI signals — `DPI_R7` and `DPI_R6` — land on the module's `BOOTMODE_9` and
+`BOOTMODE_8`, which are part of the **primary boot mode selection** (`L-1038e.A5` Tables 17, 31;
+AM62x TRM Fig. 12-471; `NOTES-R2-hardware-facts.md` §3.1). The module straps both high with 100 kΩ
+and latches them when it leaves reset.
+
+Caster's DPI pins are inputs and never drive them. But **an FPGA whose `VCCO` is off does not
+present a high impedance** — its input ESD structure clamps to the unpowered rail, and a
+forward-biased clamp diode comfortably beats a 100 kΩ pull-up. If `+3V3` (bank 1's `VCCO`) is down
+while the SoM releases reset, `BOOTMODE_9` latches 0 instead of 1.
+
+So firmware's rail order must satisfy:
+
+> **`MCU_EN_3V3` asserted and `PG_3V3` high, before `MCU_EN_5V`.**
+
+which is compatible with the Spartan-6 preference above (`MCU_EN_FPGA_CORE` → `MCU_EN_3V3` →
+`MCU_EN_DDR`) — put `MCU_EN_5V` after `MCU_EN_3V3` and both are satisfied at once. There is no
+hardware interlock and none is proposed: adding one would mean gating the boost's `EN` on `PG_3V3`,
+which costs a part and removes firmware's ability to power the SoM with the FPGA down, a state the
+reading architecture may want later.
+
+**Not verified on hardware.** The failure mode is a module that boots from the wrong device, or not
+at all, and only when `+3V3` happens to be late — so it would present as an intermittent bring-up
+fault. It is cheap to get right in firmware and expensive to diagnose.
+
 One ordering consequence of deleting `U11` (§2.2): the boost no longer has to wait for a switched
 input to cross its 1.8 V start-up UVLO ‡, so `MCU_EN_5V` high starts it immediately. Firmware's
 5 V step is now a plain "assert, wait `tSS` ≈ 700 µs ‡ plus margin, read the rail on `power_mon`" —

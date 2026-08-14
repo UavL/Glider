@@ -143,19 +143,44 @@ when the switch was made. **WP7 and WP8 are unblocked.**
 | PCB cut-out | **not required** — the advantage of the connectorised part; `PCL-071` needs a ~14.4 × 22.4 mm hole | L-1041e.A3 Fig. 11 NOTE 2 |
 | Price and MOQ | **still unquoted** — PHYTEC's mail covered `PCL-071-001-R` only | **ask Emma** |
 
-#### ⚠ One thing Table 31 raises that WP7 must settle first
+#### ⚠ The `BOOTMODE` overlap — settled 2026-08-14, and it is two signals, not six
 
 `VOUT0_DATA16`–`DATA23` sit on `X_GPMC0_AD8`–`AD15`, which are **also `BOOTMODE_8`–`BOOTMODE_15`**,
 each with a 100 K pull-up or pull-down on the module, and Table 31 note 2 says *"This signal should
 not be driven during reset."*
 
-`NOTES-R2-plan.md` currently lists "`BOOTMODE` strap conflict — **avoided entirely by 18-bit
-mode**" under *answered, no longer open*. That conclusion predates this table and **needs
-re-deriving against it**, because it depends on something not yet checked here: whether the DSS in
-RGB666 drives `DATA[17:0]` (in which case only `DATA16`/`DATA17` touch straps — 2 signals) or the
-top six bits of each byte lane, `DATA[23:18]/[15:10]/[7:2]` (in which case 6 do). The AM62x TRM
-Fig. 12-471 is the source and is not in this repo (gitignored, fetch from TI). **Either way it is
-not "avoided entirely", so treat that line as unproven until WP7.**
+**AM62x TRM (SPRUIV7C) Figure 12-471** settles how many of them 18-bit mode touches: in 18-bit RGB
+the video port drives **`DATA[17:0]` only**, packed as `data[17:12]` = red, `data[11:6]` = green,
+`data[5:0]` = blue (Fig. 12-472 shows 24-bit using `DATA[23:0]`, which is the case that would have
+used all eight strap pins). So:
+
+| Caster net | TRM bit | `VOUT0_` | `X1` | strap |
+| --- | --- | --- | --- | --- |
+| `DPI_R7` (MSB) | `data[17]` = R5 | `DATA17` | D4 | **`BOOTMODE_9`**, 100 K pull-up |
+| `DPI_R6` | `data[16]` = R4 | `DATA16` | D2 | **`BOOTMODE_8`**, 100 K pull-up |
+| `DPI_R5`…`R2` | `data[15:12]` | `DATA15`…`12` | A13 A12 A10 A8 | — |
+| `DPI_G7`…`G2` | `data[11:6]` | `DATA11`…`6` | A11 A16 B14 B15 B9 B11 | — |
+| `DPI_B7`…`B2` | `data[5:0]` | `DATA5`…`0` | B10 B7 B5 B4 B6 B12 | — |
+
+(The `DPI_Rn` ↔ `data[n]` rows assume MSB-to-MSB alignment, which is what "the 18-bit RGB666 bit
+mapping is identical to Caster's" has always meant. `DATA18`–`DATA23` are unused in 18-bit mode, so
+`BOOTMODE_10`–`15` are untouched.)
+
+**`BOOTMODE[9:3]` is the primary boot mode selection and config field** (Table 17), so these are not
+spare strap bits — they choose eMMC vs OSPI vs SDIO. Two consequences for WP7, neither of which is
+a wiring choice:
+
+1. **Nothing on our board may load `DPI_R6`/`DPI_R7`.** No pull-up, no pull-down, no termination.
+   PHYTEC's own guidance for *deliberately* overriding a strap is a 1 kΩ pull-up or 10 kΩ
+   pull-down against their 100 K, which is the scale an accidental load would have to reach — so
+   ordinary routing is not a threat, but a "helpful" resistor would be.
+2. ⚠ **The FPGA's bank-1 `VCCO` (`+3V3`) must be up before the SoM releases reset.** Caster's DPI
+   pins are inputs and never drive, but an FPGA whose `VCCO` is *off* clamps its inputs through the
+   ESD structure to an unpowered rail — and a forward-biased clamp diode beats a 100 K pull-up, so
+   `BOOTMODE_9` would latch 0 instead of 1 and the module would boot from the wrong device. This is
+   a **firmware ordering rule**, not a hardware one: `docs/power.md` §5 says enable order is
+   firmware's and is not interlocked, so `MCU_EN_3V3` (and `PG_3V3`) must precede `MCU_EN_5V`.
+   Recorded in `docs/power.md` §5.
 
 ### 3.2 `PCL-071` — the second-revision target, kept for reference
 
