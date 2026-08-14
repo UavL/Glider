@@ -226,10 +226,15 @@ it (`R33` 124 k → 150 k, giving `0.600 × (1 + 150/100) = 1.500 V`). Three ind
 The DRAM is happy either way: the datasheet's own words are "Backward compatible to VDD = VDDQ =
 1.5 V ±0.075 V". Cost is about 1.9 mW of extra standby draw, computed in `power.md` §9.
 
-**Caveat that has to travel with that number:** the `mt41k64m16.pdf` in `datasheets/` specifies the
-1.35 V case, and says "Refer to the DDR3 (1.5V) SDRAM data sheet specifications when running in
-1.5V compatible mode". So the `IDD6` figures behind the standby budget (8 mA Rev G / 12 mA Rev J)
-are the **1.35 V** ones. The 1.5 V numbers need the 1 Gb DDR3 datasheet and are **not yet verified**.
+**That caveat is now resolved, in the favourable direction.** `mt41k64m16.pdf` specifies only the
+1.35 V case and says "Refer to the DDR3 (1.5V) SDRAM data sheet specifications when running in
+1.5V compatible mode". That datasheet arrived 2026-08-14 as `datasheets/MT41J.pdf`, and gives
+**`IDD6` = 7 mA for every speed grade** (TC ≤ 85 °C, ASR and SRT disabled) → **10.5 mW at 1.5 V**,
+against the DDR3L part's own 8 mA / 12 mA at 1.35 V (10.8 / 16.2 mW). So the 1.5 V decision costs
+nothing measurable in self-refresh and may save. ⚠ `MT41J64M16` and `MT41K64M16` are different
+orderable parts, so this is the closest published proxy — same density, same organisation, the
+voltage we run at — **not** a spec for the fitted device. `docs/power.md` §9 carries the BOM
+question that follows (the MIG is configured for the `MT41J`; is it stocked?).
 
 `+DRAM_VREF` is `R104`/`R105`, 1 kΩ each, so it tracks at exactly half the rail: 0.750 V.
 
@@ -336,7 +341,8 @@ work and is worse — it would push all 109 names into every sheet's namespace.
    bidirectional I/O and the flag trades one benign warning for two `pin_to_pin` ones. `+1V5`'s flag
    belongs on `power.kicad_sch` where `U15` makes the rail; that sheet is reviewed, so it is listed
    here rather than edited in silently. R1 reports the identical violation on `+1V35`.
-3. **`IDD6` at 1.5 V is unverified** (§5.2). Needs the 1 Gb DDR3 (not DDR3L) datasheet.
+3. ~~**`IDD6` at 1.5 V is unverified** (§5.2). Needs the 1 Gb DDR3 (not DDR3L) datasheet.~~
+   **Closed 2026-08-14** — `datasheets/MT41J.pdf`, `IDD6` = 7 mA → 10.5 mW at 1.5 V. §5.2.
 4. **The LX16 has never been priced.** `NOTES-R2-hardware-facts.md`'s BOM row is marked "re-query"
    after the LX9 correction. The DRAM (`MT41K64M16TW-107`, `C2060943`, $4.49) and the NOR
    (`W25Q128JVSIQ`, `C97521`, $1.22, the only JLC Basic part in the list) are both already priced

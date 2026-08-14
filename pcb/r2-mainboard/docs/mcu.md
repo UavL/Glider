@@ -418,9 +418,19 @@ sees, which is harmless: exiting ship mode needs the line held low for 1.25 s �
 
 **The buttons are on the MCU, not on SoM GPIO.** `Project_description.md` prefers buttons that
 arrive as `gpio-keys` events, and putting them on the SoM would give that for free — but only if
-the module brings out WKUP-domain GPIO that can wake it from Deep Sleep, and that is unknown until
-PHYTEC answers. MCU pins are known to exist today. The cost is a small serial key-event protocol
-on the UART; the alternative risks a respin.
+the module brings out WKUP-domain GPIO that can wake it from Deep Sleep. MCU pins are known to
+exist today. The cost is a small serial key-event protocol on the UART; the alternative risks a
+respin.
+
+**Updated 2026-08-14 — half of that is now answered, and the conclusion is unchanged.** PHYTEC's
+low-power verification report (`datasheets/lowpowermode_phytec.pdf`) wakes the module from
+Suspend-to-RAM with a button, via `WAKEUPGPIO` and
+`ti-sci … wakeup source:0x80, pin:0x75, mode:0x0`. So the *mechanism* is demonstrated on this
+exact module, not merely documented. What the report does not say is **which `X1` pin** that
+button reaches, and `L-1038e.A5` does not mark WKUP-capable pins as such in Tables 7–10. Until
+that is known there is still nothing to route a button to, so the buttons stay here. It is
+question 3 of the follow-up enquiry in `NOTES-R2-plan.md`; if the answer names usable pins, moving
+them is a change to `som.kicad_sch` and this sheet, and it is worth making before layout.
 
 ### 5.6 `BOOT0` and SWD
 

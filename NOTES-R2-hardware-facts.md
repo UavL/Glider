@@ -124,22 +124,38 @@ assignments feeding `dpi_in` (WP7) depend on which one is fitted, and neither is
 
 ### 3.1 `PCM-071` — what is known and what is not
 
-| Property | Value | Source | Confidence |
-| --- | --- | --- | --- |
-| Dimensions | 43 × 32 mm; ~7.6 mm mated stack | prior note, this file | carried over |
-| Attachment | **240 pins as 2 × 120-pin 0.5 mm** board-to-board | PHYTEC product page, 2026-08-13 | verified |
-| Module-side connector | `BSH-060-01-L-D-A-TR` ×2 (Samtec Razor Beam) | prior note | **reconcile** — the product page names the pair as `ASP-205225-01` |
-| Board-side mate | **`BTH-060-01-L-D-A-K-TR` ×2**, LCSC `C3646540`, 63 in stock, $5.56 | LCSC, 2026-08-03 | verified |
-| Parallel display | **"Parallel Display (24bpp)" is listed** — 18 bpp is a subset, so the DPI link survives the change | PHYTEC product page, 2026-08-13 | verified |
-| **DPI pin assignments** | — | — | **NOT KNOWN.** `PCL-071`'s are in L-1041e.A3 Table 30; `PCM-071` has its own manual and its own numbering |
-| `VIN` range | assumed 4.5–5.5 V, same as `PCL-071` | — | **inferred, needs the manual** |
-| `VDDSHV3` 1.8/3.3 V selection | assumed present, default 3.3 V | — | **inferred, needs the manual** |
-| PCB cut-out | **not required** — this is the advantage of the connectorised part; `PCL-071` needs a ~14.4 × 22.4 mm hole for its bottom-side components | L-1041e.A3 Fig. 11 NOTE 2 | verified for `PCL` |
-| Price and MOQ | **unquoted** — PHYTEC's mail covered `PCL-071-001-R` only | — | **ask Emma** |
+**The `PCM-071` hardware manual is now in `datasheets/` as
+`L-1038e.A5_phyCORE-AM62x_HW Manual.pdf`** (added by the owner 2026-08-14). Its title page reads
+"SOM Prod. No.: PCM-071", so it is *this* module's manual, and it closes every row that was open
+when the switch was made. **WP7 and WP8 are unblocked.**
 
-**Neither PHYTEC manual is in this repo** (`L-1041e`, `L-1038e` were read online). The `PCM-071`
-hardware manual has to be obtained before WP7 or WP8 can be drawn — it is the sole source for the
-three "needs the manual" rows above, and the DPI pin numbers are the whole content of WP7.
+| Property | Value | Source |
+| --- | --- | --- |
+| Dimensions | 43 × 32 mm; ~7.6 mm mated stack | prior note |
+| Attachment | **240 pins: 2 × 0.5 mm 2×60 Samtec** | L-1038e.A5 §1 |
+| Module-side connector | **`BSH-060-01-L-D-A-TR` ×2** — our note was right, the product page's `ASP-205225-01` is something else | L-1038e.A5 §1 |
+| Board-side mate | **`BTH-060-01-L-D-A-K-TR` ×2**, LCSC `C3646540`, 63 in stock, $5.56 | L-1038e.A5 §"Mount the SOM…"; LCSC 2026-08-03 |
+| `VIN` | **5.0 V**, pins **A1, A2, A3**, draw 5 W (1 A) | L-1038e.A5 Table 12 |
+| `VBAT` | RTC backup, pin **B2**, 120 nW (40 nA) | L-1038e.A5 Table 12 |
+| Typical idle | **1.62 W** — corroborated by the measured 1485.7 mW, §4.6 | L-1038e.A5 Table 3 |
+| DPI | **Parallel MIPI DPI 2.0, RGB 16/18/24-bit with separate syncs**, full `X1` pin map in **Table 31** | L-1038e.A5 §8.1.1 |
+| I/O voltage | `X_VOUT0_*` default **3.3 V**, solder-jumper selectable to 1.8 V (§4.7) — matches Caster's `LVCMOS33`, no level shifting | L-1038e.A5 Table 31 note 1 |
+| PCB cut-out | **not required** — the advantage of the connectorised part; `PCL-071` needs a ~14.4 × 22.4 mm hole | L-1041e.A3 Fig. 11 NOTE 2 |
+| Price and MOQ | **still unquoted** — PHYTEC's mail covered `PCL-071-001-R` only | **ask Emma** |
+
+#### ⚠ One thing Table 31 raises that WP7 must settle first
+
+`VOUT0_DATA16`–`DATA23` sit on `X_GPMC0_AD8`–`AD15`, which are **also `BOOTMODE_8`–`BOOTMODE_15`**,
+each with a 100 K pull-up or pull-down on the module, and Table 31 note 2 says *"This signal should
+not be driven during reset."*
+
+`NOTES-R2-plan.md` currently lists "`BOOTMODE` strap conflict — **avoided entirely by 18-bit
+mode**" under *answered, no longer open*. That conclusion predates this table and **needs
+re-deriving against it**, because it depends on something not yet checked here: whether the DSS in
+RGB666 drives `DATA[17:0]` (in which case only `DATA16`/`DATA17` touch straps — 2 signals) or the
+top six bits of each byte lane, `DATA[23:18]/[15:10]/[7:2]` (in which case 6 do). The AM62x TRM
+Fig. 12-471 is the source and is not in this repo (gitignored, fetch from TI). **Either way it is
+not "avoided entirely", so treat that line as unproven until WP7.**
 
 ### 3.2 `PCL-071` — the second-revision target, kept for reference
 
@@ -196,9 +212,16 @@ against TI's 343.59 mW for the bare SoC — **~1.28 W of module overhead at idle
 
 Toradex publishes a **measured 59.7 mW** suspend figure for the Verdin AM62 — a different module,
 same SoC family. That is the only whole-module number in existence for an AM62x SoM, and it is
-~2.4× TI's SoC-only DDR4 figure. **Expect the phyCORE in Deep Sleep to be 50–100 mW.**
+~2.4× TI's SoC-only DDR4 figure. ~~**Expect the phyCORE in Deep Sleep to be 50–100 mW.**~~
+**Superseded 2026-08-14 by a measurement on our own variant — §4.6. The estimate was low: the
+truth is 128.6 mW, 29–157 % above this range.** The extrapolation method was sound and the answer
+was still wrong, which is worth remembering the next time a number is scaled from a neighbouring
+vendor's module.
 
-### 4.4 The two things no document states
+### 4.4 ~~The two things no document states~~ — both closed 2026-08-14
+
+**Kept for the reasoning, not because it is still true.** Both gaps were closed by PHYTEC's
+verification report; see §4.6.
 
 Both were checked directly in the sources, not assumed:
 
@@ -212,8 +235,9 @@ Both were checked directly in the sources, not assumed:
    resume, and branches to peripheral context restore from DDR, so it depends on how much context
    the BSP saves.
 
-**These two gaps are the entire remaining risk in the architecture**, and both need PHYTEC or a
-bench measurement. Nothing further in TI's documentation will close them.
+~~**These two gaps are the entire remaining risk in the architecture**, and both need PHYTEC or a
+bench measurement. Nothing further in TI's documentation will close them.~~ **They did need
+PHYTEC, and PHYTEC measured them. §4.6.**
 
 ### 4.5 TI's low-power mode taxonomy (SPRAD41 Table 2-2)
 
@@ -225,6 +249,66 @@ Useful because the reading state maps onto exactly one of these:
 | MCU Only | Deep Sleep events + any MCU-channel interrupt | as Deep Sleep but the M4F keeps running |
 | **Deep Sleep** | GP/RTC timers, UART, I²C, MCU GPIO0, I/O daisy chain, USB | **the reading state.** Core context lost and saved to DDR; DDR in self-refresh; boot ROM restores on wake |
 | Partial I/O | CANUART bank pins only | entire SoC off except that one I/O bank. Lowest power, highest latency — a candidate for *standby*, not for reading |
+
+### 4.6 ‡ Measured, module level, on our own variant — the numbers that matter
+
+**Source: `datasheets/lowpowermode_phytec.pdf`** — "Test Verification for PCM-071 (phyCORE-AM62x):
+Low Power Mode Testing", PHYTEC America, executed by cbrown 2026-08-12, sent by Khalid Talash
+2026-08-14. This supersedes §4.1–4.4 for every purpose except understanding how we got here.
+
+It is the right measurement in every respect that was previously in doubt: **the `PCM-071`**, the
+exact variant chosen on 2026-08-13; a **whole module**, not SoC rails; by the vendor, on a
+phyBOARD-Lyra carrier with `R492` replaced by a **70 mΩ** shunt; BSP **PD25.1.1**.
+
+| Case | Current ‡ | Power ‡ | vs idle |
+| --- | ---: | ---: | ---: |
+| Idle in Linux, no low-power mode | 297.1 mA | 1485.7 mW | — |
+| **Suspend-to-RAM** | **25.7 mA** | **128.6 mW** | **−91.3 %** |
+| MCU-Only | N/A | N/A | see below |
+
+128.6 / 25.7 = **5.004 V**, so these are drawn at the module's `VIN` (Table 12: 5.0 V main supply,
+pins A1/A2/A3). The idle figure corroborates the manual's own 1.62 W typical (Table 3).
+
+**Wake ≈ 150 ms ‡** (Khalid Talash's covering mail). The kernel log in the report gives an
+independent bound: `PM: suspend entry (deep)` at 163.995928 to `PM: suspend exit` at 164.232937
+is **237 ms for a complete suspend-and-resume round trip** with no dwell in between, so the resume
+half cannot be more than that.
+
+#### What it does not cover, and where the headroom is
+
+- **MCU-Only mode could not be measured.** "The MCU/M4 demo firmware deployed to our current BSP
+  release does not work in combination with the MCU-only mode. It may be available in future
+  versions." So 128.6 mW is the floor *today*, not the floor of the silicon — TI's SoC-only figure
+  for MCU Only is 54.91 mW (§4.1).
+- **Both Gigabit Ethernet PHYs are present and were driven by the BSP.** The resume log
+  reconfigures `am65-cpsw-nuss` `end0` and `end1`, each with a TI DP83867. Glider uses no
+  Ethernet. **This is the only identified headroom against 128.6 mW, and it is now the largest
+  single line in the reading budget** — but the log only shows the driver re-initialising the PHYs
+  *on resume*, which says nothing about their state *while suspended*. **Ask; do not assume.**
+
+#### ⚠ A software requirement that will bite at bring-up
+
+**The Cortex-M4 must be stopped before Suspend-to-RAM, or the second suspend hangs.** PHYTEC's
+published low-power guide does not say so and they have undertaken to fix it. Measured behaviour
+with the M4 running: suspend "worked reliably 1 time per boot, but locked up when entering
+low-power mode a second time", and drew more power. The fix in the report:
+
+```
+cat /sys/class/remoteproc/remoteproc0/name     # -> 5000000.m4fss
+echo stop > /sys/class/remoteproc/remoteproc0/state
+```
+
+After that, "we were able to enter and leave the Suspend-2-RAM low-power mode as many times as
+desired". PHYTEC's own recommended change is "Update firmware to completely turn off MCU to enable
+multiple uses of Suspend-2-RAM."
+
+#### Wake-from-GPIO is demonstrated; the pin is not
+
+The report wakes the module from Suspend-to-RAM with BTN1 on the carrier, and the kernel reports
+`ti-sci 44043000.system-controller: ti_sci: wakeup source:0x80, pin:0x75, mode:0x0` with two
+`WAKEUPGPIO` interrupt lines. So the *mechanism* — a GPIO edge waking Deep Sleep — is proven on
+this module. **Which `X1` pin BTN1 reaches is not in the report**, so `docs/mcu.md` §5.5's
+conclusion (buttons stay on the MCU) is unchanged: the route exists but its pin number does not.
 
 ---
 

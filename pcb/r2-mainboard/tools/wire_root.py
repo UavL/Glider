@@ -27,6 +27,11 @@ re-runnable, and a hand edit of those three element types on the root will not
 survive it. Sheet boxes, positions and pins are never touched -- those belong to
 `sheet_pins.py` and `layout_root.py`.
 
+**Pass `--check` to report without writing.** Re-emitting assigns a fresh UUID to
+every wire and label, so a plain run produces a ~750-line diff that changes no
+connectivity at all. Use `--check` for verification -- it does every assertion and
+prints the same summary, and touches nothing.
+
 A name with only one pin is left labelled but unjoined, which is correct: when
 the sheet that owns the other end is drawn, its pin gets the same label and the
 net closes with no edit here. Those are expected only where a whole sheet is
@@ -110,6 +115,9 @@ def strip_owned(text: str) -> tuple[str, int]:
     return text, n
 
 
+CHECK_ONLY = "--check" in sys.argv
+
+
 def main() -> int:
     text = ROOT.read_text()
     sheets = sheet_blocks(text)
@@ -168,12 +176,17 @@ def main() -> int:
             f'\t\t(uuid "{uuid.uuid4()}")\n\t)\n')
 
     assert text.endswith(")\n")
-    ROOT.write_text(text[:-2] + "\n" + "".join(parts) + ")\n")
+    if not CHECK_ONLY:
+        ROOT.write_text(text[:-2] + "\n" + "".join(parts) + ")\n")
 
     joined = {k: v for k, v in by_name.items() if len(v) > 1}
     solo = {k: v for k, v in by_name.items() if len(v) == 1}
-    print(f"root: removed {removed} old wire/label/junction blocks, "
-          f"wrote {len(emitted)} stubs + labels")
+    if CHECK_ONLY:
+        print(f"root (--check, nothing written): {len(emitted)} stubs + labels "
+              f"would be re-emitted over {removed} existing blocks")
+    else:
+        print(f"root: removed {removed} old wire/label/junction blocks, "
+              f"wrote {len(emitted)} stubs + labels")
     print(f"  {len(by_name)} distinct names on {sum(map(len, by_name.values()))}"
           f" sheet pins")
     print(f"  joined across sheets : {len(joined)}")

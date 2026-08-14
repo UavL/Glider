@@ -405,16 +405,30 @@ that four bucks could not be turned off at all. The result here is that they can
 - ~~**Bank 3's voltage is under review and may move `+1V35_DCDC`.**~~ **Closed 2026-08-12: the rail
   is now 1.500 V and the net is `+1V5_DCDC`.** `R33` 124 k → 150 k; see §3.1's margin check.
   Decided by the hardware owner once `ds162.pdf` and `mt41k64m16.pdf` were both in hand.
-- **The 1.5 V decision costs ~1.9 mW of standby and the budget in §8 has not been re-run.**
-  `mt41k64m16.pdf` gives `IDD6` room-temperature self-refresh as 8 mA (Rev. G) / **12 mA** (Rev. J),
-  and the die revision is not selectable at LCSC, so worst case the DDR rail goes from 16.1 mW to
-  **18.0 mW** in the reading state. Two things follow that this document should confront rather than
-  absorb: the DDR in self-refresh is now the **largest single term** in the reading state, and at
-  16–18 mW it alone exceeds the ~10 mW figure `NOTES-R2-plan.md` quotes for standby. Either the two
-  states are being conflated or the budget needs restating. **The bigger lever is architectural, not
-  electrical:** if the SoM re-pushed the framebuffer on wake, `MCU_EN_DDR` could be off in the
-  reading state and the whole 16–18 mW would go, at the cost of resume latency and a full redraw.
-  That is a WP8 question, noted here because this is where the number lives.
+- ~~**The 1.5 V decision costs ~1.9 mW of standby.**~~ **Revised 2026-08-14 — it probably costs
+  nothing, and may save.** That estimate compared `mt41k64m16.pdf`'s `IDD6` at 1.35 V (8 mA Rev. G
+  / 12 mA Rev. J → 10.8–16.2 mW) against an assumed 1.5 V figure, because the DDR3L datasheet does
+  not specify 1.5 V operation — it says "refer to the DDR3 (1.5V) SDRAM data sheet". That datasheet
+  is now in `datasheets/MT41J.pdf`, and it gives **`IDD6` = 7 mA for all speed grades** (Table,
+  notes 1–3: TC ≤ 85 °C, ASR and SRT disabled) → **10.5 mW at 1.5 V**, at or below the DDR3L part's
+  own 1.35 V figure.
+  ⚠ **This is a proxy, not a spec for the fitted part.** `MT41J64M16` and `MT41K64M16` are
+  different orderable devices; the board fits the `MT41K` running in its "1.5 V compatible mode",
+  and nobody publishes that combination's `IDD6`. It is the closest published number — same
+  density, same organisation, same family, the voltage we actually run at — and it moves the
+  1.5 V decision from "small cost" to "no measurable cost".
+  **Worth a decision at BOM time:** the MIG is configured for `MT41J64M16` (`mig.prj`), we run the
+  bank at 1.5 V, and DDR3L's 1.35 V capability is therefore unused — so fitting the `MT41J` would
+  make the datasheet match the design exactly. Against that, the `MT41K` is what R1 proves and what
+  is priced and stocked at LCSC (`C2060943`, $4.49). Check `MT41J` availability before changing
+  anything.
+- ~~The DDR in self-refresh is the **largest single term** in the reading state.~~ **Not any
+  more.** PHYTEC measured the SoM at **128.6 mW** in Suspend-to-RAM (`NOTES-R2-hardware-facts.md`
+  §4.6), which is 6–12× the DDR rail and 51–66 % of the whole reading budget. The 10.5 mW here is
+  now a minor term. **The architectural lever noted below still stands** and is still worth having:
+  if the SoM re-pushed the framebuffer on wake, `MCU_EN_DDR` could be off in the reading state and
+  the whole term would go, at the cost of resume latency and a full redraw. That is a WP8 question,
+  noted here because this is where the number lives — but it is no longer the biggest one.
 - ~~**This doc still owes a "Layout guidelines" section.**~~ **Written — §11.**
 - ~~**`U10`'s output must be renamed to `+3V3_AON_DCDC`.**~~ **Done by the reviewer** in the
   2026-08-11 save: `#PWR205` now reads `+3V3_AON_DCDC`, so `power_mon`'s `U22` ch2 shunt (`R208`) has

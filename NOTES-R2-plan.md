@@ -53,8 +53,8 @@ high-refresh drive.
 ```
    ┌───────────────────────────────┐
    │  phyCORE-AM62x (PCM-071)      │  plugged in, 43×32 mm, ~7.6 mm mated
-   │  AM6254 · DDR4 · eMMC         │  Deep Sleep ≈ 50-100 mW (to confirm)
-   └──┬──────────────┬─────────────┘  VIN 4.5-5.5 V → boost from the cell
+   │  AM6254 · DDR4 · eMMC         │  Suspend-to-RAM 128.6 mW ‡, wake ~150 ms ‡
+   └──┬──────────────┬─────────────┘  VIN 5.0 V ‡ (A1/A2/A3) → boost from the cell
       │              │                2x Samtec 120p 0.5 mm on the board
 DPI 18b + PCLK/DE/   │ I2C, UART, GPIO
 HS/VS  (22 signals)  │
@@ -198,23 +198,30 @@ H750 become a G0.
 
 | Gap | Blocks ordering? | Closes at |
 | --- | --- | --- |
-| **Module-level Deep Sleep power** | **YES** | PHYTEC Q1 |
-| **Resume latency** — no number exists in any TI or PHYTEC document | **YES** | PHYTEC Q1, or a bench measurement |
-| **`PCL-071` price, MOQ, will they sell 1–2 units** | **YES** | PHYTEC Q2 |
+| ~~**Module-level Deep Sleep power**~~ | ~~YES~~ | **CLOSED 2026-08-14 — 128.6 mW ‡ measured on `PCM-071`.** Facts §4.6 |
+| ~~**Resume latency** — no number exists in any TI or PHYTEC document~~ | ~~YES~~ | **CLOSED 2026-08-14 — ~150 ms ‡**, and ≤237 ms for a full round trip from the kernel log. Facts §4.6 |
+| ~~**`PCL-071` price, MOQ, will they sell 1–2 units**~~ | ~~YES~~ | **CLOSED 2026-08-13** — €281 @1–9, reel-only MOQ 5. Answered by moving to `PCM-071` (constraint 1) |
+| **`PCM-071` price and MOQ** | **YES** | replaces the row above; the quote covered `PCL-071-001-R` only |
 | Orderable variants (1 GB RAM, small eMMC, `VDDSHV3` = 3.3 V, WiFi) | **YES** | PHYTEC Q3 |
 | **The R2 schematic does not exist** | **YES** | Stages B–E — months, not a purchase |
-| Will JLCPCB accept the 270-pin consigned module on a custom footprint | soon | ask before Stage E |
+| ~~Will JLCPCB accept the 270-pin consigned module on a custom footprint~~ | ~~soon~~ | **Gone with the `PCM-071` switch** — nothing is consigned |
 | Panel model | no — deferred with touch/pen | read it off the tail/back label |
 | R1 firmware + gateware untested on hardware | no | needs the ISE VM (192.168.56.102, currently down) |
 
-**Nothing is ordered until the first four are answered.**
+**Nothing is ordered until the remaining `YES` rows are answered** — now `PCM-071` price/MOQ,
+orderable variants, and the schematic existing.
 
 ### Answered, so no longer open
 
 - DPI ingest gateware — **exists and runs** (`vin_dpi.v`, `SRC_DPI`).
 - DPI max pixel clock — **165 MHz**, TRM Table 12-361, vs 127 MHz needed at 75 Hz.
 - 18-bit RGB666 bit mapping — **identical to Caster's**, TRM Fig. 12-471.
-- `BOOTMODE` strap conflict — **avoided entirely by 18-bit mode**.
+- ~~`BOOTMODE` strap conflict — **avoided entirely by 18-bit mode**.~~ **Reopened 2026-08-14.**
+  `L-1038e.A5` Table 31 shows `VOUT0_DATA16`–`DATA23` on `X_GPMC0_AD8`–`AD15`, which are also
+  `BOOTMODE_8`–`BOOTMODE_15` with 100 K straps on the module, and note 2 says the signal "should
+  not be driven during reset". Whether 18-bit mode touches 2 of them or 6 depends on the DSS's
+  RGB666 bit mapping, which needs the AM62x TRM Fig. 12-471. **Not "avoided entirely" either way.**
+  WP7 settles it. Facts §3.1.
 - Level shifting between SoM and FPGA — **not needed**, both 3.3 V LVCMOS.
 - Touch controller sourcing — **wrong question**; it ships bonded to the touch film.
 
@@ -245,12 +252,35 @@ later than adding one to our own board, so it is worth knowing whether the optio
 
 **Decision rule.** Deep Sleep ≤ ~100 mW and resume ≤ ~500 ms → proceed to Stage B. Above ~250 mW
 or ~1 s → the architecture is wrong and the fallback becomes primary.
+**→ Answered 2026-08-14: 128.6 mW ‡ and ~150 ms ‡. Proceeding** — see the note under the power
+budget for why the in-between result is still a proceed.
 
-**Fallback:** `T113-S3` — dual Cortex-A7 with **128 MB DDR3 in package**, in JLCPCB's own
-catalogue (`C5197687`, $5.60, 1810 in stock), LCD controller rated to 1920×1080. It removes
-consignment, the cut-out and the boost stage in one move. Its unverified risk is the one that
-matters most: **suspend-to-RAM support on mainline Allwinner is weak**, and that is the entire
-power architecture. Do not adopt it without proving suspend on real hardware first.
+**~~Fallback:~~ `T113-S3`** — **no longer live**, since the gate above cleared. Kept for the
+record: dual Cortex-A7 with 128 MB DDR3 in package, JLCPCB catalogue (`C5197687`, $5.60), LCD
+controller to 1920×1080; it would have removed consignment, the cut-out and the boost stage in one
+move, at the cost of the risk that mattered most — **suspend-to-RAM support on mainline Allwinner
+is weak**, and that is the entire power architecture.
+
+### Follow-up enquiry — ready to send
+
+Answers received have opened four new asks, three of which block work now.
+
+> 1. **Price, MOQ and lead time for `PCM-071`** at 1, 10 and 100 pieces. Your quote of 2026-08-13
+>    covered `PCL-071-001-R`; we have since moved to the connectorised module, largely because the
+>    solder-down part is reel-only in reels of five.
+> 2. **In Suspend-to-RAM, what state are the two Gigabit Ethernet PHYs in, and can they be held
+>    in power-down?** Your report's resume log re-initialises both `am65-cpsw-nuss` interfaces.
+>    Our product uses no Ethernet at all, and at 128.6 mW the module is now the largest consumer in
+>    our reading state, so this is the first place we would look for headroom.
+> 3. **Which `X1` pin is BTN1 on the phyBOARD-Lyra**, and which WKUP-domain GPIOs reach the
+>    connector? Your report proves a GPIO edge can wake Deep Sleep; we need to know which pin to
+>    route it to.
+> 4. Any timeline for **MCU-Only mode** support in the BSP, since the M4 demo firmware currently
+>    prevents measuring it?
+
+(Question 3 also decides `docs/mcu.md` §5.5 — whether the page-turn buttons can move from the
+housekeeping MCU onto SoM GPIO and arrive as `gpio-keys` events, which is what
+`Project_description.md` prefers.)
 
 ---
 
@@ -299,8 +329,8 @@ patched surgically; the `tools/gen_*.py` generators are not re-run over it.
 | WP4 | `epd`, `epd_power`, `power_mon` | yes — ported from R1 | **yes — round 1 done, accepted as a 1:1 port** | `manual-analysis/Analysis_epd_files.md` → answered in `docs/epd-port.md` §9. `epd`/`epd_power` provably net-identical to R1; `power_mon` differs in 4 intended groups. **No schematic change.** Two items opened: keep the panel adapter board for now (the panel model is still deferred), and `J3` (16p) is probably droppable once the panel is chosen |
 | WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | **yes** | — **waiting on owner** | `docs/fpga.md`. All three drawn plus the **root sheet wired**. Verified against the gateware by `tools/check_ucf.py`: 113 constrained balls, **0 failures**. Corrected two documented errors (the FPGA is an **XC6SLX16**, not LX9; R1 fits a **1 Gb** DRAM, not 4 Gb). Bank 3 moved 1.35 V → **1.5 V** (`LVCMOS15`/`SSTL15` have no 1.35 V form), which reached back into `power`, `power_mon` and `fpga_config`. `fpga_config` gains the SPI NOR, master-SPI strap, and **IO2/IO3 wired to `N12`/`P12`** so x4 boot stays a software change. Found three signal groups the board wires that Caster does not implement — which settles `J3` (§2.1) |
 | WP6 | `frontlight`, `io_expansion` | no | — | FL driver, unpopulated touch/pen FPC, microSD |
-| WP7 | `dpi_in` | no | — | the 22-signal link. **Blocked on the `PCM-071` hardware manual** — its DPI pin numbers are the entire content of this sheet, and `PCL-071`'s (L-1041e Table 30) do not carry over |
-| WP8 | `som` | no | — | **held last.** Now a **2 × `BTH-060-01-L-D-A-K-TR`** footprint (240 pins, 0.5 mm), not a `PCL-071` landing pattern — constraint 1, revised 2026-08-13. No PCB cut-out needed any more. Same manual blocks it |
+| WP7 | `dpi_in` | no | — | the 22-signal link. **Unblocked 2026-08-14** — `L-1038e.A5` Table 31 has the full `X1` DPI pin map. First job on this sheet is the `BOOTMODE` question above, not the wiring |
+| WP8 | `som` | no | — | **held last.** A **2 × `BTH-060-01-L-D-A-K-TR`** footprint (240 pins, 0.5 mm), not a `PCL-071` landing pattern — constraint 1, revised 2026-08-13. No PCB cut-out any more. **Unblocked 2026-08-14** by the same manual: `VIN` on A1/A2/A3, `VBAT` on B2, full pinout in Tables 7–10 |
 
 **Root sheet is wired** as of WP5 (2026-08-13). `tools/wire_root.py` stubs each of
 the 187 sheet pins and attaches a local label; a local label on the root *is* a
@@ -372,24 +402,42 @@ Basis: 1S 5000 mAh at 3.7 V = 18.5 Wh, ~92 % usable, ~92 % conversion ⇒ **~15.
 
 | Reading-state consumer | Estimate |
 | --- | --- |
-| SoM Deep Sleep, module level | 50–100 mW (‡ 24.44 mW SoC-only DDR4; ‡ 59.7 mW Toradex module) |
-| — boost conversion loss on the above | ~10 % |
+| **SoM Suspend-to-RAM, at its 5 V `VIN`** | **128.6 mW ‡** — measured on `PCM-071`, Facts §4.6 |
 | FPGA core + I/O, scan stopped, hold asserted | 50–100 mW |
-| DDR3L self-refresh | 10–20 mW |
+| DDR3L self-refresh | 10–20 mW (‡ `IDD6` 7 mA @ 1.5 V, Facts §6) |
 | STM32G0 in STOP + RTC, charger, gauge | ~6 mW |
 | EPD HV | 0 ‡ |
-| **Reading-state total** | **~135–235 mW** |
+| **Reading-state total** | **~195–255 mW** |
+
+The old SoM line read "50–100 mW" plus a separate "— boost conversion loss ~10 %" row. Both are
+gone: the measurement is at the module's `VIN`, and the **basis line above already includes ~92 %
+conversion**, so that extra row was double-counting. If you would rather carry the boost loss
+explicitly, drop the 92 % from the basis instead — do not do both.
 
 | Mode | Average | Hours from 15.7 Wh |
 | --- | --- | --- |
-| Reading, one page / 30 s | ~235–335 mW | **~47–67 h** |
-| Reading, idle | ~135–235 mW | ~67–116 h |
+| Reading, one page / 30 s | ~295–355 mW | **~44–53 h** |
+| Reading, idle | ~195–255 mW | ~62–81 h |
 | Active — SoM awake, video streaming, panel driving | ~2.5 W | ~6 h |
 | Standby — SoM off, FPGA rails off, MCU in STOP | ~10 mW | weeks |
 
-Against R1's 6.4 h baseline that is roughly **8–10×**: days of heavy reading rather than one
-evening. Not a Kobo month — that needs the FPGA out of the idle path entirely — but the right
-order of magnitude for a high-refresh reader.
+Against R1's 6.4 h baseline that is roughly **7–8×**, and against
+`Project_description.md`'s stated target of **15–20 h active reading it is ~2.5×**. Days of heavy
+reading rather than one evening. Not a Kobo month — that needs the FPGA out of the idle path
+entirely — but comfortably past what the product asks for.
+
+**The measurement moved this table, and not in our favour.** The estimate was 50–100 mW; the
+truth is 128.6 mW. Idle reading drops from ~67–116 h to ~62–81 h, and one-page-per-30-s from
+~47–67 h to ~44–53 h. More importantly it **inverts the optimisation priority**: the SoM is now
+**51–66 % of the whole reading-state budget**, larger than the FPGA, where the two were previously
+assumed comparable. The one identified lever is the module's two Gigabit Ethernet PHYs, which
+Glider never uses — Facts §4.6, and question 3 of the follow-up enquiry below.
+
+**On the decision rule.** It reads "Deep Sleep ≤ ~100 mW and resume ≤ ~500 ms → proceed; above
+~250 mW or ~1 s → the architecture is wrong". 128.6 mW lands in the **gap the rule never
+legislated**. Recording the call explicitly rather than letting it look satisfied: **proceed**,
+because the abort threshold is untouched, resume beat its threshold by 3×, and the product target
+retains ~2.5× margin.
 
 ---
 
@@ -397,7 +445,7 @@ order of magnitude for a high-refresh reader.
 
 | Risk | Impact | Closes at |
 | --- | --- | --- |
-| Module Deep Sleep > 250 mW or resume > 1 s | architecture is wrong; fall back to `T113-S3` | Stage A |
+| ~~Module Deep Sleep > 250 mW or resume > 1 s~~ | ~~architecture is wrong; fall back to `T113-S3`~~ | **CLEARED 2026-08-14. 128.6 mW ‡ and ~150 ms ‡** — Facts §4.6. The `T113-S3` fallback is no longer live |
 | ~~PHYTEC will not sell 1–2 units, or `PCL-071` is priced out of reach~~ | ~~same~~ | **Realised, 2026-08-13.** €281 each with a reel-only MOQ of 5 = ~€1 405 for one prototype. Answered by moving to `PCM-071` (constraint 1) |
 | ~~JLCPCB refuses the consigned module or its custom footprint~~ | ~~forces PCBWay, or hand assembly~~ | **Gone with the `PCM-071` switch** — nothing is consigned, and the mating connector is ordinary LCSC stock |
 | ~~A soldered-down module cannot be swapped if the board is wrong~~ | ~~one bad board = one dead module~~ | **Gone with the `PCM-071` switch** — the module unplugs |
