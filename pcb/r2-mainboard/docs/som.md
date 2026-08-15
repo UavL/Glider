@@ -225,19 +225,34 @@ The manual's four columns are a *physical* division (two connectors, two columns
 schematic needs a *functional* one, because the DPI group alone spans A, B and D. So the symbol is
 one 240-pin `PCM-071` in units:
 
-| Unit | Contents | ~Pins | Sheet |
-| --- | --- | ---: | --- |
-| 1 | `VIN` ×3, `VBAT`, `SoC_VDDSHV5_SDIO`, `GND` ×45 | 50 | `som` |
-| 2 | DPI / `VOUT0` — including D2/D4 | 22 | `dpi_in` |
-| 3 | Control: SPI, UART, USB, MMC1, reset/PG/boot, I²C | ~40 | `som` |
-| 4 | Everything unused | ~128 | `som` |
+| Unit | Name | Contents | Pins | Sheet |
+| --- | --- | --- | ---: | --- |
+| 1 | `POWER` | `VIN` ×3, `VBAT`, `SoC_VDDSHV5_SDIO`, `GND` ×45 | **50** | `som` |
+| 2 | `VIDEO` | DPI / `VOUT0`, including D2/D4 | **22** | `dpi_in` |
+| 3 | `CTRL` | `SPI0`, `UART0`, `MMC1`, `USB0`, I²C, reset/status, plus the `MCU_*`/`WKUP_*` always-on groups `SOM_WAKE#` will have to come from | **49** | `som` |
+| 4 | `NC` | everything R2 does not use | **119** | `som` |
+
+Unit 3 deliberately carries more than R2 wires: the `WKUP_UART0`, `MCU_UART0`, `MCU_SPI0`,
+`MCU_I2C0` and `WKUP_I2C0` groups are the always-on domain, and `SOM_WAKE#` (§9 item 1) will have
+to land in one of them. Keeping them on the sheet that gets wired means resolving that is an edit,
+not a unit reshuffle.
 
 **One symbol and one footprint, not two of each.** The two `BTH-060` connectors have a fixed
 relative position set by the module, so drawing them as two independent parts would let a layout
 move one and destroy the board with no DRC complaint. A single footprint carrying both patterns
 makes that geometry unbreakable. `gen_som_symbol.py` builds the symbol from
 `datasheets/som_pinout.json`, so the pin names and numbers come from the manual rather than from
-typing.
+typing. It asserts every one of the 240 numbers appears exactly once, and refuses to run if the
+manual uses a signal Type it has no KiCad electrical type for.
+
+**A `pdftotext` artifact worth knowing about, because it is visible in the symbol.** The manual's
+superscript footnote markers flatten into the text, so a row's last field can arrive with a digit
+glued on: `X_GPMC0_AD8/BOOTMODE_8`**`2`**, `3.3V`**`1`**, `X_EMU0`**`3`**. The parser strips them
+only where a rule proves it — the `BOOTMODE` number must equal the `AD` number, so anything past it
+is the footnote and a genuine mismatch raises instead of truncating; levels match
+`^\d+(\.\d+)?V[123]$`; and `X_EMU0`/`X_VPP_EN` are cited to Table 5's jumper rows `J16`/`J17`,
+which name them without a suffix. **Names are cosmetic. The pin number is what the board's
+correctness rests on**, and pin numbers carry no footnotes.
 
 ## 8. Layout guidelines — collected now, for Stage D
 

@@ -98,6 +98,41 @@ def table_regions(text: str) -> dict[str, list[str]]:
     return out
 
 
+# `pdftotext` flattens the manual's superscript footnote markers into the text,
+# so a row's last field can arrive with a stray digit glued to it. Two of the
+# three cases are provable from the row itself and one needs a citation; nothing
+# is stripped on a guess.
+#
+# Names are cosmetic here -- the schematic's correctness rests on the *pin
+# number*, which is verified separately and carries no footnote. These fixes
+# exist so the generated symbol reads correctly, not to make it correct.
+FOOTNOTE_LEVEL = re.compile(r"^(\d+(?:\.\d+)?V)[123]$")
+BOOTMODE = re.compile(r"^(X_GPMC0_AD(\d+)/BOOTMODE_)(\d+)$")
+# Table 5's jumper rows name these two without any suffix -- "Sets pin D43 to
+# X_EMU0" (J16) and "Sets pin D44 to X_VPP_EN" (J17) -- so the trailing 3 in
+# Tables 7-10 is footnote 3, not part of the name.
+FOOTNOTE_NAME = {"X_EMU03": "X_EMU0", "X_VPP_EN3": "X_VPP_EN"}
+
+
+def strip_footnotes(name: str, level: str) -> tuple[str, str]:
+    m = FOOTNOTE_LEVEL.match(level)
+    if m:
+        level = m.group(1)
+    if name in FOOTNOTE_NAME:
+        return FOOTNOTE_NAME[name], level
+    m = BOOTMODE.match(name)
+    if m:
+        prefix, ad, bm = m.group(1), m.group(2), m.group(3)
+        # X_GPMC0_AD8/BOOTMODE_82 -> the two numbers must agree, so anything
+        # past the AD number is the footnote. Self-checking: a real mismatch
+        # would mean the table was misread, and raises rather than truncates.
+        assert bm.startswith(ad), \
+            f"{name}: BOOTMODE {bm} does not start with AD {ad}"
+        assert len(bm) - len(ad) <= 1, f"{name}: more than one footnote digit"
+        name = prefix + ad
+    return name, level
+
+
 def parse_row(rest: str) -> dict:
     """Split one table row's text after the pin designator into its fields.
 
@@ -116,6 +151,7 @@ def parse_row(rest: str) -> dict:
         name, typ, level, ball, desc = f[0], f[1], f[2], f[3], ""
     else:
         name, typ, level, ball, desc = f[0], f[1], "", "-", " ".join(f[2:])
+    name, level = strip_footnotes(name, level)
     return {"name": name, "type": typ, "level": level,
             "ball": None if ball == "-" else ball, "desc": desc}
 
