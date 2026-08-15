@@ -586,6 +586,50 @@ with the 50-pin `J6` alone. The connector was unused by the whole adapter ecosys
 shipped with R1. (Careful with the name: `35p-adapter-a` has a reference designator `J3` of its
 own, and it is that board's 35-pin *panel* connector, nothing to do with this one.)
 
+**Does this foreclose a bigger / colour tablet later? No — and `J3` was never the obstacle.**
+Asked by the owner 2026-08-15. README's panel table splits **126 TTL / 11 MiniLVDS**, and the
+MiniLVDS set is short enough to list in full: 8.0″ `AC080KH1/KH2` and 11.8″ `AC118TC1`, all three
+**Gallery 3**, plus the 25.3″/28″ signage panels. So of tablet-sized panels, the *only* things
+behind `J3` are 8″ and 11.8″ Gallery 3. Everything else that is bigger, colour, or both is on `J6`:
+
+| Size | Panel | Technology | Panel pins |
+| --- | --- | --- | ---: |
+| 7.8″ 1872×1404 | `EC078KH6`/`KH7` | Kaleido 3 | 40 |
+| 10.3″ 1872×1404 | `EC103TH2` | Kaleido 3 | — |
+| 10.3″ 2480×1860 | `EC103KH2` | Kaleido 3 | — |
+| 13.3″ 1600×1200 | `EC133UJ1` | Kaleido 3 Outdoor | 39 |
+| 13.3″ 1600×1200 | `AC133UT1` | Gallery / Gallery 4000 | 39 |
+| 13.3″ 1600×1200 | `EL133UR1`/`US1` | Spectra 3000 | 39 |
+
+The split falls there for a physical reason, not an arbitrary one. Kaleido is a **colour filter
+array**, and README says the consequence outright: *"the low-level driving is the same with the
+greyscale panels"* — which is why Caster carries `8bit-k3` and `16bit-k3` as build variants of the
+same design. Gallery 3 and Spectra 6 are **multi-pigment**, *"much more difficult to drive, and
+quite slow"*, and `CASTER_COLORMODE` has only `MONO`, `K3` and `RGBW` — there is no ACeP or Gallery
+mode anywhere in Caster. So an 8″ Gallery 3 needs three things: the connector, MiniLVDS RTL that
+does not exist, and an ACeP waveform pipeline that does not exist. The connector is by far the
+cheapest of the three, and adding a 16-pin FPC to a future board is a schematic edit.
+
+**The binding constraint on a bigger panel is pixel rate, not pins.** README's own limits are
+133 MP/s processing with dithering enabled (280 MP/s without), `DPI_PCLK` constrained to 165 MHz in
+the UCF, and 300 MP/s from DDR3-667 x16. Against demand at 60 Hz:
+
+| Panel | MP/s @60 Hz | Verdict on this architecture |
+| --- | ---: | --- |
+| 13.3″ 1600×1200 | 125 | **fits everything**, dithering on |
+| 10.3″ 1872×1404 | 169 | over the 165 MHz DPI constraint *and* over dithered processing |
+| 8.0″ 1920×1440 | 177 | same — before MiniLVDS is even considered |
+| 13.3″ 2200×1650 | 232 | dithering off only |
+
+So the natural bigger-tablet target for this architecture is **13.3″ 1600×1200 colour at 60 Hz** —
+125 MP/s, comfortably inside every limit, on `J6`, with Caster's existing `k3` variant and a
+`EC133UJ1` / `AC133UT1` / `EL133UR1` panel. That needs nothing from `J3`. (One number still to
+check when WP7 lands: whether the AM62x DSS can source the required `VOUT` pixel clock. It bounds
+this table from the SoM side and is not yet verified.)
+
+Nothing is lost at the silicon level either: the ten balls are **no-connect flagged, not removed**.
+They exist on the package, and a future layout can wire them.
+
 **The residual risk, stated plainly.** This is irreversible after fab, and the panel model is still
 deferred (`NOTES-R2-plan.md`: "read it off the tail/back label"). If that panel turns out to be an
 8″-or-larger Gallery 3 / Spectra part, it is MiniLVDS and it needs `J3`. For any 6″ Carta panel it
