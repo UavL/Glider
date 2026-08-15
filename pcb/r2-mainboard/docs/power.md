@@ -46,7 +46,7 @@ load-side net that comes back out of that shunt is the plain rail name. So this 
 | --- | --- | --- | --- | --- | --- | --- |
 | `+3V3_AON_DCDC` | LDO 200 mA | `TPS7A0233DBVR` | `C5142805` | 433 | none (EN tied to IN) | STM32G0, I²C pull-ups, buttons, charger/gauge I²C |
 | `+5V_DCDC` | boost 5.0 V | `TPS61022RWUR` | `C915088` | 39457 | `MCU_EN_5V` | SoM `VIN`, EPD HV chain |
-| `+3V3_DCDC` | buck-boost 2 A | `TPS63802DLAR` | `C2845237` | 1338 | `MCU_EN_3V3` | FPGA `VCCO`/`VCCAUX`, config NOR, microSD, panel logic |
+| `+3V3_DCDC` | buck-boost 2 A | `TPS63802DLAR` | `C2845237` | 1338 | `MCU_EN_3V3` | FPGA `VCCO`/`VCCAUX`, config NOR, panel logic |
 | `+1V2_DCDC` | buck 2 A | `TPS62A02DRLR` | `C5350187` | 3202 | `MCU_EN_FPGA_CORE` | Spartan-6 `VCCINT` |
 | `+1V5_DCDC` | buck 2 A | `TPS62A02DRLR` | `C5350187` | 3202 | `MCU_EN_DDR` | DDR3L, FPGA DDR bank `VCCO` |
 
@@ -348,6 +348,13 @@ declared `SOM_RESET#` as an open-drain GPIO on `PA15` since WP3. Hold it low acr
 | 4 | `MCU_EN_3V3` high, wait `PG_3V3` → FPGA `VCCO` up | — |
 | 5 | Release `SOM_RESET#`. The SOM's own 10 kΩ × 100 nF ≈ 1 ms RC delays the actual release, then `BOOTMODE_8/9` are sampled with `+3V3` already stable | **BOOTMODE** |
 
+The manual gives the latch criterion exactly, which is better than "before reset releases": *"The
+BOOTMODE signals must be held at the desired configuration **until `X_PORz_OUT` goes high** to be
+properly latched into the system"* (§6.3). Holding `X_nRESET_IN` low holds `PORz` asserted, so
+`X_PORz_OUT` (`X1 C57`) cannot go high until step 5 — the sequence satisfies the stated condition by
+construction rather than by timing luck. `X_PORz_OUT` is an output and could be brought to the MCU
+as a confirmation, but it is not needed to *make* the sequence correct, only to observe it.
+
 Step 4 also keeps the Spartan-6 preference above intact (`MCU_EN_FPGA_CORE` → `MCU_EN_3V3` →
 `MCU_EN_DDR`); it simply moves that whole group after the SoM instead of before it. The 100 nF on
 `X_nRESET_IN` is a gift here — it makes step 5 self-delaying rather than something firmware has to
@@ -456,6 +463,47 @@ pull-up — call it **0.4 mW** against a 135–235 mW budget. Deleting `U11` too
 quiescent out of that. Conversion *loss* under load is the number that actually matters, and it is a
 property of the load, not of this sheet — except that `U11`'s 16 mΩ is no longer in series with the
 boost's 2.3 A **(est.)** input current, which was ~85 mW at full load.
+
+### 8.1 The `+5V_DCDC` load budget — checked 2026-08-15, and it holds
+
+§3.2 sized `L10` against `IOUT` = 1.5 A **(est.)** and left an explicit trigger: *"if the SoM's
+`VIN` current comes back from PHYTEC materially above 1.5 A, re-run this block."* It has come back,
+from three places in `L-1038e.A5`, and it is **1.0 A** — below the estimate, not above.
+
+| Load on `+5V` | mA @ 5 V | Source |
+| --- | ---: | --- |
+| SoM `VIN`, **design bound** | **1000** | §5.1: *"must be supplied with … a minimum 1 A capacity"*, *"in testing the current draw of the SOM did not exceed 1 A"*; Table 12 *"Draw 5 W (1 A)"* |
+| SoM, measured under heavy load ‡ | 651 | Table 4 `IVIN` — and that load was `memtester 500M` + `iperf3` over ETH0 + 4 × `yes`, with **two Ethernet cables, two USB drives and HDMI attached**. Glider has none of those |
+| SoM, measured idle ‡ | 324 | Table 4 `IVIN`, "idle in Linux, external interfaces down" |
+| SoM, measured idle ‡ | 297 | `lowpowermode_phytec.pdf` — an independent run, 8 % apart, which is a useful cross-check |
+| SoM, Suspend-to-RAM ‡ | 25.7 | same |
+| EPD HV chain, R1 measured active ‡ | 14.4 | `NOTES-STATUS.md`, 71.8 mW on the `EPD HV` channel |
+| microSD | **0** | it runs from the SoM's own `SoC_VDDSHV5_SDIO`, not from this sheet — `som.md` §4 |
+
+Worst realistic case is the SoM's 1.0 A design bound **plus** an EPD refresh, which do coincide: the
+page is being rendered while the panel is driven. Taking the EPD chain's peak at a generous ~10×
+its measured average gives ≈ **1.3 A**, inside the 1.5 A the inductor was sized for.
+
+Re-running §3.2's block with the datasheet's own duty equation (eq. 2, which includes η — the
+earlier text used `(VOUT−VIN)/VOUT` and so understated the ripple), at `VIN` = 3.0 V:
+
+| `IOUT` | `I_L,dc` | `I_L,pk` | vs `Isat` 4.8 A |
+| ---: | ---: | ---: | --- |
+| 1.00 A — SoM alone | 1.85 A | 2.54 A | Isat is **89 %** above the peak |
+| **1.30 A — SoM + EPD refresh (est.)** | 2.41 A | **3.10 A** | Isat is **55 %** above the peak |
+| 1.50 A — the design point | 2.78 A | 3.47 A | Isat is 38 % above the peak |
+| 2.00 A — "margin is gone" | 3.70 A | 4.39 A | Isat is 9 % above the peak |
+
+D = 0.460, ΔI_L = 1.38 A p-p. The IC itself is nowhere near: eq. 1 with `ILIM_SW` = 6.5 A min ‡
+gives `IOUT(CL)` = **3.88 A** before current limiting, and TI's own reference design in §8.2 is this
+exact application (Li-ion → 5 V) at **3 A**. The inductor remains the binding element, as §3.2 said.
+
+**Two numbers to carry forward.** `VIN` tolerance: Table 4 gives 4.5 / 5.0 / **5.5 V**, but §5.1
+recommends designing to **5 V ±5 %** (4.75–5.25 V). Our 4.992 V ±2.5 % reference = 4.87–5.12 V,
+inside the tighter of the two with ~120 mV each side for load regulation and ripple — so the ±50 mV
+output ripple TI designs for still fits, but there is not room for much more. And `IVBAT` = **40 nA**
+into the SoM's `VBAT` (B2, RTC backup): trivially small, but it is a rail somebody has to supply,
+and it is a `som.kicad_sch` decision (§`som.md` §3), not one this sheet makes.
 
 The honest comparison to R1 is not a percentage. R1's problem was never converter efficiency; it was
 that four bucks could not be turned off at all. The result here is that they can.
