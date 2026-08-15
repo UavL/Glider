@@ -214,6 +214,8 @@ class Sheet:
         self._used: dict[str, Symbol] = {}
         self._symbols: list[str] = []
         self._graphics: list[str] = []
+        self._segs: list = []
+        self._anchors: list = []
         self._pwr_n = pwr_base
 
     # ---------- placement ----------
@@ -289,6 +291,9 @@ class Sheet:
 
     def wire(self, *pts: tuple[float, float]) -> None:
         for a, b in zip(pts, pts[1:]):
+            if a != b:
+                self._segs.append((a, b))
+        for a, b in zip(pts, pts[1:]):
             if a == b:
                 continue
             self._graphics.append(
@@ -313,6 +318,7 @@ class Sheet:
 
     def label(self, x: float, y: float, text: str, rot: int = 0,
               justify: str = "left") -> None:
+        self._anchors.append((x, y, text))
         self._graphics.append(
             f'\t(label "{text}"\n\t\t(at {_fmt(x)} {_fmt(y)} {rot})\n'
             "\t\t(effects\n\t\t\t(font\n\t\t\t\t(size 1.27 1.27)\n\t\t\t)\n"
@@ -321,7 +327,16 @@ class Sheet:
         )
 
     def hlabel(self, x: float, y: float, text: str, shape: str = "bidirectional",
-               rot: int = 0, justify: str = "left") -> None:
+               rot: int = 0, justify: str | None = None) -> None:
+        """A hierarchical label. `justify` defaults to match the rotation.
+
+        A label at rot 180 points left, so its text must extend left too --
+        `justify left` would run the text back along the wire it is attached to
+        and print it on top of the line. Callers can still override.
+        """
+        if justify is None:
+            justify = "right" if rot == 180 else "left"
+        self._anchors.append((x, y, text))
         self._graphics.append(
             f'\t(hierarchical_label "{text}"\n\t\t(shape {shape})\n'
             f"\t\t(at {_fmt(x)} {_fmt(y)} {rot})\n"
@@ -340,6 +355,40 @@ class Sheet:
         )
 
     # ---------- output ----------
+
+    def check_label_crossings(self) -> None:
+        """No wire may pass *through* a label anchor it does not belong to.
+
+        This is the bug that has bitten this project four times and that ERC is
+        blind to: a wire routed past a label's anchor point silently merges that
+        label's net into the wire's. WP5 shorted seven FPGA balls to
+        `VCOM_MEA_EN`; WP7 shorted seven `DPI_*` to the panel bus; WP8 shorted
+        `SOM_IRQ#`/`SOM_WAKE#` to `+VBUS`; WP6 shorted the always-on I2C bus to
+        `GND`. Every one looked correct on the page.
+
+        Ending *at* an anchor is how a label is attached and is fine. Passing
+        through its interior is not, so that is what this rejects.
+        """
+        bad = []
+        for (x1, y1), (x2, y2) in self._segs:
+            for ax, ay, text in self._anchors:
+                if (abs(ax - x1) < 1e-4 and abs(ay - y1) < 1e-4) or \
+                   (abs(ax - x2) < 1e-4 and abs(ay - y2) < 1e-4):
+                    continue                      # the wire ends here: fine
+                if abs(x1 - x2) < 1e-4 and abs(ax - x1) < 1e-4:
+                    lo, hi = sorted((y1, y2))
+                    if lo - 1e-4 < ay < hi + 1e-4:
+                        bad.append(f"vertical wire x={x1:g} y={lo:g}..{hi:g} "
+                                   f"runs through label {text!r} at ({ax:g}, {ay:g})")
+                elif abs(y1 - y2) < 1e-4 and abs(ay - y1) < 1e-4:
+                    lo, hi = sorted((x1, x2))
+                    if lo - 1e-4 < ax < hi + 1e-4:
+                        bad.append(f"horizontal wire y={y1:g} x={lo:g}..{hi:g} "
+                                   f"runs through label {text!r} at ({ax:g}, {ay:g})")
+        if bad:
+            raise AssertionError(
+                f"{len(bad)} wire(s) pass through a label anchor and would "
+                f"silently merge nets:\n  " + "\n  ".join(sorted(set(bad))[:8]))
 
     def check_grid(self) -> None:
         """Every wire endpoint and label must sit on the 1.27 mm grid.
@@ -370,6 +419,7 @@ class Sheet:
 
     def render(self) -> str:
         self.check_grid()
+        self.check_label_crossings()
         tb = [f'\t\t(title "{self.title}")\n'] if self.title else []
         if self.date:
             tb.append(f'\t\t(date "{self.date}")\n')
