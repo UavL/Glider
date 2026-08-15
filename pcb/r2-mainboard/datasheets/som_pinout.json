@@ -1,0 +1,1682 @@
+{
+ "A1": {
+  "ball": null,
+  "desc": "Main Power Supply Input",
+  "level": "5.0V",
+  "name": "VIN",
+  "type": "PWR_I"
+ },
+ "A10": {
+  "ball": "AA24",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA13",
+  "type": "I/O"
+ },
+ "A11": {
+  "ball": "AA23",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA11",
+  "type": "I/O"
+ },
+ "A12": {
+  "ball": "Y22",
+  "desc": "Video Output Data",
+  "level": "3.3V",
+  "name": "X_VOUT0_DATA14",
+  "type": "I/O"
+ },
+ "A13": {
+  "ball": "AA21",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA15",
+  "type": "I/O"
+ },
+ "A14": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "A15": {
+  "ball": "Y20",
+  "desc": "Video Output Data Enable",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DE",
+  "type": "I/O"
+ },
+ "A16": {
+  "ball": "V20",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA10",
+  "type": "I/O"
+ },
+ "A17": {
+  "ball": "AD22",
+  "desc": "RGMII Receive Control",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_RX_CTL",
+  "type": "I/O"
+ },
+ "A18": {
+  "ball": "AD23",
+  "desc": "RGMII Receive Clock",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_RXC",
+  "type": "I/O"
+ },
+ "A19": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "A2": {
+  "ball": null,
+  "desc": "Main Power Supply Input",
+  "level": "5.0V",
+  "name": "VIN",
+  "type": "PWR_I"
+ },
+ "A20": {
+  "ball": "AE22",
+  "desc": "RGMII Receive Data 3",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_RD3",
+  "type": "I/O"
+ },
+ "A21": {
+  "ball": "AC21",
+  "desc": "RGMII Receive Data 2",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_RD2",
+  "type": "I/O"
+ },
+ "A22": {
+  "ball": "AB20",
+  "desc": "RGMII Receive Data 1",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_RD1",
+  "type": "I/O"
+ },
+ "A23": {
+  "ball": "AE23",
+  "desc": "RGMII Receive Data 0",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_RD0",
+  "type": "I/O"
+ },
+ "A24": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "A25": {
+  "ball": "AE21",
+  "desc": "RGMII Transmit Clock",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_TXC",
+  "type": "I/O"
+ },
+ "A26": {
+  "ball": "AA19",
+  "desc": "RGMII Transmit Control",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_TX_CTL",
+  "type": "I/O"
+ },
+ "A27": {
+  "ball": "Y18",
+  "desc": "RGMII Transmit Data 0",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_TD0",
+  "type": "I/O"
+ },
+ "A28": {
+  "ball": "AA18",
+  "desc": "RGMII Transmit Data 1",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_TD1",
+  "type": "I/O"
+ },
+ "A29": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "A3": {
+  "ball": null,
+  "desc": "Main Power Supply Input",
+  "level": "5.0V",
+  "name": "VIN",
+  "type": "PWR_I"
+ },
+ "A30": {
+  "ball": "AD21",
+  "desc": "RGMII Transmit Data 2",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_TD2",
+  "type": "I/O"
+ },
+ "A31": {
+  "ball": "AC20",
+  "desc": "RGMII Transmit Data 3",
+  "level": "3.3V1",
+  "name": "X_CPSW_RGMII2_TD3",
+  "type": "I/O"
+ },
+ "A32": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "A33": {
+  "ball": "AE14",
+  "desc": "CSI Differential Receive Input (positive)",
+  "level": "Differential",
+  "name": "X_CSI0_RXP1",
+  "type": "I"
+ },
+ "A34": {
+  "ball": "AD14",
+  "desc": "CSI Differential Receive Input (negative)",
+  "level": "Differential",
+  "name": "X_CSI0_RXN1",
+  "type": "I"
+ },
+ "A35": {
+  "ball": "AC15",
+  "desc": "CSI Differential Receive Input (positive)",
+  "level": "Differential",
+  "name": "X_CSI0_RXP0",
+  "type": "I"
+ },
+ "A36": {
+  "ball": "AB14",
+  "desc": "CSI Differential Receive Input (negative)",
+  "level": "Differential",
+  "name": "X_CSI0_RXN0",
+  "type": "I"
+ },
+ "A37": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "A38": {
+  "ball": "AE11",
+  "desc": "USB 2.0 Differential Data (negative)",
+  "level": "Differential",
+  "name": "X_USB0_DM",
+  "type": "I/O"
+ },
+ "A39": {
+  "ball": "AD11",
+  "desc": "USB 2.0 Differential Data (positive)",
+  "level": "Differential",
+  "name": "X_USB0_DP",
+  "type": "I/O"
+ },
+ "A4": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "A40": {
+  "ball": "AC11",
+  "desc": "USB Level-shifted VBUS Input (resistor/diode network on",
+  "level": "5V",
+  "name": "X_USB0_VBUS",
+  "type": "A/I"
+ },
+ "A41": {
+  "ball": "C20",
+  "desc": "USB VBUS control output (active high)",
+  "level": "3.3V1",
+  "name": "X_USB0_DRVVBUS",
+  "type": "I/O"
+ },
+ "A42": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "A43": {
+  "ball": "AE3",
+  "desc": "OLDI Differential Clock (positive)",
+  "level": "Differential",
+  "name": "X_OLDI0_CLK0P",
+  "type": "I/O"
+ },
+ "A44": {
+  "ball": "AD4",
+  "desc": "OLDI Differential Clock (negative)",
+  "level": "Differential",
+  "name": "X_OLDI0_CLK0N",
+  "type": "I/O"
+ },
+ "A45": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "A46": {
+  "ball": "AA8",
+  "desc": "OLDI Differential Data (positive)",
+  "level": "Differential",
+  "name": "X_OLDI0_A2P",
+  "type": "I/O"
+ },
+ "A47": {
+  "ball": "Y8",
+  "desc": "OLDI Differential Data (negative)",
+  "level": "Differential",
+  "name": "X_OLDI0_A2N",
+  "type": "I/O"
+ },
+ "A48": {
+  "ball": "AA7",
+  "desc": "OLDI Differential Data (positive)",
+  "level": "Differential",
+  "name": "X_OLDI0_A3P",
+  "type": "I/O"
+ },
+ "A49": {
+  "ball": "AB6",
+  "desc": "OLDI Differential Data (negative)",
+  "level": "Differential",
+  "name": "X_OLDI0_A3N",
+  "type": "I/O"
+ },
+ "A5": {
+  "ball": "AC25",
+  "desc": "Video Output Vertical Sync",
+  "level": "3.3V1",
+  "name": "X_VOUT0_VSYNC",
+  "type": "I/O"
+ },
+ "A50": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "A51": {
+  "ball": "AD3",
+  "desc": "OLDI Differential Data (negative)",
+  "level": "Differential",
+  "name": "X_OLDI0_A1N",
+  "type": "I/O"
+ },
+ "A52": {
+  "ball": "AB4",
+  "desc": "OLDI Differential Data (positive)",
+  "level": "Differential",
+  "name": "X_OLDI0_A1P",
+  "type": "I/O"
+ },
+ "A53": {
+  "ball": "AA5",
+  "desc": "OLDI Differential Data (negative)",
+  "level": "Differential",
+  "name": "X_OLDI0_A0N",
+  "type": "I/O"
+ },
+ "A54": {
+  "ball": "Y6",
+  "desc": "OLDI Differential Data (positive)",
+  "level": "Differential",
+  "name": "X_OLDI0_A0P",
+  "type": "I/O"
+ },
+ "A55": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "A56": {
+  "ball": "C6",
+  "desc": "UART Clear to Send (active low)",
+  "level": "3.3V1",
+  "name": "X_WKUP_UART0_CTSN",
+  "type": "I/O"
+ },
+ "A57": {
+  "ball": "D6",
+  "desc": "MCAN Transmit Data",
+  "level": "3.3V1",
+  "name": "X_MCU_MCAN0_TX",
+  "type": "I/O"
+ },
+ "A58": {
+  "ball": "B3",
+  "desc": "MCAN Receive Data",
+  "level": "3.3V1",
+  "name": "X_MCU_MCAN0_RX",
+  "type": "I/O"
+ },
+ "A59": {
+  "ball": "E5",
+  "desc": "MCAN Transmit Data",
+  "level": "3.3V1",
+  "name": "X_MCU_MCAN1_TX",
+  "type": "I/O"
+ },
+ "A6": {
+  "ball": "AB24",
+  "desc": "Video Output Horizontal Sync",
+  "level": "3.3V1",
+  "name": "X_VOUT0_HSYNC",
+  "type": "I/O"
+ },
+ "A60": {
+  "ball": "D4",
+  "desc": "MCAN Receive Data",
+  "level": "3.3V1",
+  "name": "X_MCU_MCAN1_RX",
+  "type": "I/O"
+ },
+ "A7": {
+  "ball": "AC24",
+  "desc": "Video Output Pixel Clock Output",
+  "level": "3.3V1",
+  "name": "X_VOUT0_PCLK",
+  "type": "I/O"
+ },
+ "A8": {
+  "ball": "AB25",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA12",
+  "type": "I/O"
+ },
+ "A9": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B1": {
+  "ball": null,
+  "desc": "SD IO voltage",
+  "level": "3.3V",
+  "name": "SoC_VDDSHV5_SDIO",
+  "type": "PWR_IO"
+ },
+ "B10": {
+  "ball": "Y24",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA5",
+  "type": "I/O"
+ },
+ "B11": {
+  "ball": "Y23",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA6",
+  "type": "I/O"
+ },
+ "B12": {
+  "ball": "U22",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA0",
+  "type": "I/O"
+ },
+ "B13": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B14": {
+  "ball": "W21",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA9",
+  "type": "I/O"
+ },
+ "B15": {
+  "ball": "V21",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA8",
+  "type": "I/O"
+ },
+ "B16": {
+  "ball": "AD24",
+  "desc": "MDIO Clock (1.5K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_MDIO0_MDC",
+  "type": "I/O"
+ },
+ "B17": {
+  "ball": "AB22",
+  "desc": "MDIO Data (1.5K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_MDIO0_MDIO",
+  "type": "I/O"
+ },
+ "B18": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B19": {
+  "ball": null,
+  "desc": "Ethernet Data D Negative",
+  "level": "Differential",
+  "name": "X_CPSW_ETH0_D-",
+  "type": "I/O"
+ },
+ "B2": {
+  "ball": null,
+  "desc": "Battery Backup Supply Input for RTC",
+  "level": "3.0V",
+  "name": "VBAT",
+  "type": "PWR_I"
+ },
+ "B20": {
+  "ball": null,
+  "desc": "Ethernet Data D Positive",
+  "level": "Differential",
+  "name": "X_CPSW_ETH0_D+",
+  "type": "I/O"
+ },
+ "B21": {
+  "ball": null,
+  "desc": "Ethernet Data C Negative",
+  "level": "Differential",
+  "name": "X_CPSW_ETH0_C-",
+  "type": "I/O"
+ },
+ "B22": {
+  "ball": null,
+  "desc": "Ethernet Data C Positive",
+  "level": "Differential",
+  "name": "X_CPSW_ETH0_C+",
+  "type": "I/O"
+ },
+ "B23": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B24": {
+  "ball": null,
+  "desc": "Ethernet Data B Negative",
+  "level": "Differential",
+  "name": "X_CPSW_ETH0_B-",
+  "type": "I/O"
+ },
+ "B25": {
+  "ball": null,
+  "desc": "Ethernet Data B Positive",
+  "level": "Differential",
+  "name": "X_CPSW_ETH0_B+",
+  "type": "I/O"
+ },
+ "B26": {
+  "ball": null,
+  "desc": "Ethernet Data A Negative",
+  "level": "Differential",
+  "name": "X_CPSW_ETH0_A-",
+  "type": "I/O"
+ },
+ "B27": {
+  "ball": null,
+  "desc": "Ethernet Data A Positive",
+  "level": "Differential",
+  "name": "X_CPSW_ETH0_A+",
+  "type": "I/O"
+ },
+ "B28": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B29": {
+  "ball": null,
+  "desc": "Ethernet LED Link Signal",
+  "level": "3.3V",
+  "name": "X_CPSW_ETH0_LED_LINK",
+  "type": "O"
+ },
+ "B3": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B30": {
+  "ball": null,
+  "desc": "Ethernet LED Activity Signal",
+  "level": "3.3V",
+  "name": "X_CPSW_ETH0_LED_ACTIVITY",
+  "type": "O"
+ },
+ "B31": {
+  "ball": "AE15",
+  "desc": "CSI Differential Receive Clock Input (positive)",
+  "level": "Differential",
+  "name": "X_CSI0_RXCLKP",
+  "type": "I"
+ },
+ "B32": {
+  "ball": "AD15",
+  "desc": "CSI Differential Receive Clock Input (negative)",
+  "level": "Differential",
+  "name": "X_CSI0_RXCLKN",
+  "type": "I"
+ },
+ "B33": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B34": {
+  "ball": "AE13",
+  "desc": "CSI Differential Receive Input (positive)",
+  "level": "Differential",
+  "name": "X_CSI0_RXP2",
+  "type": "I"
+ },
+ "B35": {
+  "ball": "AD13",
+  "desc": "CSI Differential Receive Input (negative)",
+  "level": "Differential",
+  "name": "X_CSI0_RXN2",
+  "type": "I"
+ },
+ "B36": {
+  "ball": "AC13",
+  "desc": "CSI Differential Receive Input (positive)",
+  "level": "Differential",
+  "name": "X_CSI0_RXP3",
+  "type": "I"
+ },
+ "B37": {
+  "ball": "AB12",
+  "desc": "CSI Differential Receive Input (negative)",
+  "level": "Differential",
+  "name": "X_CSI0_RXN3",
+  "type": "I"
+ },
+ "B38": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B39": {
+  "ball": "AD10",
+  "desc": "USB 2.0 Differential Data (negative)",
+  "level": "Differential",
+  "name": "X_USB1_DM",
+  "type": "I/O"
+ },
+ "B4": {
+  "ball": "W25",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA2",
+  "type": "I/O"
+ },
+ "B40": {
+  "ball": "AE9",
+  "desc": "USB 2.0 Differential Data (positive)",
+  "level": "Differential",
+  "name": "X_USB1_DP",
+  "type": "I/O"
+ },
+ "B41": {
+  "ball": "AB10",
+  "desc": "USB Level-shifted VBUS Input (resistor/diode network on",
+  "level": "5V",
+  "name": "X_USB1_VBUS",
+  "type": "A/I"
+ },
+ "B42": {
+  "ball": "F18",
+  "desc": "USB VBUS control output (active high)",
+  "level": "3.3V1",
+  "name": "X_USB1_DRVVBUS",
+  "type": "I/O"
+ },
+ "B43": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B44": {
+  "ball": "AD8",
+  "desc": "OLDI Differential Data (negative)",
+  "level": "Differential",
+  "name": "X_OLDI0_A7N",
+  "type": "I/O"
+ },
+ "B45": {
+  "ball": "AE7",
+  "desc": "OLDI Differential Data (positive)",
+  "level": "Differential",
+  "name": "X_OLDI0_A7P",
+  "type": "I/O"
+ },
+ "B46": {
+  "ball": "AD7",
+  "desc": "OLDI Differential Data (positive)",
+  "level": "Differential",
+  "name": "X_OLDI0_A6P",
+  "type": "I/O"
+ },
+ "B47": {
+  "ball": "AE6",
+  "desc": "OLDI Differential Data (negative)",
+  "level": "Differential",
+  "name": "X_OLDI0_A6N",
+  "type": "I/O"
+ },
+ "B48": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B49": {
+  "ball": "AE5",
+  "desc": "OLDI Differential Data (negative)",
+  "level": "Differential",
+  "name": "X_OLDI0_A5N",
+  "type": "I/O"
+ },
+ "B5": {
+  "ball": "W24",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA3",
+  "type": "I/O"
+ },
+ "B50": {
+  "ball": "AD6",
+  "desc": "OLDI Differential Data (positive)",
+  "level": "Differential",
+  "name": "X_OLDI0_A5P",
+  "type": "I/O"
+ },
+ "B51": {
+  "ball": "AC6",
+  "desc": "OLDI Differential Data (negative)",
+  "level": "Differential",
+  "name": "X_OLDI0_A4N",
+  "type": "I/O"
+ },
+ "B52": {
+  "ball": "AC5",
+  "desc": "OLDI Differential Data (positive)",
+  "level": "Differential",
+  "name": "X_OLDI0_A4P",
+  "type": "I/O"
+ },
+ "B53": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B54": {
+  "ball": "AD5",
+  "desc": "OLDI Differential Clock (positive)",
+  "level": "Differential",
+  "name": "X_OLDI0_CLK1P",
+  "type": "I/O"
+ },
+ "B55": {
+  "ball": "AE4",
+  "desc": "OLDI Differential Clock (negative)",
+  "level": "Differential",
+  "name": "X_OLDI0_CLK1N",
+  "type": "I/O"
+ },
+ "B56": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B57": {
+  "ball": "C5",
+  "desc": "UART Transmit Data",
+  "level": "3.3V1",
+  "name": "X_WKUP_UART0_TXD",
+  "type": "I/O"
+ },
+ "B58": {
+  "ball": "B4",
+  "desc": "UART Receive Data",
+  "level": "3.3V1",
+  "name": "X_WKUP_UART0_RXD",
+  "type": "I/O"
+ },
+ "B59": {
+  "ball": "A4",
+  "desc": "UART Request to Send (active low)",
+  "level": "3.3V1",
+  "name": "X_WKUP_UART0_RTSN",
+  "type": "I/O"
+ },
+ "B6": {
+  "ball": "V24",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA1",
+  "type": "I/O"
+ },
+ "B60": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B7": {
+  "ball": "Y25",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA4",
+  "type": "I/O"
+ },
+ "B8": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "B9": {
+  "ball": "AA25",
+  "desc": "Video Output Data",
+  "level": "3.3V1",
+  "name": "X_VOUT0_DATA7",
+  "type": "I/O"
+ },
+ "C1": {
+  "ball": "M22",
+  "desc": "GPMC Data Bus Signal Direction Control",
+  "level": "3.3V1",
+  "name": "X_GPMC0_DIR",
+  "type": "I/O"
+ },
+ "C10": {
+  "ball": "P22",
+  "desc": "GPMC Data 5 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD5/BOOTMODE_52",
+  "type": "I/O"
+ },
+ "C11": {
+  "ball": "P21",
+  "desc": "GPMC Data 6 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD6/BOOTMODE_62",
+  "type": "I/O"
+ },
+ "C12": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "C13": {
+  "ball": "L25",
+  "desc": "GPMC Write Enable (active low)",
+  "level": "3.3V1",
+  "name": "X_GPMC0_WEn",
+  "type": "I/O"
+ },
+ "C14": {
+  "ball": "K24",
+  "desc": "GPMC Chip Select 3 (active low)",
+  "level": "3.3V1",
+  "name": "X_GPMC0_CSn3",
+  "type": "I/O"
+ },
+ "C15": {
+  "ball": "L23",
+  "desc": "GPMC Address Valid (active low) or Address Latch Enable",
+  "level": "3.3V1",
+  "name": "X_GPMC0_ADVn_ALE",
+  "type": "I/O"
+ },
+ "C16": {
+  "ball": "M24",
+  "desc": "GPMC Lower-Byte Enable (active low) or Command Latch",
+  "level": "3.3V1",
+  "name": "X_GPMC0_BE0n_CLE",
+  "type": "I/O"
+ },
+ "C17": {
+  "ball": "L24",
+  "desc": "GPMC Output Enable (active low) or Read Enable (active",
+  "level": "3.3V1",
+  "name": "X_GPMC0_OEn_REn",
+  "type": "I/O"
+ },
+ "C18": {
+  "ball": "N20",
+  "desc": "GPMC Upper-Byte Enable (active low)",
+  "level": "3.3V1",
+  "name": "X_GPMC0_BE1n",
+  "type": "I/O"
+ },
+ "C19": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "C2": {
+  "ball": "U23",
+  "desc": "GPMC External Indication of Wait",
+  "level": "3.3V1",
+  "name": "X_GPMC0_WAIT0",
+  "type": "I/O"
+ },
+ "C20": {
+  "ball": "A23",
+  "desc": "SD Card Detect (10K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_MMC2_SDCD",
+  "type": "I/O"
+ },
+ "C21": {
+  "ball": "B23",
+  "desc": "SD Write Protect (10K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_MMC2_SDWP",
+  "type": "I/O"
+ },
+ "C22": {
+  "ball": "C17",
+  "desc": "SD Write Protect (10K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_MMC1_SDWP",
+  "type": "I/O"
+ },
+ "C23": {
+  "ball": "D17",
+  "desc": "SD card Detect (10K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_MMC1_SDCD",
+  "type": "I/O"
+ },
+ "C24": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "C25": {
+  "ball": "A22",
+  "desc": "MMC/SD/SDIO Data",
+  "level": "3.3V1",
+  "name": "X_MMC1_DAT0",
+  "type": "I/O"
+ },
+ "C26": {
+  "ball": "B21",
+  "desc": "MMC/SD/SDIO Data",
+  "level": "3.3V1",
+  "name": "X_MMC1_DAT1",
+  "type": "I/O"
+ },
+ "C27": {
+  "ball": "A19",
+  "desc": "MCASP Serial Data",
+  "level": "3.3V1",
+  "name": "X_MCASP0_AXR2",
+  "type": "I/O"
+ },
+ "C28": {
+  "ball": "B19",
+  "desc": "MCASP Serial Data",
+  "level": "3.3V1",
+  "name": "X_MCASP0_AXR3",
+  "type": "I/O"
+ },
+ "C29": {
+  "ball": "B20",
+  "desc": "MCASP Transmit Bit Clock",
+  "level": "3.3V1",
+  "name": "X_MCASP0_ACLKX",
+  "type": "I/O"
+ },
+ "C3": {
+  "ball": "P25",
+  "desc": "GPMC clock",
+  "level": "3.3V1",
+  "name": "X_GPMC0_CLK",
+  "type": "I/O"
+ },
+ "C30": {
+  "ball": "A20",
+  "desc": "MCASP Receive Bit Clock",
+  "level": "3.3V1",
+  "name": "X_MCASP0_ACLKR",
+  "type": "I/O"
+ },
+ "C31": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "C32": {
+  "ball": "B17",
+  "desc": "I2C1 Clock",
+  "level": "3.3V1",
+  "name": "X_I2C1_SCL",
+  "type": "I/O"
+ },
+ "C33": {
+  "ball": "A17",
+  "desc": "I2C1 Data",
+  "level": "3.3V1",
+  "name": "X_I2C1_SDA",
+  "type": "I/O"
+ },
+ "C34": {
+  "ball": "A16",
+  "desc": "I2C0 Data (2.2K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_I2C0_SDA",
+  "type": "I/O"
+ },
+ "C35": {
+  "ball": "B16",
+  "desc": "I2C0 Clock (2.2K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_I2C0_SCL",
+  "type": "I/O"
+ },
+ "C36": {
+  "ball": "C15",
+  "desc": "MCAN Transmit Data",
+  "level": "3.3V1",
+  "name": "X_MCAN0_TX",
+  "type": "I/O"
+ },
+ "C37": {
+  "ball": "E15",
+  "desc": "MCAN Receive Data",
+  "level": "3.3V1",
+  "name": "X_MCAN0_RX",
+  "type": "I/O"
+ },
+ "C38": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "C39": {
+  "ball": "D16",
+  "desc": "RTC Interrupt (10K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_RTC_INT",
+  "type": "I/O"
+ },
+ "C4": {
+  "ball": "M25",
+  "desc": "GPMC Data 0 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD0/BOOTMODE_02",
+  "type": "I/O"
+ },
+ "C40": {
+  "ball": "A13",
+  "desc": "SPI Chip Select 0",
+  "level": "3.3V1",
+  "name": "X_SPI0_CS0",
+  "type": "I/O"
+ },
+ "C41": {
+  "ball": "C13",
+  "desc": "SPI Chip Select 1",
+  "level": "3.3V1",
+  "name": "X_SPI0_CS1",
+  "type": "I/O"
+ },
+ "C42": {
+  "ball": "A10",
+  "desc": "JTAG Test Clock Input (10K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_TCK",
+  "type": "I"
+ },
+ "C43": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "C44": {
+  "ball": "A11",
+  "desc": "JTAG Test Data Input (10K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_TDI",
+  "type": "I"
+ },
+ "C45": {
+  "ball": "B11",
+  "desc": "JTAG Test Mode Select Input (10K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_TMS",
+  "type": "I"
+ },
+ "C46": {
+  "ball": "D12",
+  "desc": "JTAG Test Data Output",
+  "level": "3.3V1",
+  "name": "X_TDO",
+  "type": "O"
+ },
+ "C47": {
+  "ball": "B10",
+  "desc": "JTAG Reset (10K pulldown)",
+  "level": "3.3V1",
+  "name": "X_TRSTN",
+  "type": "I"
+ },
+ "C48": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "C49": {
+  "ball": "A8",
+  "desc": "MCU I2C0 Clock (Requires pullup)",
+  "level": "3.3V1",
+  "name": "X_MCU_I2C0_SCL",
+  "type": "OD-I/O"
+ },
+ "C5": {
+  "ball": "N23",
+  "desc": "GPMC Data 1 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD1/BOOTMODE_12",
+  "type": "I/O"
+ },
+ "C50": {
+  "ball": "D10",
+  "desc": "MCU I2C0 Data (Requires pullup)",
+  "level": "3.3V1",
+  "name": "X_MCU_I2C0_SDA",
+  "type": "OD-I/O"
+ },
+ "C51": {
+  "ball": null,
+  "desc": "PMIC power enable (100k pullup on SOM)",
+  "level": "5V",
+  "name": "X_PMIC_EN",
+  "type": "I"
+ },
+ "C52": {
+  "ball": null,
+  "desc": "Reset input (active low, 10K pullup, 100nF cap on SOM)",
+  "level": "3.3V",
+  "name": "X_nRESET_IN",
+  "type": "I"
+ },
+ "C53": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "C54": {
+  "ball": null,
+  "desc": "Power good output (100K pullup on SOM)",
+  "level": "3.3V",
+  "name": "X_PGOOD",
+  "type": "OD-O"
+ },
+ "C55": {
+  "ball": "B12",
+  "desc": "MCU Domain warm reset status output",
+  "level": "3.3V1",
+  "name": "X_MCU_RESETSTATz",
+  "type": "I/O"
+ },
+ "C56": {
+  "ball": "E11",
+  "desc": "MCU Domain warm reset (100K pullup on SOM)",
+  "level": "3.3V1",
+  "name": "X_MCU_RESETz",
+  "type": "I"
+ },
+ "C57": {
+  "ball": "E21",
+  "desc": "Main Domain POR status output (1.5K pulldown on SOM)",
+  "level": "3.3V1",
+  "name": "X_PORz_OUT",
+  "type": "O"
+ },
+ "C58": {
+  "ball": "F20",
+  "desc": "Main Domain external warm reset request input (100K",
+  "level": "3.3V1",
+  "name": "X_RESET_REQz",
+  "type": "I"
+ },
+ "C59": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "C6": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "C60": {
+  "ball": "A18",
+  "desc": "External clock input to Main Domain",
+  "level": "3.3V1",
+  "name": "X_EXT_REFCLK1",
+  "type": "I/O"
+ },
+ "C7": {
+  "ball": "N24",
+  "desc": "GPMC Data 2 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD2/BOOTMODE_22",
+  "type": "I/O"
+ },
+ "C8": {
+  "ball": "N25",
+  "desc": "GPMC Data 3 Input/Output1",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD3/BOOTMODE_32",
+  "type": "I/O"
+ },
+ "C9": {
+  "ball": "P24",
+  "desc": "GPMC Data 4 Input/Output1",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD4/BOOTMODE_42",
+  "type": "I/O"
+ },
+ "D1": {
+  "ball": "R23",
+  "desc": "GPMC Data 7 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD7/BOOTMODE_72",
+  "type": "I/O"
+ },
+ "D10": {
+  "ball": "U25",
+  "desc": "GPMC Data 14 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD14/BOOTMODE_142",
+  "type": "I/O"
+ },
+ "D11": {
+  "ball": "U24",
+  "desc": "GPMC Data 15 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD15/BOOTMODE_152",
+  "type": "I/O"
+ },
+ "D12": {
+  "ball": "M21",
+  "desc": "GPMC Chip Select 0 (active low)",
+  "level": "3.3V1",
+  "name": "X_GPMC0_CSn0",
+  "type": "I/O"
+ },
+ "D13": {
+  "ball": "L21",
+  "desc": "GPMC Chip Select 1 (active low)",
+  "level": "3.3V1",
+  "name": "X_GPMC0_CSn1",
+  "type": "I/O"
+ },
+ "D14": {
+  "ball": "K22",
+  "desc": "GPMC Chip Select 2 (active low)",
+  "level": "3.3V1",
+  "name": "X_GPMC0_CSn2",
+  "type": "I/O"
+ },
+ "D15": {
+  "ball": "K25",
+  "desc": "GPMC Flash Write Protect (active low)",
+  "level": "3.3V1",
+  "name": "X_GPMC0_WPn",
+  "type": "I/O"
+ },
+ "D16": {
+  "ball": "V25",
+  "desc": "GPMC External Indication of Wait",
+  "level": "3.3V1",
+  "name": "X_GPMC0_WAIT1",
+  "type": "I/O"
+ },
+ "D17": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "D18": {
+  "ball": "D25",
+  "desc": "MMC/SD/SDIO Clock (49.9K pulldown on SOM)",
+  "level": "3.3V1",
+  "name": "X_MMC2_CLK",
+  "type": "I/O"
+ },
+ "D19": {
+  "ball": "C24",
+  "desc": "MMC/SD/SDIO Command",
+  "level": "3.3V1",
+  "name": "X_MMC2_CMD",
+  "type": "I/O"
+ },
+ "D2": {
+  "ball": "R24",
+  "desc": "GPMC Data 8 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD8/BOOTMODE_82",
+  "type": "I/O"
+ },
+ "D20": {
+  "ball": "B24",
+  "desc": "MMC/SD/SDIO Data",
+  "level": "3.3V1",
+  "name": "X_MMC2_DAT0",
+  "type": "I/O"
+ },
+ "D21": {
+  "ball": "C25",
+  "desc": "MMC/SD/SDIO Data",
+  "level": "3.3V1",
+  "name": "X_MMC2_DAT1",
+  "type": "I/O"
+ },
+ "D22": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "D23": {
+  "ball": "D24",
+  "desc": "MMC/SD/SDIO Data",
+  "level": "3.3V1",
+  "name": "X_MMC2_DAT3",
+  "type": "I/O"
+ },
+ "D24": {
+  "ball": "E23",
+  "desc": "MMC/SD/SDIO Data",
+  "level": "3.3V1",
+  "name": "X_MMC2_DAT2",
+  "type": "I/O"
+ },
+ "D25": {
+  "ball": "A21",
+  "desc": "MMC/SD/SDIO Command",
+  "level": "3.3V1",
+  "name": "X_MMC1_CMD",
+  "type": "I/O"
+ },
+ "D26": {
+  "ball": "B22",
+  "desc": "MMC/SD/SDIO Clock (49.9K pulldown on SOM)",
+  "level": "3.3V1",
+  "name": "X_MMC1_CLK",
+  "type": "I/O"
+ },
+ "D27": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "D28": {
+  "ball": "C21",
+  "desc": "MMC/SD/SDIO Data",
+  "level": "3.3V1",
+  "name": "X_MMC1_DAT2",
+  "type": "I/O"
+ },
+ "D29": {
+  "ball": "D22",
+  "desc": "MMC/SD/SDIO Data",
+  "level": "3.3V1",
+  "name": "X_MMC1_DAT3",
+  "type": "I/O"
+ },
+ "D3": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "D30": {
+  "ball": "D20",
+  "desc": "MCASP Transmit Frame Sync",
+  "level": "3.3V1",
+  "name": "X_MCASP0_AFSX",
+  "type": "I/O"
+ },
+ "D31": {
+  "ball": "B18",
+  "desc": "MCASP Serial Data (Input/Output)",
+  "level": "3.3V1",
+  "name": "X_MCASP0_AXR1",
+  "type": "I/O"
+ },
+ "D32": {
+  "ball": "E19",
+  "desc": "MCASP Receive Frame Sync",
+  "level": "3.3V1",
+  "name": "X_MCASP0_AFSR",
+  "type": "I/O"
+ },
+ "D33": {
+  "ball": "E18",
+  "desc": "MCASP Serial Data (Input/Output)",
+  "level": "3.3V1",
+  "name": "X_MCASP0_AXR0",
+  "type": "I/O"
+ },
+ "D34": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "D35": {
+  "ball": "B15",
+  "desc": "UART Request to Send (active low)",
+  "level": "3.3V1",
+  "name": "X_UART0_RTSN",
+  "type": "I/O"
+ },
+ "D36": {
+  "ball": "A15",
+  "desc": "UART Clear to Send (active low)",
+  "level": "3.3V1",
+  "name": "X_UART0_CTSN",
+  "type": "I/O"
+ },
+ "D37": {
+  "ball": "D14",
+  "desc": "UART Receive Data",
+  "level": "3.3V1",
+  "name": "X_UART0_RXD",
+  "type": "I/O"
+ },
+ "D38": {
+  "ball": "E14",
+  "desc": "UART Transmit Data",
+  "level": "3.3V1",
+  "name": "X_UART0_TXD",
+  "type": "I/O"
+ },
+ "D39": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "D4": {
+  "ball": "R25",
+  "desc": "GPMC Data 9 Input/Output",
+  "level": "3.3V",
+  "name": "X_GPMC0_AD9/BOOTMODE_9",
+  "type": "I/O"
+ },
+ "D40": {
+  "ball": "A14",
+  "desc": "SPI Clock",
+  "level": "3.3V1",
+  "name": "X_SPI0_CLK",
+  "type": "I/O"
+ },
+ "D41": {
+  "ball": "B13",
+  "desc": "SPI Data 0",
+  "level": "3.3V1",
+  "name": "X_SPI0_D0",
+  "type": "I/O"
+ },
+ "D42": {
+  "ball": "B14",
+  "desc": "SPI Data 1",
+  "level": "3.3V",
+  "name": "X_SPI0_D1",
+  "type": "I/O"
+ },
+ "D43": {
+  "ball": "E12",
+  "desc": "Emulation Control 0",
+  "level": "3.3V1",
+  "name": "X_EMU03",
+  "type": "I/O"
+ },
+ "D44": {
+  "ball": "C11",
+  "desc": "Enable pin for VPP rail (10K pulldown on SOM)",
+  "level": "3.3V1",
+  "name": "X_VPP_EN3",
+  "type": "I/O"
+ },
+ "D45": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "D46": {
+  "ball": "A7",
+  "desc": "SPI Clock",
+  "level": "3.3V1",
+  "name": "X_MCU_SPI0_CLK",
+  "type": "I/O"
+ },
+ "D47": {
+  "ball": "D9",
+  "desc": "SPI Data 0",
+  "level": "3.3V1",
+  "name": "X_MCU_SPI0_D0",
+  "type": "I/O"
+ },
+ "D48": {
+  "ball": "C9",
+  "desc": "SPI Data 1",
+  "level": "3.3V1",
+  "name": "X_MCU_SPI0_D1",
+  "type": "I/O"
+ },
+ "D49": {
+  "ball": "B8",
+  "desc": "SPI Chip Select 1",
+  "level": "3.3V1",
+  "name": "X_MCU_SPI0_CS1",
+  "type": "I/O"
+ },
+ "D5": {
+  "ball": "T25",
+  "desc": "GPMC Data 10 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD10/BOOTMODE_102",
+  "type": "I/O"
+ },
+ "D50": {
+  "ball": "B9",
+  "desc": "WKUP I2C0 Clock (Requires pullup)",
+  "level": "3.3V1",
+  "name": "X_WKUP_I2C0_SCL",
+  "type": "OD-I/O"
+ },
+ "D51": {
+  "ball": "A9",
+  "desc": "WKUP I2C0 Data (Requires pullup)",
+  "level": "3.3V1",
+  "name": "X_WKUP_I2C0_SDA",
+  "type": "OD-I/O"
+ },
+ "D52": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "D53": {
+  "ball": "A6",
+  "desc": "UART Clear to Send (active low)",
+  "level": "3.3V1",
+  "name": "X_MCU_UART0_CTSN",
+  "type": "I/O"
+ },
+ "D54": {
+  "ball": "B6",
+  "desc": "UART Request to Send (active low)",
+  "level": "3.3V1",
+  "name": "X_MCU_UART0_RTSN",
+  "type": "I/O"
+ },
+ "D55": {
+  "ball": "B5",
+  "desc": "UART Receive Data",
+  "level": "3.3V1",
+  "name": "X_MCU_UART0_RXD",
+  "type": "I/O"
+ },
+ "D56": {
+  "ball": "A5",
+  "desc": "UART Transmit Data",
+  "level": "3.3V1",
+  "name": "X_MCU_UART0_TXD",
+  "type": "I/O"
+ },
+ "D57": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ },
+ "D58": {
+  "ball": "F22",
+  "desc": "Main Domain warm reset status output (10K",
+  "level": "3.3V1",
+  "name": "X_RESETSTATz",
+  "type": "O"
+ },
+ "D59": {
+  "ball": "D1",
+  "desc": "Error Signal Output",
+  "level": "1.8V",
+  "name": "X_MCU_SAFETY_ERRORn",
+  "type": "I/O"
+ },
+ "D6": {
+  "ball": "R21",
+  "desc": "GPMC Data 11 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD11/BOOTMODE_112",
+  "type": "I/O"
+ },
+ "D60": {
+  "ball": "A12",
+  "desc": "WKUP Domain CLKOUT0 output",
+  "level": "3.3V1",
+  "name": "X_WKUP_CLKOUT0",
+  "type": "I/O"
+ },
+ "D7": {
+  "ball": "T22",
+  "desc": "GPMC Data 12 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD12/BOOTMODE_122",
+  "type": "I/O"
+ },
+ "D8": {
+  "ball": "T24",
+  "desc": "GPMC Data 13 Input/Output",
+  "level": "3.3V1",
+  "name": "X_GPMC0_AD13/BOOTMODE_132",
+  "type": "I/O"
+ },
+ "D9": {
+  "ball": null,
+  "desc": "Ground",
+  "level": "-",
+  "name": "GND",
+  "type": "-"
+ }
+}
