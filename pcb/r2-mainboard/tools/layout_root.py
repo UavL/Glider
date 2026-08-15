@@ -21,6 +21,51 @@ TOP = 30.48
 GAP = 12.7
 
 
+def boxes(text: str):
+    """-> [(name, x, y, w, h)] for every sheet symbol on the root."""
+    out = []
+    for m in re.finditer(
+            r'\(sheet\n\t\t\(at ([-\d.]+) ([-\d.]+)\)\n\t\t\(size ([-\d.]+) ([-\d.]+)\)',
+            text):
+        x, y, w, h = (float(v) for v in m.groups())
+        blk_end = text.index("\n\t)\n", m.start())
+        name = re.search(r'\(property "Sheetname" "([^"]*)"',
+                         text[m.start():blk_end]).group(1)
+        out.append((name, x, y, w, h))
+    return out
+
+
+def overlaps(text: str):
+    """-> [(name_a, name_b)] for every pair of sheet boxes that intersect.
+
+    This is the check that catches the worst bug this hierarchy can have, and
+    **ERC is silent on it.** `set_sheet_pins` grows a box to fit its pins; if
+    the taller box reaches the sheet below, `wire_root`'s stubs and labels land
+    inside the neighbour's box and the two sheets' nets merge. WP5 lost seven
+    FPGA balls to `VCOM_MEA_EN` and friends that way, and WP7 repeated it
+    exactly -- `dpi_in` grew from 25.4 mm to 63.5 mm, swallowed `epd`, and
+    shorted seven `DPI_*` nets to the panel bus. Both times the schematic
+    stayed perfectly legal.
+    """
+    bs = boxes(text)
+    bad = []
+    for i, (n1, x1, y1, w1, h1) in enumerate(bs):
+        for n2, x2, y2, w2, h2 in bs[i + 1:]:
+            if x1 < x2 + w2 and x2 < x1 + w1 and y1 < y2 + h2 and y2 < y1 + h1:
+                bad.append((n1, n2))
+    return bad
+
+
+def assert_no_overlap(text: str) -> None:
+    bad = overlaps(text)
+    if bad:
+        pairs = ", ".join(f"{a} <-> {b}" for a, b in bad)
+        raise AssertionError(
+            f"sheet boxes overlap on the root: {pairs}. Their pins would share "
+            f"coordinates and their nets would silently merge. Run "
+            f"tools/layout_root.py before wiring.")
+
+
 def main():
     text = ROOT.read_text()
     sheets = []
@@ -64,6 +109,7 @@ def main():
                      blk)
         text = text[:a] + blk + text[b:]
 
+    assert_no_overlap(text)
     ROOT.write_text(text)
     if moves:
         for name, old, new in moves:

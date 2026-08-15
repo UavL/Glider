@@ -197,10 +197,16 @@ def build(pins: dict) -> str:
             left = [p for p in ps if pins[p]["name"] != "GND"]
             right = [p for p in ps if pins[p]["name"] == "GND"]
             width = 45.72
+        elif u == 2:
+            # every DPI signal leaves the module, so one right-hand column --
+            # dpi_in then reads as 22 pins fanning into 22 labels, with no
+            # traffic on the left of the page.
+            left, right = [], ps
+            width = 50.8
         else:
             half = (len(ps) + 1) // 2
             left, right = ps[:half], ps[half:]
-            width = 60.96 if u != 2 else 50.8
+            width = 60.96
         body.append(unit_block(u, left, right, pins, width))
 
     return "".join(hdr) + "".join(body) + "\t)\n"

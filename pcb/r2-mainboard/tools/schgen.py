@@ -341,7 +341,35 @@ class Sheet:
 
     # ---------- output ----------
 
+    def check_grid(self) -> None:
+        """Every wire endpoint and label must sit on the 1.27 mm grid.
+
+        Eeschema's default schematic grid is 1.27 mm, and KiCad's ERC reports an
+        off-grid endpoint as `endpoint_off_grid` -- correctly, because a wire
+        that ends 0.36 mm from a pin looks connected and is not. The usual cause
+        is a symbol origin chosen for looks rather than as a multiple of the
+        grid, which then shifts every pin on that part. `gen_dpi_in.py` did
+        exactly that with `UY = 130.0` and put all 22 of its wires off-grid, so
+        this runs automatically at render time rather than on request.
+        """
+        bad = []
+        for kind, blocks in (("wire", self._graphics),):
+            for blk in blocks:
+                if not blk.lstrip().startswith(f"({kind}"):
+                    continue
+                for m in re.finditer(r"\(xy ([-\d.]+) ([-\d.]+)\)", blk):
+                    x, y = float(m.group(1)), float(m.group(2))
+                    for v, ax in ((x, "x"), (y, "y")):
+                        if abs(round(v / GRID) * GRID - v) > 1e-4:
+                            bad.append(f"{kind} endpoint {ax}={v} at ({x}, {y})")
+        if bad:
+            shown = "\n  ".join(sorted(set(bad))[:6])
+            raise AssertionError(
+                f"{len(set(bad))} off-grid endpoints; the symbol origin is "
+                f"probably not a multiple of {GRID} mm:\n  {shown}")
+
     def render(self) -> str:
+        self.check_grid()
         tb = [f'\t\t(title "{self.title}")\n'] if self.title else []
         if self.date:
             tb.append(f'\t\t(date "{self.date}")\n')

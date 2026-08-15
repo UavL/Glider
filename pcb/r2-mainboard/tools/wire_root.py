@@ -57,10 +57,9 @@ PAGE_RIGHT = 410.0     # A3 is 420 wide; the frame's inner edge is about here
 # on one side and forgotten on the other -- which is exactly the class of mistake
 # a hierarchy this size hides well.
 DANGLING_OK = {
-    **{n: "WP7 dpi_in: the SoM's parallel RGB output. fpga_io owns the FPGA "
-          "pins and exports them; nothing drives them yet."
-       for n in [f"DPI_{c}{b}" for c in "RGB" for b in range(2, 8)]
-       + ["DPI_PCLK", "DPI_DE", "DPI_HS", "DPI_VS"]},
+    # The 22 DPI names were here until 2026-08-15, when gen_dpi_in.py drew the
+    # other end. They are joined now, so listing them would be a lie the tool
+    # reports as a stale entry rather than a finding.
     **{n: "WP8 som: the SoM is the CSR SPI master and writes the config NOR. "
           "fpga_config exports the FPGA end."
        for n in ("FPGA_SCLK", "FPGA_MOSI", "FPGA_MISO", "FPGA_CS", "NOR_CS")},
@@ -120,6 +119,12 @@ CHECK_ONLY = "--check" in sys.argv
 
 def main() -> int:
     text = ROOT.read_text()
+    # Refuse to wire a root whose boxes overlap. This tool is what turns sheet
+    # pins into nets, so it is the last place the check can still prevent a
+    # silent short rather than merely report one afterwards. See
+    # layout_root.overlaps() for what goes wrong and how it has bitten twice.
+    from layout_root import assert_no_overlap
+    assert_no_overlap(text)
     sheets = sheet_blocks(text)
     assert sheets, "no sheet symbols found on the root"
 
