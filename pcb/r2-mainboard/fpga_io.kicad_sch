@@ -5585,16 +5585,6 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 76.2) (xy 213.36 76.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0760d62a-abeb-4392-8b91-4ac3c1b570c4")
-	)
-	(wire
-		(pts
 			(xy 218.44 144.78) (xy 213.36 144.78)
 		)
 		(stroke
@@ -5612,16 +5602,6 @@
 			(type default)
 		)
 		(uuid "1163d130-5a05-41d8-aa29-94a3e44320dc")
-	)
-	(wire
-		(pts
-			(xy 218.44 111.76) (xy 213.36 111.76)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1355a7c6-5729-43a2-8d5d-534e5e37f665")
 	)
 	(wire
 		(pts
@@ -5855,16 +5835,6 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 86.36) (xy 213.36 86.36)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6b8f1499-2d6f-443b-aa4c-33a663a789b3")
-	)
-	(wire
-		(pts
 			(xy 119.38 78.74) (xy 114.3 78.74)
 		)
 		(stroke
@@ -5872,16 +5842,6 @@
 			(type default)
 		)
 		(uuid "7603399a-489b-44d8-bef9-75ab04bf38be")
-	)
-	(wire
-		(pts
-			(xy 218.44 73.66) (xy 213.36 73.66)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7caff52f-11e4-4769-859d-22da295405d0")
 	)
 	(wire
 		(pts
@@ -5902,16 +5862,6 @@
 			(type default)
 		)
 		(uuid "88d47a1a-c7a2-44cb-ad21-a822a45ceb5c")
-	)
-	(wire
-		(pts
-			(xy 218.44 99.06) (xy 213.36 99.06)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "89fbd244-285c-478d-859e-da61272cc0c2")
 	)
 	(wire
 		(pts
@@ -5945,16 +5895,6 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 91.44) (xy 213.36 91.44)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a17a1786-cda4-4d91-b102-fba536aa12a7")
-	)
-	(wire
-		(pts
 			(xy 218.44 137.16) (xy 213.36 137.16)
 		)
 		(stroke
@@ -5972,16 +5912,6 @@
 			(type default)
 		)
 		(uuid "a3e8d193-9f8f-41bc-b97b-671edb4ac70d")
-	)
-	(wire
-		(pts
-			(xy 218.44 83.82) (xy 213.36 83.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a6c546fe-b99a-485a-adb1-0c62ee97444b")
 	)
 	(wire
 		(pts
@@ -6012,16 +5942,6 @@
 			(type default)
 		)
 		(uuid "b5908b10-1efd-46f4-9498-75c13761aa02")
-	)
-	(wire
-		(pts
-			(xy 218.44 109.22) (xy 213.36 109.22)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b5a25216-bb5a-4d2a-a84b-030e92d9e92f")
 	)
 	(wire
 		(pts
@@ -6145,16 +6065,6 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 101.6) (xy 213.36 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e1cf9d9b-718c-418d-88b8-2cb53b099a7d")
-	)
-	(wire
-		(pts
 			(xy 119.38 101.6) (xy 114.3 101.6)
 		)
 		(stroke
@@ -6232,16 +6142,6 @@
 			(type default)
 		)
 		(uuid "f0e5c07f-8241-4ee2-8384-e0dd1285b23e")
-	)
-	(wire
-		(pts
-			(xy 218.44 88.9) (xy 213.36 88.9)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f3591be2-e6b6-4dbf-bce7-64ba42211969")
 	)
 	(wire
 		(pts
@@ -6448,17 +6348,6 @@
 		)
 		(uuid "58b12bcf-4656-49ce-bd2c-1b5dbe273db4")
 	)
-	(hierarchical_label "EPDC_D11P"
-		(shape output)
-		(at 218.44 91.44 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "5c80de71-00c0-4031-ad4b-55c2222d4b41")
-	)
 	(hierarchical_label "DPI_HS"
 		(shape input)
 		(at 119.38 167.64 0)
@@ -6513,17 +6402,6 @@
 			(justify left)
 		)
 		(uuid "6919bc0a-297e-4e7e-9293-b1df64bbd639")
-	)
-	(hierarchical_label "EPDC_D10P"
-		(shape output)
-		(at 218.44 86.36 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "6d4065bc-f722-490f-9527-ce3507ef43dc")
 	)
 	(hierarchical_label "DPI_G3"
 		(shape input)
@@ -6591,17 +6469,6 @@
 		)
 		(uuid "7c5cad5e-099c-4261-bbd4-7247a3c36025")
 	)
-	(hierarchical_label "EPDC_D9N"
-		(shape output)
-		(at 218.44 101.6 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "881ee330-0a60-4aa2-b656-028473409235")
-	)
 	(hierarchical_label "FPGA_CLK33"
 		(shape input)
 		(at 119.38 119.38 0)
@@ -6624,17 +6491,6 @@
 		)
 		(uuid "94c6927f-bce1-4b73-8477-f871d93cc1c8")
 	)
-	(hierarchical_label "EPDC_D10N"
-		(shape output)
-		(at 218.44 83.82 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "9adbfa21-72f3-40e1-ba01-2e7b23ee326f")
-	)
 	(hierarchical_label "DPI_PCLK"
 		(shape input)
 		(at 119.38 111.76 0)
@@ -6645,17 +6501,6 @@
 			(justify left)
 		)
 		(uuid "a3674ec5-675a-4014-8dc9-043711ab8536")
-	)
-	(hierarchical_label "EPDC_D9P"
-		(shape output)
-		(at 218.44 99.06 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "ab9dad53-a43d-40ab-8b67-4f5d42e7720d")
 	)
 	(hierarchical_label "EPDC_D6N"
 		(shape output)
@@ -6712,17 +6557,6 @@
 		)
 		(uuid "c1fbf7cf-8d40-4723-b512-81fcdaf7d1b6")
 	)
-	(hierarchical_label "EPDC_D8N"
-		(shape output)
-		(at 218.44 76.2 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "c74a71fc-6748-4d18-9a51-ce9cd64b973b")
-	)
 	(hierarchical_label "DPI_B7"
 		(shape input)
 		(at 119.38 180.34 0)
@@ -6756,17 +6590,6 @@
 		)
 		(uuid "d2c86f81-bb9e-4799-9247-7142e47ffe00")
 	)
-	(hierarchical_label "EPDC_CLKN"
-		(shape output)
-		(at 218.44 109.22 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "d3f2c716-df3d-4911-8979-32e726c9baa8")
-	)
 	(hierarchical_label "DPI_G7"
 		(shape input)
 		(at 119.38 109.22 0)
@@ -6777,17 +6600,6 @@
 			(justify left)
 		)
 		(uuid "d48845f0-6bf7-4d65-a388-52de172e9cc8")
-	)
-	(hierarchical_label "EPDC_D11N"
-		(shape output)
-		(at 218.44 88.9 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "d68a12fa-8d8d-442f-877c-325c80c6e751")
 	)
 	(hierarchical_label "DPI_R5"
 		(shape input)
@@ -6833,17 +6645,6 @@
 		)
 		(uuid "e31c96ca-cef2-4ad3-ab2f-6b21e882c238")
 	)
-	(hierarchical_label "EPDC_D8P"
-		(shape output)
-		(at 218.44 73.66 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "e6aa602d-3a37-4489-87f9-e0cbf0e777dc")
-	)
 	(hierarchical_label "EPD_THROT"
 		(shape input)
 		(at 119.38 139.7 0)
@@ -6865,17 +6666,6 @@
 			(justify left)
 		)
 		(uuid "efdfeab3-cc47-4086-a20a-1b28abf80615")
-	)
-	(hierarchical_label "EPDC_CLKP"
-		(shape output)
-		(at 218.44 111.76 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "f560769c-1e5e-408c-9220-6c58a5604094")
 	)
 	(hierarchical_label "EPDC_D3P"
 		(shape output)
@@ -9075,5 +8865,55 @@
 				)
 			)
 		)
+	)
+
+	(no_connect
+		(at 213.36 73.66)
+		(uuid "cc71ea33-9559-4f68-836f-82a6e7485140")
+	)
+
+	(no_connect
+		(at 213.36 76.2)
+		(uuid "2dbd4fe3-7ddc-41ce-a3ae-629ba86a684c")
+	)
+
+	(no_connect
+		(at 213.36 83.82)
+		(uuid "8e0348e4-910b-47da-9e8c-dcb6d507b64d")
+	)
+
+	(no_connect
+		(at 213.36 86.36)
+		(uuid "8be088fe-87e8-44dc-b6d2-7dcc55418561")
+	)
+
+	(no_connect
+		(at 213.36 88.9)
+		(uuid "75c64857-2214-4a17-bdbf-0abf4904afe8")
+	)
+
+	(no_connect
+		(at 213.36 91.44)
+		(uuid "65b52dd9-da61-480d-95f4-759f1ea00849")
+	)
+
+	(no_connect
+		(at 213.36 99.06)
+		(uuid "a7f4a09b-e56a-442a-8abc-2a8944ed31e8")
+	)
+
+	(no_connect
+		(at 213.36 101.6)
+		(uuid "26c81f41-f019-47e6-ba61-e1dc8bde08e1")
+	)
+
+	(no_connect
+		(at 213.36 109.22)
+		(uuid "5a0a57df-99ed-4892-a65e-9afc7040cef3")
+	)
+
+	(no_connect
+		(at 213.36 111.76)
+		(uuid "e9f49294-134b-4fb5-81c7-efb408997bed")
 	)
 )

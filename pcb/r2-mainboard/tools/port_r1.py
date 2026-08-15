@@ -116,6 +116,17 @@ LIB_REMAP = {
 EPDC = {f"EPDC_{s}": (f"EPDC_{s}", "input") for s in (
     "CLKN", "CLKP", "GDCLK", "GDOE", "GDSP", "SDCE0", "SDLE", "SDOE", "SE_CLK",
     *[f"D{i}{p}" for i in range(12) for p in ("N", "P")])}
+
+# Nets that exist in R1 and are deliberately absent from R2. They stay in HIER
+# so that a --force re-port still reproduces R1's sheet faithfully; what they
+# are subtracted from is the sheet-pin list, and tools/patch_drop_j3.py deletes
+# them from the two saved sheets. Owner's decision 2026-08-15: J3, the 16-pin
+# panel connector, carried nothing but these ten signals and six grounds, and
+# no .ucf line in Caster assigns any of the ten. docs/fpga.md §2.1.
+DEAD_ON_R2 = frozenset(
+    [f"EPDC_D{i}{p}" for i in range(8, 12) for p in ("N", "P")]
+    + ["EPDC_CLKP", "EPDC_CLKN"])
+
 HIER = {
     "epd": {
         **EPDC,
@@ -565,8 +576,13 @@ def main():
 
     from sheet_pins import set_sheet_pins
     for name in names:
-        pins = sorted({v for v in HIER[name].values()})
+        pins = sorted({v for k, v in HIER[name].items() if k not in DEAD_ON_R2})
         set_sheet_pins(PROJ / "r2.kicad_sch", name, pins)
+        revived = sorted(set(HIER[name]) & DEAD_ON_R2)
+        if revived:
+            print(f"  WARNING: {name} was re-ported, so R1's {len(revived)} "
+                  f"J3 labels are back on the sheet while the root has no pins "
+                  f"for them. Re-run tools/patch_drop_j3.py.")
 
 
 if __name__ == "__main__":
