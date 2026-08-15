@@ -1,7 +1,7 @@
 # `fpga_io`, `fpga_config`, `fpga_ddr` — the FPGA — R2 work package 5
 
-Status: **drawn, verified against the gateware, not yet reviewed by the hardware owner.**
-Companion to `battery.md`, `power.md`, `mcu.md` and `epd-port.md`.
+Status: **drawn, verified against the gateware, reviewed 2026-08-15 — §15.** One change came out of
+the review: `J3` is deleted. Companion to `battery.md`, `power.md`, `mcu.md` and `epd-port.md`.
 
 **The binding constraint on these three sheets is not R1's schematic — it is Caster's
 `constraint.ucf`.** The pinout is fixed by the gateware, and fixed harder than that by the silicon:
@@ -84,22 +84,32 @@ rather than by reading.
 | `EPDC_CLKP`/`CLKN` | C8 D8 | There is no `EPD_CLK` port in `top.v` and no `EPD_CLK` line in the UCF. The gateware's only panel clock is `EPD_SDCLK`, which the board calls `EPDC_SE_CLK`. |
 | `EPD_THROT` | M16 | "throt" appears nowhere in Caster. Declared on `mcu.kicad_sch` since WP3; contradicts a plan item that assumed it was live. |
 
-**This settles `J3`.** The 16-pin panel connector carries 6 grounds and 10 signals, and *all ten*
-are in the first two rows above — not "mostly unused", entirely unimplemented. `epd-port.md` §7
-reached the same conclusion from three other directions; this is the fourth and the strongest.
-`EPD_THROT` is the only one of the three that is not on `J3`.
+**This settled `J3`.** The 16-pin panel connector carried 6 grounds and 10 signals, and *all ten*
+were in the first two rows above — not "mostly unused", entirely unimplemented. `epd-port.md` §7
+reached the same conclusion from three other directions; this was the fourth and the strongest.
+**The owner deleted it on 2026-08-15** (§15.2), so the first two rows are now history rather than a
+live finding, and the ten balls carry no-connect flags. `check_ucf.py`'s "reserved but not driven"
+list is down from 11 balls to 1. `EPD_THROT` is that one — the only one of the three groups that was
+never on `J3`, and it stays wired at `U41.M16` because `mcu.kicad_sch` declares it.
 
 ## 3. `fpga_io` — banks 0 and 1
 
 A straight port. 69 net groups identical to R1, four parts (`U41` units 1–2, `R311` 10 kΩ, `D308`
-status LED). Two deliberate deletions:
+status LED). Three deliberate deletions:
 
 - **The 12-signal FMC bus to the MCU.** R1 wires `FMC_D[7:0]`, `FMC_A16`, `FMC_NE1`, `FMC_NOE`,
   `FMC_NWE` from the H750 to the FPGA, and **no `.ucf` in Caster assigns any of it** — the gateware
   has never used it. R2 has no MCU-side parallel bus at all, so the labels go and the freed bank-1
   balls get no-connect flags.
+- **The 10 signals to `J3`** — `EPDC_D8`–`D11` and `EPDC_CLKP`/`CLKN`, deleted with the connector on
+  2026-08-15 (§15.2). Balls `C7 A7 B8 A8 C9 A9 E7 E8 D8 C8`, all bank 0, now carry no-connect flags.
 - R1 leaves 24 balls unused but flags only 12. The other 12 got flags, so ERC stays honest and
   claiming a pin later is a matter of deleting one.
+
+That leaves **46 no-connect-flagged spare balls** on `fpga_io` — 24 in bank 0, 22 in bank 1, all at
+3.3 V `VCCO`, counted from the netlist rather than by hand. 24 of them were spare in R1 too; the
+other 22 are what the FMC and `J3` deletions freed. That is the largest block of free I/O on the
+board and the place to look first if R2 ever needs another FPGA-side signal.
 
 `EPD_THROT` is terminated here (`U41.M16`), which is where R1 puts it, even though §2.1 says nothing
 drives it. Better a documented dead net than a hierarchical label that ends nowhere.
@@ -284,7 +294,7 @@ Unit 6 and its 12 decoupling capacitors, relocated from R1's power sheet at +300
 
 | Sheet | Sheet pins | Notes |
 | --- | ---: | --- |
-| `fpga_io` | 57 | 33 `EPDC_*` (to `epd`), 22 `DPI_*` (to `dpi_in`, WP7), `EPD_THROT`, `FPGA_CLK33` |
+| `fpga_io` | 47 | 23 `EPDC_*` (to `epd`), 22 `DPI_*` (to `dpi_in`, WP7), `EPD_THROT`, `FPGA_CLK33`. Was 57/33 before the `J3` deletion (§15.2) |
 | `fpga_config` | 14 | CSR SPI ×4 + `NOR_CS` (to `som`, WP8), MCU control ×7, `FPGA_CLK33` out |
 | `fpga_ddr` | **0** | Every net on the sheet is local; the rails arrive as power symbols |
 
@@ -322,12 +332,13 @@ hierarchical interface, `set_sheet_pins` had been putting matching pins on the r
 and nothing ever joined one sheet's pin to another's. `epd`'s `EPDC_D0P` and `fpga_io`'s `EPDC_D0P`
 were two separate one-node nets. The board would have gone to layout with no panel bus at all.
 
-`tools/wire_root.py` stubs each of the 187 sheet pins and attaches a local label. Labels rather than
-wires: 187 pins across 13 boxes in four columns cannot be joined with wires legibly, and a local
-label on the root *is* a root-sheet net, so same-named pins are the same net. `global_label` would
-work and is worse — it would push all 109 names into every sheet's namespace.
+`tools/wire_root.py` stubs each sheet pin and attaches a local label. Labels rather than wires:
+well over a hundred pins across 13 boxes in four columns cannot be joined with wires legibly, and a
+local label on the root *is* a root-sheet net, so same-named pins are the same net. `global_label`
+would work and is worse — it would push every name into every sheet's namespace.
 
-- **75 names joined across sheets.**
+- **167 sheet pins, 99 distinct names, 65 joined across sheets.** (187/109/75 before the `J3`
+  deletion took ten names off `epd` and `fpga_io`, §15.2.)
 - **34 still one-sided**, each checked against a table of expected-dangling names with reasons:
   22 `DPI_*` (WP7 `dpi_in`), 5 CSR-SPI/NOR (WP8 `som`), 5 MCU↔SoM (WP8), 2 USB (WP8). Anything
   dangling and *not* in that table is reported as a finding, because a hierarchy this size hides a
@@ -336,6 +347,8 @@ work and is worse — it would push all 109 names into every sheet's namespace.
 ## 9. Open
 
 1. **Two edits owed to Caster's `constraint.ucf` / `top.v`** — see §12. Neither blocks layout.
+   The open question inside item 2 (does deleting the LVDS ports cost us the R1 test vehicle?) is
+   **closed 2026-08-15**: no, R1's microHDMI path is untouched. §15.5.
 2. **`+1V5` and `+DRAM_VREF` report `power_pin_not_driven`.** `+DRAM_VREF` genuinely has no driver —
    it is a divider — and a `PWR_FLAG` was tried and reverted, because the FPGA's VREF balls are
    bidirectional I/O and the flag trades one benign warning for two `pin_to_pin` ones. `+1V5`'s flag
@@ -363,8 +376,10 @@ work and is worse — it would push all 109 names into every sheet's namespace.
   connects that ball to the net the gateware expects, at a bank voltage the IOSTANDARD can use.
   Result: **113 constrained balls, all accounted for** — 97 name-matched, 2 checked structurally
   (`RZQ`, `ZIO`), 14 asserted open (the LVDS group). **0 failures, 0 pending, 0 unexplained.**
+  The script prints `MATCHED 99`, which is the 97 plus the 2 structural; 99 + 14 = 113.
   It also reports both interesting asymmetries: balls the gateware constrains but the board leaves
-  open, and balls the board wires that no `.ucf` assigns — the latter is what found §2.1.
+  open, and balls the board wires that no `.ucf` assigns — the latter is what found §2.1. Since the
+  `J3` deletion (§15.2) that second list is down from 11 balls to 1, `EPD_THROT`.
 - **Netlist node-diff against R1**, per sheet. `fpga_io` 69 groups identical; `fpga_ddr` 49 local
   groups identical; `+1V35`→`+1V5` moved with all 47 nodes intact.
 - **`kicad-cli sch erc --severity-all --format json`**: 295 → 105 project-wide after wiring the
@@ -400,6 +415,12 @@ still matters, but the tolerances are relaxed compared with a 1600 MT/s interfac
 - **Address/command/control** is one group matched to the clock pair. UG388 p.42 wants memory
   terminations, if used, placed **after** the memory in fly-by fashion, and trace-length matching to
   **exclude** the stub from the memory ball to any terminating resistor.
+- **`DRAM_ADDR13` and `DRAM_ADDR14` are not part of that group and must be excluded from it.**
+  They are the density-expansion nets of §5.1: the FPGA drives neither and the fitted 1 Gb part does
+  not bond `T3`/`T7`, so they are inert at both ends. They look exactly like address lines to a
+  net-class-based length-match rule, which would drag the real group's tolerance around for two
+  dead traces. Route them short and direct, give them their own net class, and leave them out of
+  the matched set (owner's decision to keep them, §15.3).
 - **`DRAM_CKP`/`CKN`** carry `R100`, 100 Ω differential termination, at the DRAM end. Route as a
   proper differential pair with the two halves matched to each other before anything else.
 - Keep the whole bus over one continuous reference plane. A split under the DDR bus is the classic
@@ -464,9 +485,14 @@ Neither of these blocks the schematic, and both are why the fork exists.
 2. **Delete the 14 LVDS constraint lines and their top-level ports.** R2 has no FPD-Link source, so
    seven differential input buffers with `DIFF_TERM` enabled would sit at an indeterminate common
    mode where they can self-oscillate and draw current — in the reading state, which is the one
-   number R2 exists to reduce. **Open question:** removing the ports makes the bitstream R2-specific
-   and breaks DisplayPort input on R1, which is the only test vehicle. This probably wants the
-   `write_build_config.sh` variant mechanism rather than an unconditional deletion.
+   number R2 exists to reduce. ~~**Open question:** removing the ports makes the bitstream
+   R2-specific and breaks DisplayPort input on R1, which is the only test vehicle. This probably
+   wants the `write_build_config.sh` variant mechanism rather than an unconditional deletion.~~
+   **Closed 2026-08-15 — delete unconditionally, no build variant** (§15.5). R1 has two video
+   inputs on two different Caster source ports, and only the USB-C DisplayPort one goes through
+   these pins; the microHDMI/`ADV7611` path drives the same `DPI_*` nets R2's SoM will drive, so R1
+   stays a complete test vehicle for everything R2 does. R2 needs its own UCF regardless — the
+   config pins and the `N12`/`P12` `PULLUP`s differ from R1, and ISE's UCF has no preprocessor.
 
 And three bitgen changes that the config NOR needs to be worth having (§4.2):
 
@@ -503,3 +529,139 @@ ever read. A sheet that has been saved in Eeschema is patched surgically, never 
 | FPD-Link input | 14 signals | deleted | no PTN3460 in R2 |
 | Debug header | `J5` 2×6, fitted | `J20` 2×6, pads only | `mcu.md` §10 |
 | `INIT_B` | unconnected, no pull-up | `R414` 4.7 kΩ + MCU `PC10` | tells a CRC error from a silent NOR |
+| `J3` 16-pin panel connector | fitted, 10 signals | **deleted** | no gateware for any of the ten (§2.1); owner's decision §15.2 |
+
+## 15. Review 1 (2026-08-15) — the analysis note, answered
+
+The note is `../manual-analysis/Analysis_fpga.md`, answering the five decisions put up in §9 and in
+the review message. Four are accepted as drawn; one is a change, and it is made.
+
+The owner's framing matters for how this review was set up: *"analysing the fpga sheets is out of my
+scope and the datasheets don't have the same neat pinout and example layout that I could check your
+design against."* That is right, and it is why `check_ucf.py` exists — the ball-level correctness is
+machine-checked against Caster's own `constraint.ucf`, and what was put up for review was the four
+or five judgement calls the script cannot make.
+
+### 15.1 Bank 3 at 1.5 V — accepted
+
+> "1.5V is fine."
+
+Closed. No change. This was the item flagged hardest because it reached into `power`, `power_mon`
+and `fpga_config`, three sheets already approved at 1.35 V. The cost stands at about 1.9 mW of extra
+standby draw (`power.md` §9), against `LVCMOS15` having no 1.35 V form at all (§5.2).
+
+### 15.2 `J3` — deleted
+
+> "Yes, delete J3 connector. What was the reason it existed on the original Caster Design?"
+
+**Done** — `tools/patch_drop_j3.py`, commit `28b6e0f`. What went: `J3`, its ten signal nets
+(`EPDC_D8`–`D11`, `EPDC_CLKP`/`CLKN`), its six grounds and the mounting pin, the matching
+hierarchical labels on both `epd` and `fpga_io`, and the ten root sheet pins. The ten freed FPGA
+balls — `C7 A7 B8 A8 C9 A9 E7 E8 D8 C8`, all bank 0 — carry no-connect flags. The netlist before and
+after has 351 nets either way, with exactly those ten gone, exactly seven nodes off `GND`, and every
+other net unchanged.
+
+**Why it existed.** Not a Caster thing — a *Glider* thing, and Glider is a general-purpose EPD
+monitor rather than a reader. `README.md`, "Screen Adapters":
+
+> "The motherboard uses a **50 pin + 16 pin** connector. A single 50 pin connector is enough for
+> 8/16-bit screens, the 16 pin connector additionally adds support for **LVDS screens and 32-bit /
+> 64-bit screens**."
+
+and, under "LVDS":
+
+> "Some higher resolution panels (such as **25.3″** ones, and **11.8″ Gallery 3** panel) uses LVDS
+> signaling instead of LVCMOS."
+
+The screen list bears that out with no exceptions: every `MiniLVDS` row is 8″ 1920×1440 or larger
+(`AC080KH1/2`, `AC118TC1`, the 25.3″ and 28″ families), and every 6″ 1448×1072 panel — the whole
+`ED060*`/`EC060*` family, which is what a reader uses — is `TTL`, 34 pins, adapter `34P-A`. So `J3`
+is the big-panel and colour-Gallery option. `J6` alone is the reader's connector, and it still has
+five spare pins.
+
+**A fifth confirmation, found while writing this up.** None of the ten adapter boards in this
+repo — `34p-adapter-a/b`, `35p-adapter-a`, `39p-adapter-b/c`, `40p-adapter-ab`,
+`50p-adapter-b/c`, `mega_adapter`, `u133_adapter` — contains a 16-pin FPC part. Every one mates
+with the 50-pin `J6` alone. The connector was unused by the whole adapter ecosystem that
+shipped with R1. (Careful with the name: `35p-adapter-a` has a reference designator `J3` of its
+own, and it is that board's 35-pin *panel* connector, nothing to do with this one.)
+
+**The residual risk, stated plainly.** This is irreversible after fab, and the panel model is still
+deferred (`NOTES-R2-plan.md`: "read it off the tail/back label"). If that panel turns out to be an
+8″-or-larger Gallery 3 / Spectra part, it is MiniLVDS and it needs `J3`. For any 6″ Carta panel it
+cannot. The second, stronger argument does not depend on the panel at all: **no `LOC` line in
+Caster assigns any of the ten signals**, so even with `J3` fitted and a MiniLVDS panel attached,
+nothing in the gateware could drive it — that is an RTL project, not a connector.
+
+**One knock-on worth knowing before someone adds a feature.** These ten balls take `fpga_io`'s
+no-connect count to **46** — 24 in bank 0, 22 in bank 1, all 3.3 V `VCCO`. 24 were spare in R1 as
+well; the other 22 are what this deletion and the FMC one freed. §3.
+
+### 15.3 `DRAM_ADDR13`/`ADDR14` — kept, as drawn
+
+> "If this causes no problems, then yeah sure keep the traces, why not?"
+
+Kept. It is worth being precise about "no problems", because there is one and it is small:
+
+- **Electrically, nothing.** Both ends are inert. `top.v:22` declares `DDR_A` as `[12:0]`, so the
+  FPGA balls `F6`/`F5` are unconstrained and `-g UnusedPin:PullDown` sits them at a weak low; the
+  fitted 1 Gb `MT41K64M16` does not bond `T3`/`T7` (Micron Figure 7, p.18), so the far end is a
+  package ball with no die attached. No current, no load on the address bus.
+- **In layout, two stubs.** They sit in the middle of the DDR3 fan-out and will be mistaken for
+  real address lines by anyone length-matching by net-class. Added to §11.1 as an explicit
+  exclusion so that does not happen.
+
+What it buys: a 2 Gb or 4 Gb part becomes a `mig.prj` change instead of a respin, which matters
+because the DRAM is the one part on this board with a live shortage attached to it.
+
+### 15.4 `C509`, the fifth 4.7 µF on `VCCINT` — accepted
+
+> "That is a good change you noticed. Its good to keep as the datasheet says."
+
+Kept. It is the only BOM change on these three sheets: one 0402, `UG393` Table 2-1 row
+`FT(G)256 LX16`, which asks for five and which R1 met with four. Worth restating what was *not*
+changed on the same evidence — the bulk (100 µF) column, where R1 is short on three rails and
+deliberately so, because Table 2-1 note 3 explicitly blesses trading bulk for more 4.7 µF parts
+(§7). Making that rigorous needs a PDS impedance simulation, which is a Stage-D item, not a defect.
+
+### 15.5 The FPD-Link deletion and DisplayPort — the decision dissolves
+
+> "I dont see what decision I have to take here? We dont need DisplayPort, but if you think we need
+> it for debug or prototype purposes we can discuss for sure."
+
+**Fair — and on checking, there is no decision left to take.** I had framed it as a trade against
+losing the only test vehicle, and that framing was wrong, because R1 has *two* video inputs and only
+one of them goes through the FPD-Link pins.
+
+`README.md`, "Hardware":
+
+> "Type-C DisplayPort Alt-Mode video input with onboard **PTN3460 DP-LVDS bridge** *or*
+> DVI (via microHDMI connector) video input with onboard **ADV7611 decoder**"
+
+Those land on different FPGA banks and different Caster source ports. `vin.v` selects between three
+sources — `SRC_INTERNAL`, `SRC_DPI` and `SRC_FPDLINK`:
+
+| R1 input | bridge | FPGA pins | Caster source |
+| --- | --- | --- | --- |
+| USB-C DP Alt-Mode | `PTN3460` | 14 LVDS balls, bank 2 | `SRC_FPDLINK` |
+| microHDMI DVI | `ADV7611` | `DPI_PCLK`, `DPI_DE/HS/VS`, `DPI_PIXEL[17:0]`, bank 1 | `SRC_DPI` |
+
+And R1's `tmds_in.kicad_sch` drives net names `DPI_B2`…`DPI_R7`, `DPI_PCLK`, `DPI_DE/HS/VS` into
+`fpga_io` — **the same twenty-two nets R2's SoM will drive**. So deleting the FPD-Link ports costs
+R1 its USB-C DisplayPort input and nothing else; the microHDMI path, which is the path R2 uses,
+keeps working. R1 stays a complete test vehicle for every video feature R2 has.
+
+So: **delete unconditionally, no `write_build_config.sh` board variant needed.** §12 item 2 is
+updated. Two smaller points that go with it:
+
+- The deletion is not optional cosmetics. Seven differential input buffers with `DIFF_TERM = "TRUE"`
+  on nets that no longer have a driver sit at an indeterminate common mode; with the constraint gone
+  the balls become unconstrained and `-g UnusedPin:PullDown` gives them a defined weak low instead.
+  `check_ucf.py` already asserts all fourteen are unconnected on the R2 schematic, so a
+  half-finished deletion fails the check rather than passing quietly.
+- The bitstream becomes R2-specific either way. R2's config pins, the NOR quad pins and the
+  `PULLUP`s on `N12`/`P12` all differ from R1, and ISE's UCF has no preprocessor, so R2 needs its
+  own constraint file regardless of what happens to the LVDS lines. That was the real cost I had
+  mispriced as belonging to this one item.
+- If a DisplayPort-capable bitstream for R1 is ever wanted again, it is `git checkout` of the
+  pre-deletion revision, not a rebuild of the mechanism.

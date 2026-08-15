@@ -9,7 +9,7 @@ different nets with one node each, and the netlist showed them as
 `/epd/EPDC_D0P` and `/fpga_io/EPDC_D0P`. 232 `isolated_pin_label` violations were
 all saying the same thing.
 
-**Labels, not wires.** 187 sheet pins across 13 boxes in four columns cannot be
+**Labels, not wires.** 167 sheet pins across 13 boxes in four columns cannot be
 joined with wires legibly -- it would be several hundred crossings. A local label
 on the root sheet is a net on the root sheet, so two sheet pins carrying the same
 label text are the same net, and the drawing stays readable. This is the ordinary

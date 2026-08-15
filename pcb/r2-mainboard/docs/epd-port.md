@@ -18,7 +18,7 @@ pin for pin (§6). `power_mon` differs in exactly four net groups, all intended 
 
 | Sheet | Parts | Renamed | Circuit |
 | --- | --- | --- | --- |
-| `epd` | 11 | 0 | panel connectors `J6` (50p) and `J3` (16p) + 7 caps |
+| `epd` | 11 | 0 | panel connectors `J6` (50p) and `J3` (16p) + 7 caps — `J3` deleted 2026-08-15, so 10 parts now (§7) |
 | `epd_power` | 85 | 23 | EPD HV chain: 2× `LGS5145`, 2× `LGS6302B5`, 2× `TPS22914`, VCOM DAC buffer + `LM321` sense |
 | `power_mon` | 32 | 2 | 3× `INA3221`, eight 20 mΩ shunts, five HV measurement dividers |
 
@@ -142,7 +142,7 @@ would have been simpler arithmetic but would leak ~6 µA continuously.
 
 | Sheet | Hierarchical labels |
 | --- | --- |
-| `epd` | 33 × `EPDC_*` (to `fpga_io`, WP5), `FL_EN`, `FL_PWM1`, `FL_PWM2` (to `frontlight`, WP6) |
+| `epd` | 33 × `EPDC_*` (to `fpga_io`, WP5), `FL_EN`, `FL_PWM1`, `FL_PWM2` (to `frontlight`, WP6). **23 × `EPDC_*` since the `J3` deletion** — the ten it carried are gone |
 | `epd_power` | `EPD_PWR_EN`, `EPD_POS_EN`, `VCOM_EN`, `VCOM_MEA_EN`, `VCOM_DAC`, `VGH_DAC` in; `VCOM_MEA` out |
 | `power_mon` | `SCL_AON`, `SDA_AON`, `EPD_PWR_EN`; `VBUS_MEA`, `VP_MEA`, `VN_MEA`, `VGH_MEA`, `VGL_MEA` out |
 
@@ -200,12 +200,15 @@ from — but only in R1's rail context.
   source for the load switch before ordering.
 - **`+5V2_FL` is still called that** on `epd` although the frontlight now boosts from `+VSYS`. The
   name describes the LED anode rail, which is unchanged; WP6 confirms or renames it.
-- **`epd`'s `J3`/`J6` pinouts were carried pin-for-pin and not re-checked** against the panel.
+- **`epd`'s `J6` pinout was carried pin-for-pin and not re-checked** against the panel.
   `NOTES-R2-plan.md`'s verification list asks for that diff explicitly — it is a WP-E task, not a
-  port task, but it is still owed.
-- **`J3` (the 16-pin connector) is probably dead weight for R2, and dropping it is free only until
+  port task, but it is still owed. (`J3` no longer needs checking; it is gone.)
+- ~~**`J3` (the 16-pin connector) is probably dead weight for R2, and dropping it is free only until
   the panel is chosen.** It carries nothing but `EPDC_D8`–`D11`, a clock pair and six grounds — the
-  width/LVDS extension (§9.3). An 8- or 16-bit reader panel needs `J6` alone. Decide with the panel.
+  width/LVDS extension (§9.3). An 8- or 16-bit reader panel needs `J6` alone. Decide with the
+  panel.~~ **Closed 2026-08-15 — deleted** by the owner, `tools/patch_drop_j3.py`. `fpga.md` §15.2
+  has the reasoning and what moved; §9.3 below is what it was decided from. `epd.kicad_sch` is
+  therefore no longer a pin-for-pin port of R1's, and its title-block caption says so.
 - **Layout guidelines are still owed for these three sheets.** `battery.md`, `power.md` and `mcu.md`
   each carry a §11; this document has none, because the port's answer to "how should it be laid out"
   was "the same as R1". That is a real answer for the HV chain but not a written one, and the EPD
@@ -305,6 +308,12 @@ multiple sizes are a real intention rather than a maybe, the question is settled
 stays permanently.
 
 ### 9.3 One thing worth deciding early: `J3` is probably dead weight
+
+> **Decided 2026-08-15: deleted.** Kept below as written, because it is the reasoning the decision
+> was made from. What finally settled it was not this argument but a stronger one found in WP5 —
+> no `LOC` line in Caster's `constraint.ucf` assigns *any* of `J3`'s ten signals, so the connector
+> could not have worked even with a MiniLVDS panel attached. `fpga.md` §2.1 and §15.2.
+
 
 Reading the exported netlist, `J3`'s sixteen pins carry **only** `EPDC_D8P/N`, `D9P/N`, `D10P/N`,
 `D11P/N`, `EPDC_CLKP/N` and six grounds. Everything a normal panel needs is on `J6`: `EPDC_D0`–`D7`,

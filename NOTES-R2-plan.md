@@ -63,7 +63,7 @@ HS/VS  (22 signals)  │
    └──┬────────────────────────────┘     └──────────────┘
       │ 8-12 diff pairs + GD/SD          ┌──────────────┐
    ┌──▼────────────────────────────┐     │ SPI cfg NOR  │ FPGA self-boot
-   │  EPD panel J6 (50p) / J3 (16p)│     └──────────────┘
+   │  EPD panel J6 (50p) only      │     └──────────────┘
    │  + EPD HV chain (from R1)     │
    └───────────────────────────────┘
    ┌────────────────────────────────────────────────────┐
@@ -75,8 +75,8 @@ HS/VS  (22 signals)  │
 ```
 
 **Carried over from R1 unchanged:** Caster EPDC and panel timing (proven at 1448×1072@75), the
-EPD HV chain (LGS5145 ×2, LGS6302B5 ×2, TPS22914 ×2, VCOM DAC + LM321 sense), panel connectors
-J6/J3 pin-for-pin, DDR3L, and all three INA3221s — every conclusion in this project came from
+EPD HV chain (LGS5145 ×2, LGS6302B5 ×2, TPS22914 ×2, VCOM DAC + LM321 sense), panel connector
+J6 pin-for-pin (J3 deleted 2026-08-15), DDR3L, and all three INA3221s — every conclusion in this project came from
 `sensor` output.
 
 **Deleted:** `ADV7611` (the whole 588 mW `VIDEO IN` rail), `PTN3460`, `CBTL02043A`, HDMI
@@ -329,17 +329,18 @@ patched surgically; the `tools/gen_*.py` generators are not re-run over it.
 | WP1 | `battery` | yes | **yes — round 1 done** | `manual-analysis/Analyse_battery.md` → answered in `docs/battery.md` §10; four fixes applied |
 | WP2 | `power` | yes | **yes — round 1 done** | `manual-analysis/Analysis_power.md` → answered in `docs/power.md` §10. **The `TPS22965` load switch is deleted** — the boost already has true output disconnect; layout guidelines written (§11) |
 | WP3 | `mcu` | yes | **yes — round 1 done** | `manual-analysis/Analysis_mcu.md` → answered in `docs/mcu.md` §10. `C42` deleted (Figure 15 asks for no `VBAT` cap); page buttons → `EVQPLHA15` for **500 k cycles** instead of 100 k; layout guidelines written (§11). Opened a real gap: **the MCU has no field-update or brick-recovery path** (§5.7) |
-| WP4 | `epd`, `epd_power`, `power_mon` | yes — ported from R1 | **yes — round 1 done, accepted as a 1:1 port** | `manual-analysis/Analysis_epd_files.md` → answered in `docs/epd-port.md` §9. `epd`/`epd_power` provably net-identical to R1; `power_mon` differs in 4 intended groups. **No schematic change.** Two items opened: keep the panel adapter board for now (the panel model is still deferred), and `J3` (16p) is probably droppable once the panel is chosen |
-| WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | **yes** | — **waiting on owner** | `docs/fpga.md`. All three drawn plus the **root sheet wired**. Verified against the gateware by `tools/check_ucf.py`: 113 constrained balls, **0 failures**. Corrected two documented errors (the FPGA is an **XC6SLX16**, not LX9; R1 fits a **1 Gb** DRAM, not 4 Gb). Bank 3 moved 1.35 V → **1.5 V** (`LVCMOS15`/`SSTL15` have no 1.35 V form), which reached back into `power`, `power_mon` and `fpga_config`. `fpga_config` gains the SPI NOR, master-SPI strap, and **IO2/IO3 wired to `N12`/`P12`** so x4 boot stays a software change. Found three signal groups the board wires that Caster does not implement — which settles `J3` (§2.1) |
+| WP4 | `epd`, `epd_power`, `power_mon` | yes — ported from R1 | **yes — round 1 done, accepted as a 1:1 port** | `manual-analysis/Analysis_epd_files.md` → answered in `docs/epd-port.md` §9. `epd`/`epd_power` provably net-identical to R1; `power_mon` differs in 4 intended groups. **No schematic change.** Two items opened: keep the panel adapter board for now (the panel model is still deferred), and `J3` (16p) is probably droppable once the panel is chosen — **`J3` deleted 2026-08-15 in the WP5 review**, `docs/fpga.md` §15.2 |
+| WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | **yes** | **yes — round 1 done 2026-08-15, four of five decisions accepted as drawn, one change made** | `docs/fpga.md`. All three drawn plus the **root sheet wired**. Verified against the gateware by `tools/check_ucf.py`: 113 constrained balls, **0 failures**. Corrected two documented errors (the FPGA is an **XC6SLX16**, not LX9; R1 fits a **1 Gb** DRAM, not 4 Gb). Bank 3 moved 1.35 V → **1.5 V** (`LVCMOS15`/`SSTL15` have no 1.35 V form), which reached back into `power`, `power_mon` and `fpga_config`. `fpga_config` gains the SPI NOR, master-SPI strap, and **IO2/IO3 wired to `N12`/`P12`** so x4 boot stays a software change. Found three signal groups the board wires that Caster does not implement — which settled `J3` (§2.1). Review: `manual-analysis/Analysis_fpga.md` → answered in `docs/fpga.md` §15. **`J3` and its ten dead nets deleted** (`tools/patch_drop_j3.py`); 1.5 V, `DRAM_ADDR13/14`, `C509` accepted as drawn; the FPD-Link deletion's open question closed — R1's microHDMI path is untouched, so no build variant is needed |
 | WP6 | `frontlight`, `io_expansion` | no | — | FL driver, unpopulated touch/pen FPC, microSD |
 | WP7 | `dpi_in` | no | — | the 22-signal link. **Unblocked 2026-08-14** — `L-1038e.A5` Table 31 has the full `X1` DPI pin map. First job on this sheet is the `BOOTMODE` question above, not the wiring |
 | WP8 | `som` | no | — | **held last.** A **2 × `BTH-060-01-L-D-A-K-TR`** footprint (240 pins, 0.5 mm), not a `PCL-071` landing pattern — constraint 1, revised 2026-08-13. No PCB cut-out any more. **Unblocked 2026-08-14** by the same manual: `VIN` on A1/A2/A3, `VBAT` on B2, full pinout in Tables 7–10 |
 
 **Root sheet is wired** as of WP5 (2026-08-13). `tools/wire_root.py` stubs each of
-the 187 sheet pins and attaches a local label; a local label on the root *is* a
+the sheet pins and attaches a local label; a local label on the root *is* a
 root-sheet net, so same-named pins are one net. Wires would have been several
-hundred crossings across 13 boxes and unreadable. **75 names joined, 34 still
-one-sided** — 22 `DPI_*` waiting on WP7, and 12 waiting on WP8 — each checked
+hundred crossings across 13 boxes and unreadable. **65 names joined, 34 still
+one-sided** across 167 pins (was 75 and 187 before the `J3` deletion took ten
+names off two sheets) — 22 `DPI_*` waiting on WP7, and 12 waiting on WP8 — each checked
 against a table of expected-dangling names, so anything dangling and *not* in
 that table is reported as a finding. `docs/fpga.md` §8.
 
@@ -463,7 +464,8 @@ retains ~2.5× margin.
   show how few qualify today.
 - `TS_DPI_CLK` timing closure re-read from `par/*.twr` after the next gateware build, at the
   operating pixel clock rather than the 165 MHz constraint.
-- J6/J3 pinouts diffed against `pcb/mainboard/epd.kicad_sch` to confirm nothing was lost.
+- J6's pinout diffed against `pcb/mainboard/epd.kicad_sch` to confirm nothing was lost. (J3 is
+  deleted, so there is nothing to diff — `docs/fpga.md` §15.2.)
 - The DSC landing pattern cross-checked pin by pin against L-1041e.A3 Figs 10–13 before fab.
 - On first silicon: `sensor` in each of the four states in the battery table, folded back into
   `NOTES-STATUS.md` the same way the R1 measurements were.

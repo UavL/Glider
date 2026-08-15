@@ -397,8 +397,16 @@ back. The firmware runs 1448 × 1072, which is the 6″ 300 ppi family: `ED060KC
 waveform LUT in a small serial flash on the tail. Useful to know it exists; R2 must keep whatever
 R1 does about it, and the 1.8 V supply for it.
 
-The green board in the same photo is one of this repo's own adapters (`pcb/35p-adapter-a/`),
-carrying `J3`.
+The green board in the same photo is one of this repo's own adapters (`pcb/35p-adapter-a/`).
+Its `J3` is that board's own 35-pin panel connector (`X03A10L35G`), **not** the mainboard's
+16-pin `J3` — which R2 has deleted (`pcb/r2-mainboard/docs/fpga.md` §15.2).
+
+**No adapter in this repo uses the mainboard's 16-pin connector at all.** Grepping all ten
+adapter projects — `34p-adapter-a/b`, `35p-adapter-a`, `39p-adapter-b/c`, `40p-adapter-ab`,
+`50p-adapter-b/c`, `mega_adapter`, `u133_adapter` — finds zero 16-pin FPC parts; every one of
+them mates with the 50-pin `J6` alone. So the 16-pin connector was unused by the entire
+adapter ecosystem that shipped with R1, which is the fifth independent line of evidence that
+deleting it costs nothing for any panel these adapters support.
 
 Suppliers, for the touch/frontlight/digitizer enquiry when that becomes live: **Good Display**
 (<https://www.e-paper-display.com>, sales@e-paper-display.com) sells panels with touch and
