@@ -209,10 +209,10 @@ from — but only in R1's rail context.
   panel.~~ **Closed 2026-08-15 — deleted** by the owner, `tools/patch_drop_j3.py`. `fpga.md` §15.2
   has the reasoning and what moved; §9.3 below is what it was decided from. `epd.kicad_sch` is
   therefore no longer a pin-for-pin port of R1's, and its title-block caption says so.
-- **Layout guidelines are still owed for these three sheets.** `battery.md`, `power.md` and `mcu.md`
-  each carry a §11; this document has none, because the port's answer to "how should it be laid out"
-  was "the same as R1". That is a real answer for the HV chain but not a written one, and the EPD
-  supply is the most layout-sensitive circuit on the board. Write it before Stage D.
+- ~~**Layout guidelines are still owed for these three sheets.**~~ **Written 2026-08-15 — §11.**
+  The headline is §11.1: `U9` and `U26` are inverting buck-boosts whose `GND` pin sits on `-VGL`
+  and `-VN`, so each needs a local copper island at −20 V / −15 V with the plane cut away beneath
+  it. Confirmed from the exported netlist rather than from the drawing.
 - **The root sheet is still unwired**, so most of §6's ERC count is noise and cross-sheet
   connectivity is verified by script instead of by ERC. See §8.
 
@@ -332,3 +332,96 @@ item, now in §7 rather than a change made on a guess.
 This review round is answers only. `epd`, `epd_power` and `power_mon` are untouched, so §6's
 verification — `epd` and `epd_power` provably net-identical to R1, `power_mon` differing in exactly
 four intended groups — still stands as run.
+
+## 11. Layout guidelines — written 2026-08-15, for Stage D
+
+§7 has owed these since WP4, with the note that "the EPD supply is the most layout-sensitive
+circuit on the board". It is, and for one reason that is invisible on the schematic.
+
+### 11.1 ⚠ Two ICs have a "GND" pin that is not ground, and a plane connection destroys them
+
+**Verified from the exported netlist, not from the drawing:**
+
+| Part | Pin 2, labelled `GND` | Sits on | Voltage relative to board ground |
+| --- | --- | --- | --- |
+| `U9` `LGS5145` | `GND` | **`-VGL`** | about **−20 V** |
+| `U26` `LGS5145` | `GND` | **`-VN`** | about **−15 V** |
+| `U23` `LGS6302B5` | `GND` | `GND` | 0 V — a normal boost |
+| `U24` `LGS6302B5` | `GND` | `GND` | 0 V — a normal boost |
+
+Both `LGS5145`s are wired as **inverting buck-boosts** (`epd-port.md` §4.1): the IC's ground
+reference *is* the negative output. So each one needs its own **local copper island at −20 V or
+−15 V**, and that island must not touch the ground plane anywhere. The failure mode is not subtle
+— tie either to ground and the part sees its full input across the wrong terminals.
+
+Concretely, for `U9` and again for `U26`:
+
+- The island carries pin 2, the local input capacitor's "ground" end, the output capacitor's
+  return, and the feedback divider's bottom. **Nothing else.**
+- The plane layer under each island must be **cut away**, not just avoided on the outer layer. A
+  ground pour under a −20 V island is a 20 V capacitor across a thin prepreg and a coupling path
+  for the switching node.
+- Silkscreen each island. This is the one thing on the board that a reasonable person will "fix".
+
+### 11.2 The switching loops, in order of how much they radiate
+
+Four converters here, and the two inverting ones have the hottest loops because their return is
+the negative rail rather than a plane.
+
+- **Input loop first**: for each of `U9`, `U26`, `U23`, `U24`, the input capacitor goes across the
+  IC's `VIN` and its own reference pin with the shortest possible loop — this is the
+  high-di/dt path, and it matters more than the inductor placement.
+- `L5`, `L6`, `L30`, `L32` (`WPN3012H4R7MT`, 4.7 µH): keep the **`SW` node copper small**. It is
+  the dv/dt aggressor and the only reason to make it wide is current, which at these currents is
+  not a reason.
+- The catch diodes `D1`–`D6`, `D15`, `D17` (`1N5819WS`) belong **immediately** at their converter's
+  `SW` node. A Schottky at the far end of a trace turns the trace into an antenna at every edge.
+- Keep all four converters' loops away from `VCOM_MEA` and the panel connector (§11.3, §11.4).
+
+### 11.3 `VCOM` is measured, and the measurement is the point
+
+`VCOM_MEA` runs to the MCU's `ADC_IN6`, and R1's whole VCOM kick-back scheme depends on that
+reading being clean. `U31` (`LM321`) buffers it.
+
+- Route `VCOM_MEA` as a **quiet analogue trace**: away from every `SW` node, guarded by ground on
+  the same layer where it is convenient, and never over a switching-converter island.
+- `U6` (`MT9700`) and the `VCOM` divider network sit close to `U31`, not close to the converters.
+- The `-VCOM` rail itself goes to the panel and is comparatively low current; give it clearance,
+  not width.
+
+### 11.4 High-voltage clearance, which is smaller than it feels
+
+The extremes are about **+22 V (`+VGH`)** and **−20 V (`-VGL`)**, so the worst pair-wise
+difference on this board is roughly **42 V**. IPC-2221B for 31–50 V external, uncoated, asks for
+**0.13 mm**; internal layers less. Our ordinary 0.2 mm class rules therefore already satisfy it,
+and no special HV spacing class is needed.
+
+**What does need care is not clearance but sequencing damage**: `+VGH` and `-VGL` are generated
+from `+5V_EG`/`+5V_ES`, which the `TPS22914`s (`U7`, `U8`) gate. Keep those load switches and their
+enables physically near the converters they feed, so the enable trace is short and cannot pick up
+the switching it is supposed to control.
+
+### 11.5 The `INA3221` shunts want Kelvin connections
+
+`power_mon` carries eight 20 mΩ shunts. At 20 mΩ, **1 mΩ of trace resistance is a 5 % error**, and
+a shunt sensed at the wrong end of its own pad measures the pad too.
+
+- Sense traces leave from the **inside edges of the shunt pads**, symmetrically, as a tight pair.
+- Route the pair together to the `INA3221`, away from the converters.
+- The five HV measurement dividers belong at the `INA3221`, not at the rail, so the high-impedance
+  node is short.
+- All three `INA3221`s are on `+3V3_AON` (§3) — their supply and I²C should not have to cross a
+  switching region to get there.
+
+### 11.6 The panel connector
+
+`J6` (`FPC-05F-50PH20`, 50-pin 0.5 mm) is the board's edge interface and it carries five HV rails,
+`+3V3`, the frontlight pair and the whole source/gate bus.
+
+- **Place it first.** It is the one part whose position is fixed by the enclosure and the panel's
+  own tail, and everything else on this sheet arranges around it.
+- The HV rails arrive at it from §11.1's islands; give each a direct route rather than a plane,
+  since these are not plane nets.
+- `EPDC_SE_CLK` and the source bus are the fastest signals here; keep them over continuous ground.
+- `J3` is **gone** (§7), so the 16-pin connector's board edge is free — worth remembering when the
+  outline is drawn, because that was ~13 mm of edge on R1.
