@@ -309,40 +309,77 @@ required for data retention.
 `+3V3_AON` needs no sequencing: it is up whenever `+VSYS` is, which is whenever a cell or USB is
 present.
 
-### 5.1 ⚠ `+3V3` must precede `+5V_SOM`, or the SoM boots from the wrong device
+### 5.1 ⚠ SoM rail order — `+5V_SOM`, then `+3V3`, and reset held across both
 
-Added 2026-08-14, from WP7's investigation. This is the one ordering constraint on this board that
-is a *requirement* rather than a preference, and it is invisible in the schematic.
+**Revised 2026-08-15, and the earlier version of this section was wrong in the dangerous
+direction.** It concluded "`MCU_EN_3V3` and `PG_3V3` before `MCU_EN_5V`". That is backwards, and it
+violates a requirement `L-1038e.A5` §5.4 states as **mandatory**:
 
-Two of the eighteen DPI signals — `DPI_R7` and `DPI_R6` — land on the module's `BOOTMODE_9` and
-`BOOTMODE_8`, which are part of the **primary boot mode selection** (`L-1038e.A5` Tables 17, 31;
-AM62x TRM Fig. 12-471; `NOTES-R2-hardware-facts.md` §3.1). The module straps both high with 100 kΩ
-and latches them when it leaves reset.
+> "It is **mandatory to avoid driving the I/O pins of the phyCORE-AM62x SOM when the SOM is not
+> fully powered up.** Prematurely driving the pins may cause current to flow through the I/O pins
+> before the processor is properly powered, potentially resulting in damage or unknown behavior
+> after power-up or reset. Therefore, the peripheral carrier board power should be switched
+> on/enabled by the `X_PGOOD` signal … This should be used to sequence the baseboard power supplies
+> (3.3V, 1.8V, etc.)."
 
-Caster's DPI pins are inputs and never drive them. But **an FPGA whose `VCCO` is off does not
-present a high impedance** — its input ESD structure clamps to the unpowered rail, and a
-forward-biased clamp diode comfortably beats a 100 kΩ pull-up. If `+3V3` (bank 1's `VCCO`) is down
-while the SoM releases reset, `BOOTMODE_9` latches 0 instead of 1.
+`+3V3` is `VCCO` for FPGA banks 0/1/2, and bank 1 is the twenty-two DPI lines that face the SoM. So
+bringing `+3V3` up first is exactly the case PHYTEC says can damage the module. The old text
+reached the opposite conclusion because it optimised for one constraint (below) without checking
+whether the SoM had a rule of its own. **It did, in the same manual, three sections earlier.**
 
-So firmware's rail order must satisfy:
+**The other constraint is still real.** Two of the eighteen DPI signals — `DPI_R7` and `DPI_R6` —
+land on the module's `BOOTMODE_9`/`BOOTMODE_8`, part of the **primary boot mode selection**
+(`L-1038e.A5` Table 31 states the mapping outright: `VOUT0_DATA16` → `X1 D2` →
+`X_GPMC0_AD8/BOOTMODE_8`, `VOUT0_DATA17` → `X1 D4` → `X_GPMC0_AD9/BOOTMODE_9`, both 100 kΩ pullup
+on the SOM). An FPGA whose `VCCO` is off does not present a high impedance — its input ESD
+structure clamps toward the unpowered rail, and a forward-biased clamp diode beats a 100 kΩ
+pull-up. If `+3V3` is down when the SoM **samples** boot mode, `BOOTMODE_9` latches 0 instead of 1.
 
-> **`MCU_EN_3V3` asserted and `PG_3V3` high, before `MCU_EN_5V`.**
+**Both are satisfiable, because "the SoM is powered" and "the SoM samples boot mode" are two
+different instants** — separated by cold reset, which we already control. `X_nRESET_IN` (`X1 C52`,
+10 kΩ pullup + 100 nF on the SOM, Table 13) is the cold system reset input, and `mcu.md` §4 has
+declared `SOM_RESET#` as an open-drain GPIO on `PA15` since WP3. Hold it low across the 5 V ramp:
 
-which is compatible with the Spartan-6 preference above (`MCU_EN_FPGA_CORE` → `MCU_EN_3V3` →
-`MCU_EN_DDR`) — put `MCU_EN_5V` after `MCU_EN_3V3` and both are satisfied at once. There is no
-hardware interlock and none is proposed: adding one would mean gating the boost's `EN` on `PG_3V3`,
-which costs a part and removes firmware's ability to power the SoM with the FPGA down, a state the
-reading architecture may want later.
+| # | Step | Which rule it serves |
+| --- | --- | --- |
+| 1 | `SOM_RESET#` asserted low (open-drain, so it sinks; no injection into an unpowered pin) | — |
+| 2 | `MCU_EN_5V` high → `+5V_SOM`. SoM PMIC sequences. `+3V3` still **off**, so every FPGA pin facing the SoM is unpowered and drives nothing | **PHYTEC §5.4** |
+| 3 | Wait for `X_PGOOD` (`X1 C54`, open-drain, 100 kΩ pullup on the SOM) | **PHYTEC §5.4** |
+| 4 | `MCU_EN_3V3` high, wait `PG_3V3` → FPGA `VCCO` up | — |
+| 5 | Release `SOM_RESET#`. The SOM's own 10 kΩ × 100 nF ≈ 1 ms RC delays the actual release, then `BOOTMODE_8/9` are sampled with `+3V3` already stable | **BOOTMODE** |
 
-**Not verified on hardware.** The failure mode is a module that boots from the wrong device, or not
-at all, and only when `+3V3` happens to be late — so it would present as an intermittent bring-up
-fault. It is cheap to get right in firmware and expensive to diagnose.
+Step 4 also keeps the Spartan-6 preference above intact (`MCU_EN_FPGA_CORE` → `MCU_EN_3V3` →
+`MCU_EN_DDR`); it simply moves that whole group after the SoM instead of before it. The 100 nF on
+`X_nRESET_IN` is a gift here — it makes step 5 self-delaying rather than something firmware has to
+time.
+
+**This adds one signal to the design, and it is not drawn yet.** `X_PGOOD` must reach the MCU:
+
+> **`PG_SOM`** — `X1 C54` → a spare MCU GPIO. `PC8` is the suggestion (a plain GPIO; the four
+> ADC-capable spares are worth keeping for analogue). The pin is open-drain with its pull-up on the
+> SOM's own 3.3 V, so when the SoM is unpowered the net floats — **enable the MCU's internal
+> pull-down** so "no SoM" reads as "not good" rather than as noise. A pull-down is the safe
+> direction: it sinks, it does not inject.
+
+That is a WP8 item on `som.kicad_sch` and a small edit to `mcu.kicad_sch`, listed in `mcu.md` §9's
+open items rather than made silently on a reviewed sheet.
+
+**No hardware interlock is proposed**, though PHYTEC's Figure 20 shows one (a load switch on the
+baseboard rails, enabled by `X_PGOOD`). Ours is firmware sequencing against `PG_SOM`, which costs
+no parts and keeps firmware's ability to run the SoM with the FPGA rail down — a state the reading
+architecture may want. The trade is that a firmware bug can now do what a load switch would have
+prevented, so the sequence above is a **hard requirement on `power.c`, not a preference**.
+
+**Not verified on hardware.** Two distinct failure modes now, and they differ in severity: getting
+step 4 before step 2 risks *module damage* (PHYTEC's wording), and getting step 5 before step 4
+gives an *intermittent wrong boot device*. The first is why this correction matters more than the
+original note did.
 
 One ordering consequence of deleting `U11` (§2.2): the boost no longer has to wait for a switched
 input to cross its 1.8 V start-up UVLO ‡, so `MCU_EN_5V` high starts it immediately. Firmware's
 5 V step is now a plain "assert, wait `tSS` ≈ 700 µs ‡ plus margin, read the rail on `power_mon`" —
-there is no `PG_5V` (below), so the 5 V rail is the one step that is confirmed by measurement rather
-than by a pin.
+there is no `PG_5V` (below), so the 5 V rail is the one step that is confirmed by measurement
+rather than by a pin. With `PG_SOM` added, the *SoM* side of that step does get a pin.
 
 ## 6. Deviations from `NOTES-R2-plan.md`
 

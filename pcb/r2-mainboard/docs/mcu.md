@@ -542,6 +542,17 @@ error and the sheets are drawn months apart.
 
 ## 9. Open
 
+- ⚠ **`PG_SOM` is owed to this sheet, and it is a WP8 dependency, not a nicety.** `power.md` §5.1
+  was corrected on 2026-08-15: `L-1038e.A5` §5.4 makes it **mandatory** that nothing drives the
+  SoM's I/O before the module is powered, so `+3V3` — which is `VCCO` for the FPGA bank facing the
+  SoM — must come up *after* the module, gated on the module's `X_PGOOD`. That signal has to reach
+  the MCU. **`X1 C54` → a spare GPIO; `PC8` is the suggestion**, keeping the four ADC-capable
+  spares free. `X_PGOOD` is open-drain with its pull-up on the SOM's own 3.3 V, so the net floats
+  when the SoM is unpowered — **enable the internal pull-down** so "no SoM" reads as "not good".
+  One net on `mcu.kicad_sch`, one on `som.kicad_sch`; both land when WP8 draws the SoM sheet.
+- **The spare count in §3.2 says 11 and the schematic has 10.** `PC10` was claimed for `FPGA_INIT`
+  in WP5 and the sentence was not updated. Live spares, read out of the netlist: `PA11`, `PA12`,
+  `PB12`, `PC3`, `PC4`, `PC5`, `PC6`, `PC8`, `PC9`, `PD9` — nine after `PG_SOM` takes one.
 - **`Y20`'s load capacitance is unverified.** Epson FC-135 exists in 12.5 pF, 9 pF and 7 pF;
   **`C46` and `C47`** are 18 pF on the assumption of 12.5 pF and ~3 pF stray (§5.4). Confirm from the
   Epson datasheet before layout, and check the crystal's drive-level rating against the G0's LSE

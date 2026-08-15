@@ -174,13 +174,22 @@ a wiring choice:
    PHYTEC's own guidance for *deliberately* overriding a strap is a 1 kΩ pull-up or 10 kΩ
    pull-down against their 100 K, which is the scale an accidental load would have to reach — so
    ordinary routing is not a threat, but a "helpful" resistor would be.
-2. ⚠ **The FPGA's bank-1 `VCCO` (`+3V3`) must be up before the SoM releases reset.** Caster's DPI
-   pins are inputs and never drive, but an FPGA whose `VCCO` is *off* clamps its inputs through the
-   ESD structure to an unpowered rail — and a forward-biased clamp diode beats a 100 K pull-up, so
-   `BOOTMODE_9` would latch 0 instead of 1 and the module would boot from the wrong device. This is
-   a **firmware ordering rule**, not a hardware one: `docs/power.md` §5 says enable order is
-   firmware's and is not interlocked, so `MCU_EN_3V3` (and `PG_3V3`) must precede `MCU_EN_5V`.
-   Recorded in `docs/power.md` §5.
+2. ⚠ **The FPGA's bank-1 `VCCO` (`+3V3`) must be up before the SoM *samples* boot mode.** Caster's
+   DPI pins are inputs and never drive, but an FPGA whose `VCCO` is *off* clamps its inputs through
+   the ESD structure to an unpowered rail — and a forward-biased clamp diode beats a 100 K pull-up,
+   so `BOOTMODE_9` would latch 0 instead of 1 and the module would boot from the wrong device.
+
+   ~~So `MCU_EN_3V3` (and `PG_3V3`) must precede `MCU_EN_5V`.~~ **Corrected 2026-08-15: that
+   ordering is backwards and unsafe.** L-1038e.A5 §5.4 makes the opposite **mandatory** — "it is
+   mandatory to avoid driving the I/O pins of the phyCORE-AM62x SOM when the SOM is not fully
+   powered up … the peripheral carrier board power should be switched on/enabled by the `X_PGOOD`
+   signal". `+3V3` *is* the rail that powers the FPGA pins facing the SoM, so bringing it up first
+   is the damage case.
+
+   Both rules hold at once because "the SoM is powered" and "the SoM samples boot mode" are
+   different instants, separated by cold reset. Hold `SOM_RESET#` (→ `X_nRESET_IN`, `X1 C52`) low
+   across the 5 V ramp; bring `+3V3` up only after `X_PGOOD`; then release reset. Full sequence,
+   and the new `PG_SOM` signal it requires, in `docs/power.md` §5.1.
 
 ### 3.2 `PCL-071` — the second-revision target, kept for reference
 
