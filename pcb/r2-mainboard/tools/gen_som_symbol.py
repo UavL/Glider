@@ -86,6 +86,11 @@ VIDEO_EXTRA = {"D2", "D4"}
 CTRL_PREFIXES = (
     "SPI0_", "UART0_", "MMC1_", "USB0_", "I2C0_", "I2C1_",
     "MCU_UART0_", "WKUP_UART0_", "WKUP_I2C0_", "MCU_I2C0_", "MCU_SPI0_",
+    # MCAN is in the MCU always-on domain and a reader can never want CAN, so
+    # this is where SOM_WAKE#/SOM_IRQ# land -- A58 = MCU_GPIO0_14 and
+    # A57 = MCU_GPIO0_13. Keeping all four on the wired unit means the two
+    # spares are visible if the chosen pin turns out not to wake DeepSleep.
+    "MCU_MCAN0_", "MCU_MCAN1_",
 )
 CTRL_EXACT = {
     "X_PMIC_EN", "X_nRESET_IN", "X_PGOOD", "X_PORz_OUT", "X_RESETSTATz",

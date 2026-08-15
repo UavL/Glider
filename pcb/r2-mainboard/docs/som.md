@@ -1,6 +1,7 @@
 # `som`, `dpi_in` — the PCM-071 module — R2 work packages 7 and 8
 
-Status: **specified; sheets not drawn yet.** Companion to `power.md`, `mcu.md`, `fpga.md` and
+Status: **drawn 2026-08-15 — `som.kicad_sch` and `dpi_in.kicad_sch` both exist, and the
+hierarchy has no dangling interfaces left.** Not yet reviewed by the owner. Companion to `power.md`, `mcu.md`, `fpga.md` and
 `epd-port.md`.
 
 The module is a **`PCM-071`** — the connectorised phyCORE-AM62x, chosen over the solder-down
@@ -185,20 +186,35 @@ Table 6's `VDDSHV0` row.
 | `MCU_RXD` | D38 | `X_UART0_TXD` | |
 | `SOM_RESET#` | C52 | `X_nRESET_IN` | cold reset; 10 kΩ + 100 nF on SOM, so no parts our side |
 | `PG_SOM` | C54 | `X_PGOOD` | **new, `power.md` §5.1** — open-drain out; gates `+3V3` |
-| `SOM_IRQ#` | *tbd* | a `VDDSHV0` GPIO | MCU → SoM attention |
-| `SOM_WAKE#` | *tbd* | a WKUP-domain GPIO | MCU → SoM wake from Deep Sleep |
+| `SOM_IRQ#` | **A57** | `X_MCU_MCAN0_TX` = `MCU_GPIO0_13` | MCU → SoM attention |
+| `SOM_WAKE#` | **A58** | `X_MCU_MCAN0_RX` = `MCU_GPIO0_14` | MCU → SoM wake from Deep Sleep |
 | `USB_DP` / `USB_DM` | A39 / A38 | `X_USB0_DP` / `X_USB0_DM` | from `J1` on `battery` |
 
-Two rows are still `tbd` and they are the honest gaps:
+### 5.1 How `SOM_WAKE#` and `SOM_IRQ#` were chosen
 
-- **`SOM_WAKE#` needs a WKUP-domain pin, and PHYTEC has demonstrated the mechanism without naming
-  the pin.** Their low-power report shows BTN1 waking the module through `WAKEUPGPIO`
-  (`ti-sci … wakeup source:0x80, pin:0x75`), so wake-from-GPIO works; which `X1` pin reaches it is
-  not in this manual's tables. Candidates to check against the AM62x TRM's WKUP mux: the
-  `X_MCU_*` and `X_WKUP_*` groups, which are the always-on domain. Until it is settled the buttons
-  stay on the MCU (`mcu.md` §5.5), which is the drawn and working route.
-- **`SOM_IRQ#`** is any free `VDDSHV0` GPIO; it is a choice, not a constraint, and should be picked
-  once the unused-pin picture is final so it lands somewhere convenient for layout.
+**PHYTEC's manual never uses the word "wake".** It is not in the document, so the pin could not be
+looked up there; the answer came from TI's AM62x datasheet (`SPRSP58C`) instead.
+
+`som_pinout.json` gives every `X1` pin's AM62x ball. Cross-referencing those against the
+datasheet's pin-multiplexing table — which signal each ball presents in mux mode 7 — shows that
+**exactly 22 `X1` pins reach an `MCU_GPIO0_*`**, i.e. a GPIO in the **MCU always-on domain**, the
+domain that stays powered through DeepSleep. The other ~170 signal pins are MAIN-domain and could
+not wake the module whatever firmware did.
+
+Among those 22 the choice is easy: `X_MCU_MCAN0_TX`/`RX` (A57/A58) are **CAN**, which a reader can
+never want, and they are adjacent so the two housekeeping lines stay together. `X_MCU_UART0_*` and
+`X_WKUP_UART0_*` were rejected as likely debug consoles, and `X_MCU_SPI0_*`/`I2C0_*` because a
+future need for them is more plausible than for CAN.
+
+Supporting, though not conclusive: the datasheet's feature list names *"Partial IO support for
+**CAN**/GPIO/UART wakeup"*, so these pins are wake-capable in at least one low-power mode.
+
+> ⚠ **Confirm at bring-up.** "Partial IO" is a *different* mode from DeepSleep, and PHYTEC
+> demonstrated GPIO wake from Suspend-to-RAM without naming the pin. So the domain is proven and
+> the specific pin is not. If `MCU_GPIO0_14` turns out not to be a DeepSleep wake source, moving to
+> another of the 22 is a one-net edit — which is precisely why the choice was made from that set
+> rather than from a MAIN-domain pin that certainly could not work. `MCU_MCAN1_TX`/`RX` (A59/A60)
+> are the obvious next candidates and are on the same unit of the symbol.
 
 **`X_PMIC_EN` (C51) is left unconnected.** It has a 100 kΩ pullup to 5 V on the module, so the
 module starts whenever `VIN` does, and `MCU_EN_5V` is already our on/off. It would be a second,
@@ -270,12 +286,14 @@ correctness rests on**, and pin numbers carry no footnotes.
 
 ## 9. Open
 
-1. **`SOM_WAKE#`'s module pin is unknown** (§5). Blocks nothing — the buttons are on the MCU — but
-   it is the difference between the SoM waking itself and the MCU having to.
-2. **`SOM_IRQ#`'s pin is unchosen** (§5).
+1. ~~**`SOM_WAKE#`'s module pin is unknown**~~ **Chosen 2026-08-15 — A58, `MCU_GPIO0_14`** (§5.1).
+   The always-on domain is proven from TI's datasheet; the specific pin still wants a bring-up
+   test.
+2. ~~**`SOM_IRQ#`'s pin is unchosen**~~ **Chosen — A57, `MCU_GPIO0_13`** (§5.1).
 3. **`VBAT`'s source is a review decision** (§3).
 4. **Whether `SoC_VDDSHV5_SDIO` stays energised in Suspend-to-RAM** (§4.1) — needs a hardware test.
-5. **`PG_SOM` is owed to `mcu.kicad_sch`** as well as this sheet (`mcu.md` §9).
+5. ~~**`PG_SOM` is owed to `mcu.kicad_sch`**~~ **Done — `tools/patch_mcu_pg_som.py` claims
+   `PC8`.** Firmware must enable the pin's internal pull-down; see that script's docstring.
 6. **`check_pinout.py` does not exist yet.** `parse_som_pinout.py` is its data source and is done.
 7. **The `PCM-071` has never been priced**, and PHYTEC's quote covered `PCL-071-001-R` only. The
    owner's route is to buy a `phyBOARD-AM62x` kit (`KPB-07124`, $349) whose module unplugs.

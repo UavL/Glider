@@ -57,16 +57,12 @@ PAGE_RIGHT = 410.0     # A3 is 420 wide; the frame's inner edge is about here
 # on one side and forgotten on the other -- which is exactly the class of mistake
 # a hierarchy this size hides well.
 DANGLING_OK = {
-    # The 22 DPI names were here until 2026-08-15, when gen_dpi_in.py drew the
-    # other end. They are joined now, so listing them would be a lie the tool
-    # reports as a stale entry rather than a finding.
-    **{n: "WP8 som: the SoM is the CSR SPI master and writes the config NOR. "
-          "fpga_config exports the FPGA end."
-       for n in ("FPGA_SCLK", "FPGA_MOSI", "FPGA_MISO", "FPGA_CS", "NOR_CS")},
-    **{n: "WP8 som: MCU-to-SoM housekeeping, declared on mcu since WP3."
-       for n in ("MCU_RXD", "MCU_TXD", "SOM_IRQ#", "SOM_RESET#", "SOM_WAKE#")},
-    **{n: "WP8 som: USB 2.0 from J1 on battery to the SoM's OTG port."
-       for n in ("USB_DP", "USB_DM")},
+    # Empty as of 2026-08-15, and that is the point: every hierarchical label in
+    # the project now has a counterpart on another sheet. WP7 closed the 22 DPI
+    # names, WP8 the 12 CSR-SPI / housekeeping / USB ones, and
+    # patch_mcu_pg_som.py the last one. Anything that turns up one-sided from
+    # here is a genuinely forgotten interface, which is what this table exists
+    # to make visible -- so add an entry only with a reason and a work package.
 }
 
 

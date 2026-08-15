@@ -4395,10 +4395,6 @@
 		(uuid "9b334e6c-8a4a-426c-b4b9-8dbe113f8fc8")
 	)
 	(no_connect
-		(at 124.46 172.72)
-		(uuid "a2d3edfe-a059-440a-97c2-b84e2b333b3a")
-	)
-	(no_connect
 		(at 124.46 160.02)
 		(uuid "cd14dcb1-b8b2-48a5-b0dc-039d26578988")
 	)
@@ -11451,6 +11447,29 @@
 				)
 			)
 		)
+	)
+	
+
+	(wire
+		(pts
+			(xy 124.46 172.72) (xy 114.3 172.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d3e35b34-2515-41f8-a116-a666ee1b73c7")
+	)
+	(hierarchical_label "PG_SOM"
+		(shape input)
+		(at 114.3 172.72 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5f4908cf-abd1-4a7e-b8c7-a1545e3a574b")
 	)
 	
 )
