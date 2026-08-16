@@ -1,6 +1,39 @@
 # `frontlight` — the panel LED rail — R2 work package 6
 
-Status: **drawn 2026-08-15, not yet reviewed.** Companion to `power.md` and `epd-port.md`.
+Status: **drawn 2026-08-15. ⚠ ON HOLD 2026-08-16 by the hardware owner — the sheet as drawn is
+wrong for either candidate panel, and no edit happens until a frontlight datasheet arrives.**
+Companion to `power.md` and `epd-port.md`. Read §0 before anything below it.
+
+---
+
+## 0. ⚠ On hold — the premise in §2 was wrong
+
+Everything from §1 down was written on the assumption in §2 that **"there is no LED driver on this
+board, and there was none on R1 — the panel's tail regulates the current."** That is true of R1,
+which drove `J6` into a panel *adapter* board. **It is not true of a bonded frontlight film**,
+whose FPC is LED anodes and cathodes with nothing regulating them. If R2 uses a module with a
+bonded frontlight, **this board needs a real constant-current driver**, which is not what is drawn.
+
+The two candidate panels are also nowhere near each other:
+
+| Candidate | Frontlight | vs. the 4.99 V rail drawn here |
+| --- | --- | --- |
+| `GDE060F3-FT01`, 6" | **2.8–3.6 V**, separate FPC | too high, and unregulated |
+| `GDEP103TC2-FT11`, 10.3" | **27 V**, 18 LEDs, dual-channel 9-series, cool + warm, 8-pin | far too low |
+
+A `TPS61022` cannot reach 27 V (5.5 V max) and is the wrong topology for 3.3 V from a 3.0–4.4 V
+cell. **`U53` and its whole network are provisional.**
+
+**Decision, 2026-08-16:** hold the sheet. Do not redesign on a guess — request the frontlight FPC
+pinout and drive spec (voltage, current, series/parallel arrangement, dimming method) from the
+panel vendor, then design to it. Three options were put to the owner: a wide-range 2-channel
+constant-current driver covering 3–30 V, a low-voltage design for the 6" module only, or hold.
+**Hold was chosen.**
+
+What is *not* in doubt and does not need to change: `+VSYS_FL` and its `U22` ch3 shunt, `FL_EN`
+reaching both this sheet and `J6.43`, and the fact that `+5V2_FL` needs *a* source (§1).
+
+---
 
 One converter, and it closes a hole in the design rather than adding a feature.
 

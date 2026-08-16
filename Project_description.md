@@ -1,10 +1,32 @@
-# Project: Open Low-Latency E-Ink Reader (working name: Specter)
+# Project: Open Low-Latency E-Ink Reader (codename: Reflow)
 
 > This file is the standing brief — who I am, what I want, and the requirements. It has not been
 > superseded. For where the work actually stands, see `NOTES-R2-plan.md` (the board being
 > designed) and `NOTES-STATUS.md` (the existing dev-kit board). The Pi 4 named below is the
 > current dev machine and is being replaced by a soldered-down AM62x module, exactly as the
 > power measurements in this file concluded it must be.
+
+## Naming
+
+Set by the owner, 2026-08-16.
+
+| | | Status |
+| --- | --- | --- |
+| **Reflow** | the device — this project's codename | **decided.** Replaces *Specter* |
+| **Blatt** | company name, for supplier enquiries | **candidate** — under consideration |
+
+*Specter* is retired. It still appears in the title block of all 13 R2 schematic sheets
+(`Glider-R2 / Specter mainboard`) and in the eight generators that emit it; renaming those is a
+one-line change per file and has not been done yet.
+
+Two practical notes for supplier enquiries, since PHYTEC and Good Display both sell B2B:
+
+- A trading name on its own is usually fine for a quote, but **an order** often wants a company
+  registration and, inside the EU, a VAT ID — worth confirming before the name is used in writing
+  to a new supplier.
+- Check *Blatt* is free as a mark and a domain before it appears on anything outward-facing.
+  It is an ordinary German noun (*leaf*, *sheet of paper*), which is apt for an e-reader but also
+  means it is unlikely to be registrable on its own without a distinguishing element.
  
 ## Who I am
  

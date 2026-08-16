@@ -41,7 +41,15 @@ high-refresh drive.
    The thickness constraint is not withdrawn, it is deferred: **the first prototype is allowed to
    be thick.** A later revision can move to `PCL-071` once the design is settled, which is a
    footprint swap on one sheet. Everything else on the board is unaffected.
-2. Design the video link for 75 Hz; operate at 50 Hz.
+2. ~~Design the video link for 75 Hz; operate at 50 Hz.~~ **Revised by the hardware owner
+   2026-08-16: 75 Hz was never the goal.** It was read off the repo as a maximum. The actual
+   requirement is *"a fluid e-reader — maybe even 40 Hz is acceptable"*, so **design the video link
+   for 40–50 Hz**.
+
+   This is not a relaxation of the product; it is a correction of a number that had been treated as
+   a spec. It matters because 75 Hz was the **binding constraint on panel size** — and it was the
+   only one. See "Panel choice" below and `pcb/r2-mainboard/docs/fpga.md` §16 for why the input
+   link rate and the panel's greyscale frame rate are separate budgets.
 3. First board is **compute + display + power only**. Touch and pen get unpopulated FPC
    connectors so they can be added without a respin.
 4. Nothing gets ordered until the open questions below are answered.
@@ -194,6 +202,32 @@ H750 become a G0.
 
 ---
 
+## Panel choice
+
+Opened 2026-08-16. The panel had been deferred with touch and pen; the owner began sourcing, which
+turned it into a live decision. **Nothing is ordered yet.**
+
+**→ `pcb/r2-mainboard/docs/panel.md`** has the full analysis: the two rate budgets, the candidate
+comparison, the 128-pixel arithmetic, what each candidate costs on the frozen sheets, and the
+documents to request from the vendor.
+
+The plan-level summary:
+
+1. **Buy `GDE060F3-FT01` (6", 1024×758) first** if it can be sourced — a complete module with
+   bonded frontlight and touch, so it is the one that lets both be exercised on the PCB. Currently
+   **0 in stock at $54**; enquiry sent.
+2. **Then a 10.3" `GDEP103TC2-FT11` (1872×1404) for the bigger product**, padded to 1872×1400 —
+   4 unused lines. At 40 Hz it clears every limit including dithering, and its native
+   33.33 MHz / 85 Hz timing is `clk_epdc` exactly.
+3. **Short-final-burst handling in `memif.v` comes later** (`docs/fpga.md` §12 item 6), once a
+   panel is on the bench.
+
+Two frozen sheets are waiting on vendor documents: **`frontlight` is ON HOLD** (a bonded frontlight
+film needs a constant-current driver this board does not have, and the two candidates are 3.3 V vs
+27 V), and **`io_expansion` §5** needs `FT5436`'s FPC pinout to close the last Stage C decision.
+
+---
+
 ## What is still open
 
 | Gap | Blocks ordering? | Closes at |
@@ -205,7 +239,7 @@ H750 become a G0.
 | Orderable variants (1 GB RAM, small eMMC, `VDDSHV3` = 3.3 V, WiFi) | **YES** | PHYTEC Q3 |
 | **The R2 schematic does not exist** | **YES** | Stages B–E — months, not a purchase |
 | ~~Will JLCPCB accept the 270-pin consigned module on a custom footprint~~ | ~~soon~~ | **Gone with the `PCM-071` switch** — nothing is consigned |
-| Panel model | no — deferred with touch/pen | read it off the tail/back label |
+| Panel model | no — but now being actively sourced, see "Panel choice" | vendor enquiry, 2026-08-16 |
 | R1 firmware + gateware untested on hardware | no | needs the ISE VM (192.168.56.102, currently down) |
 
 **Nothing is ordered until the remaining `YES` rows are answered** — now `PCM-071` price/MOQ,

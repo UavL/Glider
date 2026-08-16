@@ -97,6 +97,27 @@ and an EMR digitizer's FPC both have part-specific pinouts, and neither part is 
 model itself is still deferred. If the eventual part disagrees, the pads are wrong and *that*
 group would need a respin, which is exactly what the provision was meant to avoid.
 
+### 5.1 Evidence gathered 2026-08-16 — the signal set is right, the order is still open
+
+Two real touch modules were examined while evaluating panels, and **both need exactly the six
+signals `J22` carries** — `VCC`, `GND`, `SCL`, `SDA`, `INT`, `RST`. Nothing needs a seventh pin.
+That is the half of §5 that was actually load-bearing, and it holds.
+
+| Module | Touch IC | Connector | Pin order |
+| --- | --- | --- | --- |
+| `GDEY075T7-T01`, 7.5" | `GT911` | 6-pin FPC | 1 `GND`, 2 `VCC`, 3 `RESET`, 4 `INT`, 5 `SDA`, 6 `SCL` |
+| `GDEP103TC2-FT11`, 10.3" | `GT9110H` | **2×14** | not extracted |
+| `GDE060F3-FT01`, 6" | **`FT5436`** (FocalTech) | dedicated FPC | **unknown — request from vendor** |
+
+Three parts, three different answers, and the 10.3" is not even a 6-pin connector. **So no
+universal order exists, and §5's option 1 cannot be closed by research — only by choosing the
+panel.** The `GDE060F3-FT01` is the current front-runner (`NOTES-R2-plan.md`), so its touch FPC
+pinout is the specific document to ask Good Display for. Until it arrives the table above stays
+provisional.
+
+Note that `FT5436` is FocalTech, not Goodix — the `GT911` datasheet in
+`datasheets/e-ink_display/` describes a different part and does not answer this.
+
 Three ways to close it, in order of preference:
 
 1. **Choose the touch controller and digitizer**, and re-wire this sheet to their actual pinouts.

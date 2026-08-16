@@ -502,6 +502,15 @@ And three bitgen changes that the config NOR needs to be worth having (§4.2):
    Also give `N12`/`P12` an explicit `PULLUP` constraint so `-g UnusedPin:PullDown` does not fight
    `R412`/`R413` after configuration.
 
+And one that is wanted eventually but is explicitly **not** for the first board:
+
+6. **Handle a short final DDR3 burst in `memif.v`**, which would retire the 128-pixel resolution
+   rule (§16). `mig_cmd_bl` is already a per-command 6-bit port, hardwired at `memif.v:252` to
+   `BURST_LENGTH - 1`, and the Xilinx MIG supports a variable burst length — so the mechanism
+   exists and is unused. **Deferred by the hardware owner, 2026-08-16**: padding the resolution
+   costs a handful of unused lines, and this is Verilog in the DDR3 path, which is not where the
+   first board's risk should go. Revisit once there is a panel on the bench.
+
 `r0p7` is already merged into the branch this was verified against (`704c4dd Merge branch 'r0p7'`);
 its one unmerged commit, `93d76f2 WIP changes for K3`, changes no `LOC` line, so none of the above
 is affected by it.
@@ -709,3 +718,80 @@ updated. Two smaller points that go with it:
   mispriced as belonging to this one item.
 - If a DisplayPort-capable bitstream for R1 is ever wanted again, it is `git checkout` of the
   pre-deletion revision, not a rebuild of the mechanism.
+
+---
+
+## 16. The 128-pixel resolution rule — where it comes from
+
+`README.md:1139` states the constraint without explaining it:
+
+> Current version of the Caster has additional requirements of the resoltion: X resolution
+> multiply by Y resolution must be a multiple of 128.
+
+Traced to source 2026-08-16, because it looked like it might veto a panel choice. **It does not.
+It is DDR3 burst alignment, and nothing to do with e-paper, the waveform or the panel.**
+
+Two files close the arithmetic.
+
+**`Caster/rtl/spartan6/memif.v:64-66`** — the framebuffer moves in fixed-size bursts:
+
+```verilog
+localparam BYTE_PER_WORD = 16; // 128 bit bus
+localparam BURST_LENGTH  = 16; // Should be at least 2
+localparam BYTE_PER_CMD  = BYTE_PER_WORD * BURST_LENGTH;   // = 256 bytes
+```
+
+**`fw/User/caster.c:84`** — how much memory one frame takes:
+
+```c
+uint32_t frame_bytes = config.tcon_hact * 4 * config.tcon_vact * 2;
+```
+
+and `fw/User/config_timing.c:135` gives `tcon_hact = x_res / 4` — four pixels per source clock on
+the 8-bit bus. Substituting: **`frame_bytes = x_res × y_res × 2`**, i.e. Caster keeps **2 bytes of
+waveform state per pixel**.
+
+> **256 bytes per DDR3 command ÷ 2 bytes per pixel = 128 pixels per command.**
+
+`memif`'s own header comment says it "reads the VRAM via the read port **linearly through the whole
+framebuffer**" — there is no partial-burst path at the end, so the pixel count must be a whole
+number of commands.
+
+**Cross-check:** 1448×1072 → `tcon_hact` = 362, matching `utils/flash_tool/cfggen/config.c:54`;
+`frame_bytes` = 3 104 512 = **2.96 MiB**, which is the "3.0 MB waveform state" in
+`NOTES-R2-plan.md`'s architecture diagram. The model is right.
+
+### What it costs in practice
+
+Pad the resolution down and lose the remainder — `README.md:1141` already does this for a 13.3"
+panel (2200×1650 → **2200×1648**, "leaving the last 2 lines unused").
+
+| Panel | X × Y | ÷ 128 | Action |
+| --- | ---: | ---: | --- |
+| `ED060KC1` family, 6" | 1448 × 1072 = 1 552 256 | 12 127 ✓ | none needed |
+| `GDE060F3`, 6" | 1024 × 758 = 776 192 | 6 064 ✓ | none needed |
+| `GDEP103TC2`, 10.3" | 1872 × 1404 = 2 628 288 | 20 533.5 ✗ | use **1872 × 1400** = 20 475 ✓ |
+
+The 10.3" case costs **4 lines out of 1404** — 0.28 % of the height, 0.45 mm at the 112 µm pitch.
+1872 = 2⁴ × 117 and 1404 = 2² × 351, so the product carries 2⁶ and is one factor of two short;
+dropping Y to the nearest multiple of 8 supplies it. Trimming X instead would cost 16 columns, so
+trimming Y is the better of the two.
+
+**Accepted by the hardware owner, 2026-08-16**: pad, don't fix. The proper fix is §12 item 6.
+
+### The related question this answered: input rate ≠ panel rate
+
+While tracing the above: `Caster/rtl/spartan6/sysclock.v:53` sets `CLKIN_PERIOD (30.0)`, so
+`clk_epdc` derives from a fixed **33.33 MHz** oscillator and not from the video clock. The panel
+scans at a rate set by that clock and the panel timing, **independent of the input frame rate** —
+which is what makes `framecap_en` (hold) possible at all: the framebuffer freezes while the glass
+keeps being scanned.
+
+Consequence for panel choice: **the input link rate and the panel's greyscale frame rate are
+separate budgets.** A 40 Hz DPI link does not mean 40 Hz waveforms. `Project_description.md:246`'s
+"grayscale rendering wants 85 Hz" is about the panel side, which comes from `clk_epdc`.
+
+Noteworthy: `GDEP103TC2-FT11`'s datasheet §6 Mode 3 specifies **SDCK 33.33 MHz, 8 pixels/SDCK,
+FR 84.99 Hz** — Caster's `clk_epdc` exactly, with no gateware clock change.
+
+**Inferred from RTL, not measured.** Confirm at bring-up.
