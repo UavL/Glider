@@ -1,7 +1,8 @@
 # `battery.kicad_sch` — spec
 
-R2 work package 1. Status: **reviewed once; review-1 fixes applied.**
-Last updated 2026-08-10.
+R2 work package 1. Status: **reviewed once; review-1 fixes applied.** The cell and its
+attachment were settled on 2026-08-17 — §9.1 and §9.2 — by `tools/patch_battery_connector.py`.
+Last updated 2026-08-17.
 
 §10 answers the points raised in `../manual-analysis/Analyse_battery.md` and lists what changed
 in the schematic as a result. Read that section first if you are coming from
@@ -77,7 +78,8 @@ through 10 kΩ and pins PSEL at ~0 V. The sheet says so next to them.
 | `U2` | `MAX17048G+T10` | `C2682616` | fuel gauge, TDFN-8 2×2, ~3 µA, no sense resistor |
 | `U3` | `USBLC6-2SC6` | `C7519` | ESD on `USB_DP`/`USB_DM` + `VBUS` clamp, SOT-23-6 |
 | `J1` | USB-C receptacle, 16-pin USB 2.0 | `C165948` (`TYPE-C-31-M-12`) | **pinout to be verified against the connector drawing before capture** |
-| `J2` | JST-PH 3-pin, vertical | verify | `BAT+`, `NTC`, `BAT−` |
+| `J2` | **`Molex 504050-0391`** Pico-Lock 1.5 mm, 3-circuit, right-angle SMT | none — Newark `98AC8179` | cell connector. 3.5 A/contact, 2.00 mm mated, positive lock. `BAT+`, `NTC`, `BAT−`. **§9.2** |
+| `J25` | **solder pads**, 3× 2.0×3.0 mm on 3.5 mm pitch | — | bare copper, no part to fit. Same three nets as `J2`. `tools/gen_solderpads.py`, **§9.2** |
 | `L1` | 1 µH, ≥3 A sat, low DCR | verify | ‡ typical app, 1.5 MHz switcher |
 | `F1` | fuse / PTC on `VBUS` | verify | |
 | `D7` | green LED, 0603 | verify | charge indicator, ~1.2 mA — §10.7 |
@@ -244,17 +246,54 @@ blocking decisions are down to one (where the SoM sits).
 
 **⚠ Raised — the pack's own connector is under-rated for this board.** §10.9's table rules out
 1.25 mm families explicitly: 1 A per contact, against this design's ~1.5 A peak discharge and up to
-~2 A into the cell while fast-charging. The pack ships on exactly that. Three ways out, and it is
-the owner's call:
+~2 A into the cell while fast-charging. The pack ships on exactly that.
 
-1. **Re-terminate the pack** to the low-profile 2 A connector §10.9 recommends (Molex Pico-EZmate,
-   1.2 mm pitch, ~1.85 mm high). Requires cutting the vendor's leads, which also means handling a
-   charged cell.
-2. **Cap the charge current in firmware** so the connector is never the limit. `R8` = 260 Ω already
-   caps *input* at 1.5 A (§10.5), and `ICHG` is a separate register — so 1 A of charge is one
-   constant, at the cost of a ~5 h charge for an 18.5 Wh pack.
-3. **Fit the DNP solder pads** §10.9 already recommends laying out, and solder the leads directly.
-   Thinnest and highest-current, at the cost of not being able to unplug the cell during bring-up.
+**Resolved 2026-08-17 — §9.2.** The board now offers two attachment points and the pack has to be
+re-terminated for either to be worth anything.
+
+### 9.2 The cell attachment, decided 2026-08-17
+
+The owner's requirement: a **common** part, **≥2 A**, **low profile**, ideally clipping on the way a
+phone battery does — plus **solder pads** so the cell can be attached directly.
+
+**`J2` becomes a `Molex Pico-Lock 504050-0391`.** 1.5 mm pitch, 3 circuits, right-angle SMT.
+
+| | JST-PH (was) | **Pico-Lock 504050-0391** | Pico-EZmate (§10.9's suggestion, rejected) |
+| --- | --- | --- | --- |
+| Current | 2 A | **3.5 A** † | 2.0 A |
+| Mated height | ~6.0 mm | **2.00 mm** † | 1.85 mm |
+| Retention | friction | **positive lock** † | latch |
+| Family | ubiquitous | Molex mainstream | niche |
+
+† From Molex's published summary via Newark / RS / element14. **Molex's own spec PDF timed out from
+this machine, so these are not datasheet-verified — check before fab.**
+
+**Right-angle, not vertical**, on purpose: the leads then exit parallel to the board rather than
+standing up, and thickness is what this device is short of once the cell's 7.0 mm and the SoM's
+5 mm are counted. Footprint `Connector_Molex:Molex_Pico-Lock_504050-0391_1x03-1MP_P1.50mm_Horizontal`
+already ships with KiCad 10.
+
+**`J25` is new: three bare copper pads** on the same three nets — `+VBAT`, `CHG_TS`, `GND` — for
+soldering the cell's leads directly. **Not an either/or with `J2`:** same nets, fit either or both.
+2.0 × 3.0 mm on 3.5 mm pitch, no paste (hand-soldered; a stencil aperture over a 6 mm² pad leaves a
+bump under the wire), with `+` / `T` / `−` silk markers because the connector's polarisation does
+not protect these and getting a 5 Ah pack backwards is not a small mistake. Footprint built by
+`tools/gen_solderpads.py`.
+
+**Why not a phone-style board-to-board connector**, which is what "clips on like a smartphone"
+literally means: in a phone the battery carries a small **FPC with a BTB plug**, and the receptacle
+parallels several 0.4–0.5 mm contacts per rail. The `PL706090` has flying leads, so a BTB receptacle
+would have nothing to mate with unless a custom flex were built onto the pack. Pico-Lock's positive
+lock gives the click-in retention without that.
+
+**The pack must be re-terminated either way.** This is the part that does not go away: its 1.25 mm
+plug is rated 1 A, so it is the limit no matter what the board carries. Re-terminate to Pico-Lock
+crimps, or cut the plug off and use `J25`. A third option remains if neither appeals — cap `ICHG` in
+firmware so the connector is never the limit, at the cost of a ~5 h charge for an 18.5 Wh pack.
+
+**Sourcing:** no LCSC code found — Molex parts are thin there. Newark `98AC8179`, RS `187-9994`.
+Same position as the `LM3630A` (`frontlight.md` §3.3): order from a Western distributor for board 1
+and carry the gap as a production-BOM risk.
 
 **⚠ Raised — the NTC's type is unspecified.** §10.2 needs R(0 °C) and R(60 °C); it wants a
 10 kΩ / β 3435 (`103AT-2`). The listing does not say. **Vendor question** (`panel.md` §7) — and note
@@ -272,8 +311,10 @@ the pack's PCM stays a backstop rather than the working limit.
    checking against the package drawings.
 4. **`C2` on `PMID`** is 8.2 µF, which is the no-OTG figure ‡. If `CHG_OTG` is ever used, it must
    rise to 40 µF (2.4 A) or 60 µF (3.1 A).
-5. **Cell connector** — see §10.9 and **§9.1**. The cell is chosen; what needs a decision before
-   layout is the 1 A-vs-2 A conflict §9.1 raises, and the NTC type.
+5. ~~**Cell connector**~~ — **CLOSED 2026-08-17, §9.2.** `J2` is a Molex Pico-Lock 504050-0391 and
+   `J25` adds solder pads. What remains is **mechanical, not electrical**: the pack has to be
+   re-terminated, and the NTC type is still unknown.
+6. **The Pico-Lock's ratings are distributor-sourced, not datasheet-verified** — §9.2 †.
 6. **`D7` part number** — a green 0603 LED, no LCSC code chosen yet. Vf between
    1.9 V (red) and 2.2 V (green) both give a sane current through `R37`, so the
    choice is free.

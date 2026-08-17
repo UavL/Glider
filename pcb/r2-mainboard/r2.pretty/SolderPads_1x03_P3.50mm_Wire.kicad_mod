@@ -1,0 +1,117 @@
+(footprint "SolderPads_1x03_P3.50mm_Wire"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Three bare copper pads for soldering a battery lead directly: 2.0x3.0 mm on 3.5 mm pitch, no paste, hand-solder only. Pad 1 BAT+, pad 2 NTC/thermistor, pad 3 BAT-. Alternative to the Pico-Lock J2 on the same nets -- see docs/battery.md §9.1.")
+	(tags "solder pad wire battery hand-solder")
+	(property "Reference" "REF**"
+		(at 0 -3.65 0)
+		(layer "F.SilkS")
+		(uuid "3f839a76-9e7b-483f-a5e3-8e47639505e7")
+		(effects
+			(font
+				(size 0.7 0.7)
+				(thickness 0.12)
+			)
+		)
+	)
+	(property "Value" "SolderPads_1x03_P3.50mm_Wire"
+		(at 0 2.65 0)
+		(layer "F.Fab")
+		(uuid "fdf31b73-38a9-4449-9e06-0fc8cba2f787")
+		(effects
+			(font
+				(size 0.7 0.7)
+				(thickness 0.12)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "f1ee9838-44a0-434a-a453-bf34bbcdc3fc")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "6f1048e7-d23d-46c1-b988-f92727fd8189")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr exclude_from_pos_files)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start -4.75 -1.75)
+		(end 4.75 1.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "9afe8d74-a3b3-4cec-bf3d-bb213b42df36")
+	)
+	(fp_text user "+"
+		(at -3.5 -2.4 0)
+		(layer "F.SilkS")
+		(uuid "1c9da356-6e44-44c8-8e73-fdf5dc0ba1eb")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "T"
+		(at 0 -2.4 0)
+		(layer "F.SilkS")
+		(uuid "e512eac2-0a6d-41b3-8afb-1a9165cc83c5")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "-"
+		(at 3.5 -2.4 0)
+		(layer "F.SilkS")
+		(uuid "f575cece-2a49-464d-b0c7-6138b258ad0a")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" smd rect
+		(at -3.5 0)
+		(size 2 3)
+		(layers "F.Cu" "F.Mask")
+		(uuid "4c7dca9d-2610-42f2-acaf-0470f7a938a0")
+	)
+	(pad "2" smd rect
+		(at 0 0)
+		(size 2 3)
+		(layers "F.Cu" "F.Mask")
+		(uuid "1643c8b1-1bbc-434f-aa5e-31cdb7729e66")
+	)
+	(pad "3" smd rect
+		(at 3.5 0)
+		(size 2 3)
+		(layers "F.Cu" "F.Mask")
+		(uuid "698338be-3285-4f88-8eb9-17ce960f0245")
+	)
+	(embedded_fonts no)
+)
