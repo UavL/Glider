@@ -73,6 +73,40 @@ Better still, its datasheet §6 Mode 3 specifies **SDCK 33.33 MHz, 8 pixels/SDCK
 `clk_epdc` exactly, with 234 clocks × 8 px = 1872 ✓. **The panel side needs no gateware clock
 change at all**, and the glass still gets 85 Hz greyscale waveforms while the link idles at 40.
 
+### 3.2 Not yet sourced, and the ones actually worth asking for
+
+Found 2026-08-16 by tracing the model code on an E Ink shopkits listing back through
+`README.md`'s panel table. **`VD1400` is an E Ink panel-model family, and it contains TTL members**
+— the shopkits product happens to be an integrated-controller sibling (§8), but these two are not:
+
+| | `ED070KC4` | `ES080KC2` |
+| --- | --- | --- |
+| E Ink model | **`VD1400-GOC`** | **`VD1400-HOB`** |
+| Size / resolution | 7", 1680×1264 | 8", 1920×1440 |
+| Density | **300 ppi** † | **300 ppi** † |
+| Platform | Carta 1200 | Carta 1200 |
+| Interface | **TTL** | **TTL** |
+| X×Y ÷ 128 | 2 123 520 → **16 590 ✓** | 2 764 800 → **21 600 ✓** |
+| Link @ 40 Hz | **92 MP/s ✓** | **119 MP/s ✓** |
+| Link @ 50 Hz | **115 MP/s ✓** | 149 MP/s ✗ (dither), ✓ without |
+| Link @ 60 Hz | 138 MP/s ✗ | 179 MP/s ✗ |
+| README row | `1333` | `1355` |
+
+† derived from the diagonal, not read off a datasheet. Rates are active pixels × rate × ~1.08
+blanking, cross-checked against `README.md:1109-1117`.
+
+**`ED070KC4` looks like the best fit this project has found.** 300 ppi at 7", exactly
+128-divisible, comfortably inside every limit at 40–50 Hz, on a current platform — and
+`Project_description.md:251` independently says *"6"–7" is comfortable"*. It is bigger than the
+`ED060KC1` family at the same density.
+
+**`ES080KC2` is the Sage-class panel from §9**, and at 40 Hz it clears every limit including
+dithering. That is the size the product brief actually asks for.
+
+Neither has been priced, and **neither is known to be available in single quantities or with a
+bonded frontlight and touch layer** — which is exactly what to ask about. Connector type is also
+blank in `README.md`'s table for both; `ED078KC1` in the same size class is 40P-A.
+
 ## 4. The 128-pixel rule, in practice
 
 Caster requires X × Y to be a multiple of 128. It is DDR3 burst alignment — 256 bytes per command
@@ -141,6 +175,37 @@ is the tell.
 
 Its one useful contribution is in `io-expansion.md` §5.1: a real 6-pin `GT911` touch FPC pinout,
 which is evidence toward the `J22` pad order even though the panel itself is unusable here.
+
+**E Ink shopkits `VD1400-GOE`, 7" 960×640** — evaluated 2026-08-16, rejected. The listing says
+*"All-in-one IC include Drive、TCON、PMIC and Temp Sensor"*: **the timing controller is inside the
+panel**, which is the job Caster exists to do. 960×640 at 7" is also ~165 ppi, and the module needs
+a THOR driving board ($150) and a Loki accessory ($200) on top of its own $149. Useful only for
+having led to §3.2 — it is a sibling of `VD1400-GOC`/`ED070KC4`, which *is* TTL.
+
+**SeeKink `B082A03`, 8.2" 1440×1920** — evaluated 2026-08-16, rejected. **SPI**, *"Built-in
+T-con"*, and a **15–18 s full refresh**. The glass itself is desirable — 292 ppi at 8.2" is very
+close to what the product wants — but the interface makes it unusable here. Its controller-less
+equivalent is `ES080KC2` in §3.2. Worth asking SeeKink whether they sell the bare panel.
+
+### 8.1 How to screen a listing without reading the datasheet
+
+Both rejections above, and `GDEY075T7-T01`, were decidable from the product page alone. The tells:
+
+| **Reject** — integrated controller | **Keep looking** — controller-less |
+| --- | --- |
+| "SPI" or "I²C" interface | "parallel", "TTL" |
+| "built-in T-con", "integrated controller", "all-in-one IC" | needs external `VGH`/`VGL`/`VPOS`/`VNEG`/`VCOM` |
+| refresh quoted **in seconds** | refresh not quoted at all — it depends on *our* controller |
+| "on-chip display RAM", "waveform stored in flash" | 34 / 39 / 40 / 50-pin FPC |
+| "needs only a few capacitors, inductors and MOSFETs" | signals named `XCL`/`XLE`/`XOE`/`XSTL`, `CKV`/`SPV`/`MODE` |
+
+`README.md:179` is the quick sanity check on size alone: 1.02"–5.83", 7.5" and 12.48" are
+overwhelmingly integrated-controller parts; 4.3", 6.0", 7.8", 8.0", 9.7", 10.3", 13.3" and up are
+overwhelmingly not.
+
+**The question to put to a supplier is therefore not "does it have touch and frontlight" but
+"do you sell the controller-less parallel/TTL panel, and will you bond a frontlight and touch layer
+onto it".** The second half is the hard part — §7.
 
 ## 9. The tension worth keeping in view
 
