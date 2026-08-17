@@ -1,0 +1,189 @@
+(footprint "Texas_YFQ0012_DSBGA-12_1.91x1.39mm_Layout3x4_P0.4mm"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Texas Instruments YFQ0012, 12-bump DSBGA, 1.91x1.39mm body, 0.4mm pitch, 4 rows A-D x 3 columns 1-3. LM3630A. Land pattern from lm3630a.pdf drawing TMD12XXX Rev B (p.50): 12x dia 0.24/0.21 copper land, pitch 0.4 TYP both axes. Pitch is printed only in the graphic, not in the datasheet text.")
+	(tags "DSBGA WLCSP YFQ0012 LM3630A wafer level chip scale")
+	(property "Reference" "REF**"
+		(at 0 -1.805 0)
+		(layer "F.SilkS")
+		(uuid "81b8f4db-a847-4265-ac49-d91d779e3850")
+		(effects
+			(font
+				(size 0.5 0.5)
+				(thickness 0.08)
+			)
+		)
+	)
+	(property "Value" "Texas_YFQ0012_DSBGA-12_1.91x1.39mm_Layout3x4_P0.4mm"
+		(at 0 1.805 0)
+		(layer "F.Fab")
+		(uuid "f6e4cb3a-939e-4454-a09c-a16a1b7fae0a")
+		(effects
+			(font
+				(size 0.5 0.5)
+				(thickness 0.08)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "8d965df6-3ca5-4831-81a0-c24d9c9085a0")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "060e9341-7110-409e-be2d-d6ef7079cfd4")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_circle
+		(center -0.945 -1.205)
+		(end -0.845 -1.205)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.SilkS")
+		(uuid "63607a00-48ff-419f-909e-46494e0fd00e")
+	)
+	(fp_rect
+		(start -0.945 -1.205)
+		(end 0.945 1.205)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "d358e8f4-e324-470a-b6ee-93b08d3467eb")
+	)
+	(fp_line
+		(start -0.695 -0.955)
+		(end 0.695 -0.955)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "6d7145bb-95b1-45bd-a451-717b4ef53585")
+	)
+	(fp_line
+		(start -0.695 0.955)
+		(end -0.695 -0.955)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "3bbb38da-7d23-44f0-8fc9-ecdcd0146840")
+	)
+	(fp_line
+		(start 0.695 -0.955)
+		(end 0.695 0.955)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "396a69b2-8618-4904-ab9a-8efca181f7a8")
+	)
+	(fp_line
+		(start 0.695 0.955)
+		(end -0.695 0.955)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "4c87bea1-e15a-4cc5-a43a-3533621efc2d")
+	)
+	(pad "A1" smd circle
+		(at -0.4 -0.6)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "251b8332-13b8-45f0-be74-6457d6f3b8a0")
+	)
+	(pad "A2" smd circle
+		(at 0 -0.6)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "ef2d737d-bcfd-4350-88b4-188e2a733ee7")
+	)
+	(pad "A3" smd circle
+		(at 0.4 -0.6)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "35586ab3-b676-41f1-9160-d5f3b19d56fa")
+	)
+	(pad "B1" smd circle
+		(at -0.4 -0.2)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "834cb255-4e10-4555-a24a-742bd8f0185b")
+	)
+	(pad "B2" smd circle
+		(at 0 -0.2)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "5c7cea93-1204-4b33-9267-7fe114635c4e")
+	)
+	(pad "B3" smd circle
+		(at 0.4 -0.2)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "baa9e1c1-6949-4979-b6a3-df5a4ede54b6")
+	)
+	(pad "C1" smd circle
+		(at -0.4 0.2)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "5e242cd8-b97a-4320-b96a-56de81446ddb")
+	)
+	(pad "C2" smd circle
+		(at 0 0.2)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "9a4c6fa1-73d1-4a5e-8f42-7fffce3c98d6")
+	)
+	(pad "C3" smd circle
+		(at 0.4 0.2)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "1b1bdb4e-99c4-47fa-9cf7-fc06302669e3")
+	)
+	(pad "D1" smd circle
+		(at -0.4 0.6)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "a229de23-60dd-4ae1-a6c1-cd86d166fd54")
+	)
+	(pad "D2" smd circle
+		(at 0 0.6)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "d4cfbffc-b48d-4259-88d5-54e51001130b")
+	)
+	(pad "D3" smd circle
+		(at 0.4 0.6)
+		(size 0.24 0.24)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "44e517f6-9d3f-469c-af22-caf5be596fae")
+	)
+	(embedded_fonts no)
+)
