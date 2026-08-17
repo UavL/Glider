@@ -1,14 +1,45 @@
 # Panel selection — which E Ink panel Reflow is designed around
 
-Status: **open, actively being sourced as of 2026-08-16. Nothing is ordered.** Companion to
-`epd-port.md` (the connector and HV chain), `frontlight.md` (on hold because of this decision) and
-`io-expansion.md` (touch, likewise). The gateware side is `fpga.md` §16.
+Status: **DECIDED 2026-08-17 — `GDEP103TC2-FT11`, 10.3", 1872×1404.** Nothing is ordered.
+Companion to `epd-port.md` (the connector and HV chain, and §10 for the `VGH` change this panel
+forces), `frontlight.md` (redesigned to this panel, hold lifted) and `io-expansion.md` (touch).
+The gateware side is `fpga.md` §16.
 
 The panel had been deferred alongside touch and pen. The hardware owner began sourcing on
-2026-08-16, which turned it from "read it off the tail label later" into the decision that several
-frozen sheets now depend on.
+2026-08-16, which turned it from "read it off the tail label later" into the decision several
+frozen sheets depended on. It closed on 2026-08-17.
 
 ---
+
+## 0. The decision, and what closed with it
+
+**`GDEP103TC2-FT11` it is.** Two things settled it on 2026-08-17:
+
+1. **`GDE060F3-FT01` is end-of-life.** The 6" module was §6's first purchase and the whole reason
+   for buying it — that it is the only *complete* module with bonded frontlight and touch — is moot
+   if it cannot be bought. It had already been showing 0 in stock at $54.
+2. **The 10.3" datasheet answers more than it looked like it did.** It was in
+   `datasheets/e-ink_display/` throughout; the frontlight pinout is in the **title block of the
+   mechanical drawing on p.2**, not in §5 "Input / Output Interface". `frontlight.md` §0.
+
+There is now **one** panel, not a prototype panel and a product panel, so several "which candidate"
+branches below are dead weight and are marked as such rather than deleted — the reasoning is still
+the record of how the decision was reached.
+
+What the decision closed:
+
+| | Was blocked on | Now |
+| --- | --- | --- |
+| `frontlight.kicad_sch` | frontlight FPC pinout + drive spec | **designed** — `frontlight.md`. `LM3630A`, 2 × 9 series, from `+VSYS_FL` |
+| `epd_power`'s `VGH` | whether the 10.3" would be used | **designed** — `epd-port.md` §10. `R225` 22 k → 20.5 k, one resistor |
+| Board outline | the panel's dimensions | module is **174.4 × 216.7 × 1.93 mm**, 110 g ‡ |
+| Resolution / Caster variant | the panel | 1872×1400 padded (§4), and **16-bit** — the panel is `D0`–`D15` ‡ |
+| Cell size and position | the cell choice | `PL706090`, **60 × 90 × 7.0 mm** — `battery.md` §9 |
+
+`layout.md` §1's three blocking decisions are therefore down to **one**: where the SoM sits.
+
+**Still open, and now genuinely vendor-blocked rather than choice-blocked:** the frontlight's LED
+current per channel (`frontlight.md` §10.1) and the touch tail pinout (`io-expansion.md` §5). §7.
 
 ## 1. The rule for reading every number below
 
@@ -40,7 +71,9 @@ conclusion below that looks generous compared to earlier notes is downstream of 
 
 ## 3. Candidates
 
-| | `GDE060F3-FT01` | `GDEP103TC2-FT11` | `ED060KC1` family |
+**Historical as of 2026-08-17** — the middle column won (§0). `GDE060F3-FT01` is **EOL**.
+
+| | ~~`GDE060F3-FT01`~~ **EOL** | **`GDEP103TC2-FT11` ← chosen** | `ED060KC1` family |
 | --- | --- | --- | --- |
 | Size / resolution | 6", 1024×758 | 10.3", 1872×1404 | 6", 1448×1072 |
 | Density | 212 ppi | 227 ppi | **300 ppi** |
@@ -127,41 +160,65 @@ in `memif.v` — is `fpga.md` §12 item 6, deferred until a panel is on the benc
 
 ## 5. What each candidate costs elsewhere on the board
 
+Rewritten 2026-08-17 for the chosen panel. Every row below is now a real consequence, not a
+comparison.
+
 | Sheet | Impact |
 | --- | --- |
-| `frontlight` | **ON HOLD.** The 4.99 V rail suits neither candidate, and a bonded frontlight film needs a **constant-current driver this board does not have**. The premise in `frontlight.md` §2 — "the panel's tail regulates the current" — is true of R1's adapter and false for a bonded film. `frontlight.md` §0 |
-| `io_expansion` | `J22`'s six signals (`VCC`/`GND`/`SCL`/`SDA`/`INT`/`RST`) are right for **every** candidate; the **pad order** is still open and now needs `FT5436`'s FPC pinout. `io-expansion.md` §5.1 |
-| `epd_power` | `GDEP103TC2` wants **`VGH` 27–29 V**; `fw/User/power.c:287` records the R1 chain topping out at **~26.87 V** at DAC = 0, with the comment *"Valid range: 22V - 27V"*. A ~1 V shortfall — the `U23`/`U24` feedback divider would need revisiting, and `epd_power` is a frozen, reviewed 1:1 R1 port. **Not an issue for either 6" candidate.** |
-| `epd` | `J6` is 50-pin and covers 8- and 16-bit panels (`epd-port.md` §9.3); every candidate reaches it through an adapter project that already exists. **No change.** |
+| `frontlight` | **Redesigned, hold lifted.** A bonded film's tail is bare `LED1±`/`LED2±`, so the board needs a constant-current driver — `LM3630A` from `+VSYS_FL`, 2 channels, 256 exponential dimming steps. `+5V2_FL` and `U53`'s `TPS61022` are deleted. **Costs one new 8-pin FPC connector**, which the board does not have and the adapter cannot supply. `frontlight.md` |
+| `epd_power` | **`VGH` must reach 27–29 V** ‡ and the R1 chain tops out at ~26.87 V (`fw/User/power.c:286`). Fixed by **`R225` 22 kΩ → 20.5 kΩ**, one resistor on a frozen sheet; the DAC's gain is untouched, so firmware needs one constant changed. Full derivation and the tolerance corners in `epd-port.md` §10 |
+| `io_expansion` | `J22`'s six signals are still right — the datasheet ‡ confirms the module presents **I²C at 3.3 V with SDA/SCL pull-ups already on the module**, so our pull-ups should become DNP. The **pad order** now needs `GT9110H`'s tail pinout, not `FT5436`'s. `io-expansion.md` §5.1 |
+| `epd` | `J6` is 50-pin and covers 16-bit (`epd-port.md` §9.3) via `pcb/40p-adapter-ab`, which already exists. `+5V2_FL` on `J6.7`/`J6.44` and `FL_PWM2` on `J6.42` simply go unused — an unconnected connector pin is not an error. **No change to this frozen sheet.** |
+| `power_mon` | **No change.** Keeping the frontlight on `+VSYS_FL` leaves the `U22` ch3 shunt exactly where WP2 put it. `frontlight.md` §4.1 |
+| `mcu` | **`FL_PWM2` is freed** and returns to the spare pool; cool/warm balance goes over I²C. `FL_INT#` wants one pin in exchange. `frontlight.md` §10.3 |
+| Firmware / gateware | Resolution **1872×1400** (§4), Caster **16-bit** — the tail is `D0`–`D15` ‡ — and `power_set_vgh()`'s constants need re-measuring |
 
-## 6. The plan, as decided 2026-08-16
+## 6. The plan — superseded 2026-08-17
 
-1. **Buy `GDE060F3-FT01` (6") first**, if it can be sourced. It is a complete module, so it is the
-   one that lets **frontlight and touch be exercised on the PCB** — which is the point, given
-   `NOTES-R2-plan.md` constraint 3 makes both DNP on board 1. Its pixel count is exactly
-   128-divisible and it sits at roughly a third of every limit.
-2. **Then a 10.3" (or similar) for developing the bigger product**, padded to 1872×1400.
-3. **Short-final-burst handling comes later**, once a panel is on the bench. A few unused lines are
-   acceptable in the meantime.
+**The two-panel plan is dead.** It read: buy `GDE060F3-FT01` (6") first as the complete
+frontlight-and-touch module, then a 10.3" for the bigger product. **The 6" is EOL** (§0), so there is
+one panel and it is the 10.3".
 
-The 1024×758 module is **212 ppi against the 300 ppi of the `ED060KC1` family**, and that is a real
-step down in reading quality. It is the right call anyway for a board whose job is to prove
-compute + display + power + light + touch, but it is not the final reading experience, and the
-density question reopens when a production panel is chosen.
+What survives from that reasoning, and matters more now:
 
-## 7. Documents to request from the vendor
+1. **The 10.3" is also the frontlight-and-touch testbed**, because it is a complete `-FT` module too
+   — 27 V bonded frontlight, bonded `GT9110H` touch. So `NOTES-R2-plan.md` constraint 3's "touch and
+   pen get unpopulated FPC connectors" is worth revisiting: the frontlight is now a **populated**
+   circuit on board 1 (`frontlight.md`), and touch could be as well.
+2. **Short-final-burst handling in `memif.v` still comes later** (`fpga.md` §12 item 6). Padding to
+   1872×1400 costs 4 lines of 1404 — 0.45 mm at the 112 µm pitch (§4).
+3. **227 ppi, and the density question does not reopen.** At 10.3" the 1872×1404 panel is 227 ppi
+   against the `ED060KC1` family's 300. That is a real step down per-pixel, but §9's tension resolves
+   the other way now: this is the largest panel this controller generation can drive at all, and it
+   is 2.63 Mpx against the 6"'s 0.78.
 
-1. **Frontlight FPC pinout and drive spec** — voltage, current, series/parallel arrangement,
-   dimming method. Unblocks `frontlight.kicad_sch`.
-2. **Touch FPC pinout** (`FT5436`). Unblocks `io-expansion.md` §5 — the last open Stage C decision.
-3. **Full `GDE060F3-FT01` datasheet** — interface width and the 34-pin assignment. The product page
-   says "parallel, 22 channels", which is not enough to wire against.
-4. **Stock and lead time**, since it currently lists 0 in stock.
+## 7. Documents to request from the vendor — revised 2026-08-17
 
-Worth asking at the same time: Good Display evidently does custom frontlight + touch bonding — the
-`-FT` suffix is exactly that — so **whether they will bond a frontlight and touch layer onto a
-1448×1072 panel** is a question with a potentially large payoff. That combination does not appear
-to exist off the shelf, and it is what the product actually wants.
+Four items were listed on 2026-08-16. **Two are answered, one is void, and one remains** — plus one
+new question from the battery.
+
+| | Item | Status |
+| --- | --- | --- |
+| 1 | Frontlight FPC pinout | **ANSWERED** — in the mechanical drawing's title block. `frontlight.md` §0 |
+| 2 | Frontlight **drive spec** | **STILL OPEN — the LED current per channel.** Voltage (27 V), arrangement (2 channels, cool + warm) and dimming (ours to choose) are all answered; current is stated nowhere. `frontlight.md` §10.1 |
+| 3 | Touch tail pinout | **STILL OPEN**, and it is `GT9110H`, not `FT5436`. The signal set is confirmed as I²C 3.3 V with on-module pull-ups ‡; only the connector and pad order are missing. `io-expansion.md` §5 |
+| 4 | Full `GDE060F3-FT01` datasheet, stock, lead time | **VOID** — EOL (§0) |
+
+**The one frontlight question, phrased so it cannot be answered vaguely:** *"For `GDEP103TC2-FT11`,
+what is the rated and maximum forward current per frontlight channel (`LED1+`/`LED1−` and
+`LED2+`/`LED2−`), and how many LEDs are in series per channel?"* The design holds anywhere from
+15 mA to 28.5 mA per channel, so this bounds the margin rather than the design — but above 28.5 mA
+the driver changes (`frontlight.md` §3.3).
+
+**New, for the battery supplier** (`battery.md` §9): the `PL706090`'s NTC type — R at 25 °C and its
+β, or an R–T table. Two resistor values depend on it, and `battery.md` §10.2's ratio is fixed by the
+charger, not by the thermistor, so any answer resolves it in one step.
+
+**Still worth asking Good Display, and the payoff is larger now than it was:** they evidently do
+custom frontlight + touch bonding — the `-FT` suffix is exactly that. **Whether they will bond a
+frontlight and touch layer onto a 300 ppi panel** (`ED060KC1`-class, or the `ED070KC4` in §3.2) is
+the question that would give this project a reading-quality panel rather than a 227 ppi one. It is
+not a board-design blocker; it is a product question for R3.
 
 ## 8. Rejected
 
@@ -218,12 +275,17 @@ At 40 Hz that becomes ~118 MP/s and would fit — so the 75 Hz correction moves 
 panel that large. **Do not treat it as settled**; it is a reason to keep the question open rather
 than a reason to design for it now.
 
-## 10. Open
+## 10. Open — revised 2026-08-17
 
-1. **Nothing is ordered.** `GDE060F3-FT01` shows 0 in stock; the enquiry is out.
-2. **The four vendor documents in §7** — two of them block frozen sheets.
-3. **`GDE060F3-FT01`'s interface width** is unconfirmed ("22 channels" on the product page).
-   8-bit is likely on a 34-pin connector, but it decides the Caster build variant.
-4. **`VGH` 27 V** for the 10.3", against a ~26.87 V ceiling (§5). Only bites if that panel is used.
-5. **Nothing here has been tested on hardware.** Every rate figure is arithmetic over
-   `README.md`'s tables and datasheet numbers; the `clk_epdc` decoupling is read from RTL.
+1. **Nothing is ordered.** The panel is chosen, not bought.
+2. **The frontlight LED current** — §7 item 2, `frontlight.md` §10.1. Bounds the margin, not the
+   design.
+3. **The touch tail pinout** — §7 item 3, `io-expansion.md` §5. Still the last open Stage C decision.
+4. ~~**`GDE060F3-FT01`'s interface width**~~ — void, EOL.
+5. ~~**`VGH` 27 V against a ~26.87 V ceiling**~~ — **CLOSED**, `epd-port.md` §10. One resistor.
+6. **Two panel numbers are inferred, not read:** that the frontlight is 2 × 9 series (from 27 V ÷ 9,
+   `frontlight.md` §1) and the 227 ppi figure (from the diagonal). Neither is load-bearing.
+7. **Nothing here has been tested on hardware.** Every rate figure is arithmetic over
+   `README.md`'s tables and datasheet numbers; the `clk_epdc` decoupling is read from RTL; and the
+   two designs this decision unblocked (`frontlight.md`, `epd-port.md` §10) are datasheet arithmetic
+   whose firmware constants must be re-measured on the bench.

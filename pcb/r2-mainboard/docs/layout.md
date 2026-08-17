@@ -25,17 +25,31 @@ would "fix" into failure.
 
 ## 1. What blocks placement, and what does not
 
-Three decisions are the owner's, and the first is the real one:
+**Revised 2026-08-17. Two of the three are answered; one remains.**
 
-1. **Board outline.** Nothing in this repo records a dimension, a mounting hole or an enclosure.
-   For a reader the outline is set by the panel and the case, and **the panel model is still
-   deferred** (`NOTES-R2-plan.md`: "read it off the tail/back label"). R1 is **90 × 80 mm** for
-   reference. Until there is an outline there is no placement, because placement is mostly the
-   question of what goes where relative to the edges.
-2. **Where the SoM sits, and on which side.** The `PCM-071` is **32 × 43 mm** and stands **5 mm**
-   off the board on its connectors — a large fraction of a reader's area and most of its
-   thickness. Whether it is on the same side as the panel connector changes everything downstream.
-3. **Battery cell size and position**, which is the other large mechanical object.
+1. **Board outline — the two objects that set it are now known.** The panel module
+   (`GDEP103TC2-FT11`) is **174.4 × 216.7 × 1.93 mm**, 110 g ‡, with a 157.25 × 209.66 mm active
+   area; the cell (`PL706090`) is **60 × 90 × 7.0 mm**. Those bound the enclosure, and the board has
+   to fit in what is left behind the panel and beside the cell. R1 is **90 × 80 mm** for reference —
+   so R1's area fits behind this panel with room over, and **thickness, not area, is the binding
+   dimension.** The outline itself is still the owner's to draw, but it is no longer unconstrained.
+   `panel.md` §0, `battery.md` §9.1.
+2. **⚠ Where the SoM sits, and on which side — STILL OPEN, and now the only blocker.** The
+   `PCM-071` is **32 × 43 mm** and stands **5 mm** off the board on its connectors. Against the
+   cell's 7.0 mm and the panel's 1.93 mm, the SoM is the thickest thing in the device, so which
+   side it is on decides the enclosure's thickness and whether it sits behind the cell or beside it.
+3. ~~**Battery cell size and position**~~ — size **closed** (60 × 90 × 7.0 mm). Position follows
+   from decision 2.
+
+**Three new placement facts that arrived with the panel**, none of them blocking:
+
+- **A new connector, `J24`** — the 8-pin frontlight FPC (`frontlight.md` §7.2). It joins `J6`,
+  `J22` and `J23` in the enclosure-fixed group, because all four tails emerge from the panel.
+  That corner is now four connectors plus a DSBGA boost.
+- **`frontlight`'s layout rules changed completely.** `power.md` §11.2 no longer applies to that
+  sheet — different part, different topology, and asynchronous, so the diode is in the hot loop.
+  `frontlight.md` §9 is the replacement.
+- **`epd_power` gains one changed resistor**, `R225` (`epd-port.md` §10). No geometry consequence.
 
 **Not blocking, and worth saying so:** the layer count. R1 runs *this same* DDR3-666 and Spartan-6
 on **4 layers** (`F.Cu / In1.Cu / In2.Cu / B.Cu`, 0.127 prepreg / 0.6 core / 0.127 prepreg, ~1.0 mm),

@@ -215,14 +215,65 @@ one and refuses to run twice — the `.kicad_sch` remains the source of truth.
 1. **`J1` connector drawing** — the 16-pin USB-C footprint is assigned from KiCad's library
    (`USB_C_Receptacle_HRO_TYPE-C-31-M-12`), but the pad pattern of the actual `TYPE-C-31-M-12`
    should be checked against the vendor drawing before layout.
-2. **Cell choice** — decides whether `J2` is 2- or 3-pin and whether the NTC network or the fixed
-   divider is fitted.
+2. ~~**Cell choice**~~ — **CLOSED 2026-08-17. `PL706090`, 3.7 V 5000 mAh 18.5 Wh.** See §9.1.
+
+### 9.1 The cell, and the two things it settles and the two it raises
+
+Source: `parts/Battery/battery_description.md`, the vendor's own listing text. Nothing here is from a
+datasheet — the pack has no datasheet — so **none of it is marked ‡.**
+
+| | |
+| --- | --- |
+| Model | `PL706090` |
+| Capacity | 3.7 V, 5000 mAh, **18.5 Wh**, 84 g |
+| Dimensions | **7.0 mm × 60 mm × 90 mm** |
+| Protection | **built-in PCM** |
+| Connector as shipped | **JST 3-pin, 1.25 mm pitch** |
+| Thermistor | **yes** — "the white wire for thermistor" |
+| Charge | 0.5 C standard (2.5 A), 1.0 C max (5 A); CC to 4.2 V then CV to ≤0.05 C |
+| Discharge | 1.0 C max, cut-off **3.0 V** |
+| Cycle life | 600 cycles |
+
+**Settled — `J2` is 3-pin, and the NTC network is the one to fit.** The pack has a thermistor, so
+§10.2's `R9` = 5.23 kΩ / `R10` = 30.1 kΩ network is correct and the no-NTC fallback
+(7.68 kΩ / 10 kΩ) stays unfitted. That closes both halves of the old §9.2.
+
+**Settled — the cell is one of the two large mechanical objects, and now has dimensions.**
+60 × 90 × 7.0 mm, against the panel module's 174.4 × 216.7 × 1.93 mm. `layout.md` §1's three
+blocking decisions are down to one (where the SoM sits).
+
+**⚠ Raised — the pack's own connector is under-rated for this board.** §10.9's table rules out
+1.25 mm families explicitly: 1 A per contact, against this design's ~1.5 A peak discharge and up to
+~2 A into the cell while fast-charging. The pack ships on exactly that. Three ways out, and it is
+the owner's call:
+
+1. **Re-terminate the pack** to the low-profile 2 A connector §10.9 recommends (Molex Pico-EZmate,
+   1.2 mm pitch, ~1.85 mm high). Requires cutting the vendor's leads, which also means handling a
+   charged cell.
+2. **Cap the charge current in firmware** so the connector is never the limit. `R8` = 260 Ω already
+   caps *input* at 1.5 A (§10.5), and `ICHG` is a separate register — so 1 A of charge is one
+   constant, at the cost of a ~5 h charge for an 18.5 Wh pack.
+3. **Fit the DNP solder pads** §10.9 already recommends laying out, and solder the leads directly.
+   Thinnest and highest-current, at the cost of not being able to unplug the cell during bring-up.
+
+**⚠ Raised — the NTC's type is unspecified.** §10.2 needs R(0 °C) and R(60 °C); it wants a
+10 kΩ / β 3435 (`103AT-2`). The listing does not say. **Vendor question** (`panel.md` §7) — and note
+§10.2's ratio 5.2276 is fixed by the charger's own thresholds, so any answer resolves `R9`/`R10` in
+one step. Until then the values stand as the `103AT` case, which is the likeliest.
+
+**Not a problem, stated because the listing makes it sound like one.** The vendor text says *"if your
+device still have a PCM protector board lie on motherboard of your device, it will can't work
+well… please remove off this PCM."* R2 has **no discrete protection board** — protection is the pack's
+own PCM plus the `BQ25892`'s `BATFET` (§10.6), which is the normal arrangement. And the ordering is
+benign: the charger's own 3.0 V cut-off acts before a typical PCM's ~2.5 V over-discharge trip, so
+the pack's PCM stays a backstop rather than the working limit.
 3. **Exposed-pad dimensions** — `WQFN-24-1EP_4x4mm_P0.5mm_EP2.6x2.6mm` and
    `TDFN-8-1EP_2x2mm_P0.5mm_EP0.8x1.2mm` were chosen as the closest library matches; both EPs need
    checking against the package drawings.
 4. **`C2` on `PMID`** is 8.2 µF, which is the no-OTG figure ‡. If `CHG_OTG` is ever used, it must
    rise to 40 µF (2.4 A) or 60 µF (3.1 A).
-5. **Cell connector** — see §10.9. Needs a decision before layout.
+5. **Cell connector** — see §10.9 and **§9.1**. The cell is chosen; what needs a decision before
+   layout is the 1 A-vs-2 A conflict §9.1 raises, and the NTC type.
 6. **`D7` part number** — a green 0603 LED, no LCSC code chosen yet. Vf between
    1.9 V (red) and 2.2 V (green) both give a sane current through `R37`, so the
    choice is free.
@@ -484,10 +535,12 @@ detached. The pads cost nothing and let a later revision drop the connector once
 the design is stable.
 
 Note the connector also carries the NTC (§10.2), so it is 3-pin unless the cell
-turns out to have no thermistor. **This is blocked on the cell choice**, which is
-the same open item as §9.2 — the `made-in-china.com` link in `parts/parts.md` is
-a 5000 mAh 3.7 V pack, but its connector, its NTC and its wire gauge are not
-specified there. That data settles both questions at once.
+turns out to have no thermistor. **Resolved 2026-08-17 — §9.1.** The `PL706090`
+has a thermistor, so `J2` is **3-pin**, and the pack ships on a **JST 1.25 mm**
+connector, which this section's own table rates at 1 A and therefore rules out.
+The current-rating conflict and its three ways out are in §9.1; the
+recommendation here — a low-profile 2 A connector *plus* DNP solder pads — is
+unchanged and is what makes option 3 there available.
 
 ### 10.10 USB 3 — not possible with this SoM, and I can source that
 

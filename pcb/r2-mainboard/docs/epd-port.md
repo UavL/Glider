@@ -333,6 +333,113 @@ This review round is answers only. `epd`, `epd_power` and `power_mon` are untouc
 verification — `epd` and `epd_power` provably net-identical to R1, `power_mon` differing in exactly
 four intended groups — still stands as run.
 
+## 10. `VGH` for the `GDEP103TC2` — the one value the port has to change
+
+Written 2026-08-17, when the panel was decided. **Designed, not yet applied to the schematic.**
+
+`epd_power.kicad_sch` is a frozen, reviewed 1:1 port of R1. This is the only change the panel
+forces on it, and it is one resistor.
+
+### 10.1 The problem
+
+`GDEP103TC2-FT11.pdf` §6.2 ‡ wants **`VGH` = 27 V min / 28 V typ / 29 V max**. `fw/User/power.c:286`
+fits the R1 chain as `V = 26.945 − 0.003126 × DAC`, so **DAC = 0 is the ceiling** — the MCU's DAC
+only ever pulls `VGH` down. Its own calibration comment records that ceiling as **26.87 V**.
+
+That is below the panel's *minimum*, not merely below its typical.
+
+### 10.2 The network, and a model that checks out
+
+From the exported netlist, `U24` (`LGS6302B5`) is the `VGH` boost: `+5V_VGH` → `L5` → `SW`, `D2` to
+`+VGH`, and an FB node carrying four things:
+
+| Ref | Value | Role |
+| --- | --- | --- |
+| `R224` | 390 k | feedback top, from `+VGH` |
+| `R225` | **22 k** | feedback bottom, to `GND` |
+| `R213` | 100 k | injects `VGH_DAC` into FB — this is how the MCU trims `VGH` down |
+| `C241` | 18 pF | feedforward across `R224` |
+
+`lgs6302.pdf` ‡ gives `V_FB` = **1.2 V** (1.195/1.200/1.205). With the DAC at 0 V, `R213` is simply
+a second resistor to ground:
+
+```
+R_bot = 22k ∥ 100k = 18.033k
+VGH   = 1.2 × (1 + 390/18.033) = 27.15 V
+```
+
+Against firmware's three usable calibration points:
+
+| DAC | Computed | `power.c` measured | Error |
+| --- | ---: | ---: | ---: |
+| 0x000 | 27.15 V | 26.87 V | −1.04 % |
+| 0x0F2 | 26.39 V | 26.19 V | −0.76 % |
+| 0x77E | 21.13 V | 20.95 V | −0.85 % |
+
+**Consistent to within about 1 %, same sign** — so the model is good enough to size a change
+against the tolerance corners rather than against the nominal. (`power.c`'s fourth point, 0xFF0 =
+12.26 V, disagrees with its own linear fit as well as with this model; the response is non-linear at
+the bottom of the range and it is outside the 22–27 V band the comment calls valid.)
+
+### 10.3 The change: `R225` 22 kΩ → **20.5 kΩ**, 1 %
+
+Options weighed at the corners, applying the −1.05 % bias measured above, and stacking 1 % on all
+three resistors with `V_FB`'s ±0.4 %:
+
+| `R225` | Expected at DAC = 0 | Corners | Verdict |
+| ---: | ---: | --- | --- |
+| 22 k as drawn | 26.87 V | — | **below the 27 V minimum** |
+| 20.0 k | 28.97 V | 28.31 – 29.65 V | high corner is over the 29 V maximum |
+| **20.5 k** | **28.41 V** | **27.76 – 29.07 V** | **inside the panel's window** |
+| 21.0 k | 27.87 V | 27.23 – 28.52 V | cannot reach 28 V typ — the DAC only pulls down |
+
+**Change the bottom resistor, not the top.** The DAC's authority is `R224/R213` = 3.90 V per volt of
+DAC output, which depends only on those two — so moving `R225` shifts the setpoint and **leaves the
+gain untouched**. Firmware then needs its intercept changed and nothing else.
+
+The 20.5 k worst corner is 29.07 V, 0.07 V above the panel's operating maximum and still ~0.9 V
+inside its absolute maximum (`VGL` + 50 V ‡, i.e. 30 V at `VGL` = −20 V). If that is not comfortable,
+`R224`/`R225` at 0.5 % halves the band; it is not a different design.
+
+### 10.4 What does *not* change, and why that is the useful result
+
+- **`VGH_MEA` needs nothing.** `R98` 1 M / `R97` 100 k puts 29 V at **2.64 V**, inside the 3.3 V ADC
+  range — `mcu.md` §5.2's 2.45 V figure at 26.9 V is the same divider.
+- **`U24` is nowhere near a limit.** `lgs6302.pdf` ‡: 3.0–60 V range, 2 A peak switch. The panel
+  draws `I_GH` = 1.52 mA typ / 1.89 mA max ‡, so ≈ 13 mA in at 5 V.
+- **`D2`** is a 1N5819WS, 40 V ‡, against 29 V.
+- **`C241`/`C244`/`C62`** on `+VGH` are all 50 V rated.
+- **DAC resolution** stays 3.14 mV of `VGH` per LSB; the range becomes ≈ 15.8–28.7 V, still covering
+  R1's 22–27 V band.
+- **`VGH − VGL` ≤ 50 V ‡** holds: 29 − (−20) = 49 V. At `VGL` = −21 V (the panel's own minimum ‡) it
+  is exactly 50 V — worth knowing, not worth designing around.
+
+### 10.5 Firmware, which is not ours to verify
+
+`power_set_vgh()`'s constants are **empirical** — someone measured that chain. The replacements are
+**computed**:
+
+```c
+// was:  setpt = (26.945f - vgh) / 0.003126f;   // valid 22V - 27V
+//  now: setpt = (28.71f  - vgh) / 0.003141f;   // valid 22V - 29V
+```
+
+The divisor barely moves (0.5 %, which is this model against their measurement); only the intercept
+does. **These must be re-measured on hardware before they are trusted.** The assistant cannot flash
+or measure the board.
+
+### 10.6 One observation the earlier review could not make
+
+`U24.4` (`EN`) and `U24.5` (`VIN`) are **both on `+5V_VGH`**, and `U23` is wired the same way.
+`lgs6302.pdf` Absolute Maximum Ratings ‡ give `EN`-to-`GND` as **−0.3 to 6 V**, and its application
+note says *"EN is a low-voltage pin. Use a voltage divider from VIN for proper operation."* A 5 V
+rail leaves 1 V of margin to the absolute maximum.
+
+**No change recommended** — this is R1's arrangement and R1 works, `+5V_VGH` is a gated 4.99 V rail
+rather than anything that can wander, and the enable threshold is 0.5 V rising ‡ so a divider would
+be about protection, not function. It is recorded because the datasheet was not in the repo at
+review 1 and this is the kind of thing that gets rediscovered expensively.
+
 ## 11. Layout guidelines — written 2026-08-15, for Stage D
 
 §7 has owed these since WP4, with the note that "the EPD supply is the most layout-sensitive

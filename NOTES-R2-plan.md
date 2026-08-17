@@ -202,29 +202,44 @@ H750 become a G0.
 
 ---
 
-## Panel choice
+## Panel choice — DECIDED 2026-08-17
 
-Opened 2026-08-16. The panel had been deferred with touch and pen; the owner began sourcing, which
-turned it into a live decision. **Nothing is ordered yet.**
+**`GDEP103TC2-FT11`, 10.3", 1872×1404, padded to 1872×1400.** Nothing is ordered yet.
 
-**→ `pcb/r2-mainboard/docs/panel.md`** has the full analysis: the two rate budgets, the candidate
-comparison, the 128-pixel arithmetic, what each candidate costs on the frozen sheets, and the
-documents to request from the vendor.
+Opened 2026-08-16, closed 2026-08-17 when the 6" front-runner turned out to be **EOL** and the
+10.3" datasheet — which had been in `datasheets/e-ink_display/` all along — turned out to carry the
+frontlight pinout in the title block of its mechanical drawing.
+
+**→ `pcb/r2-mainboard/docs/panel.md` §0** has the decision and everything it closed. The rest of
+that document is the analysis: the two rate budgets, the candidate comparison, the 128-pixel
+arithmetic, and the vendor documents still outstanding.
 
 The plan-level summary:
 
-1. **Buy `GDE060F3-FT01` (6", 1024×758) first** if it can be sourced — a complete module with
-   bonded frontlight and touch, so it is the one that lets both be exercised on the PCB. Currently
-   **0 in stock at $54**; enquiry sent.
-2. **Then a 10.3" `GDEP103TC2-FT11` (1872×1404) for the bigger product**, padded to 1872×1400 —
-   4 unused lines. At 40 Hz it clears every limit including dithering, and its native
-   33.33 MHz / 85 Hz timing is `clk_epdc` exactly.
-3. **Short-final-burst handling in `memif.v` comes later** (`docs/fpga.md` §12 item 6), once a
-   panel is on the bench.
+1. **One panel, and it is also the frontlight-and-touch testbed** — it is a complete `-FT` module:
+   27 V bonded frontlight (2 channels, cool + warm), bonded `GT9110H` touch. At 40 Hz it clears
+   every limit including dithering, and its native 33.33 MHz / 85 Hz timing is `clk_epdc` exactly.
+2. **Caster builds 16-bit** — the tail is `D0`–`D15` — and the resolution is 1872×1400, 4 unused
+   lines out of 1404 (0.45 mm at the 112 µm pitch).
+3. **Short-final-burst handling in `memif.v` comes later** (`docs/fpga.md` §12 item 6), once a panel
+   is on the bench.
 
-Two frozen sheets are waiting on vendor documents: **`frontlight` is ON HOLD** (a bonded frontlight
-film needs a constant-current driver this board does not have, and the two candidates are 3.3 V vs
-27 V), and **`io_expansion` §5** needs `FT5436`'s FPC pinout to close the last Stage C decision.
+**Both waiting sheets are now designed, not blocked:**
+
+- **`frontlight` — hold LIFTED, redesigned.** A bonded film's tail is bare `LED1±`/`LED2±`, so the
+  board needs a constant-current driver: `LM3630A`, 2 × 9 series from `+VSYS_FL`, 256 exponential
+  dimming steps, and a **new 8-pin FPC connector**. `+5V2_FL` and its `TPS61022` are deleted.
+  → `docs/frontlight.md`
+- **`epd_power`'s `VGH`** must reach 27–29 V against a ~26.87 V ceiling. **One resistor**, `R225`
+  22 kΩ → 20.5 kΩ. → `docs/epd-port.md` §10
+
+**Still vendor-blocked:** the frontlight's LED current per channel (bounds the margin, not the
+design) and the touch tail pinout (`io_expansion` §5, still the last open Stage C decision).
+`panel.md` §7.
+
+**Constraint 3 is worth revisiting.** It says "first board is compute + display + power only; touch
+and pen get unpopulated FPC connectors". The frontlight is now a **populated** circuit on board 1,
+and since the chosen module has touch bonded on, touch could reasonably be populated too.
 
 ---
 
