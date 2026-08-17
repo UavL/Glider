@@ -106,17 +106,28 @@ That is the half of §5 that was actually load-bearing, and it holds.
 | Module | Touch IC | Connector | Pin order |
 | --- | --- | --- | --- |
 | `GDEY075T7-T01`, 7.5" | `GT911` | 6-pin FPC | 1 `GND`, 2 `VCC`, 3 `RESET`, 4 `INT`, 5 `SDA`, 6 `SCL` |
-| `GDEP103TC2-FT11`, 10.3" | `GT9110H` | **2×14** | not extracted |
-| `GDE060F3-FT01`, 6" | **`FT5436`** (FocalTech) | dedicated FPC | **unknown — request from vendor** |
+| **`GDEP103TC2-FT11`, 10.3" ← the chosen panel** | **`GT9110H`** | not stated | **unknown — request from vendor** |
+| ~~`GDE060F3-FT01`, 6"~~ | ~~`FT5436`~~ | — | **void: the panel is EOL** (`panel.md` §0) |
 
-Three parts, three different answers, and the 10.3" is not even a 6-pin connector. **So no
-universal order exists, and §5's option 1 cannot be closed by research — only by choosing the
-panel.** The `GDE060F3-FT01` is the current front-runner (`NOTES-R2-plan.md`), so its touch FPC
-pinout is the specific document to ask Good Display for. Until it arrives the table above stays
-provisional.
+### 5.2 Revised 2026-08-17, when the panel was chosen
 
-Note that `FT5436` is FocalTech, not Goodix — the `GT911` datasheet in
-`datasheets/e-ink_display/` describes a different part and does not answer this.
+Two things changed and they pull in opposite directions.
+
+**The signal set is now confirmed, not merely likely.** `GDEP103TC2-FT11.pdf`'s specification table
+(in the mechanical drawing's title block, p.2) gives: *IC type `GT9110H`*, *optional interfaces
+`IIC`*, *structure `3.3V`*, and — *"does the motherboard SDA/SCL come with a pull-up resistor:
+**YES**"*. So the module presents plain I²C at 3.3 V and **carries its own bus pull-ups**. `J22`'s
+six signals are right.
+
+**One consequence for this sheet:** our pull-ups on the touch side would be in parallel with the
+module's. They are already DNP with everything else here, so nothing needs changing today — but
+whoever populates touch must **leave them unfitted** rather than assume they are needed.
+
+**The pin order is still open**, and `panel.md` §3's "2×14" for this module is the *sensor-to-IC*
+connection, not the host interface — it is not evidence about `J22`. The specific document to ask
+Good Display for is the **`GT9110H` touch tail pinout and connector type**. Note `GT9110H` is Goodix,
+so the `GT911` datasheet in `datasheets/e-ink_display/` is a *sibling* part: useful for the register
+interface, not authoritative for this module's tail.
 
 Three ways to close it, in order of preference:
 
@@ -157,8 +168,14 @@ Shapes are from this sheet's point of view: the interrupts leave it, the enables
 
 ## 8. Open
 
-1. **The FPC pin order** — §5. The last open decision in Stage C.
-2. **No touch controller or digitizer is chosen**, which is what §5 depends on. Deferred with the
-   panel (`NOTES-R2-plan.md`).
-3. **`TOUCH_RST#` may not be needed** by the eventual part; if not, `PD9` returns to the spare
+1. **The FPC pin order** — §5. Still the last open decision in Stage C, and now a pure vendor
+   question rather than a design one.
+2. ~~**No touch controller is chosen**~~ — **CLOSED**: the panel is chosen, so touch is `GT9110H`,
+   I²C at 3.3 V, with pull-ups on the module (§5.2). **The digitizer is still unchosen**, and `J23`
+   stays provisional with it.
+3. **Our touch-side pull-ups must stay unfitted** when touch is populated — the module has its own
+   (§5.2).
+4. **`TOUCH_RST#` may not be needed** by the eventual part; if not, `PD9` returns to the spare
    pool.
+5. **Whether touch is populated on board 1 at all** is reopened by the panel: the chosen module has
+   touch bonded on, so `NOTES-R2-plan.md` constraint 3 is worth revisiting. Owner's call.

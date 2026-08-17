@@ -1,9 +1,11 @@
 # Glider-R2 — plan
 
-Branch `Board-Design`. Last updated **2026-08-10**.
+Branch `Board-Design`. Last updated **2026-08-17**.
 
-Capture is under way — see **Stage C progress** below for which sheets exist and
-which have been reviewed. Per-sheet specs live in `pcb/r2-mainboard/docs/`.
+**Stage C (capture) is complete** — all 14 sheets drawn, `frontlight` last, and the root wired.
+WP6–WP8 are drawn but not yet reviewed by the owner; see **Stage C progress** below.
+**Stage D (layout) has not started** and is blocked on one decision: where the SoM sits
+(`docs/layout.md` §1). Per-sheet specs live in `pcb/r2-mainboard/docs/`.
 
 Evidence for every claim here is in **`NOTES-R2-hardware-facts.md`**. R1's state is in
 `NOTES-STATUS.md`. This file is only what to do and in what order.
@@ -252,9 +254,14 @@ and since the chosen module has touch bonded on, touch could reasonably be popul
 | ~~**`PCL-071` price, MOQ, will they sell 1–2 units**~~ | ~~YES~~ | **CLOSED 2026-08-13** — €281 @1–9, reel-only MOQ 5. Answered by moving to `PCM-071` (constraint 1) |
 | **`PCM-071` price and MOQ** | **YES** | replaces the row above; the quote covered `PCL-071-001-R` only |
 | Orderable variants (1 GB RAM, small eMMC, `VDDSHV3` = 3.3 V, WiFi) | **YES** | PHYTEC Q3 |
-| **The R2 schematic does not exist** | **YES** | Stages B–E — months, not a purchase |
+| ~~**The R2 schematic does not exist**~~ | ~~YES~~ | **Stage C is COMPLETE as of 2026-08-17** — all 14 sheets drawn, `frontlight` last. WP6–WP8 await owner review; Stage D (layout) has not started |
 | ~~Will JLCPCB accept the 270-pin consigned module on a custom footprint~~ | ~~soon~~ | **Gone with the `PCM-071` switch** — nothing is consigned |
-| Panel model | no — but now being actively sourced, see "Panel choice" | vendor enquiry, 2026-08-16 |
+| ~~Panel model~~ | ~~no~~ | **CLOSED 2026-08-17 — `GDEP103TC2-FT11`.** See "Panel choice" |
+| **Frontlight LED current per channel** | no — bounds margin, not design | Good Display. `docs/frontlight.md` §10.1 |
+| **Touch tail pinout** (`GT9110H`) | no | Good Display. The last open Stage C decision, `docs/io-expansion.md` §5 |
+| **Cell NTC type** (R25 and β) | no | battery supplier. Two resistor values, `docs/battery.md` §9.1 |
+| **Cell connector rating** — the pack ships on a JST 1.25 mm rated 1 A against ~2 A of charge | no | **owner decision**, `docs/battery.md` §9.1 |
+| **Where the SoM sits, and on which side** | no | **owner decision — the only thing blocking Stage D**, `docs/layout.md` §1 |
 | R1 firmware + gateware untested on hardware | no | needs the ISE VM (192.168.56.102, currently down) |
 
 **Nothing is ordered until the remaining `YES` rows are answered** — now `PCM-071` price/MOQ,
@@ -275,7 +282,11 @@ orderable variants, and the schematic existing.
   unpowered input clamps drag `BOOTMODE_9` low and the module boots from the wrong device. Firmware
   ordering, since §5 of `docs/power.md` says enables are not interlocked. Facts §3.1.
 - Level shifting between SoM and FPGA — **not needed**, both 3.3 V LVCMOS.
-- Touch controller sourcing — **wrong question**; it ships bonded to the touch film.
+- Touch controller sourcing — **wrong question**; it ships bonded to the touch film. Confirmed by
+  the chosen panel: `GT9110H`, I²C at 3.3 V, **with the bus pull-ups on the module**
+  (`docs/io-expansion.md` §5.2).
+- Frontlight architecture — **a bonded film needs constant current, not a rail.** `LM3630A`, two
+  channels from `+VSYS_FL`, captured 2026-08-17. `docs/frontlight.md`.
 
 ---
 
@@ -380,7 +391,7 @@ patched surgically; the `tools/gen_*.py` generators are not re-run over it.
 | WP3 | `mcu` | yes | **yes — round 1 done** | `manual-analysis/Analysis_mcu.md` → answered in `docs/mcu.md` §10. `C42` deleted (Figure 15 asks for no `VBAT` cap); page buttons → `EVQPLHA15` for **500 k cycles** instead of 100 k; layout guidelines written (§11). Opened a real gap: **the MCU has no field-update or brick-recovery path** (§5.7) |
 | WP4 | `epd`, `epd_power`, `power_mon` | yes — ported from R1 | **yes — round 1 done, accepted as a 1:1 port** | `manual-analysis/Analysis_epd_files.md` → answered in `docs/epd-port.md` §9. `epd`/`epd_power` provably net-identical to R1; `power_mon` differs in 4 intended groups. **No schematic change.** Two items opened: keep the panel adapter board for now (the panel model is still deferred), and `J3` (16p) is probably droppable once the panel is chosen — **`J3` deleted 2026-08-15 in the WP5 review**, `docs/fpga.md` §15.2 |
 | WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | **yes** | **yes — round 1 done 2026-08-15, four of five decisions accepted as drawn, one change made** | `docs/fpga.md`. All three drawn plus the **root sheet wired**. Verified against the gateware by `tools/check_ucf.py`: 113 constrained balls, **0 failures**. Corrected two documented errors (the FPGA is an **XC6SLX16**, not LX9; R1 fits a **1 Gb** DRAM, not 4 Gb). Bank 3 moved 1.35 V → **1.5 V** (`LVCMOS15`/`SSTL15` have no 1.35 V form), which reached back into `power`, `power_mon` and `fpga_config`. `fpga_config` gains the SPI NOR, master-SPI strap, and **IO2/IO3 wired to `N12`/`P12`** so x4 boot stays a software change. Found three signal groups the board wires that Caster does not implement — which settled `J3` (§2.1). Review: `manual-analysis/Analysis_fpga.md` → answered in `docs/fpga.md` §15. **`J3` and its ten dead nets deleted** (`tools/patch_drop_j3.py`); 1.5 V, `DRAM_ADDR13/14`, `C509` accepted as drawn; the FPD-Link deletion's open question closed — R1's microHDMI path is untouched, so no build variant is needed |
-| WP6 | `frontlight`, `io_expansion` | **yes** | — | `frontlight`: a `TPS61022` boost, `+VSYS_FL` → `+5V2_FL`. It closes a hole — the rail had **no source** and the shunt dead-ended at the ammeter. `docs/frontlight.md`. `io_expansion`: touch + pen FPCs and their gated rails, **all DNP**; the seven MCU pins are claimed and routed, which is the half of "addable without a respin" that is certain. `docs/io-expansion.md` — **§5 is the last open decision in Stage C**: the FPC pin order is provisional because neither part is chosen. (The microSD went to `som` in WP8, not here.) |
+| WP6 | `frontlight`, `io_expansion` | **yes** | — | **`frontlight` was redrawn from scratch 2026-08-17** and is no longer a rail at all. The chosen panel's frontlight is *bonded*, so its tail is `LED1±`/`LED2±` — bare anodes and cathodes — and it needs constant **current**. `U53` is now an **`LM3630A`** driving two independently dimmed strings from `+VSYS_FL`, with a new 8-pin FPC `J24` for the tail; the `TPS61022`, its divider and the `+5V2_FL` net are gone. **`R509` straps `SEL` to `IN`**: grounded, the driver answers at I²C 0x36, which is where the `MAX17048` fuel gauge is fixed — that would have taken down the always-on bus. `docs/frontlight.md`. `io_expansion`: touch + pen FPCs and their gated rails, **all DNP**; the seven MCU pins are claimed and routed. `docs/io-expansion.md` — **§5 is still the last open decision in Stage C**, now a pure vendor question: the `GT9110H` tail pinout. (The microSD went to `som` in WP8, not here.) |
 | WP7 | `dpi_in` | **yes** | — | the 22-signal link. **Unblocked 2026-08-14** — `L-1038e.A5` Table 31 has the full `X1` DPI pin map. First job on this sheet is the `BOOTMODE` question above, not the wiring |
 | WP8 | `som` | **yes** | — | **held last.** A **2 × `BTH-060-01-L-D-A-K-TR`** footprint (240 pins, 0.5 mm), not a `PCL-071` landing pattern — constraint 1, revised 2026-08-13. No PCB cut-out any more. **Unblocked 2026-08-14** by the same manual: `VIN` on A1/A2/A3, `VBAT` on B2, full pinout in Tables 7–10 |
 

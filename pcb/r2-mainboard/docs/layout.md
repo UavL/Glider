@@ -1,7 +1,8 @@
 # Layout — R2 Stage D
 
-Status: **preparation done, placement blocked on three owner decisions (§1).** Nothing has been
-placed. `r2.kicad_pcb` does not exist yet.
+Status: **preparation done, placement blocked on ONE owner decision (§1) — where the SoM sits.**
+The panel and cell choices of 2026-08-17 closed the other two. Nothing has been placed;
+`r2.kicad_pcb` does not exist yet.
 
 This is the board-level plan. The *circuit-level* rules live with their sheets, and they were
 written while each datasheet was open rather than reconstructed now:
@@ -160,13 +161,15 @@ Fixed points first, then the things whose position is dictated by them:
 
 ## 6. Open
 
-1. **Board outline, SoM position, cell size** — §1. These are the blockers.
+1. ~~**Board outline, SoM position, cell size**~~ — **§1: two of the three are answered.** The
+   panel and cell now have dimensions; **only the SoM's position and side still block placement.**
 2. **The `PCM-071` footprint** — §3.2, an owner download rather than a build.
 3. **The `TPS63802` footprint** — §3.1, buildable here.
 4. **`EPD_THROT` still occupies `U41.M16`** and nothing drives it (`fpga.md` §2.1).
    `NOTES-R2-plan.md` says decide before Stage D: reclaim the ball or keep it reserved.
-5. **WP6 is not drawn.** `frontlight` and `io_expansion` have no parts, so the netlist is not
-   final and any placement done now would be redone. This is the strongest argument for finishing
-   WP6 before starting placement, independent of the mechanical decisions.
+5. ~~**WP6 is not drawn.**~~ **Both sheets are drawn as of 2026-08-17** — `io_expansion`
+   2026-08-15, `frontlight` captured today. The netlist is final apart from `FL_INT#`, which has no
+   MCU pin yet (`frontlight.md` §10.3), and the DNP touch/pen connectors whose pad order is still a
+   vendor question (`io-expansion.md` §5).
 6. **A PDS impedance simulation** for the FPGA rails is still the honest answer to `fpga.md` §11.5,
    and is a Stage-D item rather than a defect.

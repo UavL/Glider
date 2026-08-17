@@ -198,8 +198,12 @@ from — but only in R1's rail context.
 - **`TPS22914BYFPR` stock is thin** — 1 487 units at LCSC (`C1848394`), for a part used twice.
   `LGS5145` (`C5123971`, 139 k) and `LGS6302B5` (`C5123975`, 11 k) are comfortable. Find a second
   source for the load switch before ordering.
-- **`+5V2_FL` is still called that** on `epd` although the frontlight now boosts from `+VSYS`. The
-  name describes the LED anode rail, which is unchanged; WP6 confirms or renames it.
+- ~~**`+5V2_FL` is still called that** on `epd`~~ — **resolved 2026-08-17, by deletion.** WP6
+  replaced the frontlight rail with a constant-current driver, so `+5V2_FL` no longer exists as a
+  source anywhere. `J6.7`/`J6.44` and `C147` still carry the name on this frozen sheet and are now
+  **unused pins with no driver**, which is intended and needs no edit: the bonded frontlight reaches
+  the board on its own connector, `J24`. `frontlight.md` §7.1. The same applies to `FL_PWM2` on
+  `J6.42`, which the LM3630A does not use.
 - **`epd`'s `J6` pinout was carried pin-for-pin and not re-checked** against the panel.
   `NOTES-R2-plan.md`'s verification list asks for that diff explicitly — it is a WP-E task, not a
   port task, but it is still owed. (`J3` no longer needs checking; it is gone.)

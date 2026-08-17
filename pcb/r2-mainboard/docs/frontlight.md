@@ -1,8 +1,8 @@
 # `frontlight` — the panel LED driver — R2 work package 6
 
-Status: **redesigned on paper 2026-08-17. The hold of 2026-08-16 is LIFTED.** The schematic has
-**not** been edited yet — §4 is the design to be captured, and `frontlight.kicad_sch` still holds
-the provisional `TPS61022` circuit that §3 rejects.
+Status: **CAPTURED 2026-08-17. The hold of 2026-08-16 is LIFTED.** `frontlight.kicad_sch` now
+holds the circuit in §4; the provisional `TPS61022` and the `+5V2_FL` net are gone. Not yet
+reviewed by the owner. Verification in §8.
 
 Companion to `power.md`, `epd-port.md` and `panel.md`. The panel is now decided
 (`GDEP103TC2-FT11`), which is what made this sheet designable.
@@ -148,18 +148,20 @@ Cost of staying on the cell, stated because it is real: the worst-case inductor 
 
 ### 4.2 Parts
 
-| Ref | Value | Part | Why |
-| --- | --- | --- | --- |
-| `U53` | — | **`LM3630ATMX`** | §3.2. Replaces the `TPS61022RWUR` at the same reference |
-| `L33` | **10 µH** | ≥1.2 A `I_sat`, 3×3 mm class | §4.3. `lm3630a.pdf` Table 22 lists 10–22 µH; the value follows from the current limit |
-| `D34` | — | **`1N5819WS`** | 40 V Schottky, **already on the BOM** as `D2`/`D15` on `epd_power`. 40 V against a 32 V OVP setting is 25 % margin |
-| `C514` | 4.7 µF | input, at `IN`/`GND` | reuses the existing reference; ‡ Fig. 87 |
-| `C515` | 1 µF / 50 V | output, at `D34` cathode | small because the sinks are 57 mA, not amperes |
-| `C516` | 100 nF | local HF bypass at `IN` | the pattern every converter on this board uses |
-| `J24` | — | **8-pin FPC, 0.5 mm** | **new part — §7.2.** `LED1±`, `LED2±`, four NC |
-| `R507` | 100 kΩ | `HWEN` pull-down | keeps the driver off until the MCU asserts `FL_EN`, as all four `MCU_EN_*` rails do |
-| `R508` | 10 kΩ | `INTN` pull-up to `+3V3` | `INTN` is open-drain |
-| `R509` | **0 Ω to `IN`** | **`SEL` strap — see §5** | sets I²C address 0x38 |
+All parts are chosen and the sheet is captured against this table.
+
+| Ref | Value | Part | LCSC | Why |
+| --- | --- | --- | --- | --- |
+| `U53` | — | **`LM3630ATMX`**, DSBGA-12 | `C2678552` (0 stock) | §3.2. Replaces the `TPS61022RWUR` at the same reference. DigiKey `296-46302-1-ND` for board 1 |
+| `L33` | **10 µH** | **`FNR4030S100MT`**, 4×4×3 mm | `C167879` | §4.3. `I_sat` **2.4 A** against a 771 mA peak, DCR 130 mΩ (53 mW at the worst corner), 187 k in stock. Same Changjiang family as `L5`, so the footprint was already in KiCad |
+| `D34` | — | **`1N5819WS`**, SOD-323 | `C488405` | 40 V Schottky, **already on the BOM** as `D2`/`D15` on `epd_power`. 40 V against a 32 V OVP setting is 25 % margin |
+| `C514` | 4.7 µF / 10 V | 0603 | | input bypass. ‡ pin C3 asks for **2.2 µF or greater**; 4.7 µF derates into that band at 4 V |
+| `C515` | **2.2 µF / 50 V** | 0805 | | output. ‡ specifies **1 µF**, and that is 1 µF *effective* — a 2.2 µF/50 V part derates to about that under 28.5 V of DC bias |
+| `C516` | 100 nF / 16 V | 0402 | | local HF bypass at `IN` |
+| `J24` | — | **`HC-FPC-05-09-8RLTAG`**, 8-pin 0.5 mm | `C5213749` | §7.2. The 8-pin sibling of the `C1848394` on `J22`/`J23`, **footprint already in `pcb_common`**. 500 mA / 50 V per contact against 28.5 mA at 28.5 V. 49 k in stock |
+| `R507` | 100 kΩ | 0402 | | `HWEN` pull-down: keeps the driver off until the MCU asserts `FL_EN`, as all four `MCU_EN_*` rails do |
+| `R508` | 10 kΩ | 0402 | | `INTN` pull-up to `+3V3`; `INTN` is open-drain |
+| `R509` | **0 Ω to `IN`** | 0402 | | **`SEL` strap — see §5.** Sets I²C address 0x38 |
 
 Deleted from the sheet as captured: `R505` (732 k), `R506` (100 k) — the `TPS61022` feedback
 divider. `+5V2_FL` disappears as a net.
@@ -253,8 +255,10 @@ The LED tail needs an **8-pin FPC on the mainboard.** There is none today, and t
 supply it: `pcb/40p-adapter-ab/adapter.kicad_sch` contains exactly two parts, `J1` (01×40) and `J2`
 — a bare passthrough with no frontlight path.
 
-Part not yet chosen. `pcb_common` has `HC-FPC-05-09-6RLTAG` (6-pin, 0.5 mm) for `J22`/`J23`, so the
-8-pin sibling in the same family is the obvious candidate and needs an LCSC check.
+**Chosen: `HC-FPC-05-09-8RLTAG`, LCSC `C5213749`** — the 8-pin sibling of the `C1848394` on
+`J22`/`J23`, 49 k in stock at $0.093, right-angle SMD, rated 500 mA / 50 V per contact against our
+28.5 mA at 28.5 V. It cost no library work: **`HC-FPC-05-09-8RLTAG.kicad_mod` was already in
+`pcb_common/footprints.pretty`.**
 
 ### 7.3 Documents that now contradict this one
 
@@ -268,17 +272,37 @@ Not edited yet, listed so they are not trusted stale:
 | `NOTES-R2-plan.md` | "Panel choice" section, and the WP6 hold |
 | `layout.md` §1 | "the panel model is still deferred" |
 
-## 8. Verification — to be run when the sheet is captured
+## 8. Verification — run 2026-08-17
 
-- Netlist: `+5V2_FL` **absent**; `+VSYS_FL` reaches `U53.IN`; `LED1±`/`LED2±` reach `J24` and
-  nothing else; `SEL` on `IN` and not `GND`.
-- `FL_EN` = `U20.59` + `J6.43` + `U53.HWEN` — three nodes.
-- I²C: `SCL_AON`/`SDA_AON` gain exactly one node each. **Re-check `battery.md` §10.4's rise-time
-  budget** — that 2.2 kΩ was sized for ~90 pF over six devices, and this is the seventh.
-- ERC: no new `power_pin_not_driven`; the `+5V2_FL` violations disappear with the net.
-- `tools/schgen.py`'s `check_label_crossings()` and `check_grid()` — mandatory, per the four silent
-  shorts of 2026-08-16.
-- Render the page to PNG and read it.
+Read out of the exported netlist, not asserted:
+
+| Check | Result |
+| --- | --- |
+| `+VSYS_FL` | `U53.C3`, `L33.1`, `C514.1`, `C516.1`, `R509.1`, plus `R72.1`/`U22.1` — **7 nodes** ✓ |
+| Boost node | `Net-(D34-A)` = `D34.2`, `L33.2`, `U53.A3` ✓ |
+| LED anode | `FL_LEDA` = `U53.D1` (OVP), `D34.1`, `C515.1`, `J24.1`, `J24.5` — **5 nodes** ✓ |
+| Sinks | `FL_LED1K` = `U53.D3` + `J24.2`; `FL_LED2K` = `U53.D2` + `J24.6` ✓ |
+| **`SEL`** | `Net-(U53-SEL)` = `R509.2` + `U53.C2`, and `R509.1` is on `+VSYS_FL` — **strapped to `IN`, not `GND`** ✓ §5 |
+| `FL_EN` | `U20.59` + `J6.43` + `U53.B1` + `R507.1` — 4 nodes ✓ |
+| `FL_PWM1` | joined across sheets: `U53.C1` + `U20.60` + `J6.41` ✓ |
+| I²C | `SCL_AON` and `SDA_AON` gain exactly one node each (`U53.A2`/`U53.A1`) ✓ |
+| `FL_INT#` | `U53.B2` + `R508.1`; `R508.2` on `+3V3` ✓ — **one-sided by design**, §10.3 |
+| `+5V2_FL` | still exists on the frozen `epd` sheet (`J6.7`, `J6.44`, `C147.1`) and now has **no source**, which is intended — §7.1 |
+
+- **`check_grid()` and `check_label_crossings()` pass.** They run inside `render()`, so the sheet
+  cannot be written without them.
+- **`check_ucf.py`: 0 failures.**
+- **ERC**: 338 total, 305 of them `footprint_link_issues` (the owner's global tables). Of the
+  remaining 33, one is the `label_dangling` for `FL_INT#` and the rest are the pre-existing set.
+- **Rendered to PNG and read — four times.** The first three rounds were electrically identical and
+  visually wrong: `C514`/`C516`'s values printed on top of each other, `D34`'s reference rendered
+  **mirrored** (KiCad prints a 180°-placed symbol's text inverted; `schgen.place()` gained a
+  `prop_angle` override), and the whole right-hand region collided. None of that is visible in a
+  netlist, which is the point of the rule.
+
+**Still owed:** `battery.md` §10.4's rise-time budget sized the 2.2 kΩ pull-ups for ~90 pF over six
+devices on the always-on bus. `U53` is the seventh, and touch will be the eighth. Re-check before
+fab rather than at bring-up.
 
 ## 9. Layout guidelines — for Stage D
 
@@ -298,8 +322,9 @@ and this one is asynchronous, so the diode is in the hot loop.
   The DSBGA is 1.94 × 1.42 mm and the solution size TI quotes is 32 mm² — that smallness is a
   layout asset here, not a vanity number.
 - **DSBGA-12 is 0.4 mm pitch.** Already inside this board's assembly envelope — four
-  `TPS22914BYFPR` in `WLP-4_0.83x0.83mm_P0.4mm` are on it already — but it wants solder-mask-defined
-  pads and no via-in-pad.
+  `TPS22914BYFPR` in `WLP-4_0.83x0.83mm_P0.4mm` are on it already. TI's drawing specifies the land
+  as **copper, Ø 0.21–0.24 mm**, i.e. **non-solder-mask-defined**, which is what
+  `tools/gen_yfq0012.py` emits; no via-in-pad.
 - `SCL_AON`/`SDA_AON` reach here from the always-on bus. With `io_expansion`, this is now the second
   long leg; see §8.
 
@@ -310,7 +335,9 @@ and this one is asynchronous, so the diode is in the hot loop.
    §4.3 shows the design holds from 15 mA to the driver's 28.5 mA ceiling — so this bounds the
    *margin*, not the *design*. If the answer is above 28.5 mA per channel the part changes to §3.3's
    fallback and this sheet is redrawn; nothing else on the board moves.
-2. **The 8-pin FPC part is not chosen** — §7.2.
+   **A second half to the question emerged from the design:** is 28.5 mA a *per-channel* rating or a
+   combined budget across both sinks? §4.3's worst corner assumes per-channel.
+2. ~~**The 8-pin FPC part is not chosen**~~ — **CLOSED**, `HC-FPC-05-09-8RLTAG` / `C5213749`, §7.2.
 3. **`FL_INT#` needs an MCU pin.** `mcu.md` §3.2 has two spares left, `PA12` and `PB12`, both kept
    deliberately for capabilities the others lack. `FL_PWM2` is freed by this design and is the
    natural donor — it is already routed to the right corner of the board.

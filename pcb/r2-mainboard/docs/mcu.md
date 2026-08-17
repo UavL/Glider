@@ -553,6 +553,14 @@ error and the sheets are drawn months apart.
 - **The spare count in §3.2 says 11 and the schematic has 10.** `PC10` was claimed for `FPGA_INIT`
   in WP5 and the sentence was not updated. Live spares, read out of the netlist: `PA11`, `PA12`,
   `PB12`, `PC3`, `PC4`, `PC5`, `PC6`, `PC8`, `PC9`, `PD9` — nine after `PG_SOM` takes one.
+- ⚠ **`FL_PWM2` is freed and `FL_INT#` is owed, both by WP6's frontlight redesign (2026-08-17).**
+  The `LM3630A` dims per channel over I²C and uses a single hardware PWM input, so `FL_PWM1`
+  (`PB6`/`TIM4_CH1`) is kept and **`FL_PWM2` (`TIM4_CH2`) no longer drives anything on the
+  frontlight**. In exchange the driver's open-drain fault output `FL_INT#` needs a GPIO with EXTI.
+  **`FL_PWM2` is the natural donor** — same corner of the board, already routed — but it is not a
+  free swap: that net also reaches `J6.42` on `epd`, a frozen reviewed sheet, so retiring it leaves
+  a connector pin undriven or needs that sheet reopened. Until this is decided `FL_INT#` is
+  one-sided and declared in `tools/wire_root.py`'s `DANGLING_OK`. `frontlight.md` §10.3.
 - **`Y20`'s load capacitance is unverified.** Epson FC-135 exists in 12.5 pF, 9 pF and 7 pF;
   **`C46` and `C47`** are 18 pF on the assumption of 12.5 pF and ~3 pF stray (§5.4). Confirm from the
   Epson datasheet before layout, and check the crystal's drive-level rating against the G0's LSE
