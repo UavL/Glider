@@ -227,7 +227,8 @@ class Sheet:
               ref_at: tuple[float, float] | None = None,
               val_at: tuple[float, float] | None = None,
               hide_value: bool = False, hide_ref: bool = False,
-              justify: str | None = None, unit: int = 1) -> Placed:
+              justify: str | None = None, unit: int = 1,
+              prop_angle: int | None = None) -> Placed:
         sym = self.lib.get(lib_id)
         self._used[lib_id] = sym
         uid = u()
@@ -236,7 +237,11 @@ class Sheet:
 
         # KiCad adds the symbol's rotation to each property's own angle, so a
         # property on a 90-degree symbol renders sideways unless counter-rotated.
-        prop_angle = (-rot) % 360
+        # The counter-rotation below is right for 90 and 270 but not for 180:
+        # KiCad renders a 180-degree symbol's properties upside down anyway, so
+        # a part placed at 180 (a diode drawn anode-left, say) prints its
+        # reference mirrored. `prop_angle` overrides it; pass 0 for that case.
+        prop_angle = (-rot) % 360 if prop_angle is None else prop_angle % 360
 
         def prop(n, v, px, py, hide, size=1.27, just=justify):
             h = "\n\t\t\t(hide yes)" if hide else ""

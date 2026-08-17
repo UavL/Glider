@@ -20,13 +20,17 @@ discarded because of what they do to the sheet:
   SW on the right      forces the inductor to route around the body, because a
                        boost wants IN -> L -> SW adjacent.
   SEL below HWEN/PWM   forces SEL's strap up to the IN rail to cross the HWEN
-                       and PWM wires. Crossing wires are not connected in
-                       KiCad, so this is legal and invisible -- which is
-                       exactly how the four silent shorts of 2026-08-16
-                       happened.
+                       and PWM wires.
+  HWEN above SCL/SDA   forces HWEN's 100k pull-down to drop across the I2C
+                       pair to reach GND.
+
+Crossing wires are not connected in KiCad, so both of those are legal and
+invisible -- which is exactly how the four silent shorts of 2026-08-16
+happened, one of which shorted this very I2C bus to GND.
 
 So: the boost input network (SW, IN) sits at the top left with SEL immediately
-below IN, and the LED side (OVP, ILED1, ILED2) on the right facing J24.
+below IN; HWEN is the *lowest* left pin so its pull-down drops into empty
+space; and the LED side (OVP, ILED1, ILED2) is on the right facing J24.
 """
 from __future__ import annotations
 
@@ -41,10 +45,10 @@ PINS = [
     ("SW",      "A3", -12.7,  12.70,   0, "passive"),
     ("IN",      "C3", -12.7,   7.62,   0, "power_in"),
     ("SEL",     "C2", -12.7,   5.08,   0, "input"),
-    ("HWEN",    "B1", -12.7,   0.00,   0, "input"),
-    ("PWM",     "C1", -12.7,  -2.54,   0, "input"),
-    ("SCL",     "A2", -12.7,  -7.62,   0, "input"),
-    ("SDA",     "A1", -12.7, -10.16,   0, "bidirectional"),
+    ("SCL",     "A2", -12.7,   0.00,   0, "input"),
+    ("SDA",     "A1", -12.7,  -2.54,   0, "bidirectional"),
+    ("PWM",     "C1", -12.7,  -7.62,   0, "input"),
+    ("HWEN",    "B1", -12.7, -10.16,   0, "input"),
     ("OVP",     "D1",  12.7,  12.70, 180, "input"),
     ("ILED1",   "D3",  12.7,   2.54, 180, "input"),
     ("ILED2",   "D2",  12.7,   0.00, 180, "input"),
