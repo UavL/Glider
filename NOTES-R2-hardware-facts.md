@@ -118,6 +118,11 @@ shortage surcharge, and a soldered module would have to be consigned to the fab 
 board is still fully machine-assembled — the mating connectors are LCSC stock — and only the
 module is plugged in afterwards. **The first prototype is allowed to be thick.**
 
+**Confirmed cheaper as well as more convenient, 2026-08-18.** PHYTEC quoted the `PCM-071` at
+**€250.00 @ 1–9 pcs** — €31 *below* the solder-down part's unit price, and orderable singly against
+a five-reel minimum. The module cost of a first prototype therefore falls from **~€1 405 to €250**.
+The switch was made on convenience and consignment grounds; the price turned out to favour it too.
+
 The two variants are the same electrical module; what changes is how it attaches, so the DPI link,
 the rails and the FPGA side of the design are unaffected. Only `som.kicad_sch` (WP8) and the pin
 assignments feeding `dpi_in` (WP7) depend on which one is fitted, and neither is drawn yet.
@@ -141,7 +146,29 @@ when the switch was made. **WP7 and WP8 are unblocked.**
 | DPI | **Parallel MIPI DPI 2.0, RGB 16/18/24-bit with separate syncs**, full `X1` pin map in **Table 31** | L-1038e.A5 §8.1.1 |
 | I/O voltage | `X_VOUT0_*` default **3.3 V**, solder-jumper selectable to 1.8 V (§4.7) — matches Caster's `LVCMOS33`, no level shifting | L-1038e.A5 Table 31 note 1 |
 | PCB cut-out | **not required** — the advantage of the connectorised part; `PCL-071` needs a ~14.4 × 22.4 mm hole | L-1041e.A3 Fig. 11 NOTE 2 |
-| Price and MOQ | **still unquoted** — PHYTEC's mail covered `PCL-071-001-R` only | **ask Emma** |
+| Price | **€250.00 @ 1–9 pcs**, variant `PCM-071-5432DE11I`, PHYTEC order code `C618992` | PHYTEC (Emma Tholey) mail, 2026-08-18 |
+| MOQ and lead time | **not stated.** A "1–9 pcs" band implies a MOQ of 1, but PHYTEC did not say so and quoted no lead time | **still open** |
+| Quoted population | AM6254 quad A53 1.4 GHz + M4F 400 MHz, **2 GB DDR4, 32 GB eMMC**, 64 MB QSPI NOR, 4 kB EEPROM, Ethernet PHY, industrial temp | same mail |
+
+#### The quoted variant is larger than this design needs
+
+`PCM-071-5432DE11I` carries **2 GB DDR4 and 32 GB eMMC**. Nothing in R2 needs either: the SoM's
+job is to run Linux and push DPI, and the framebuffer for 1872×1404 is a few megabytes. PHYTEC
+said again that the price still carries the memory-shortage surcharge ("we are currently passing
+on the increased memory costs directly to our customers without adding any margin") and will fall
+when the market settles. **How much of the €250 that surcharge is was not stated** — the ~€190
+figure quoted on 2026-08-13 was for `PCL-071-001-R` and must not be assumed to carry over. What is
+safe to say is only the direction: the largest cost driver in this module is memory this design
+does not use.
+
+The manual will not answer what else is orderable — §6.1.1 and §6.1.3 both say only *"Contact our
+sales team for information on the available DDR4 [/eMMC] population options"*. It is a sales
+question, and worth asking before a production order rather than before the prototype: a smaller
+population may carry its own MOQ, which is exactly the trap the `PCL-071` sprang.
+
+One row of that open question is already dead, though — **`VDDSHV3` = 3.3 V is not a variant to
+order.** It is solder jumper `J4` on the module and ships at 3.3 V by default (Table 6, Table 31
+footnote 1). Only RAM, eMMC and the WiFi option remain genuinely open.
 
 #### ⚠ The `BOOTMODE` overlap — settled 2026-08-14, and it is two signals, not six
 

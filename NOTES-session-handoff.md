@@ -64,15 +64,17 @@ WP8 (`som`) are drawn but NOT reviewed.** `frontlight` is the newest and least e
 | 2 | **Frontlight LED current per channel**, and whether 28.5 mA is per-channel or combined | the full-scale register and `L33`'s margin — *not* the design, `frontlight.md` §10.1 |
 | 3 | **`GT9110H` touch tail pinout** | `io-expansion.md` §5 — the last open Stage C decision |
 | 4 | **Cell NTC type** (R25, β) | `battery.md` §10.2's `R9`/`R10` |
-| 5 | **Cell connector**: the pack ships on a JST 1.25 mm rated 1 A against ~2 A of charge | `battery.md` §9.1 — three options, owner's call |
-| 6 | **`PCM-071` price/MOQ** from PHYTEC, and **its footprint** (owner download) | ordering; the one unresolved footprint |
+| ~~5~~ | ~~**Cell connector**~~ | **DECIDED 2026-08-18** (`7b73727`): `J2` → Molex Pico-Lock `504050-0391` (3.5 A, 2.00 mm mated), plus `J25`, three solder pads on the same nets. The pack still has to be re-terminated |
+| 6 | ~~**`PCM-071` price/MOQ**~~ **priced 2026-08-18, €250 @1–9** — MOQ and lead time still unstated. **Its footprint** is still the one unresolved footprint | ordering |
 | 7 | **KiCad global library tables** (Preferences → Configure Paths) | the 305 `footprint_link_issues` |
 | 8 | **Order `LM3630A` from DigiKey** (`296-46302-1-ND`) — LCSC `C2678552` is at 0 | building board 1 |
 
 ## 5. Next steps
 
-**A. Owner:** send the vendor questions (#2, #3, #4 above — `panel.md` §7 has them phrased), decide
-the SoM position, decide the cell connector, and review WP6–WP8.
+**A. Owner:** ~~send the vendor questions~~ **sent 2026-08-18**; decide the SoM position and review
+WP6–WP8. ~~decide the cell connector~~ **decided.** Also outstanding: forward PHYTEC's *technical*
+reply — their pricing mail refers to a colleague's answer that has not reached this repo, and it is
+the one carrying questions 2–4 (`NOTES-R2-plan.md`, "Follow-up enquiry").
 
 **B. Assistant, unblocked today:**
 1. `NOTES-R2-hardware-facts.md` has none of this session's evidence — the `LGS6302` `D_MAX`, the

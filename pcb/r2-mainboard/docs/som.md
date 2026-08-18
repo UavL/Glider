@@ -295,5 +295,12 @@ correctness rests on**, and pin numbers carry no footnotes.
 5. ~~**`PG_SOM` is owed to `mcu.kicad_sch`**~~ **Done — `tools/patch_mcu_pg_som.py` claims
    `PC8`.** Firmware must enable the pin's internal pull-down; see that script's docstring.
 6. **`check_pinout.py` does not exist yet.** `parse_som_pinout.py` is its data source and is done.
-7. **The `PCM-071` has never been priced**, and PHYTEC's quote covered `PCL-071-001-R` only. The
-   owner's route is to buy a `phyBOARD-AM62x` kit (`KPB-07124`, $349) whose module unplugs.
+7. ~~**The `PCM-071` has never been priced**~~ **Priced 2026-08-18 — €250.00 @ 1–9 pcs**,
+   variant `PCM-071-5432DE11I`, PHYTEC order code `C618992`. MOQ and lead time were not stated.
+
+   This retires the workaround recorded here, which was to buy a `phyBOARD-AM62x` kit
+   (`KPB-07124`, $349) purely because its module unplugs — the bare module is now both cheaper and
+   directly orderable. **The kit is still worth considering on its own merits, though:** for
+   ~€70 more it adds a working carrier, and every module-level power and latency figure this
+   design rests on (Facts §4.6 — 128.6 mW, ~150 ms) was measured *by PHYTEC on their carrier*, not
+   here. Owner's call, and not a blocker either way.

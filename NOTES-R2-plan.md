@@ -252,8 +252,8 @@ and since the chosen module has touch bonded on, touch could reasonably be popul
 | ~~**Module-level Deep Sleep power**~~ | ~~YES~~ | **CLOSED 2026-08-14 — 128.6 mW ‡ measured on `PCM-071`.** Facts §4.6 |
 | ~~**Resume latency** — no number exists in any TI or PHYTEC document~~ | ~~YES~~ | **CLOSED 2026-08-14 — ~150 ms ‡**, and ≤237 ms for a full round trip from the kernel log. Facts §4.6 |
 | ~~**`PCL-071` price, MOQ, will they sell 1–2 units**~~ | ~~YES~~ | **CLOSED 2026-08-13** — €281 @1–9, reel-only MOQ 5. Answered by moving to `PCM-071` (constraint 1) |
-| **`PCM-071` price and MOQ** | **YES** | replaces the row above; the quote covered `PCL-071-001-R` only |
-| Orderable variants (1 GB RAM, small eMMC, `VDDSHV3` = 3.3 V, WiFi) | **YES** | PHYTEC Q3 |
+| ~~**`PCM-071` price and MOQ**~~ | ~~YES~~ | **CLOSED 2026-08-18 — €250.00 @ 1–9 pcs**, variant `PCM-071-5432DE11I`, order code `C618992`. Cheaper per unit than the `PCL-071` *and* orderable singly: ~€1 405 → €250 for the first prototype. **MOQ and lead time were not stated** — a loose end, not a blocker |
+| Orderable variants (1 GB RAM, small eMMC, ~~`VDDSHV3` = 3.3 V~~, WiFi) | not for the prototype | The quote is for **2 GB DDR4 / 32 GB eMMC** — more than R2 uses, and memory is where the surcharge sits. `VDDSHV3` is struck: it is solder jumper `J4`, default 3.3 V, not an ordering option. Ask before a *production* order; a smaller population may carry its own MOQ |
 | ~~**The R2 schematic does not exist**~~ | ~~YES~~ | **Stage C is COMPLETE as of 2026-08-17** — all 14 sheets drawn, `frontlight` last. WP6–WP8 await owner review; Stage D (layout) has not started |
 | ~~Will JLCPCB accept the 270-pin consigned module on a custom footprint~~ | ~~soon~~ | **Gone with the `PCM-071` switch** — nothing is consigned |
 | ~~Panel model~~ | ~~no~~ | **CLOSED 2026-08-17 — `GDEP103TC2-FT11`.** See "Panel choice" |
@@ -264,8 +264,10 @@ and since the chosen module has touch bonded on, touch could reasonably be popul
 | **Where the SoM sits, and on which side** | no | **owner decision — the only thing blocking Stage D**, `docs/layout.md` §1 |
 | R1 firmware + gateware untested on hardware | no | needs the ISE VM (192.168.56.102, currently down) |
 
-**Nothing is ordered until the remaining `YES` rows are answered** — now `PCM-071` price/MOQ,
-orderable variants, and the schematic existing.
+**Nothing is ordered until the remaining `YES` rows are answered.** As of 2026-08-18 there are
+**none left**: price is quoted, the schematic exists, and the variant question is deferred to a
+production order. What still gates ordering is the owner's own list — the SoM position, the WP6–WP8
+reviews, and the parts with no LCSC source (`LM3630A`, the Pico-Lock).
 
 ### Answered, so no longer open
 
@@ -324,13 +326,25 @@ controller to 1920×1080; it would have removed consignment, the cut-out and the
 move, at the cost of the risk that mattered most — **suspend-to-RAM support on mainline Allwinner
 is weak**, and that is the entire power architecture.
 
-### Follow-up enquiry — ready to send
+### Follow-up enquiry — sent, partly answered 2026-08-18
 
 Answers received have opened four new asks, three of which block work now.
 
-> 1. **Price, MOQ and lead time for `PCM-071`** at 1, 10 and 100 pieces. Your quote of 2026-08-13
+**Status.** Question 1 is answered below. PHYTEC's mail also says *"you should have received an
+email from my colleague regarding your question"* — **that technical reply has not reached this
+repo**, and it is the one that matters: questions 2 and 3 are what decide `docs/mcu.md` §5.5 and
+where the module's 128.6 mW might be reduced. Forward it when it turns up.
+
+> 1. ~~**Price, MOQ and lead time for `PCM-071`** at 1, 10 and 100 pieces. Your quote of 2026-08-13
 >    covered `PCL-071-001-R`; we have since moved to the connectorised module, largely because the
->    solder-down part is reel-only in reels of five.
+>    solder-down part is reel-only in reels of five.~~
+>
+>    **Answered 2026-08-18, in part.** `PCM-071-5432DE11I`, order code `C618992`, **€250.00 at
+>    1–9 pcs** — AM6254 quad A53 1.4 GHz + M4F, 2 GB DDR4, 32 GB eMMC, 64 MB QSPI NOR, 4 kB EEPROM,
+>    Ethernet PHY, industrial temperature. PHYTEC repeated that the memory surcharge is passed
+>    through at cost and will come down when the market does. **No MOQ and no lead time were
+>    given** — worth one line of reply, since a lead time is what decides whether the module or the
+>    PCB is the long pole.
 > 2. **In Suspend-to-RAM, what state are the two Gigabit Ethernet PHYs in, and can they be held
 >    in power-down?** Your report's resume log re-initialises both `am65-cpsw-nuss` interfaces.
 >    Our product uses no Ethernet at all, and at 128.6 mW the module is now the largest consumer in
@@ -515,8 +529,8 @@ retains ~2.5× margin.
 | ~~PHYTEC will not sell 1–2 units, or `PCL-071` is priced out of reach~~ | ~~same~~ | **Realised, 2026-08-13.** €281 each with a reel-only MOQ of 5 = ~€1 405 for one prototype. Answered by moving to `PCM-071` (constraint 1) |
 | ~~JLCPCB refuses the consigned module or its custom footprint~~ | ~~forces PCBWay, or hand assembly~~ | **Gone with the `PCM-071` switch** — nothing is consigned, and the mating connector is ordinary LCSC stock |
 | ~~A soldered-down module cannot be swapped if the board is wrong~~ | ~~one bad board = one dead module~~ | **Gone with the `PCM-071` switch** — the module unplugs |
-| `PCM-071`'s DPI pin numbers are unknown | blocks WP7 and WP8 | needs the `PCM-071` hardware manual — the `PCL-071` numbers in L-1041e Table 30 do **not** carry over |
-| `PCM-071` price and MOQ never quoted | could reopen the whole decision | ask Emma; the quote covered `PCL-071-001-R` only |
+| ~~`PCM-071`'s DPI pin numbers are unknown~~ | ~~blocks WP7 and WP8~~ | **CLOSED 2026-08-14** — the owner added `datasheets/L-1038e.A5_phyCORE-AM62x_HW Manual.pdf`, whose title page reads "SOM Prod. No.: PCM-071". Table 31 has the full `X1` DPI map; both sheets are drawn. *This row simply went stale — Facts §3.1 has said "WP7 and WP8 are unblocked" since that day* |
+| ~~`PCM-071` price and MOQ never quoted~~ | ~~could reopen the whole decision~~ | **CLOSED 2026-08-18 — €250.00 @ 1–9 pcs.** It did not reopen the decision; it reinforced it. MOQ and lead time are still unstated |
 | Estimated FPGA idle power wrong | battery life misses target | Stage B datasheets; the three INA3221s make it measurable on board 1 |
 | EMR digitizer unavailable for this panel | pen support drops | deferred out of R2 scope |
 
