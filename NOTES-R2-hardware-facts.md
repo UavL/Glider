@@ -147,7 +147,8 @@ when the switch was made. **WP7 and WP8 are unblocked.**
 | I/O voltage | `X_VOUT0_*` default **3.3 V**, solder-jumper selectable to 1.8 V (§4.7) — matches Caster's `LVCMOS33`, no level shifting | L-1038e.A5 Table 31 note 1 |
 | PCB cut-out | **not required** — the advantage of the connectorised part; `PCL-071` needs a ~14.4 × 22.4 mm hole | L-1041e.A3 Fig. 11 NOTE 2 |
 | Price | **€250.00 @ 1–9 pcs**, variant `PCM-071-5432DE11I`, PHYTEC order code `C618992` | PHYTEC (Emma Tholey) mail, 2026-08-18 |
-| MOQ and lead time | **not stated.** A "1–9 pcs" band implies a MOQ of 1, but PHYTEC did not say so and quoted no lead time | **still open** |
+| MOQ | **1** | PHYTEC, confirmed to the owner 2026-08-18 |
+| Lead time | **still not stated** | **open** |
 | Quoted population | AM6254 quad A53 1.4 GHz + M4F 400 MHz, **2 GB DDR4, 32 GB eMMC**, 64 MB QSPI NOR, 4 kB EEPROM, Ethernet PHY, industrial temp | same mail |
 
 #### The quoted variant is larger than this design needs

@@ -152,7 +152,7 @@ alternate functions from Tables 13–20; ADC and DAC channels from Table 12's "A
 | 39 | `PC7` | `KEY_PREV#` | GPIO in, **EXTI7** | |
 | 40 | `PD8` | `KEY_NEXT#` | GPIO in, **EXTI8** | |
 | 41 | `PD9` | — | spare | |
-| 48 | `PC8` | — | spare | |
+| 48 | `PC8` | `PG_SOM` | GPIO in (module power-good) | `som.md` §5 |
 | 49 | `PC9` | — | spare | |
 | 50 | `PD0` | `CHG_INT#` | GPIO in, **EXTI0** | |
 | 51 | `PD1` | `VBUS_DET` | GPIO in, **EXTI1** | |
@@ -210,8 +210,10 @@ it is the reason `LED_STAT#` is on `PC2` and not on the otherwise-convenient `PC
 | 34 | `PB14` | `FPGA_DONE` | GPIO in | |
 | 35 | `PB15` | `FPGA_SUSP` | GPIO out | §4 |
 
-**49 signals, 11 spares** (`PC3`, `PC4`, `PC5`, `PC6`, `PC8`, `PC9`, `PC10`, `PD9`, `PB12`, `PA11`,
-`PA12`), of which four are ADC-capable. Every spare carries a no-connect flag so ERC stays honest;
+**50 signals, 10 spares** (`PC3`, `PC4`, `PC5`, `PC6`, `PC9`, `PC10`, `PD9`, `PB12`, `PA11`,
+`PA12`), of which four are ADC-capable. (`PC8` left the spare pool when
+`tools/patch_mcu_pg_som.py` claimed it for `PG_SOM`; §9's note that the count said 11 while the
+schematic had 10 is this, and is now resolved. Verified against the netlist: `/PG_SOM -> U20.48`.) Every spare carries a no-connect flag so ERC stays honest;
 any of them can be claimed later by deleting the flag.
 
 `FL_PWM1` and `FL_PWM2` are deliberately two channels of the **same** timer, so warm and cool

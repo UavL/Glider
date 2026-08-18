@@ -65,7 +65,7 @@ WP8 (`som`) are drawn but NOT reviewed.** `frontlight` is the newest and least e
 | 3 | **`GT9110H` touch tail pinout** | `io-expansion.md` §5 — the last open Stage C decision |
 | 4 | **Cell NTC type** (R25, β) | `battery.md` §10.2's `R9`/`R10` |
 | ~~5~~ | ~~**Cell connector**~~ | **DECIDED 2026-08-18** (`7b73727`): `J2` → Molex Pico-Lock `504050-0391` (3.5 A, 2.00 mm mated), plus `J25`, three solder pads on the same nets. The pack still has to be re-terminated |
-| 6 | ~~**`PCM-071` price/MOQ**~~ **priced 2026-08-18, €250 @1–9** — MOQ and lead time still unstated. **Its footprint** is still the one unresolved footprint | ordering |
+| 6 | ~~**`PCM-071` price/MOQ**~~ **priced 2026-08-18: €250 @1–9, MOQ 1** — lead time still unstated. **Its footprint** (`X2`, `footprints:PCM-071_2xBTH-060-01-L-D-A-K`) is still the one unresolved footprint | ordering |
 | 7 | **KiCad global library tables** (Preferences → Configure Paths) | the 305 `footprint_link_issues` |
 | 8 | **Order `LM3630A` from DigiKey** (`296-46302-1-ND`) — LCSC `C2678552` is at 0 | building board 1 |
 

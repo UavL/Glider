@@ -252,7 +252,7 @@ and since the chosen module has touch bonded on, touch could reasonably be popul
 | ~~**Module-level Deep Sleep power**~~ | ~~YES~~ | **CLOSED 2026-08-14 — 128.6 mW ‡ measured on `PCM-071`.** Facts §4.6 |
 | ~~**Resume latency** — no number exists in any TI or PHYTEC document~~ | ~~YES~~ | **CLOSED 2026-08-14 — ~150 ms ‡**, and ≤237 ms for a full round trip from the kernel log. Facts §4.6 |
 | ~~**`PCL-071` price, MOQ, will they sell 1–2 units**~~ | ~~YES~~ | **CLOSED 2026-08-13** — €281 @1–9, reel-only MOQ 5. Answered by moving to `PCM-071` (constraint 1) |
-| ~~**`PCM-071` price and MOQ**~~ | ~~YES~~ | **CLOSED 2026-08-18 — €250.00 @ 1–9 pcs**, variant `PCM-071-5432DE11I`, order code `C618992`. Cheaper per unit than the `PCL-071` *and* orderable singly: ~€1 405 → €250 for the first prototype. **MOQ and lead time were not stated** — a loose end, not a blocker |
+| ~~**`PCM-071` price and MOQ**~~ | ~~YES~~ | **CLOSED 2026-08-18 — €250.00 @ 1–9 pcs**, variant `PCM-071-5432DE11I`, order code `C618992`, **MOQ 1**. Cheaper per unit than the `PCL-071` *and* orderable singly: ~€1 405 → €250 for the first prototype. Lead time still unstated |
 | Orderable variants (1 GB RAM, small eMMC, ~~`VDDSHV3` = 3.3 V~~, WiFi) | not for the prototype | The quote is for **2 GB DDR4 / 32 GB eMMC** — more than R2 uses, and memory is where the surcharge sits. `VDDSHV3` is struck: it is solder jumper `J4`, default 3.3 V, not an ordering option. Ask before a *production* order; a smaller population may carry its own MOQ |
 | ~~**The R2 schematic does not exist**~~ | ~~YES~~ | **Stage C is COMPLETE as of 2026-08-17** — all 14 sheets drawn, `frontlight` last. WP6–WP8 await owner review; Stage D (layout) has not started |
 | ~~Will JLCPCB accept the 270-pin consigned module on a custom footprint~~ | ~~soon~~ | **Gone with the `PCM-071` switch** — nothing is consigned |
@@ -530,7 +530,7 @@ retains ~2.5× margin.
 | ~~JLCPCB refuses the consigned module or its custom footprint~~ | ~~forces PCBWay, or hand assembly~~ | **Gone with the `PCM-071` switch** — nothing is consigned, and the mating connector is ordinary LCSC stock |
 | ~~A soldered-down module cannot be swapped if the board is wrong~~ | ~~one bad board = one dead module~~ | **Gone with the `PCM-071` switch** — the module unplugs |
 | ~~`PCM-071`'s DPI pin numbers are unknown~~ | ~~blocks WP7 and WP8~~ | **CLOSED 2026-08-14** — the owner added `datasheets/L-1038e.A5_phyCORE-AM62x_HW Manual.pdf`, whose title page reads "SOM Prod. No.: PCM-071". Table 31 has the full `X1` DPI map; both sheets are drawn. *This row simply went stale — Facts §3.1 has said "WP7 and WP8 are unblocked" since that day* |
-| ~~`PCM-071` price and MOQ never quoted~~ | ~~could reopen the whole decision~~ | **CLOSED 2026-08-18 — €250.00 @ 1–9 pcs.** It did not reopen the decision; it reinforced it. MOQ and lead time are still unstated |
+| ~~`PCM-071` price and MOQ never quoted~~ | ~~could reopen the whole decision~~ | **CLOSED 2026-08-18 — €250.00 @ 1–9 pcs, MOQ 1.** It did not reopen the decision; it reinforced it. Lead time is still unstated |
 | Estimated FPGA idle power wrong | battery life misses target | Stage B datasheets; the three INA3221s make it measurable on board 1 |
 | EMR digitizer unavailable for this panel | pen support drops | deferred out of R2 scope |
 
