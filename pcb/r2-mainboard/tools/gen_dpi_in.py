@@ -140,7 +140,7 @@ def build(rows: list) -> str:
     root_uuid, sheets = sheet_uuids(PROJ / "r2.kicad_sch")
     sh = Sheet(
         sheets["dpi_in"], root_uuid, "r2", paper="A3",
-        title="Glider-R2 / Specter mainboard",
+        title="Glider-R2 / Reflow mainboard",
         rev="A", date="2026-08-15",
         comments=(
             "dpi_in — PCM-071 unit 2: 18-bit RGB666 parallel video into Caster",

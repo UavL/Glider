@@ -70,14 +70,26 @@ any datasheet-derived file at any depth under `datasheets/`.
 **B-5 — "Were there changes you wanted to make to already-reviewed sheets?"**
 Yes, six, and they have been accumulating:
 
-| # | Change | Sheet | Source |
+| # | Change | Sheet | Status |
 | --- | --- | --- | --- |
-| 1 | `R225` 22 kΩ → **20.5 kΩ** — the one value the `GDEP103TC2` forces | `epd_power` | `epd-port.md` §10.3 |
-| 2 | Five sense-divider caps carry LCSC codes for the wrong value (`C91`, `C163`, `C164`, `C168`, `C169`) | `power_mon` | `NOTES-R2-plan.md`, commit `77469bb` |
-| 3 | `+5V2_FL` is orphaned — `J6.7`, `J6.44`, `C147` and no source | `epd` | commit `564cc48` |
-| 4 | Ten duplicate `#PWR` references | `fpga_*` | `fpga.md` §9.5 |
-| 5 | `J3` deletion — **you approved this in `Analysis_fpga.md`** | `epd` | `epd-port.md` §9.3 |
-| 6 | `Specter` → `Reflow` rename, 13 title blocks + the generators | all | naming |
+| 1 | `R225` 22 kΩ → **20.5 kΩ**, LCSC `C57105` — the one value the `GDEP103TC2` forces | `epd_power` | **DONE 2026-08-19** |
+| 2 | Five sense-divider caps → `C1523` (`0402B102K500NT`, 1 nF 50 V X7R, JLC Basic) | `power_mon` | **DONE** |
+| 2b | `R88`/`R224` → `C54920667`, 14 units in stock was not orderable | `epd_power` | **DONE** |
+| 3 | `+5V2_FL` orphan — `C147` set **DNP**, footprint kept | `epd` | **DONE**, see below |
+| 4 | Ten duplicate `#PWR` references | `battery` | **DONE** — renumbered to `#PWR1112`–`#PWR1121` |
+| 5 | `J3` deletion | `epd` | **already done 2026-08-15**, `epd-port.md` §9.3 |
+| 6 | `Specter` → `Reflow` | 22 files | **DONE** — 14 sheets, 7 generators, 1 project file |
+
+All six verified together: netlist exported before and after has **518 nets with identical pin
+membership**, and `epd_power` and `epd` were rendered and checked by eye.
+
+**On `C147`, a deliberate departure from "delete it".** `panel.md` §7 had already ruled that
+`J6.7`/`J6.44` stay — *"an unconnected connector pin is not an error. No change to this frozen
+sheet."* That ruling covered the pins but not the capacitor sitting on the dead net, which is a
+real BOM and pick-and-place line doing nothing. Deleting the symbol would leave dangling wires and
+a stray `GND` symbol on a reviewed sheet; marking it **DNP with `in_bom no`** removes it from the
+BOM and the placement file, keeps the topology untouched, and leaves the footprint on the board in
+case a future panel drives that rail. A `BOM Comments` property on the part records why.
 
 **B-6 — "Why did `J3` exist on the original Caster design?"**
 It is the 16-pin half of Caster's two-connector panel interface. The 50-pin `J6` covers 8- and

@@ -142,7 +142,7 @@ def build(pins: dict, unit_of: dict) -> tuple[str, list]:
     root_uuid, sheets = sheet_uuids(PROJ / "r2.kicad_sch")
     sh = Sheet(
         sheets["som"], root_uuid, "r2", paper="A3",
-        title="Glider-R2 / Specter mainboard",
+        title="Glider-R2 / Reflow mainboard",
         rev="A", date="2026-08-15",
         comments=(
             "som — PCM-071 units 1/3/4: power, control, microSD on MMC1",

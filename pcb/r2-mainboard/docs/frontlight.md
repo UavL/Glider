@@ -39,10 +39,15 @@ From the mechanical drawing's "Pre-light specification" note and §2 of the data
 | LED count / arrangement | 18 LEDs, 2 × 9 series — **`panel.md` §3, from the vendor product page, not the datasheet** |
 | **Current per channel** | **not stated anywhere in the datasheet — the one open number, §10.1** |
 
-**9 LEDs in series is inferred**, from 27 V ÷ 9 ≈ 3.0 V of forward drop, which is ordinary for a
-white LED at these currents. It could equally be 8 series at 3.4 V. **The design below is
-insensitive to which** — both are under the driver's 10-series limit, and both put V_OUT in the
-same 27–29 V band. Nothing here depends on resolving it.
+~~**9 LEDs in series is inferred**~~ — **CONFIRMED 2026-08-19.** The vendor's product listing for
+`GDEP103TC2-FT11` states *"Circuit Mode: Two circuits, 9 LEDs in series per circuit"* and
+*"Number of Led Light: 18"*, alongside *"Front Light Connector: 8pin"* and *"Operating Voltage:
+27"*. So 2 × 9 is fact, not inference: one LED of headroom under the `LM3630A`'s 10-series limit,
+and V_OUT in the 27–29 V band as designed. The design was insensitive to which anyway — but the
+number is now settled and the arithmetic below stands unchanged.
+
+The 8-pin front-light connector is `J24`, and this also answers why four of its eight pins are
+`NC`: the panel's own tail is `LED1+`, `LED1−`, NC, NC, `LED2+`, `LED2−`, NC, NC (§1).
 
 ## 2. The premise that was wrong, kept for the record
 

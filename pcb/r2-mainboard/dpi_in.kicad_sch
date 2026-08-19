@@ -5,7 +5,7 @@
 	(uuid "2428c127-2c5d-44de-b80a-89c491ec60c4")
 	(paper "A3")
 	(title_block
-		(title "Glider-R2 / Specter mainboard")
+		(title "Glider-R2 / Reflow mainboard")
 		(date "2026-08-15")
 		(rev "A")
 		(comment 1 "dpi_in — PCM-071 unit 2: 18-bit RGB666 parallel video into Caster")

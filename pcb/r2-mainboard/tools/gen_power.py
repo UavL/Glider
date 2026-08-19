@@ -52,7 +52,7 @@ def build():
     root_uuid, sheets = sheet_uuids(PROJ / "r2.kicad_sch")
     sh = Sheet(
         sheets["power"], root_uuid, "r2", paper="A3",
-        title="Glider-R2 / Specter mainboard",
+        title="Glider-R2 / Reflow mainboard",
         rev="A", date="2026-08-06",
         comments=(
             "power — rail tree from +VSYS; every rail below +3V3_AON is gated",

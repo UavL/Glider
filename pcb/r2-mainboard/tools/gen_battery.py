@@ -39,7 +39,7 @@ def build():
     root_uuid, sheets = sheet_uuids(PROJ / "r2.kicad_sch")
     sh = Sheet(
         sheets["battery"], root_uuid, "r2", paper="A3",
-        title="Glider-R2 / Specter mainboard",
+        title="Glider-R2 / Reflow mainboard",
         rev="A", date="2026-08-05",
         comments=(
             "battery — cell, charger with power path, fuel gauge, USB-C",

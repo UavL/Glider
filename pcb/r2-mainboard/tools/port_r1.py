@@ -289,7 +289,7 @@ NO_CONNECT = {
     ),
 }
 
-TITLE = "Glider-R2 / Specter mainboard"
+TITLE = "Glider-R2 / Reflow mainboard"
 NOTE = {
     "epd": "epd — panel connectors, ported from R1 pin-for-pin. See docs/epd-port.md.",
     "epd_power": "epd_power — EPD HV chain, ported unchanged from R1. See docs/epd-port.md.",

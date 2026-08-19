@@ -91,7 +91,7 @@ def build() -> str:
     root_uuid, sheets = sheet_uuids(PROJ / "r2.kicad_sch")
     sh = Sheet(
         sheets["io_expansion"], root_uuid, "r2", paper="A3",
-        title="Glider-R2 / Specter mainboard",
+        title="Glider-R2 / Reflow mainboard",
         rev="A", date="2026-08-15",
         comments=(
             "io_expansion — touch and pen FPCs, all DNP. See docs/io-expansion.md",

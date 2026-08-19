@@ -136,7 +136,7 @@ def build():
     root_uuid, sheets = sheet_uuids(PROJ / "r2.kicad_sch")
     sh = Sheet(
         sheets["mcu"], root_uuid, "r2", paper="A3",
-        title="Glider-R2 / Specter mainboard",
+        title="Glider-R2 / Reflow mainboard",
         rev="A", date="2026-08-07",
         comments=(
             "mcu — STM32G0 housekeeping: rail enables, EPD HV, charger, buttons",

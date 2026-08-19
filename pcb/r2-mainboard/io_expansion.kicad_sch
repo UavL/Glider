@@ -5,7 +5,7 @@
 	(uuid "bfb4a282-c959-4a7b-92d0-a4a500453c0c")
 	(paper "A3")
 	(title_block
-		(title "Glider-R2 / Specter mainboard")
+		(title "Glider-R2 / Reflow mainboard")
 		(date "2026-08-15")
 		(rev "A")
 		(comment 1 "io_expansion — touch and pen FPCs, all DNP. See docs/io-expansion.md")

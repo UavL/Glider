@@ -5,7 +5,7 @@
 	(uuid "4ef2e862-7ccc-4cb7-8647-31267e134984")
 	(paper "A4")
 	(title_block
-		(title "Glider-R2 / Specter mainboard")
+		(title "Glider-R2 / Reflow mainboard")
 		(date "2026-08-07")
 		(rev "A")
 		(company "Copyright 2025 Modos Tech Inc")
@@ -4385,7 +4385,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "17783b89-42e3-41d6-a1ce-38e5f4234536")
 		(property "Reference" "C147"
 			(at 105.41 151.13 90)
@@ -4396,6 +4396,14 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+			)
+		)
+		(property "BOM Comments" "DNP - decouples +5V2_FL, which has no source on this panel (panel.md, J6.7/J6.44 unused). Footprint kept in case a future panel drives it." (at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
 			)
 		)
 		(property "Value" "100nF/50V"

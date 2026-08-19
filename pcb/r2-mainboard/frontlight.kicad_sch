@@ -5,7 +5,7 @@
 	(uuid "5c8ce93f-26c8-4450-ba3a-dff03cacb9ae")
 	(paper "A4")
 	(title_block
-		(title "Glider-R2 / Specter mainboard")
+		(title "Glider-R2 / Reflow mainboard")
 		(date "2026-08-17")
 		(rev "A")
 		(comment 1 "frontlight — LM3630A dual-channel LED driver, +VSYS_FL to the panel's bonded frontlight")

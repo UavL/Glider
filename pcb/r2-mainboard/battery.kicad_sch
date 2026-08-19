@@ -5,7 +5,7 @@
 	(uuid "a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee")
 	(paper "A3")
 	(title_block
-		(title "Glider-R2 / Specter mainboard")
+		(title "Glider-R2 / Reflow mainboard")
 		(date "2026-08-05")
 		(rev "A")
 		(comment 1 "battery — cell, charger with power path, fuel gauge, USB-C")
@@ -6009,7 +6009,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "05e23514-868b-45c0-9349-e6222b11919e")
-		(property "Reference" "#PWR012"
+		(property "Reference" "#PWR1112"
 			(at 236.22 135.89 0)
 			(hide yes)
 			(show_name no)
@@ -6069,7 +6069,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR012")
+					(reference "#PWR1112")
 					(unit 1)
 				)
 			)
@@ -6246,7 +6246,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "12cd0d25-f2d2-470d-973f-d5965402286f")
-		(property "Reference" "#PWR017"
+		(property "Reference" "#PWR1113"
 			(at 214.63 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -6306,7 +6306,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR017")
+					(reference "#PWR1113")
 					(unit 1)
 				)
 			)
@@ -6323,7 +6323,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "1396112e-5920-415e-9cb2-d040d16eae96")
-		(property "Reference" "#PWR022"
+		(property "Reference" "#PWR1115"
 			(at 355.6 101.6 0)
 			(hide yes)
 			(show_name no)
@@ -6383,7 +6383,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR022")
+					(reference "#PWR1115")
 					(unit 1)
 				)
 			)
@@ -7080,7 +7080,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "304cc90c-b2fc-4d9c-a943-e99d30a19046")
-		(property "Reference" "#PWR020"
+		(property "Reference" "#PWR1114"
 			(at 271.78 87.63 0)
 			(hide yes)
 			(show_name no)
@@ -7140,7 +7140,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR020")
+					(reference "#PWR1114")
 					(unit 1)
 				)
 			)
@@ -7157,7 +7157,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "313a5a16-415a-47a2-9129-150cb24709a8")
-		(property "Reference" "#PWR037"
+		(property "Reference" "#PWR1120"
 			(at 50.8 227.33 0)
 			(hide yes)
 			(show_name no)
@@ -7217,7 +7217,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR037")
+					(reference "#PWR1120")
 					(unit 1)
 				)
 			)
@@ -7825,7 +7825,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "3f18a9b2-1a78-4cab-a706-f3c9d921a293")
-		(property "Reference" "#PWR025"
+		(property "Reference" "#PWR1116"
 			(at 355.6 140.97 0)
 			(hide yes)
 			(show_name no)
@@ -7885,7 +7885,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR025")
+					(reference "#PWR1116")
 					(unit 1)
 				)
 			)
@@ -11638,7 +11638,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "b4946814-64c0-4a0a-b9e0-1e1e2e1eb852")
-		(property "Reference" "#PWR040"
+		(property "Reference" "#PWR1121"
 			(at 292.1 212.09 0)
 			(hide yes)
 			(show_name no)
@@ -11698,7 +11698,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR040")
+					(reference "#PWR1121")
 					(unit 1)
 				)
 			)
@@ -11715,7 +11715,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "b9e07f83-f855-4b95-838b-f9ee445bf44e")
-		(property "Reference" "#PWR034"
+		(property "Reference" "#PWR1117"
 			(at 182.88 179.07 0)
 			(hide yes)
 			(show_name no)
@@ -11775,7 +11775,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR034")
+					(reference "#PWR1117")
 					(unit 1)
 				)
 			)
@@ -12196,7 +12196,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "c75d8350-f706-4f5b-9c91-83e186a542a8")
-		(property "Reference" "#PWR035"
+		(property "Reference" "#PWR1118"
 			(at 182.88 208.28 0)
 			(hide yes)
 			(show_name no)
@@ -12256,7 +12256,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR035")
+					(reference "#PWR1118")
 					(unit 1)
 				)
 			)
@@ -12832,7 +12832,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "eb570f80-f875-4808-bab0-9cd55f601a95")
-		(property "Reference" "#PWR036"
+		(property "Reference" "#PWR1119"
 			(at 30.48 227.33 0)
 			(hide yes)
 			(show_name no)
@@ -12892,7 +12892,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR036")
+					(reference "#PWR1119")
 					(unit 1)
 				)
 			)

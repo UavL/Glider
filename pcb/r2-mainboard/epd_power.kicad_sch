@@ -5,7 +5,7 @@
 	(uuid "24cf3ba6-a0aa-450c-80d0-ecc23a830032")
 	(paper "A4")
 	(title_block
-		(title "Glider-R2 / Specter mainboard")
+		(title "Glider-R2 / Reflow mainboard")
 		(date "2026-08-07")
 		(rev "A")
 		(company "Copyright 2025 Modos Tech Inc")
@@ -9442,7 +9442,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25782"
+		(property "LCSC" "C54920667"
 			(at 139.7 80.01 0)
 			(hide yes)
 			(show_name no)
@@ -9453,7 +9453,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "UNI-ROYAL"
+		(property "Manufacturer" "HWA CHN"
 			(at 0 0 0)
 			(hide yes)
 			(show_name no)
@@ -9464,7 +9464,7 @@
 				)
 			)
 		)
-		(property "MPN" "0402WGF3903TCE"
+		(property "MPN" "HRC0402F3903DNTO"
 			(at 0 0 0)
 			(hide yes)
 			(show_name no)
@@ -11992,7 +11992,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25782"
+		(property "LCSC" "C54920667"
 			(at 137.16 115.57 0)
 			(hide yes)
 			(show_name no)
@@ -12003,7 +12003,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "UNI-ROYAL"
+		(property "Manufacturer" "HWA CHN"
 			(at 0 0 0)
 			(hide yes)
 			(show_name no)
@@ -12014,7 +12014,7 @@
 				)
 			)
 		)
-		(property "MPN" "0402WGF3903TCE"
+		(property "MPN" "HRC0402F3903DNTO"
 			(at 0 0 0)
 			(hide yes)
 			(show_name no)
@@ -14530,7 +14530,7 @@
 				)
 			)
 		)
-		(property "Value" "22K/1%"
+		(property "Value" "20.5K/1%"
 			(at 142.24 124.46 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14584,7 +14584,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25768"
+		(property "LCSC" "C57105"
 			(at 137.16 123.19 0)
 			(hide yes)
 			(show_name no)
@@ -14606,7 +14606,7 @@
 				)
 			)
 		)
-		(property "MPN" "0402WGF2202TCE"
+		(property "MPN" "0402WGF2052TCE"
 			(at 0 0 0)
 			(hide yes)
 			(show_name no)

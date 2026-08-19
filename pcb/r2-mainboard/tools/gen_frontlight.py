@@ -86,7 +86,7 @@ def build() -> str:
     root_uuid, sheets = sheet_uuids(PROJ / "r2.kicad_sch")
     sh = Sheet(
         sheets["frontlight"], root_uuid, "r2", paper="A4",
-        title="Glider-R2 / Specter mainboard",
+        title="Glider-R2 / Reflow mainboard",
         rev="A", date="2026-08-17",
         comments=(
             "frontlight — LM3630A dual-channel LED driver, +VSYS_FL to the "

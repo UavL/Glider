@@ -5,7 +5,7 @@
 	(uuid "2443cd5b-a18c-4188-a9dd-0ff2bb462f1d")
 	(paper "A4")
 	(title_block
-		(title "Glider-R2 / Specter mainboard")
+		(title "Glider-R2 / Reflow mainboard")
 		(date "2026-08-07")
 		(rev "A")
 		(company "Copyright 2025 Modos Tech Inc")
@@ -3459,6 +3459,22 @@
 				(justify left)
 			)
 		)
+		(property "MPN" "0402B102K500NT" (at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "FH" (at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "Value" "1nF/25V"
 			(at 210.82 69.85 90)
 			(show_name no)
@@ -3513,7 +3529,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C6119801"
+		(property "LCSC" "C1523"
 			(at 217.17 68.58 0)
 			(hide yes)
 			(show_name no)
@@ -3638,6 +3654,22 @@
 				(justify left)
 			)
 		)
+		(property "MPN" "0402B102K500NT" (at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "FH" (at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "Value" "1nF/25V"
 			(at 210.82 54.61 90)
 			(show_name no)
@@ -3692,7 +3724,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C6119801"
+		(property "LCSC" "C1523"
 			(at 217.17 53.34 0)
 			(hide yes)
 			(show_name no)
@@ -5429,6 +5461,22 @@
 				(justify left)
 			)
 		)
+		(property "MPN" "0402B102K500NT" (at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "FH" (at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "Value" "1nF/25V"
 			(at 210.82 85.09 90)
 			(show_name no)
@@ -5483,7 +5531,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C6119801"
+		(property "LCSC" "C1523"
 			(at 217.17 83.82 0)
 			(hide yes)
 			(show_name no)
@@ -8237,6 +8285,22 @@
 				(justify left)
 			)
 		)
+		(property "MPN" "0402B102K500NT" (at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "FH" (at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "Value" "1nF/50V"
 			(at 205.74 115.57 90)
 			(show_name no)
@@ -8292,7 +8356,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C131394"
+		(property "LCSC" "C1523"
 			(at 217.17 114.3 0)
 			(hide yes)
 			(show_name no)
@@ -8587,6 +8651,22 @@
 				(justify left)
 			)
 		)
+		(property "MPN" "0402B102K500NT" (at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "FH" (at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "Value" "1nF/25V"
 			(at 210.82 100.33 90)
 			(show_name no)
@@ -8641,7 +8721,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C6119801"
+		(property "LCSC" "C1523"
 			(at 217.17 99.06 0)
 			(hide yes)
 			(show_name no)

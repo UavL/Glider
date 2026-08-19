@@ -344,6 +344,18 @@ Written 2026-08-17, when the panel was decided. **Designed, not yet applied to t
 `epd_power.kicad_sch` is a frozen, reviewed 1:1 port of R1. This is the only change the panel
 forces on it, and it is one resistor.
 
+> **APPLIED 2026-08-19**, owner-approved. `R225` is now `20.5K/1%`, LCSC **`C57105`**
+> (`0402WGF2052TCE`, UNI-ROYAL, 144 k in stock) — the same resistor family as the rest of the
+> board. Verified against LCSC's parametric table, not its part number. The netlist is unchanged:
+> 518 nets, identical pin membership, as expected for a value edit.
+>
+> Rendered and checked by eye: the divider reads `R224` 390 kΩ over `R225` 20.5 kΩ with `R213`
+> 100 kΩ injecting `VGH_DAC`, so 20.5 ∥ 100 = 17.01 kΩ and `VGH = 1.2 × (1 + 390/17.01)` =
+> **28.71 V** at DAC = 0 — matching §10.3's target exactly.
+>
+> `R88`/`R224` also changed part, though not value: `C25782` had **14 units** at LCSC against two
+> per board. Now **`C54920667`** (`HRC0402F3903DNTO`, HWA CHN, 390 kΩ ±1 %, 20 k in stock).
+
 ### 10.1 The problem
 
 `GDEP103TC2-FT11.pdf` §6.2 ‡ wants **`VGH` = 27 V min / 28 V typ / 29 V max**. `fw/User/power.c:286`

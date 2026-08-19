@@ -5,7 +5,7 @@
 	(uuid "3c7f0f04-b337-4425-b9f6-94d0a6934c0f")
 	(paper "A3")
 	(title_block
-		(title "Glider-R2 / Specter mainboard")
+		(title "Glider-R2 / Reflow mainboard")
 		(date "2026-08-06")
 		(rev "A")
 		(comment 1 "power — rail tree from +VSYS; every rail below +3V3_AON is gated")

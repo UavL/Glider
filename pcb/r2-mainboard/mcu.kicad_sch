@@ -5,7 +5,7 @@
 	(uuid "a89f58f8-b115-4f71-9806-30f9bff6e587")
 	(paper "A3")
 	(title_block
-		(title "Glider-R2 / Specter mainboard")
+		(title "Glider-R2 / Reflow mainboard")
 		(date "2026-08-07")
 		(rev "A")
 		(comment 1 "mcu — STM32G0 housekeeping: rail enables, EPD HV, charger, buttons")

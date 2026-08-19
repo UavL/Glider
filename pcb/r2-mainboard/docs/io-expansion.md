@@ -92,7 +92,16 @@ already in `pcb_common`), wired in the order that is most common for these two i
 | 5 | `TOUCH_INT#` | `PEN_INT#` |
 | 6 | `TOUCH_RST#` | `GND` |
 
-**This is a guess, and it is the only guess on this sheet.** A capacitive touch controller's FPC
+**~~This is a guess~~ — resolved 2026-08-19, and the six signals are right.** The
+`GDEP103TC2-FT11` listing gives *Touch IC `GT9110H`, Touch Connector 2×14 pin*, which looks
+incompatible with `J22`. It is not: `parts/Display/EN-DEJA-TC103.pdf` §4.4.2 says *"the
+touchscreen uses an external GT9110 touch board"*, and that board presents `TOUCH_SDA`,
+`TOUCH_SCL`, `TOUCH_INT`, `TOUCH_RST`. The 2×14 FFC runs from the panel's ITO sensor to that
+board and never reaches the mainboard. **Note the part is the `GT9110H`, not the `GT911` cited
+below** — larger-panel variant, same I²C interface. Still to get from the vendor: whether the
+touch board ships with the panel, and its output connector's **pin order** against `J22`'s.
+
+The original note, kept because the reasoning still applies to any other panel: A capacitive touch controller's FPC
 and an EMR digitizer's FPC both have part-specific pinouts, and neither part is chosen — the panel
 model itself is still deferred. If the eventual part disagrees, the pads are wrong and *that*
 group would need a respin, which is exactly what the provision was meant to avoid.
