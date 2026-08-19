@@ -1,7 +1,15 @@
 # R2 review round 2 — the owner's WP6–8 notes, triaged
 
 Source: `pcb/r2-mainboard/manual-analysis/*.md`, written 2026-08-10 … 2026-08-19.
-Triaged 2026-08-19. Roughly fifty questions across seven sheets.
+Triaged 2026-08-19.
+
+⚠ **Scope, corrected by the owner 2026-08-19.** Only two of those seven files are new for WP6–8:
+**`Analysis_dpi_and_som.md`** and **`Analysis_Frontlight.md`**. The other five
+(`Analyse_battery`, `Analysis_epd_files`, `Analysis_fpga`, `Analysis_mcu`, `Analysis_power`) belong
+to earlier review rounds, and their answers should already be in the sheet specs. The first triage
+of this file treated all seven as open, which over-stated the queue — bucket C below is marked
+accordingly. **Before working any C item, check the sheet's own doc first; most are already
+answered there.**
 
 Four buckets. **A** is already answered in the specs and just needs a pointer. **B** is answered
 here, now. **C** needs real work and is queued. **D** is an owner decision, and the ones marked ⏳
@@ -95,7 +103,59 @@ receptacles as a single 240-pin part. That is why its reference is `X`, not `U`.
 connectors appear at layout time, through the footprint — which is the one footprint still missing
 (D-4).
 
+## B★. The vendor product page and the TCON manual — added 2026-08-19
+
+The owner found the `GDEP103TC2-FT11` listing on buy-lcd.com and the shipped TCON board manual
+(`parts/Display/EN-DEJA-TC103.pdf`). Four things settle out of it.
+
+**B★-1 — The frontlight guess is now confirmed, not inferred.** The listing says
+*"Two circuits, 9 LEDs in series per circuit"*, 18 LEDs total, front-light connector 8-pin,
+operating voltage 27 V. `frontlight.md` §2 had "18 LEDs, 2 × 9 series" from the product page but
+hedged: *"9 LEDs in series is inferred … it could equally be 8 series at 3.4 V."* **Strike the
+hedge.** 2 × 9 is confirmed, the `LM3630A`'s 10-series limit keeps one LED of headroom, and the
+8-pin front-light connector is `J24` — which is why four of its eight pins are `NC`
+(`frontlight.md` §2: `LED1+`, `LED1−`, NC, NC, `LED2+`, `LED2−`, NC, NC). That answers the
+"why are half the pins unused" question in `Analysis_Frontlight.md` outright.
+
+**B★-2 — 1404 vs 1400 is deliberate, not a mistake.** The listing says 1404 × 1872; `panel.md` §4
+says the same and then pads *down* to 1872×1400 for Caster, because 1872 × 1400 ÷ 128 = 20 475
+exactly and 1404 does not divide. The cost is 4 unused lines — 0.45 mm at the 112 µm pitch, 0.28 %
+of the height. Already reasoned through; no change.
+
+**B★-3 ⚠ — The touch connector is 2×14, and that is fine, because the GT9110 is not on the panel.**
+This is the important one. The listing gives *Touch IC GT9110H, Touch Connector 2×14 pin*, which
+looks incompatible with `J22`'s 6 pins. It is not. `EN-DEJA-TC103.pdf` §4.4.2 explains the
+topology: *"since the touchscreen uses an external GT9110 touch board"*, and that board presents
+**`TOUCH_SDA`, `TOUCH_SCL`, `TOUCH_INT`, `TOUCH_RST`** — four signals plus power and ground.
+
+So the chain is: **panel ITO sensor → 2×14 FFC → external GT9110 touch board → 6-signal I²C →
+`J22` on R2.** The 2×14 connector never touches the mainboard; it is between the sensor and its
+own controller board. `io-expansion.md` §4's six-signal guess is **right**.
+
+Two things still to confirm, and they are questions for the vendor, not design work:
+- Does the GT9110 touch board ship with the panel, or is it a separate order?
+- What is *its* output connector — pin count, pitch and **pin order**? `J22`'s order is
+  1 `GND`, 2 `VCC`, 3 `RESET`, 4 `INT`, 5 `SDA`, 6 `SCL`. A different order is a reroute, not a
+  redesign, but it has to be known before layout.
+
+Also update `io-expansion.md` §4: it cites the **GT911**; this panel uses the **GT9110H**, the
+larger-panel variant. Same I²C interface, different part.
+
+**B★-4 — The DEJA-TC103 is not something R2 needs.** The owner suggested putting it on the PCB.
+It is an **IT8951-based TCON** — it drives TTL parallel e-paper over SPI or USB from an Arduino or
+ESP32. That is the job R2's FPGA already does, and does far better: Caster exists precisely to beat
+the latency of controllers like the IT8951. Putting one on R2 would duplicate the display pipeline.
+
+It is still worth keeping, for a different reason: it is a **ready-made way to bench-test the panel
+before R2 exists** — power it over USB-C, push an image from a PC, confirm the panel and its
+frontlight work. Its reserved 27 V front-light interface makes it a way to check the 2 × 9 string
+arrangement on real hardware too. Good for bring-up, not for the BOM.
+
 ## C. Queued — real work, not yet done
+
+**Most of C comes from earlier review rounds** (see the scope note at the top). Check the sheet's
+own doc before starting any of them — `battery.md`, `mcu.md` and `power.md` already carry review
+answers, and the first triage did not account for that.
 
 | # | Item | From | Notes |
 | --- | --- | --- | --- |
@@ -109,12 +169,12 @@ connectors appear at layout time, through the footprint — which is the one foo
 
 ## D. Owner decisions — ⏳ means it cannot be taken after fabrication
 
-**D-1 ⏳ — Populate touch?** You bought a panel with a touch layer and the GT911 datasheet is now in
-`parts/Display/`. `io_expansion` was drawn for exactly this and is entirely DNP: `J22`, `U54`, and
-their passives. Populating is a stuffing change, **not** a board change — *provided* `J22`'s 6-pin
-pinout matches your specific panel's flex. `io-expansion.md` §4 calls that pinout "the only guess on
-this sheet". **Check the flex against `J22` before fab.** If it disagrees, the connector has to
-change, and that is a board change. This also decides B-2: "enter via touchscreen" needs touch.
+**D-1 ⏳ — Populate touch?** **Largely resolved by B★-3** — `J22`'s six signals are the right
+interface, because the GT9110H sits on its own board, not on the panel flex. What remains is a
+*sourcing* question, not a design one: get the GT9110 touch board's output connector pinout from
+the vendor and check the pin **order** against `J22` before layout. The decision itself is simply
+whether to populate `J22`/`U54` — and since "enter via touchscreen" (B-2) depends on it, the answer
+is presumably yes.
 
 **D-2 ⏳ — Two SoM GPIO to `MCU_NRST` and `BOOT0`.** Still the sharpest deadline. Today SWD via
 `J20` is the only way into the MCU and it needs the case open. The factory USART bootloader is
@@ -122,7 +182,32 @@ already on the right pins (`PA9`/`PA10`, with the SoM on the far end), so two GP
 case-opening operation into a firmware update. Free now, impossible after fabrication.
 `mcu.md` §5.7, WP8.
 
+> **"Why not just any two free pins that are placed well?"** — because placement is the *last*
+> filter, not the first. Four things disqualify a pin before geometry gets a vote:
+>
+> 1. **Voltage domain.** The module's GPIO sit in `VDDSHV*` domains selected by solder jumpers on
+>    the module itself (`J1` for `VDDSHV0`, `J4` for `VDDSHV3`, both 3.3 V by default — `som.md`
+>    §3). A pin in a 1.8 V domain needs a level shifter to reach the 3.3 V MCU. That is a lookup in
+>    the module pin table, not a choice.
+> 2. **State at reset is the entire point of these two signals.** They *hold the MCU in reset* and
+>    *force it into the bootloader*. If the SoM pin's power-up default drives low or carries an
+>    internal pull-down, it holds `MCU_NRST` asserted and the MCU never boots — on every power-up,
+>    forever. The pin's reset state has to be safe, or R2 needs a pull that dominates it.
+> 3. **Boot straps.** A good many AM62x pins are sampled as boot-mode straps while reset is
+>    released (`NOTES-R2-hardware-facts.md` §2.2, `BOOTMODE_8..15`). A pin that is a strap is
+>    disqualified outright — the MCU's input load could change how the SoM itself boots.
+> 4. **Availability early enough to be a recovery path.** For unbricking, the SoM must drive these
+>    before Linux is fully up — ideally from U-Boot, or from the pinmux default. That favours the
+>    always-on `MCU_*` / `WKUP_*` groups, which `som.md` §8 already notes `SOM_WAKE#` has to come
+>    from.
+>
+> So the decision that is genuinely yours is **whether to spend two pins on this at all**. Which
+> two is a datasheet exercise against `som_pinout.json` and the HW manual, and it is mine to do —
+> say yes and I will propose a specific pair with the reset-state and strap check shown.
+
 **D-3 ⏳ — `USB1`.** Unused, four pins, already on the connector (B-3). Second port or not.
+*(Raised in `Analyse_battery.md`, an earlier round, not WP6–8 — but still open and still has a
+fabrication deadline, so it stays on this list.)*
 
 **D-4 — The `X2` footprint.** `footprints:PCM-071_2xBTH-060-01-L-D-A-K` does not exist. The Samtec
 drawings are committed and give what a generator needs: 0.5 mm pitch, pad 1.448 × 0.305, row
@@ -142,3 +227,38 @@ a board-to-board connector and its assembly. **Architectural — decide before l
 
 **D-8 — Panel supplier silence.** Noted, no action available from here. Bench measurement when the
 panel arrives is the fallback, as you say.
+
+---
+
+## Sourcing fix: `R88` / `R224`, the 390 kΩ
+
+`C25782` (`0402WGF3903TCE`) has **14 units** at LCSC and the board needs two per unit. `R224` is not
+a part that can be substituted loosely — `epd-port.md` §10.2 puts it in the `VGH` feedback divider,
+`VGH = 1.2 × (1 + 390/18.033)`, so it must stay 390 kΩ ±1 % in 0402.
+
+Two candidates were checked against LCSC's parametric table rather than by name, which matters here:
+
+| Code | Part | Package | Actual value | Stock | Verdict |
+| --- | --- | --- | --- | --- | --- |
+| `C23150` | `0603WAF3903T5E` | **0603** | 390 kΩ ±1 % | **16** | ✗ wrong package, and less stock than we have |
+| `C44937` | `0402WGF390K TCE` | 0402 | **3.9 Ω** ‼ | 25 397 | ✗ the `390K` in the name is not 390 kΩ |
+| **`C2909352`** | **`FRC0402F3903TS`** | 0402 | **390 kΩ ±1 %**, 62.5 mW, 50 V | **40 540** | ✓ **use this** |
+
+`C44937` is the same trap as the five capacitors: a part number that reads like the value it is not.
+FOJAN is already a supplier on this board (`FRL0805FR020TS`, the 20 mΩ shunts). $0.0196 against
+$0.0019 is ten times the price and four cents a board — irrelevant.
+
+## Running `/ultrareview` on this branch
+
+The raw branch diff is 25 727 lines against a limit of 8 000. `.gitattributes` (commit `e9ead0f`)
+already cut it from 2 053 615, and the rest has to be sliced. Four branches exist for that; the
+`review-*` branches have **exactly the same tree as `Board-Design`**, so switching to one changes
+nothing on disk and is safe with KiCad open.
+
+| To review | Command | Size |
+| --- | --- | --- |
+| The sheet specs — the engineering reasoning | `git switch review-docs` then `/ultrareview review-base-docs` | 5 947 lines |
+| The `NOTES-*` planning and evidence files | `git switch review-notes` then `/ultrareview review-base-notes` | 1 802 lines |
+
+Then `git switch Board-Design` to come back. The branches can be deleted any time with
+`git branch -D review-docs review-base-docs review-notes review-base-notes`.
