@@ -145,15 +145,15 @@ alternate functions from Tables 13–20; ADC and DAC channels from Table 12's "A
 | 13 | `PC0` | `MCU_EN_FPGA_CORE` | GPIO out | |
 | 14 | `PC1` | `MCU_EN_DDR` | GPIO out | |
 | 15 | `PC2` | `LED_STAT#` | GPIO out, sinks `D20` | |
-| 16 | `PC3` | — | spare | |
+| 16 | `PC3` | `TOUCH_INT#` | GPIO in — ⚠ **EXTI3 taken by `PD3`**, see §3.4 | `io-expansion.md` |
 | 25 | `PC4` | — | spare, `ADC_IN17` | |
 | 26 | `PC5` | — | spare, `ADC_IN18` | |
-| 38 | `PC6` | — | spare | |
+| 38 | `PC6` | `PEN_INT#` | GPIO in — ⚠ **EXTI6 taken by `PD6`**, see §3.4 | `io-expansion.md` |
 | 39 | `PC7` | `KEY_PREV#` | GPIO in, **EXTI7** | |
 | 40 | `PD8` | `KEY_NEXT#` | GPIO in, **EXTI8** | |
-| 41 | `PD9` | — | spare | |
+| 41 | `PD9` | `TOUCH_RST#` | GPIO out | `io-expansion.md` |
 | 48 | `PC8` | `PG_SOM` | GPIO in (module power-good) | `som.md` §5 |
-| 49 | `PC9` | — | spare | |
+| 49 | `PC9` | `MCU_EN_PEN` | GPIO out | `io-expansion.md` |
 | 50 | `PD0` | `CHG_INT#` | GPIO in, **EXTI0** | |
 | 51 | `PD1` | `VBUS_DET` | GPIO in, **EXTI1** | |
 | 52 | `PD2` | `CHG_PG#` | GPIO in, **EXTI2** | |
@@ -161,7 +161,7 @@ alternate functions from Tables 13–20; ADC and DAC channels from Table 12's "A
 | 54 | `PD4` | `CHG_STAT#` | GPIO in, polled | |
 | 55 | `PD5` | `CHG_CE#` | GPIO out | |
 | 56 | `PD6` | `QON_SNS` | GPIO in, **EXTI6**, no pull | §2.2 |
-| 64 | `PC10` | — | spare | |
+| 64 | `PC10` | `FPGA_INIT` | GPIO in, **EXTI10** | §9 |
 | 1 | `PC11` | `PG_1V5` | GPIO in | |
 | 2 | `PC12` | `PG_1V2` | GPIO in | |
 | 3 | `PC13` | `PG_3V3` | GPIO in | note below |
@@ -188,7 +188,7 @@ it is the reason `LED_STAT#` is on `PC2` and not on the otherwise-convenient `PC
 | 36 | `PA8` | `SOM_WAKE#` | GPIO out, open-drain | §4 |
 | 37 | `PA9` | `MCU_TXD` | `USART1_TX` (AF1) | Table 13 |
 | 42 | `PA10` | `MCU_RXD` | `USART1_RX` (AF1) | Table 13 |
-| 43 | `PA11` | — | spare (`USB_DM` capable) | |
+| 43 | `PA11` | `MCU_EN_TOUCH` | GPIO out (`USB_DM` capable) | `io-expansion.md` |
 | 44 | `PA12` | — | spare (`USB_DP` capable) | |
 | 45 | `PA13` | `MCU_SWDIO` | `SWDIO` (AF0) | Table 13 |
 | 46 | `PA14` | `MCU_SWCLK` | `SWCLK` (AF0), = `BOOT0` | Table 12 p.53 |
@@ -266,6 +266,42 @@ because making it open-drain would need a pull-up on the SoM's rail, which is ex
 is gone.
 
 ## 5. Supporting circuit
+
+### 3.4 ⚠ Two interrupts are on EXTI lines that are already taken
+
+Found in the review round of 2026-08-19, verified against the schematic's own
+netlist rather than against §3.1, which had drifted.
+
+`io_expansion`'s signals were wired without re-checking §3.3's rule, and two of them landed on
+EXTI lines that were already spoken for:
+
+| Net | Pad / pin | EXTI | Already held by |
+| --- | --- | --- | --- |
+| `TOUCH_INT#` | 16 / `PC3` | **3** | `PD3` `GAUGE_ALRT#` |
+| `PEN_INT#` | 38 / `PC6` | **6** | `PD6` `QON_SNS` |
+
+An EXTI line serves one port at a time, so as drawn neither touch nor pen can raise an interrupt.
+`FL_INT#` has the same problem waiting for it: `mcu.md` §9 proposed `PB7` (`FL_PWM2`) as the donor,
+but `PB7` is EXTI7 and `PC7` `KEY_PREV#` holds it. (`frontlight.md` §10.3's *first* suggestion,
+`PA12`/`PB12`, was always clean — the `PB7` push came from this file, not from that one.)
+
+**The fix is two swaps and one new assignment**, and it costs nothing because the outputs do not
+need an interrupt line at all:
+
+| Net | From | To | Why it works |
+| --- | --- | --- | --- |
+| `TOUCH_INT#` | `PC3` | **`PD9`** | EXTI9 free (`PC9` is an output) |
+| `TOUCH_RST#` | `PD9` | **`PC3`** | plain output, EXTI irrelevant |
+| `PEN_INT#` | `PC6` | **`PA11`** | EXTI11 free |
+| `MCU_EN_TOUCH` | `PA11` | **`PC6`** | plain output |
+| `FL_INT#` | *unassigned* | **`PB12`** | EXTI12 free; also `ADC_IN16`, which nothing needs |
+
+On the schematic this is a relabel of four already-wired pads plus one new net, not a rewire.
+
+**One resource decision it forces:** `PA11` was held back with `PA12` as the USB-capable pair
+(§5.7). Spending it on `PEN_INT#` gives up USB DFU — which §5.7 already rules out anyway, since the
+USB-C data pair is committed to the SoM, and §5.8 has now given the SoM a way to flash the MCU. So
+the reservation has no remaining purpose. **Not yet applied to the schematic.**
 
 ### 5.1 Supply and decoupling
 
@@ -451,7 +487,7 @@ unpopulated keeps the device thin; a header can be soldered in for bring-up and 
 Datasheet §3.5 (p.16) is unusually explicit for once, and it decides this section. The boot loader
 lives in System memory and reprogrammes flash over one of:
 
-- **USART on `PA9`/`PA10`**, `PC10`/`PC11`, or `PA2`/`PA3`
+- **USART on `PA9`/`PA10`** or `PA2`/`PA3` (`PC10` is `FPGA_INIT`, `PC11` is `PG_1V5`)
 - I²C on `PB6`/`PB7` or `PB10`/`PB11`
 - SPI on `PA4`/`PA5`/`PA6`/`PA7` or `PB12`/`PB13`/`PB14`/`PB15`
 - **USB on `PA11`/`PA12`**
@@ -583,6 +619,45 @@ is not verified** — `stm32g0b1.pdf` does not cover it; it is AN2606 / RM0444 t
 before relying on it for production**, because the fallback is one SWD touch per board at first
 assembly, which changes the factory story.
 
+### 5.9 `PG_SOM` needs an external pull-down, not the internal one
+
+Found in the review round of 2026-08-19. `patch_mcu_pg_som.py` told firmware to enable `PC8`'s
+internal pull-down so that "no SoM" would read as "not good". **That would have hung bring-up.**
+
+`X_PGOOD` (`X2` C54) is open-drain with a **100 kΩ pull-up on the module** (`L-1038e.A5` Table 13,
+§5.4). The G0's internal pull-down is **25 / 40 / 55 kΩ** (`stm32g0b1.pdf` Table 55). Enabled
+together they form a divider, and it lands on the wrong side of the threshold:
+
+```
+3.3 V × 40k / (100k + 40k) = 0.94 V     (0.66 – 1.17 V across corners)
+V_IH min = 0.7 × V_DD      = 2.31 V
+```
+
+`PC8` would read **low while the module asserts power-good**, so `power.md` §5.1 step 3 never
+returns and `MCU_EN_3V3` is never asserted. The pull-down strength is not configurable on the G0,
+so no firmware change rescues it.
+
+Leaving `PC8` passive fixes that but loses the case the pull-down was written for. The `PCM-071` is
+a plug-in module on two `BTH-060` receptacles, so it can be **absent**, not merely unpowered — and
+then there is no 100 kΩ either and the pin floats. **`R512` 1 MΩ to `GND` covers all three:**
+
+| Case | Node | Reads |
+| --- | --- | --- |
+| SoM absent | 1 MΩ alone → 0 V | not good ✓ |
+| SoM present, unpowered | 100 kΩ into a dead rail ∥ 1 MΩ → ~0 V | not good ✓ |
+| SoM present, `PGOOD` asserted | 3.3 × 1M/1.1M = **3.00 V** vs 2.31 V | good ✓ |
+
+0.69 V of margin, and 3.3 µA of leakage that only flows while the module is powered *and* asserting
+good — with the SoM off there is nothing to draw from.
+
+**Applied 2026-08-19** by `tools/patch_pg_som_pulldown.py`. `R512` sits on free canvas and reaches
+`PG_SOM` by label, so the dense region around `U20` was not touched — but **layout must place it at
+pin 48**, §11. Verified: 518 nets before and after, the only changes being `PG_SOM` += `R512.1` and
+`GND` += `R512.2`.
+
+⚠ **Firmware requirement reverses: the internal pull-down on `PC8` must be disabled.** Leaving it
+enabled puts 40 kΩ across the 1 MΩ and brings the good case back down to 0.91 V.
+
 ## 6. Footprints
 
 All stock KiCad 10, all verified present in this KiCad install:
@@ -652,9 +727,11 @@ error and the sheets are drawn months apart.
   was corrected on 2026-08-15: `L-1038e.A5` §5.4 makes it **mandatory** that nothing drives the
   SoM's I/O before the module is powered, so `+3V3` — which is `VCCO` for the FPGA bank facing the
   SoM — must come up *after* the module, gated on the module's `X_PGOOD`. That signal has to reach
-  the MCU. **`X1 C54` → a spare GPIO; `PC8` is the suggestion**, keeping the four ADC-capable
+  the MCU. **`X2` C54 → a spare GPIO; `PC8` is the suggestion**, keeping the four ADC-capable
   spares free. `X_PGOOD` is open-drain with its pull-up on the SOM's own 3.3 V, so the net floats
-  when the SoM is unpowered — **enable the internal pull-down** so "no SoM" reads as "not good".
+  when the SoM is unpowered — ~~enable the internal pull-down~~ **corrected 2026-08-19, see §5.9**:
+  the internal pull-down is 25/40/55 kΩ against the module's 100 kΩ pull-up, which reads 0.94 V
+  and hangs bring-up. `R512` 1 MΩ external, internal pull-down **disabled**.
   One net on `mcu.kicad_sch`, one on `som.kicad_sch`; both land when WP8 draws the SoM sheet.
 - **The spare count in §3.2 says 11 and the schematic has 10.** `PC10` was claimed for `FPGA_INIT`
   in WP5 and the sentence was not updated. Live spares, read out of the netlist: `PA11`, `PA12`,
@@ -906,7 +983,9 @@ change with no layout consequence. Ordering a handful and pressing them is the o
 So: a peripheral can be swapped for another that Tables 13–20 offer **on that same pin**, and any
 function can be dropped and its pin reused. What cannot happen is moving a signal to a different pin.
 That is why §3 is written the way it is, and why the DAC and ADC channel assignments were read twice.
-Eleven spares are available (`PC3`–`PC6`, `PC8`–`PC10`, `PD9`, `PB12`, `PA11`, `PA12`), four of them
+Spares are fewer than this section once said — `PC8` is `PG_SOM`, `PC10` is `FPGA_INIT`, and
+`PC3`/`PC6`/`PD9`/`PA11`/`PC9` carry `io_expansion` signals (§3.1). `PC4`, `PC5`, `PB12` and
+`PA12` are what is actually left, four of them
 ADC-capable, each behind a no-connect flag that can simply be deleted.
 
 Checking this properly turned up one thing worth confirming rather than assuming. The KiCad symbol
@@ -924,7 +1003,7 @@ Today: **SWD**. `MCU_SWDIO`/`MCU_SWCLK` on `PA13`/`PA14` to `J20`, which is pads
 That is the bring-up path and the recovery path, and it needs the case open.
 
 Datasheet §3.5 (p.16) then says something useful: the System-memory boot loader reprogrammes flash
-over **USART on `PA9`/`PA10`**, `PC10`/`PC11` or `PA2`/`PA3`; I²C on `PB6`/`PB7` or `PB10`/`PB11`; SPI
+over **USART on `PA9`/`PA10`** or `PA2`/`PA3` (not `PC10`/`PC11` — taken); I²C on `PB6`/`PB7` or `PB10`/`PB11`; SPI
 on `PA4`–`PA7` or `PB12`–`PB15`; or **USB on `PA11`/`PA12`**. Two of those are already on this sheet:
 `MCU_TXD`/`MCU_RXD` **are** `PA9`/`PA10`, with the SoM at the far end, and `PA11`/`PA12` are two of
 the spares — with the G0B1's USB being crystal-less capable ‡ (§3.24), so the missing HSE does not
@@ -1022,6 +1101,8 @@ which makes it the easiest thing on this sheet to break with copper:
 - LQFP-64 at 0.5 mm pitch on a 10 × 10 mm body: no fine-pitch surprises, but 60 I/O leaving a small
   part means the escape pattern decides the whole board's routing. Place `U20` before anything else
   on this sheet.
+- `R512` (1 MΩ, `PG_SOM` bias) belongs at pin 48. It is drawn on free canvas and joined by label,
+  which is a schematic convenience only — a 1 MΩ node is high-impedance and wants a short track.
 - `MCU_NRST` wants `C45` close to pin 12, and the net kept short — it is an input with no internal
   glitch filter worth relying on.
 - The I²C pair `SCL_AON`/`SDA_AON` leaves for `battery` and `power_mon`; route them together, and

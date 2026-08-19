@@ -18,7 +18,7 @@ and each takes a different route:
 | # | Device | Refdes | Sheet | Holds | Where its image comes from |
 | --- | --- | --- | --- | --- | --- |
 | 1 | **AM62x SoM** | `X2` | `som` (p. 2) | Linux, on 32 GB eMMC | eMMC primary, **microSD fallback** — module default straps |
-| 2 | **FPGA** `XC6SLX16` | `U40` | `fpga_io` (p. 6) | Caster gateware — **volatile**, reloaded every power-up | config NOR `U42` |
+| 2 | **FPGA** `XC6SLX16` | `U41` | `fpga_io` (p. 6) | Caster gateware — **volatile**, reloaded every power-up | config NOR `U42` |
 | 3 | **Config NOR** `W25Q128JVSIQ` | `U42` | `fpga_config` (p. 11) | the FPGA bitstream, 16 MB | JTAG `J20`, **or the SoM writes it in-system** |
 | 4 | **MCU** `STM32G0B1` | `U20` | `mcu` (p. 10) | housekeeping firmware | **SWD via `J20` only** ← the gap, §6.2 |
 
@@ -48,7 +48,7 @@ module on two `BTH-060` receptacles, and it lives on **page 2**, not page 5 (pag
                     +PCLK/DE/HS/VS
                                  ▼
                          ┌────────────────┐        ┌──────────────┐
-              U42 NOR ──►│  U40  FPGA     │◄──────►│ U52 DDR3L    │
+              U42 NOR ──►│  U41  FPGA     │◄──────►│ U52 DDR3L    │
               bitstream  │  Caster EPDC   │ 666MT/s│ 128 MiB      │
                          └───────┬────────┘        └──────────────┘
                                  │ EPD bus (16-bit + timing)
@@ -68,12 +68,12 @@ module on two `BTH-060` receptacles, and it lives on **page 2**, not page 5 (pag
 
 | Link | From → To | Width | Carries | Doc |
 | --- | --- | --- | --- | --- |
-| **DPI** | `X2` → `U40` | 22 | 18-bit RGB666 + `PCLK`/`DE`/`HSYNC`/`VSYNC`, 40–50 Hz | `som.md` §2 |
-| **CSR SPI** | `X2` → `U40` | 4 + `NOR_CS` | Caster register/command bus — *the SoM drives it, not the MCU* | `fpga.md` §4.1 |
+| **DPI** | `X2` → `U41` | 22 | 18-bit RGB666 + `PCLK`/`DE`/`HSYNC`/`VSYNC`, 40–50 Hz | `som.md` §2 |
+| **CSR SPI** | `X2` → `U41` | 4 + `NOR_CS` | Caster register/command bus — *the SoM drives it, not the MCU* | `fpga.md` §4.1 |
 | **UART** | `X2` ↔ `U20` | 2 | console and control between Linux and housekeeping | `mcu.md` §3.2 |
-| **EPD bus** | `U40` → `J6` | 16 + timing | pixel data to the panel | `epd-port.md` |
-| **DDR3** | `U40` ↔ `U52` | x16 | EPDC framebuffer + per-pixel waveform state | `fpga.md` §5.1 |
-| **Config** | `U42` → `U40` | 4 (x1 today, x4 wired) | the bitstream, on every power-up | §4 below |
+| **EPD bus** | `U41` → `J6` | 16 + timing | pixel data to the panel | `epd-port.md` |
+| **DDR3** | `U41` ↔ `U52` | x16 | EPDC framebuffer + per-pixel waveform state | `fpga.md` §5.1 |
+| **Config** | `U42` → `U41` | 4 (x1 today, x4 wired) | the bitstream, on every power-up | §4 below |
 | **I²C always-on** | `U20` ↔ charger, gauge, `U53` | 2 | `SCL_AON`/`SDA_AON`, alive whenever the cell is | `mcu.md` §5.3 |
 | **MCU control** | `U20` → everything | ~20 | rail enables, `FPGA_PROG#`/`DONE`/`SUSP`, `SOM_WAKE#`/`RESET#`/`IRQ#` | `mcu.md` §3 |
 | **USB 2.0** | `J1` → `X2` | 2 | sideloading books; D+/D− go to the SoM, not the charger | `battery.md` §1 |
@@ -110,7 +110,7 @@ Taken from the exported netlist rather than from prose, so this is what the sche
 | --- | --- |
 | `+3V3_AON` | housekeeping MCU `U20` · buttons `SW21`/`SW22` with 100 k pull-ups `R42`/`R43` · status LED `D20` · always-on I²C pull-ups and the charger/gauge open-drain status lines (`R3`–`R7`, `R19`) · three `INA3221` rail monitors `U21`/`U22`/`U27` · **the SoM's RTC backup on `X2` pin B2** · `J20` SWD/JTAG header (DNP) |
 | `+5V` | SoM `VIN` via `+5V_SOM` · the EPD HV chain via `U6` (`MT9700`) |
-| `+3V3` | FPGA I/O banks `U41` · config NOR `U42` · 33.33 MHz oscillator `X1` · panel logic through `J6` · `Q7` (VCOM gate drive) · touch/pen load switches `U54`/`U55` (**DNP**) |
+| `+3V3` | FPGA I/O banks `U41` · config NOR `U42` · 33.33 MHz oscillator `X2` · panel logic through `J6` · `Q7` (VCOM gate drive) · touch/pen load switches `U54`/`U55` (**DNP**) |
 | `+1V2_FPGA` | `U41` `VCCINT` — **sole load** |
 | `+1V5` | DDR3L `U52` · FPGA bank 3 `VCCO` |
 | `+VSYS_FL` | `L33` + `U53` `LM3630A` → two LED strings |
@@ -209,7 +209,7 @@ bitgen changes; they are gateware work, and they are not optional.
 ## 5. Can the FPGA use the SoM's 2 GB of DDR4?
 
 **No — and the reason is mechanical before it is architectural: those pins do not leave the
-module.** Checked, not assumed: `datasheets/som_pinout.json` is the parsed `X1` pinout, all 240
+module.** Checked, not assumed: `datasheets/som_pinout.json` is the parsed `X2` pinout, all 240
 pins. Searching it for `DDR`, `DQS`, `CKE`, `ODT`, `DQM` and `EMIF` returns **one** hit, and that
 one is `X_GPMC0_ADVn_ALE` — the substring "DDR" inside "**ADDR**ess". There is no memory bus on the
 connector to attach to.

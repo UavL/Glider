@@ -315,7 +315,7 @@ the pack's PCM stays a backstop rather than the working limit.
    `J25` adds solder pads. What remains is **mechanical, not electrical**: the pack has to be
    re-terminated, and the NTC type is still unknown.
 6. **The Pico-Lock's ratings are distributor-sourced, not datasheet-verified** — §9.2 †.
-6. **`D7` part number** — a green 0603 LED, no LCSC code chosen yet. Vf between
+7. **`D7` part number** — a green 0603 LED, no LCSC code chosen yet. Vf between
    1.9 V (red) and 2.2 V (green) both give a sane current through `R37`, so the
    choice is free.
 

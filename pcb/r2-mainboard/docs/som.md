@@ -6,7 +6,7 @@ hierarchy has no dangling interfaces left.** Not yet reviewed by the owner. Comp
 
 The module is a **`PCM-071`** — the connectorised phyCORE-AM62x, chosen over the solder-down
 `PCL-071` on 2026-08-13 for cost, MOQ and the ability to unplug it. Its 240 pins arrive on **one
-logical connector `X1`**, in four columns `A`–`D`, across **two Samtec `BTH-060-01-L-D-A-K-TR`**
+logical connector `X2`**, in four columns `A`–`D`, across **two Samtec `BTH-060-01-L-D-A-K-TR`**
 board-side parts (module side: `BSH-060-01-L-D-A-TR`).
 
 **The binding document is `datasheets/L-1038e.A5_phyCORE-AM62x_HW Manual.pdf`.** As with the FPGA,
@@ -51,7 +51,7 @@ Suspend-to-RAM figure that now dominates the reading budget.
 `L-1038e.A5` Table 31 gives the pin map. `DATA0`–`DATA15` are on columns **A and B**;
 `DATA16`/`DATA17` are on column **D**, and they are not video pins by default:
 
-| Caster | AM62x | `X1` | SOM signal |
+| Caster | AM62x | `X2` | SOM signal |
 | --- | --- | --- | --- |
 | `DPI_R7` | `VOUT0_DATA17` | **D4** | `X_GPMC0_AD9/BOOTMODE_9` — 100 kΩ **pullup** on SOM |
 | `DPI_R6` | `VOUT0_DATA16` | **D2** | `X_GPMC0_AD8/BOOTMODE_8` — 100 kΩ **pullup** on SOM |
@@ -77,7 +77,7 @@ domain at 1.8 V and then nothing would work.
 
 ## 3. Power
 
-| Rail | `X1` | Direction | Figure | Source |
+| Rail | `X2` | Direction | Figure | Source |
 | --- | --- | --- | --- | --- |
 | `VIN` | **A1, A2, A3** | in | 5 V ±5 % recommended (Table 4 allows 4.5–5.5), **1 A** | §5.1, Table 12 |
 | `VBAT` | **B2** | in | 1.2–5.5 V, **40 nA** for the RTC | Table 4, Table 12 |
@@ -121,7 +121,7 @@ is load-bearing rather than cautionary.
 `pcb_common`, and the same socket R1 fits as `J7`.** No new symbol, no new footprint, no new
 supplier.
 
-| Socket | Net | `X1` | Notes |
+| Socket | Net | `X2` | Notes |
 | --- | --- | --- | --- |
 | `CLK/SCLK` | `SD_CLK` | **D26** | 49.9 kΩ pulldown on SOM |
 | `CMD/DI` | `SD_CMD` | **D25** | |
@@ -175,7 +175,7 @@ All of these are on voltage domain **`VDDSHV0`** (jumper `J1`, default 3.3 V) un
 `SPI0_*`, `UART0_*`, `I2C*`, `PORZ_OUT`, `RESET_REQZ`, `RESETSTATZ`, `MMC1_SDCD` are named in
 Table 6's `VDDSHV0` row.
 
-| R2 net | `X1` | SOM signal | Purpose |
+| R2 net | `X2` | SOM signal | Purpose |
 | --- | --- | --- | --- |
 | `FPGA_SCLK` | D40 | `X_SPI0_CLK` | CSR SPI, SoM is master (`mcu.md` §2.1) |
 | `FPGA_MOSI` | D41 | `X_SPI0_D0` | |
@@ -197,9 +197,9 @@ Table 6's `VDDSHV0` row.
 **PHYTEC's manual never uses the word "wake".** It is not in the document, so the pin could not be
 looked up there; the answer came from TI's AM62x datasheet (`SPRSP58C`) instead.
 
-`som_pinout.json` gives every `X1` pin's AM62x ball. Cross-referencing those against the
+`som_pinout.json` gives every `X2` pin's AM62x ball. Cross-referencing those against the
 datasheet's pin-multiplexing table — which signal each ball presents in mux mode 7 — shows that
-**exactly 22 `X1` pins reach an `MCU_GPIO0_*`**, i.e. a GPIO in the **MCU always-on domain**, the
+**exactly 22 `X2` pins reach an `MCU_GPIO0_*`**, i.e. a GPIO in the **MCU always-on domain**, the
 domain that stays powered through DeepSleep. The other ~170 signal pins are MAIN-domain and could
 not wake the module whatever firmware did.
 
@@ -225,7 +225,7 @@ faster kill path — worth a test pad, not a net — and the reason we do not ne
 collapse.
 
 **BOOTMODE override pads are worth considering and are not drawn.** `BOOTMODE_10`–`15` are
-`VOUT0_DATA18`–`DATA23` (`X1` D5, D6, D7, D8, D10, D11), which 18-bit mode does not use, so
+`VOUT0_DATA18`–`DATA23` (`X2` D5, D6, D7, D8, D10, D11), which 18-bit mode does not use, so
 unpopulated 1 kΩ/10 kΩ strap pads there would let bring-up change the *backup* boot mode — to UART
 or USB device mode — without going anywhere near `DPI_R6`/`R7`. PHYTEC suggest a DIP switch for
 this (§6.3); a DIP switch on `BOOTMODE_8/9` would violate §2's rule, but on 10–15 it is safe.
@@ -276,7 +276,7 @@ correctness rests on**, and pin numbers carry no footnotes.
 
 - **MMC1**: length-match within **12 700 µm** (Table 16). Generous; will not constrain placement.
 - **USB0**: Table 29 gives the USB layout characteristics — read before routing `J1` to A38/A39.
-- **DPI**: 22 signals from `X1` columns A/B/D to FPGA bank 1. `DPI_PCLK` is the only one with a
+- **DPI**: 22 signals from `X2` columns A/B/D to FPGA bank 1. `DPI_PCLK` is the only one with a
   frequency constraint (165 MHz in the UCF, ~101 MP/s actual at 1448×1072@60). Keep it over a
   continuous reference plane and away from the EPD source bus.
 - **`DPI_R6`/`DPI_R7` carry no components at all** (§2). Worth a note on the sheet so a later
@@ -295,7 +295,9 @@ correctness rests on**, and pin numbers carry no footnotes.
 3. **`VBAT`'s source is a review decision** (§3).
 4. **Whether `SoC_VDDSHV5_SDIO` stays energised in Suspend-to-RAM** (§4.1) — needs a hardware test.
 5. ~~**`PG_SOM` is owed to `mcu.kicad_sch`**~~ **Done — `tools/patch_mcu_pg_som.py` claims
-   `PC8`.** Firmware must enable the pin's internal pull-down; see that script's docstring.
+   `PC8`.** ⚠ **Firmware must now *disable* the internal pull-down** — it fights the module's
+   100 kΩ pull-up and reads 0.94 V against a 2.31 V threshold, so bring-up would hang. `R512`
+   1 MΩ on `mcu` does the biasing instead; `mcu.md` §5.9.
 6. **`check_pinout.py` does not exist yet.** `parse_som_pinout.py` is its data source and is done.
 7. ~~**The `PCM-071` has never been priced**~~ **Priced 2026-08-18 — €250.00 @ 1–9 pcs**,
    variant `PCM-071-5432DE11I`, PHYTEC order code `C618992`, **MOQ 1**. Lead time not stated.

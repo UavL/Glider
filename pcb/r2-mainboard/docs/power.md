@@ -344,7 +344,7 @@ declared `SOM_RESET#` as an open-drain GPIO on `PA15` since WP3. Hold it low acr
 | --- | --- | --- |
 | 1 | `SOM_RESET#` asserted low (open-drain, so it sinks; no injection into an unpowered pin) | — |
 | 2 | `MCU_EN_5V` high → `+5V_SOM`. SoM PMIC sequences. `+3V3` still **off**, so every FPGA pin facing the SoM is unpowered and drives nothing | **PHYTEC §5.4** |
-| 3 | Wait for `X_PGOOD` (`X1 C54`, open-drain, 100 kΩ pullup on the SOM) | **PHYTEC §5.4** |
+| 3 | Wait for `X_PGOOD` (`X2` C54, open-drain, 100 kΩ pullup on the SOM) | **PHYTEC §5.4** |
 | 4 | `MCU_EN_3V3` high, wait `PG_3V3` → FPGA `VCCO` up | — |
 | 5 | Release `SOM_RESET#`. The SOM's own 10 kΩ × 100 nF ≈ 1 ms RC delays the actual release, then `BOOTMODE_8/9` are sampled with `+3V3` already stable | **BOOTMODE** |
 
@@ -362,7 +362,7 @@ time.
 
 **This adds one signal to the design, and it is not drawn yet.** `X_PGOOD` must reach the MCU:
 
-> **`PG_SOM`** — `X1 C54` → a spare MCU GPIO. `PC8` is the suggestion (a plain GPIO; the four
+> **`PG_SOM`** — `X2` C54 → a spare MCU GPIO. `PC8` is the suggestion (a plain GPIO; the four
 > ADC-capable spares are worth keeping for analogue). The pin is open-drain with its pull-up on the
 > SOM's own 3.3 V, so when the SoM is unpowered the net floats — **enable the MCU's internal
 > pull-down** so "no SoM" reads as "not good" rather than as noise. A pull-down is the safe

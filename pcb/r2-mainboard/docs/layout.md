@@ -55,8 +55,8 @@ would "fix" into failure.
 **Not blocking, and worth saying so:** the layer count. R1 runs *this same* DDR3-666 and Spartan-6
 on **4 layers** (`F.Cu / In1.Cu / In2.Cu / B.Cu`, 0.127 prepreg / 0.6 core / 0.127 prepreg, ~1.0 mm),
 and it works. R2 adds the SoM, but the module carries its own DDR4 and eMMC internally; what
-crosses `X1` is DPI at ~101 MP/s, USB 2.0, SPI, UART and MMC1. **Recommendation: 4 layers, R1's
-stackup**, and only revisit if the `X1` escape proves tight — which is unlikely, because 115 of the
+crosses `X2` is DPI at ~101 MP/s, USB 2.0, SPI, UART and MMC1. **Recommendation: 4 layers, R1's
+stackup**, and only revisit if the `X2` escape proves tight — which is unlikely, because 115 of the
 240 pins are no-connects and need no escape at all (§4).
 
 ## 2. Where the design stands
@@ -124,7 +124,7 @@ symbol will resolve.** The symbol already names it, so nothing else changes.
 
 ## 4. Escape and net classes
 
-115 of the SoM's 240 pins are no-connects, so the `X1` escape is far smaller than the pin count
+115 of the SoM's 240 pins are no-connects, so the `X2` escape is far smaller than the pin count
 suggests: about **40 signals plus 3 `VIN` and 45 grounds**. The grounds are what the escape is
 really made of, and they are all one net, so they can via straight down.
 
