@@ -1,0 +1,18 @@
+# KiCad files are machine-generated s-expressions: a line diff of them is
+# noise, and it swamps any review tool. Verify schematic changes with a
+# netlist export instead (kicad-cli sch export netlist), which is what
+# actually matters. Use `git diff --text` if you really want the lines.
+*.kicad_sch  -diff
+*.kicad_pcb  -diff
+*.kicad_sym  -diff
+*.kicad_mod  -diff
+*.net        -diff
+
+# Binaries and 3D models
+*.stp   -diff
+*.step  -diff
+*.pdf   -diff
+*.png   -diff
+*.jpg   -diff
+*.jpeg  -diff
+*.bin   -diff
