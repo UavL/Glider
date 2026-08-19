@@ -10,6 +10,10 @@ WP6–WP8 are drawn but not yet reviewed by the owner; see **Stage C progress** 
 Evidence for every claim here is in **`NOTES-R2-hardware-facts.md`**. R1's state is in
 `NOTES-STATUS.md`. This file is only what to do and in what order.
 
+The owner's WP6–8 review notes are in `pcb/r2-mainboard/manual-analysis/`, triaged into
+**`NOTES-R2-review-round-2.md`** — four buckets, with the fabrication-deadline decisions marked ⏳.
+Read that before picking up any sheet work.
+
 ---
 
 ## Why R2 exists
