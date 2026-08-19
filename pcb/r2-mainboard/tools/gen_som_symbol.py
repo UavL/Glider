@@ -44,7 +44,18 @@ import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 PROJ = HERE.parent
-PINOUT = PROJ / "datasheets" / "som_pinout.json"
+
+def _find(name):
+    """Locate a datasheet-derived file under datasheets/, at any depth."""
+    direct = PROJ / "datasheets" / name
+    if direct.exists():
+        return direct
+    for p in sorted((PROJ / "datasheets").rglob(name)):
+        return p
+    return direct  # keep the canonical path in the error message
+
+
+PINOUT = _find("som_pinout.json")
 OUT = PROJ / "r2.kicad_sym"
 NAME = "PCM-071"
 

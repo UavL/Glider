@@ -35,3 +35,10 @@ analysis/
 # KiCad Local History restore leftovers -- see the memory note; Restore moves the
 # *newer* work here, so check before deleting one of these.
 pcb/r2-mainboard/_restore_backup_*/
+
+# editor swap files
+*.kate-swp
+
+# saved copies of published artifact pages
+/Reflow R2 System Map.html
+/Reflow R2 System Map_files/

@@ -44,8 +44,19 @@ import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 PROJ = HERE.parent
-PDF = PROJ / "datasheets" / "L-1038e.A5_phyCORE-AM62x_HW Manual.pdf"
-CACHE = PROJ / "datasheets" / "som_pinout.json"
+
+def _find(name):
+    """Locate a datasheet-derived file under datasheets/, at any depth."""
+    direct = PROJ / "datasheets" / name
+    if direct.exists():
+        return direct
+    for p in sorted((PROJ / "datasheets").rglob(name)):
+        return p
+    return direct  # keep the canonical path in the error message
+
+
+PDF = _find("L-1038e.A5_phyCORE-AM62x_HW Manual.pdf")
+CACHE = _find("som_pinout.json")
 
 COLUMNS = "ABCD"
 PINS_PER_COLUMN = 60

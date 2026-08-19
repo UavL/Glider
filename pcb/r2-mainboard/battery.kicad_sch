@@ -3410,6 +3410,17 @@
 		)
 		(uuid "005488dc-95d2-414a-a6f2-4cc8cdebb490")
 	)
+	(text "*** The PL706090 ships with a JST 1.25 mm plug rated 1 A against ~2 A of"
+		(exclude_from_sim no)
+		(at 236.22 238.76 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "02b1390a-6a7f-4d43-a25f-4dfc91c7e14e")
+	)
 	(text "USB-C  —  charge input and USB2 device port"
 		(exclude_from_sim no)
 		(at 27.94 55.88 0)
@@ -3454,6 +3465,17 @@
 		)
 		(uuid "28219147-8613-49ab-b049-c01362992f0b")
 	)
+	(text "    right-angle. Replaces a JST-PH that was 2 A and ~6.0 mm tall."
+		(exclude_from_sim no)
+		(at 236.22 231.14 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "29ed3365-460f-4caa-b691-309f57593506")
+	)
 	(text "PSEL high = USB host source"
 		(exclude_from_sim no)
 		(at 139.7 167.64 0)
@@ -3476,6 +3498,17 @@
 		)
 		(uuid "49ad9cb8-e63f-438f-9ad1-7bdbb7aeae76")
 	)
+	(text "J2  Pico-Lock 504050-0391: 3.5 A/contact, 2.00 mm mated, positive lock,"
+		(exclude_from_sim no)
+		(at 236.22 227.33 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "64d1a77d-216a-4ea9-a71d-19ee9cf0596f")
+	)
 	(text "No NTC in pack -> fit 7.68k/10k instead."
 		(exclude_from_sim no)
 		(at 240.03 157.48 0)
@@ -3486,6 +3519,17 @@
 			(justify left bottom)
 		)
 		(uuid "6c72dca2-b9bc-4c66-b4ac-d58c1b12a9e0")
+	)
+	(text "J25 bare copper pads, for soldering the cell's leads directly."
+		(exclude_from_sim no)
+		(at 236.22 234.95 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8b3c7fea-85d5-47b7-b945-3acfdc2dda7a")
 	)
 	(text "TS: 103AT NTC in the pack. RT1/RT2 solved from"
 		(exclude_from_sim no)
@@ -3508,6 +3552,28 @@
 			(justify left bottom)
 		)
 		(uuid "8ec8882b-af63-44c2-b636-316b714e5d46")
+	)
+	(text "Cell attachment -- J2 or J25, same three nets, fit either or both."
+		(exclude_from_sim no)
+		(at 236.22 223.52 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "9ef634fd-8c1b-4c80-8e59-cbc53af51032")
+	)
+	(text "*** charge current, so the pack must be re-terminated. battery.md §9.1."
+		(exclude_from_sim no)
+		(at 236.22 242.57 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a136a2c5-bf32-4dfd-8873-d07f3e79d47d")
 	)
 	(text "Pull-ups to +3V3_AON (always-on domain)"
 		(exclude_from_sim no)
@@ -4371,6 +4437,16 @@
 	)
 	(wire
 		(pts
+			(xy 287.02 157.48) (xy 287.02 152.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6fae740c-3d26-40fe-9e6f-62ef810cc07c")
+	)
+	(wire
+		(pts
 			(xy 158.75 147.32) (xy 158.75 151.13)
 		)
 		(stroke
@@ -4378,6 +4454,16 @@
 			(type default)
 		)
 		(uuid "71427d7e-3bba-4a17-9d5b-ad32f69fd8ed")
+	)
+	(wire
+		(pts
+			(xy 294.64 162.56) (xy 287.02 162.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "71c9f667-3f2f-4382-85dc-733e657c3dba")
 	)
 	(wire
 		(pts
@@ -4528,6 +4614,16 @@
 			(type default)
 		)
 		(uuid "91694ba7-b470-48d9-ab6c-531f33172b21")
+	)
+	(wire
+		(pts
+			(xy 287.02 162.56) (xy 287.02 167.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "93e47ac3-4f17-46f4-92a8-f0bde6147320")
 	)
 	(wire
 		(pts
@@ -4758,6 +4854,16 @@
 			(type default)
 		)
 		(uuid "c4e2baca-57fe-49a2-884a-27ffea84627a")
+	)
+	(wire
+		(pts
+			(xy 294.64 157.48) (xy 287.02 157.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cb5af8e9-e51a-49fe-857a-5c0f964a43c8")
 	)
 	(wire
 		(pts
@@ -5038,6 +5144,16 @@
 			(type default)
 		)
 		(uuid "ef5a1bf3-5aab-461c-971d-cbbc87c36efb")
+	)
+	(wire
+		(pts
+			(xy 294.64 160.02) (xy 287.02 160.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f14b662a-a282-4d03-8d9d-3c6fab840e36")
 	)
 	(wire
 		(pts
@@ -5388,6 +5504,16 @@
 			(justify left bottom)
 		)
 		(uuid "6ee64f8f-036a-404e-b3f3-d48b6d531de2")
+	)
+	(label "CHG_TS"
+		(at 287.02 160.02 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "6faa992f-820a-46ee-a73c-a908c63458d3")
 	)
 	(label "USB_CC1"
 		(at 67.31 78.74 0)
@@ -6264,6 +6390,83 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 287.02 167.64 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "14320219-1437-4abf-b73c-deb47c4072f7")
+		(property "Reference" "#PWR1111"
+			(at 287.02 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 287.02 171.45 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 287.02 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 287.02 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 287.02 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b31dd71b-3e5a-4465-b15c-0cff1f0ce280")
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
+					(reference "#PWR1111")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 82.55 256.54 90)
 		(unit 1)
@@ -6507,12 +6710,15 @@
 				)
 			)
 		)
-		(property "Manufacturer" "MAXIM" (at 0 0 0)
+		(property "Manufacturer" "MAXIM"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(pin "1"
@@ -7105,12 +7311,15 @@
 				)
 			)
 		)
-		(property "Manufacturer" "TI" (at 0 0 0)
+		(property "Manufacturer" "TI"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(pin "2"
@@ -9866,6 +10075,83 @@
 		)
 	)
 	(symbol
+		(lib_id "symbols:+V")
+		(at 287.02 152.4 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "89849516-af5b-44e6-846c-175a4a913149")
+		(property "Reference" "#PWR1110"
+			(at 287.02 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+VBAT"
+			(at 287.02 148.59 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 287.02 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 287.02 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 287.02 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "6531a4b3-ad78-4b2b-8c84-329611a885ba")
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
+					(reference "#PWR1110")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "r2:USBLC6-2SC6")
 		(at 86.36 90.17 0)
 		(unit 1)
@@ -9942,20 +10228,26 @@
 				)
 			)
 		)
-		(property "Manufacturer" "ST" (at 0 0 0)
+		(property "Manufacturer" "ST"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
-		(property "MPN" "USBLC6-2SC6" (at 0 0 0)
+		(property "MPN" "USBLC6-2SC6"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(pin "5"
@@ -10713,12 +11005,15 @@
 				)
 			)
 		)
-		(property "Manufacturer" "Korean Hroparts Elec" (at 0 0 0)
+		(property "Manufacturer" "Korean Hroparts Elec"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(pin "B7"
@@ -11720,6 +12015,90 @@
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
 					(reference "#PWR002")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x03")
+		(at 299.72 160.02 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "c42143b4-10ba-446f-91c0-673cc6596378")
+		(property "Reference" "J25"
+			(at 306.07 151.13 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "SolderPads 3x"
+			(at 306.07 153.67 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "r2:SolderPads_1x03_P3.50mm_Wire"
+			(at 299.72 160.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 299.72 160.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Three bare copper pads for soldering the cell's leads directly, in parallel with J2 and on the same nets. No part to populate -- the 'component' is copper. 1 BAT+, 2 NTC, 3 BAT-. battery.md §9.1"
+			(at 299.72 160.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "2fc3bac2-1884-4095-a677-d095a79969bd")
+		)
+		(pin "2"
+			(uuid "bfdc1c2e-f835-485d-8ad4-a2801c67262d")
+		)
+		(pin "3"
+			(uuid "8f2ee621-768d-4a3c-a4cf-85c9f3eb7248")
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
+					(reference "J25")
 					(unit 1)
 				)
 			)
@@ -12753,384 +13132,5 @@
 				)
 			)
 		)
-	)
-
-	(symbol
-		(lib_id "Connector_Generic:Conn_01x03")
-		(at 299.72 160.02 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "c42143b4-10ba-446f-91c0-673cc6596378")
-		(property "Reference" "J25"
-			(at 306.07 151.13 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "SolderPads 3x"
-			(at 306.07 153.67 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "r2:SolderPads_1x03_P3.50mm_Wire"
-			(at 299.72 160.02 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 299.72 160.02 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Three bare copper pads for soldering the cell's leads directly, in parallel with J2 and on the same nets. No part to populate -- the 'component' is copper. 1 BAT+, 2 NTC, 3 BAT-. battery.md §9.1"
-			(at 299.72 160.02 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "2fc3bac2-1884-4095-a677-d095a79969bd")
-		)
-		(pin "2"
-			(uuid "bfdc1c2e-f835-485d-8ad4-a2801c67262d")
-		)
-		(pin "3"
-			(uuid "8f2ee621-768d-4a3c-a4cf-85c9f3eb7248")
-		)
-		(instances
-			(project "r2"
-				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "J25")
-					(unit 1)
-				)
-			)
-		)
-	)
-
-	(symbol
-		(lib_id "symbols:+V")
-		(at 287.02 152.4 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "89849516-af5b-44e6-846c-175a4a913149")
-		(property "Reference" "#PWR1110"
-			(at 287.02 152.4 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+VBAT"
-			(at 287.02 148.59 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 287.02 152.4 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 287.02 152.4 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 287.02 152.4 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "6531a4b3-ad78-4b2b-8c84-329611a885ba")
-		)
-		(instances
-			(project "r2"
-				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR1110")
-					(unit 1)
-				)
-			)
-		)
-	)
-
-	(symbol
-		(lib_id "power:GND")
-		(at 287.02 167.64 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "14320219-1437-4abf-b73c-deb47c4072f7")
-		(property "Reference" "#PWR1111"
-			(at 287.02 167.64 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 287.02 171.45 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 287.02 167.64 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 287.02 167.64 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 287.02 167.64 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "b31dd71b-3e5a-4465-b15c-0cff1f0ce280")
-		)
-		(instances
-			(project "r2"
-				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a6dcf48c-d5d2-42bd-8aa1-b0910921d2ee"
-					(reference "#PWR1111")
-					(unit 1)
-				)
-			)
-		)
-	)
-
-	(wire
-		(pts
-			(xy 294.64 157.48) (xy 287.02 157.48)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "cb5af8e9-e51a-49fe-857a-5c0f964a43c8")
-	)
-
-	(wire
-		(pts
-			(xy 287.02 157.48) (xy 287.02 152.4)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6fae740c-3d26-40fe-9e6f-62ef810cc07c")
-	)
-
-	(wire
-		(pts
-			(xy 294.64 160.02) (xy 287.02 160.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f14b662a-a282-4d03-8d9d-3c6fab840e36")
-	)
-
-	(label "CHG_TS"
-		(at 287.02 160.02 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "6faa992f-820a-46ee-a73c-a908c63458d3")
-	)
-
-	(wire
-		(pts
-			(xy 294.64 162.56) (xy 287.02 162.56)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "71c9f667-3f2f-4382-85dc-733e657c3dba")
-	)
-
-	(wire
-		(pts
-			(xy 287.02 162.56) (xy 287.02 167.64000000000001)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "93e47ac3-4f17-46f4-92a8-f0bde6147320")
-	)
-
-	(text "Cell attachment -- J2 or J25, same three nets, fit either or both."
-		(exclude_from_sim no)
-		(at 236.22 223.52 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "9ef634fd-8c1b-4c80-8e59-cbc53af51032")
-	)
-
-	(text "J2  Pico-Lock 504050-0391: 3.5 A/contact, 2.00 mm mated, positive lock,"
-		(exclude_from_sim no)
-		(at 236.22 227.33 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "64d1a77d-216a-4ea9-a71d-19ee9cf0596f")
-	)
-
-	(text "    right-angle. Replaces a JST-PH that was 2 A and ~6.0 mm tall."
-		(exclude_from_sim no)
-		(at 236.22 231.14000000000001 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "29ed3365-460f-4caa-b691-309f57593506")
-	)
-
-	(text "J25 bare copper pads, for soldering the cell's leads directly."
-		(exclude_from_sim no)
-		(at 236.22 234.95000000000002 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "8b3c7fea-85d5-47b7-b945-3acfdc2dda7a")
-	)
-
-	(text "*** The PL706090 ships with a JST 1.25 mm plug rated 1 A against ~2 A of"
-		(exclude_from_sim no)
-		(at 236.22 238.76000000000002 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "02b1390a-6a7f-4d43-a25f-4dfc91c7e14e")
-	)
-
-	(text "*** charge current, so the pack must be re-terminated. battery.md §9.1."
-		(exclude_from_sim no)
-		(at 236.22 242.57000000000002 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "a136a2c5-bf32-4dfd-8873-d07f3e79d47d")
 	)
 )

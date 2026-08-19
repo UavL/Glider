@@ -52,7 +52,18 @@ from schgen import Sheet, sheet_uuids  # noqa: E402
 from sheet_pins import set_sheet_pins  # noqa: E402
 
 PROJ = HERE.parent
-PINOUT = PROJ / "datasheets" / "som_pinout.json"
+
+def _find(name):
+    """Locate a datasheet-derived file under datasheets/, at any depth."""
+    direct = PROJ / "datasheets" / name
+    if direct.exists():
+        return direct
+    for p in sorted((PROJ / "datasheets").rglob(name)):
+        return p
+    return direct  # keep the canonical path in the error message
+
+
+PINOUT = _find("som_pinout.json")
 KICAD_CLI = pathlib.Path.home() / "Apps/kicad-10.0.4/usr/bin/kicad-cli"
 
 # Both must be multiples of the 1.27 mm grid, or every pin on the part lands

@@ -5428,6 +5428,14 @@
 		(uuid "2372c387-074a-431a-aafb-7336f43bdab8")
 	)
 	(no_connect
+		(at 213.36 101.6)
+		(uuid "26c81f41-f019-47e6-ba61-e1dc8bde08e1")
+	)
+	(no_connect
+		(at 213.36 76.2)
+		(uuid "2dbd4fe3-7ddc-41ce-a3ae-629ba86a684c")
+	)
+	(no_connect
 		(at 114.3 91.44)
 		(uuid "2f96b45f-365f-458e-a0ac-799e86f1ddf3")
 	)
@@ -5464,8 +5472,20 @@
 		(uuid "5379f1c3-8ed3-4b9e-9c01-3327126caa82")
 	)
 	(no_connect
+		(at 213.36 109.22)
+		(uuid "5a0a57df-99ed-4892-a65e-9afc7040cef3")
+	)
+	(no_connect
 		(at 114.3 134.62)
 		(uuid "65547c28-7fdf-4454-9072-c7670d278d67")
+	)
+	(no_connect
+		(at 213.36 91.44)
+		(uuid "65b52dd9-da61-480d-95f4-759f1ea00849")
+	)
+	(no_connect
+		(at 213.36 88.9)
+		(uuid "75c64857-2214-4a17-bdbf-0abf4904afe8")
 	)
 	(no_connect
 		(at 114.3 48.26)
@@ -5478,6 +5498,14 @@
 	(no_connect
 		(at 114.3 152.4)
 		(uuid "8b92138e-fb30-4959-abde-a5931eeaac51")
+	)
+	(no_connect
+		(at 213.36 86.36)
+		(uuid "8be088fe-87e8-44dc-b6d2-7dcc55418561")
+	)
+	(no_connect
+		(at 213.36 83.82)
+		(uuid "8e0348e4-910b-47da-9e8c-dcb6d507b64d")
 	)
 	(no_connect
 		(at 114.3 144.78)
@@ -5502,6 +5530,10 @@
 	(no_connect
 		(at 114.3 99.06)
 		(uuid "a4906d16-4900-4e82-8108-6d0c5e9328e3")
+	)
+	(no_connect
+		(at 213.36 99.06)
+		(uuid "a7f4a09b-e56a-442a-8abc-2a8944ed31e8")
 	)
 	(no_connect
 		(at 114.3 106.68)
@@ -5532,6 +5564,10 @@
 		(uuid "c9c3f305-f8ff-463b-bde2-6f72acf8ddbc")
 	)
 	(no_connect
+		(at 213.36 73.66)
+		(uuid "cc71ea33-9559-4f68-836f-82a6e7485140")
+	)
+	(no_connect
 		(at 213.36 68.58)
 		(uuid "d3b6b5d2-5f0c-4888-b4aa-aae2db24cc67")
 	)
@@ -5558,6 +5594,10 @@
 	(no_connect
 		(at 213.36 53.34)
 		(uuid "e81fa4ee-df09-42b3-930d-77cae269cf97")
+	)
+	(no_connect
+		(at 213.36 111.76)
+		(uuid "e9f49294-134b-4fb5-81c7-efb408997bed")
 	)
 	(no_connect
 		(at 114.3 66.04)
@@ -8595,20 +8635,26 @@
 				)
 			)
 		)
-		(property "Manufacturer" "XINGLIGHT" (at 0 0 0)
+		(property "Manufacturer" "XINGLIGHT"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
-		(property "MPN" "XL-1608UGC-04" (at 0 0 0)
+		(property "MPN" "XL-1608UGC-04"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(pin "1"
@@ -8867,20 +8913,26 @@
 				)
 			)
 		)
-		(property "Manufacturer" "UNI-ROYAL" (at 0 0 0)
+		(property "Manufacturer" "UNI-ROYAL"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
-		(property "MPN" "0402WGF1002TCE" (at 0 0 0)
+		(property "MPN" "0402WGF1002TCE"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(pin "1"
@@ -8897,55 +8949,5 @@
 				)
 			)
 		)
-	)
-
-	(no_connect
-		(at 213.36 73.66)
-		(uuid "cc71ea33-9559-4f68-836f-82a6e7485140")
-	)
-
-	(no_connect
-		(at 213.36 76.2)
-		(uuid "2dbd4fe3-7ddc-41ce-a3ae-629ba86a684c")
-	)
-
-	(no_connect
-		(at 213.36 83.82)
-		(uuid "8e0348e4-910b-47da-9e8c-dcb6d507b64d")
-	)
-
-	(no_connect
-		(at 213.36 86.36)
-		(uuid "8be088fe-87e8-44dc-b6d2-7dcc55418561")
-	)
-
-	(no_connect
-		(at 213.36 88.9)
-		(uuid "75c64857-2214-4a17-bdbf-0abf4904afe8")
-	)
-
-	(no_connect
-		(at 213.36 91.44)
-		(uuid "65b52dd9-da61-480d-95f4-759f1ea00849")
-	)
-
-	(no_connect
-		(at 213.36 99.06)
-		(uuid "a7f4a09b-e56a-442a-8abc-2a8944ed31e8")
-	)
-
-	(no_connect
-		(at 213.36 101.6)
-		(uuid "26c81f41-f019-47e6-ba61-e1dc8bde08e1")
-	)
-
-	(no_connect
-		(at 213.36 109.22)
-		(uuid "5a0a57df-99ed-4892-a65e-9afc7040cef3")
-	)
-
-	(no_connect
-		(at 213.36 111.76)
-		(uuid "e9f49294-134b-4fb5-81c7-efb408997bed")
 	)
 )
