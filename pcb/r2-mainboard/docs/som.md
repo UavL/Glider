@@ -188,6 +188,8 @@ Table 6's `VDDSHV0` row.
 | `PG_SOM` | C54 | `X_PGOOD` | **new, `power.md` §5.1** — open-drain out; gates `+3V3` |
 | `SOM_IRQ#` | **A57** | `X_MCU_MCAN0_TX` = `MCU_GPIO0_13` | MCU → SoM attention |
 | `SOM_WAKE#` | **A58** | `X_MCU_MCAN0_RX` = `MCU_GPIO0_14` | MCU → SoM wake from Deep Sleep |
+| `SOM_MCU_NRST` | **A59** | `X_MCU_MCAN1_TX` | SoM → MCU reset, through `Q9` on `mcu`. `mcu.md` §5.8 |
+| `SOM_MCU_BOOT0` | **A60** | `X_MCU_MCAN1_RX` | SoM → MCU boot select, through `R511` 1 kΩ. `mcu.md` §5.8 |
 | `USB_DP` / `USB_DM` | A39 / A38 | `X_USB0_DP` / `X_USB0_DM` | from `J1` on `battery` |
 
 ### 5.1 How `SOM_WAKE#` and `SOM_IRQ#` were chosen

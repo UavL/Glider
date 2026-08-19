@@ -465,7 +465,7 @@ absence of an HSE does not rule USB out.
 | Path | Works today? | What it needs |
 | --- | --- | --- |
 | **SWD via `J20`** | **yes** — this is the bring-up and recovery path | ST-LINK, a header soldered on, the case open |
-| Factory USART bootloader from the SoM | **no** | `BOOT0` high at reset **and** a reset the SoM can drive — it has neither |
+| Factory USART bootloader from the SoM | ~~no~~ **yes, since §5.8** | `BOOT0` high at reset **and** a reset the SoM can drive — it now has both, on `X2` A60 and A59 |
 | Firmware-hosted updater over the same UART | not written | firmware only, no hardware change |
 | USB DFU | **no** | `PA11`/`PA12` routed somewhere; the USB-C data pair is committed to the SoM |
 
@@ -480,6 +480,18 @@ all means clearing `nBOOT_SEL`: §3.5 says the boot pin "can be enabled through 
 option bit", and §5.6 keeps it at the factory default, where the pin is ignored.
 
 ### 5.8 The proposal — `A59` and `A60`, and one of them needs a FET
+
+> **APPLIED 2026-08-19** by `tools/patch_som_mcu_recovery.py`. Three parts added to `mcu`:
+> **`Q9`** `AO3400A` (`Transistor_FET:Q_NMOS_GSD`, SOT-23, `C347475`), **`R510`** 100 kΩ gate
+> pull-down, **`R511`** 1 kΩ series. Two no-connects dropped on `som` (A59, A60) and two sheet pins
+> added to each box on the root. Verified: 518 nets before and after, the only membership changes
+> being `MCU_NRST` += `Q9.3`, `MCU_SWCLK` += `R511.2`, `GND` += `Q9.2`/`R510.2`, plus the two new
+> nets and the two `unconnected-` entries that went away. Rendered and checked by eye.
+>
+> ⚠ One trap worth recording: `sheet_pins.set_sheet_pins` re-lays every pin on a root box, so
+> adding two shifts the rest by a slot — and the root's stubs and labels are *positional*. The
+> first run silently rotated the membership of eighteen nets. **`tools/wire_root.py` must be
+> re-run after any sheet-pin change**, and the patch script now does it itself.
 
 Owner-approved 2026-08-19. Two SoM GPIO, chosen against the module pin table
 (`datasheets/SoM Phycore AM62x/som_pinout.json`, 240 pins) and the HW manual's Table 6.

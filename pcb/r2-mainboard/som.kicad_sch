@@ -6037,10 +6037,6 @@
 		(uuid "42162fcb-1039-41d7-8c50-4b0b3c6c0da5")
 	)
 	(no_connect
-		(at 177.8 76.2)
-		(uuid "440ec2c5-e722-406b-89f3-e42bc809d4c6")
-	)
-	(no_connect
 		(at 386.08 199.39)
 		(uuid "47401436-677b-43fd-a043-e4c14e75193b")
 	)
@@ -6051,10 +6047,6 @@
 	(no_connect
 		(at 314.96 125.73)
 		(uuid "4e857d8b-002a-42a8-ab8a-5339ad972153")
-	)
-	(no_connect
-		(at 177.8 73.66)
-		(uuid "4e953b1f-a384-41e2-85a4-793f30b7a33e")
 	)
 	(no_connect
 		(at 177.8 116.84)
@@ -11908,4 +11900,48 @@
 			)
 		)
 	)
+
+	(wire
+		(pts
+			(xy 177.8 73.66) (xy 154.94 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f15b5694-133b-410c-80ab-1f7afde79b57")
+	)
+	(hierarchical_label "SOM_MCU_NRST"
+		(shape bidirectional)
+		(at 154.94 73.66 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "953e9f84-64cc-4ef3-9ff3-b333dc1454b6")
+	)
+	(wire
+		(pts
+			(xy 177.8 76.2) (xy 154.94 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b7143d20-d9bc-431c-ba27-08d8693ac367")
+	)
+	(hierarchical_label "SOM_MCU_BOOT0"
+		(shape bidirectional)
+		(at 154.94 76.2 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "fa567b04-efaa-4fab-97c9-c86d8d4d3c16")
+	)
+	
 )

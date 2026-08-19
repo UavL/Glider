@@ -3748,6 +3748,307 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Transistor_FET:Q_NMOS_GSD"
+				(pin_names
+					(offset 0)
+					(hide yes)
+				)
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(in_pos_files yes)
+				(duplicate_pin_numbers_are_jumpers no)
+				(property "Reference" "Q"
+					(at 5.08 1.905 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(justify left)
+					)
+				)
+				(property "Value" "Q_NMOS_GSD"
+					(at 5.08 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(justify left)
+					)
+				)
+				(property "Footprint" ""
+					(at 5.08 2.54 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Description" "N-MOSFET transistor, gate/source/drain"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_keywords" "transistor NMOS N-MOS N-MOSFET"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(symbol "Q_NMOS_GSD_0_1"
+					(polyline
+						(pts
+							(xy 0.254 1.905) (xy 0.254 -1.905)
+						)
+						(stroke
+							(width 0.254)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 0.254 0) (xy -2.54 0)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 0.762 2.286) (xy 0.762 1.27)
+						)
+						(stroke
+							(width 0.254)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 0.762 0.508) (xy 0.762 -0.508)
+						)
+						(stroke
+							(width 0.254)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 0.762 -1.27) (xy 0.762 -2.286)
+						)
+						(stroke
+							(width 0.254)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 0.762 -1.778) (xy 3.302 -1.778) (xy 3.302 1.778) (xy 0.762 1.778)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 1.016 0) (xy 2.032 0.381) (xy 2.032 -0.381) (xy 1.016 0)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type outline)
+						)
+					)
+					(circle
+						(center 1.651 0)
+						(radius 2.794)
+						(stroke
+							(width 0.254)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 2.54 2.54) (xy 2.54 1.778)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(circle
+						(center 2.54 1.778)
+						(radius 0.254)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type outline)
+						)
+					)
+					(circle
+						(center 2.54 -1.778)
+						(radius 0.254)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type outline)
+						)
+					)
+					(polyline
+						(pts
+							(xy 2.54 -2.54) (xy 2.54 0) (xy 0.762 0)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 2.921 0.381) (xy 3.683 0.381)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 3.302 0.381) (xy 2.921 -0.254) (xy 3.683 -0.254) (xy 3.302 0.381)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+				)
+				(symbol "Q_NMOS_GSD_1_1"
+					(pin input line
+						(at -5.08 0 0)
+						(length 2.54)
+						(name "G"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at 2.54 -5.08 90)
+						(length 2.54)
+						(name "S"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "2"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at 2.54 5.08 270)
+						(length 2.54)
+						(name "D"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "3"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+				(embedded_fonts no)
+			)
 	)
 	(text "J20 is pads only, not fitted. One footprint for both targets:"
 		(exclude_from_sim no)
@@ -11857,4 +12158,513 @@
 			)
 		)
 	)
+
+	(text "SoM -> MCU recovery. mcu.md §5.8"
+		(exclude_from_sim no)
+		(at 302.26 212.09 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "464bf121-1257-43c5-ad2a-996ecaaae328")
+	)
+	(hierarchical_label "SOM_MCU_BOOT0"
+		(shape bidirectional)
+		(at 320.04 219.71 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "f3e0b8b7-b985-4492-9e1f-829e4a4bd435")
+	)
+	(wire
+		(pts
+			(xy 320.04 219.71) (xy 331.47 219.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fd410a0d-e534-4651-93a9-5e80e5a64842")
+	)
+	(wire
+		(pts
+			(xy 339.09 219.71) (xy 350.52 219.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2d198f61-6c9e-45d4-b27d-d3456f555758")
+	)
+	(label "MCU_SWCLK"
+		(at 350.52 219.71 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d634ffbd-04f7-40dc-88fc-741b9b061fc2")
+	)
+	(hierarchical_label "SOM_MCU_NRST"
+		(shape bidirectional)
+		(at 320.04 236.22 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "5837784e-5576-47b0-a24a-fda8cc3fe63c")
+	)
+	(wire
+		(pts
+			(xy 320.04 236.22) (xy 340.36 236.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d7c736bc-6f44-419c-9858-e3d63df6c70e")
+	)
+	(wire
+		(pts
+			(xy 327.66 236.22) (xy 327.66 240.03)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ffe388dc-03fc-4124-83fc-daa543bac306")
+	)
+	(junction
+		(at 327.66 236.22)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "fc62dcea-3ad4-4649-acd4-d59e95d7eb73")
+	)
+	(wire
+		(pts
+			(xy 347.98 231.14) (xy 347.98 228.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b026c151-812f-4901-a728-a1edeb09204f")
+	)
+	(wire
+		(pts
+			(xy 347.98 228.6) (xy 360.68 228.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "39f433fb-a1fc-4411-afb0-662c610ae39c")
+	)
+	(label "MCU_NRST"
+		(at 360.68 228.6 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "2afd17af-1bc9-4515-911d-93cf1a016261")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 335.28 219.71 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "862ade6f-748c-43a4-8f82-650793d82e47")
+		(property "Reference" "R511"
+			(at 335.28 217.17 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k"
+			(at 335.28 224.79 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 335.28 219.71 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 335.28 219.71 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 335.28 219.71 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C11702"
+			(at 335.28 219.71 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF1001TCE"
+			(at 335.28 219.71 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "UNI-ROYAL"
+			(at 335.28 219.71 270)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a89f58f8-b115-4f71-9806-30f9bff6e587"
+					(reference "R511")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Transistor_FET:Q_NMOS_GSD")
+		(at 345.44 236.22 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7d0e41f5-bd44-47b1-bb13-f19196bac123")
+		(property "Reference" "Q9"
+			(at 351.79 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AO3400A"
+			(at 354.33 242.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
+			(at 345.44 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 345.44 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 345.44 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C347475"
+			(at 345.44 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "AO3400A"
+			(at 345.44 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "UMW"
+			(at 345.44 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a89f58f8-b115-4f71-9806-30f9bff6e587"
+					(reference "Q9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 327.66 243.84 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "40f75943-7da0-45e0-861f-a0be107984e4")
+		(property "Reference" "R510"
+			(at 322.58 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100k"
+			(at 332.74 243.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 327.66 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 327.66 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 327.66 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25741"
+			(at 327.66 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF1003TCE"
+			(at 327.66 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "UNI-ROYAL"
+			(at 327.66 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a89f58f8-b115-4f71-9806-30f9bff6e587"
+					(reference "R510")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 327.66 247.65 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d9a66526-6b27-4967-972d-db453bb384a5")
+		(property "Reference" "#PWR1131"
+			(at 327.66 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 327.66 251.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 327.66 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 327.66 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 327.66 247.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a89f58f8-b115-4f71-9806-30f9bff6e587"
+					(reference "#PWR1131")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 347.98 241.3 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "01b34020-bddb-4fa1-bd98-3e5483cae6f5")
+		(property "Reference" "#PWR1132"
+			(at 347.98 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 347.98 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 347.98 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 347.98 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 347.98 241.3 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a89f58f8-b115-4f71-9806-30f9bff6e587"
+					(reference "#PWR1132")
+					(unit 1)
+				)
+			)
+		)
+	)
+	
 )

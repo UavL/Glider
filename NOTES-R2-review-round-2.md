@@ -207,8 +207,16 @@ Two things came out of specifying it that were not obvious from "just add two GP
 bootloader regardless of `BOOT0`. If yes, a virgin board needs only an SD card. If no, each board
 needs one SWD touch to clear `nBOOT_SEL` first. AN2606 / RM0444, not in the repo.
 
-**Remaining hardware work:** capture the two nets on `som` and `mcu`, add `Q?`/`R?`/`R?`, and update
-both sheets' interface tables. Not yet drawn.
+**DRAWN 2026-08-19**, `tools/patch_som_mcu_recovery.py`: `Q9` `AO3400A`, `R510` 100 kΩ gate
+pull-down and `R511` 1 kΩ series on `mcu`; A59/A60 no-connects dropped on `som`; two sheet pins on
+each root box. 518 nets before and after, only the intended membership changes. **WP8 closed.**
+
+**And the empty-check question is answered from source.** RM0444 Rev 5 §3.3.1 (p.67): the `EMPTY`
+flag "allows easy programming of virgin devices by the boot loader" — a blank part boots System
+memory instead of Main Flash, so **a virgin board needs only an SD card, no SWD**. Two riders: the
+first programming must be followed by a power cycle or `OBL_LAUNCH` to reload option bytes, or the
+part keeps re-entering the bootloader; and the `BOOT0` pin still earns its keep for *recovery*,
+where flash is not blank and `EMPTY` is clear.
 
 **D-3 ⏳ — `USB1`.** Unused, four pins, already on the connector (B-3). Second port or not.
 *(Raised in `Analyse_battery.md`, an earlier round, not WP6–8 — but still open and still has a
