@@ -479,6 +479,98 @@ un-brickable from the SoM. That is a WP8 decision and it is in §9. Note also th
 all means clearing `nBOOT_SEL`: §3.5 says the boot pin "can be enabled through the boot selector
 option bit", and §5.6 keeps it at the factory default, where the pin is ignored.
 
+### 5.8 The proposal — `A59` and `A60`, and one of them needs a FET
+
+Owner-approved 2026-08-19. Two SoM GPIO, chosen against the module pin table
+(`datasheets/SoM Phycore AM62x/som_pinout.json`, 240 pins) and the HW manual's Table 6.
+
+| Signal | SoM ball | Module net | Domain |
+| --- | --- | --- | --- |
+| `SOM_MCU_NRST` | **A59** | `X_MCU_MCAN1_TX` | `VDDSHV_CANUART` (J14, default **3.3 V**) |
+| `SOM_MCU_BOOT0` | **A60** | `X_MCU_MCAN1_RX` | `VDDSHV_CANUART` (J14, default **3.3 V**) |
+
+**Why these two and not "any free pin that lays out well".** Four filters run before geometry:
+
+1. **Domain.** `MCU_MCAN1_*` sits in `VDDSHV_CANUART` — *the same domain as `MCU_MCAN0_TX`/`RX`,
+   which already carry `SOM_IRQ#` (A57) and `SOM_WAKE#` (A58)*. So J14 is already load-bearing for
+   the SoM↔MCU handshake and these two add **no new jumper dependency**. Anything in `VDDSHV0`,
+   `VDDSHV3` etc. would widen the set of module jumpers this design depends on.
+2. **Not a boot strap.** All sixteen straps are `X_GPMC0_AD0..15/BOOTMODE_0..15`; nothing in the
+   `MCU_*` group is sampled at reset.
+3. **Early availability.** `MCU_*` pins are in the always-on MCU domain, reachable from the M4F and
+   from U-Boot — a recovery path that only works once Linux is up is not a recovery path.
+4. **Never wanted for anything else.** CAN on an e-reader is not a future that needs protecting.
+   `MCU_MCAN0` was already spent this way, so this is the established precedent on this board.
+
+Placement falls out for free: A57–A60 become one contiguous block of four on the A row, all of the
+SoM↔MCU control traffic in one place.
+
+**One thing to verify before capture:** the pinout table lists A59 as `I/O` and A60 as `I/O`, but
+the *function* tables call A59 `O` (MCAN transmit) and A60 `I` (MCAN receive). Those are peripheral
+directions, not pad capability — every AM62x pad is a full bidirectional GPIO when muxed to GPIO.
+Confirm A60's GPIO-output capability in the AM62x datasheet's pin-attribute table anyway. If it
+ever proves otherwise, **`X_MCU_UART0_RTSN` (D54)** is the drop-in fallback: same `VDDSHV_CANUART`
+domain, unambiguously an output, and `MCU_UART0` is unused because the MCU console runs on `UART0`
+(D37/D38).
+
+#### `SOM_MCU_NRST` needs a FET, and this is the part that matters
+
+A direct wire from A59 to `MCU_NRST` would be a **latent brick**. The MCU runs on `+3V3_AON` and
+gates the SoM's own supply with `MCU_EN_5V`, so *"SoM unpowered while the MCU is alive"* is the
+normal standby state, not a corner case. With `VDDSHV_CANUART` dead, A59's ESD structure can clamp
+whatever it is tied to toward that dead rail — and `MCU_NRST` clamped low means the MCU never runs,
+which is precisely the failure the always-on MCU exists to prevent.
+
+Use a small N-FET as a one-way switch:
+
+```
+  SoM A59 ──┬── gate      AO3400A (N-ch, SOT-23)      drain ── MCU_NRST (U20.12, C45)
+            │
+          100 kΩ                                     source ── GND
+            │
+           GND
+```
+
+- SoM unpowered, or GPIO low → gate held at 0 V by the 100 kΩ → FET off → `NRST` released by the
+  STM32's internal pull-up → **MCU runs**. ✓
+- SoM drives the gate high → FET on → `NRST` pulled to ground → **MCU in reset**. ✓
+- No DC path from `+3V3_AON` into the SoM's rail in either state. ✓
+
+`AO3400A` is already on this board as `Q6` (`C347475`, 1.3 M in stock), so this adds no BOM line —
+two parts, one of them a resistor. `C45` 100 nF stays where §11 puts it; the FET discharges it.
+
+#### `SOM_MCU_BOOT0` is a direct connection through 1 kΩ
+
+No FET here, because the danger runs the other way: nothing on R2 drives `BOOT0` high, so an
+unpowered SoM pin can only help `R40` hold `PA14` low — which is the safe state.
+
+- `R40` 10 kΩ pull-down stays. SoM high-Z → `BOOT0` low → **normal boot**.
+- SoM drives 3.3 V through 1 kΩ into `R40`: `3.3 × 10/11` = **3.0 V** at `PA14`, comfortably over
+  V_IH = 0.7 × V_DD = 2.31 V. ✓
+- The 1 kΩ is also the contention limit §5.7 asked for: `PA14` is `SWCLK` as well as `BOOT0`, so if
+  an ST-LINK is driving it the debugger wins and the current is held to ~3.3 mA.
+
+#### The factory flow this buys, and the one thing it still depends on
+
+1. Board comes off the line with a **blank MCU** and an SD card in `J21`.
+2. The SoM boots Linux from the card.
+3. Linux asserts `SOM_MCU_BOOT0`, pulses `SOM_MCU_NRST`.
+4. The MCU comes up in its ROM USART bootloader on `PA9`/`PA10` — which **are** `MCU_TXD`/`MCU_RXD`
+   (§3.2), landing on the SoM's `UART0` at D37/D38. Verified in the netlist.
+5. Linux writes the firmware over that UART, releases `BOOT0`, pulses reset.
+
+No SWD, no case open, no programming jig. The same three steps are also the un-brick path in the
+field, which is the real prize.
+
+**The dependency to check:** using the `BOOT0` *pin* at all requires clearing `nBOOT_SEL`, which at
+the factory default makes boot selection come from the option bytes and ignore the pin (§5.6). That
+is an option-byte write, which needs a working connection first — chicken and egg. The likely escape
+is that a **blank** STM32G0 runs its ROM bootloader regardless of `BOOT0` (empty-flash detection),
+so step 4 works on a virgin part and the same session can clear `nBOOT_SEL` for the future. **This
+is not verified** — `stm32g0b1.pdf` does not cover it; it is AN2606 / RM0444 territory. **Confirm
+before relying on it for production**, because the fallback is one SWD touch per board at first
+assembly, which changes the factory story.
+
 ## 6. Footprints
 
 All stock KiCad 10, all verified present in this KiCad install:

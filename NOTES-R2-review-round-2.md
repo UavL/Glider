@@ -188,34 +188,27 @@ the vendor and check the pin **order** against `J22` before layout. The decision
 whether to populate `J22`/`U54` — and since "enter via touchscreen" (B-2) depends on it, the answer
 is presumably yes.
 
-**D-2 ⏳ — Two SoM GPIO to `MCU_NRST` and `BOOT0`.** Still the sharpest deadline. Today SWD via
-`J20` is the only way into the MCU and it needs the case open. The factory USART bootloader is
-already on the right pins (`PA9`/`PA10`, with the SoM on the far end), so two GPIO turn a
-case-opening operation into a firmware update. Free now, impossible after fabrication.
-`mcu.md` §5.7, WP8.
+**D-2 ✅ — Two SoM GPIO to `MCU_NRST` and `BOOT0`. APPROVED and specified 2026-08-19.**
+Pins proposed and reasoned in **`mcu.md` §5.8**: **A59 `X_MCU_MCAN1_TX` → `SOM_MCU_NRST`** and
+**A60 `X_MCU_MCAN1_RX` → `SOM_MCU_BOOT0`**, both in `VDDSHV_CANUART` — the same module jumper (J14)
+that `SOM_IRQ#`/`SOM_WAKE#` already depend on, so no new dependency — and adjacent to them at
+A57/A58, making one contiguous block of four.
 
-> **"Why not just any two free pins that are placed well?"** — because placement is the *last*
-> filter, not the first. Four things disqualify a pin before geometry gets a vote:
->
-> 1. **Voltage domain.** The module's GPIO sit in `VDDSHV*` domains selected by solder jumpers on
->    the module itself (`J1` for `VDDSHV0`, `J4` for `VDDSHV3`, both 3.3 V by default — `som.md`
->    §3). A pin in a 1.8 V domain needs a level shifter to reach the 3.3 V MCU. That is a lookup in
->    the module pin table, not a choice.
-> 2. **State at reset is the entire point of these two signals.** They *hold the MCU in reset* and
->    *force it into the bootloader*. If the SoM pin's power-up default drives low or carries an
->    internal pull-down, it holds `MCU_NRST` asserted and the MCU never boots — on every power-up,
->    forever. The pin's reset state has to be safe, or R2 needs a pull that dominates it.
-> 3. **Boot straps.** A good many AM62x pins are sampled as boot-mode straps while reset is
->    released (`NOTES-R2-hardware-facts.md` §2.2, `BOOTMODE_8..15`). A pin that is a strap is
->    disqualified outright — the MCU's input load could change how the SoM itself boots.
-> 4. **Availability early enough to be a recovery path.** For unbricking, the SoM must drive these
->    before Linux is fully up — ideally from U-Boot, or from the pinmux default. That favours the
->    always-on `MCU_*` / `WKUP_*` groups, which `som.md` §8 already notes `SOM_WAKE#` has to come
->    from.
->
-> So the decision that is genuinely yours is **whether to spend two pins on this at all**. Which
-> two is a datasheet exercise against `som_pinout.json` and the HW manual, and it is mine to do —
-> say yes and I will propose a specific pair with the reset-state and strap check shown.
+Two things came out of specifying it that were not obvious from "just add two GPIO":
+
+- **`NRST` needs an N-FET, not a wire.** The MCU gates the SoM's own supply, so "SoM off, MCU
+  alive" is the normal standby state; a direct tie risks an unpowered A59 clamping `MCU_NRST` low
+  and holding the MCU in reset forever. An `AO3400A` (already on the BOM as `Q6`) plus a 100 kΩ
+  gate pull-down makes it one-way and fail-safe.
+- **`BOOT0` is fine as a 1 kΩ series link** — `R40`'s pull-down already defines the safe state, and
+  the 1 kΩ doubles as the contention limit against an ST-LINK on the shared `SWCLK` pin.
+
+**Still to confirm, and it decides the factory story:** whether a blank STM32G0 runs its ROM
+bootloader regardless of `BOOT0`. If yes, a virgin board needs only an SD card. If no, each board
+needs one SWD touch to clear `nBOOT_SEL` first. AN2606 / RM0444, not in the repo.
+
+**Remaining hardware work:** capture the two nets on `som` and `mcu`, add `Q?`/`R?`/`R?`, and update
+both sheets' interface tables. Not yet drawn.
 
 **D-3 ⏳ — `USB1`.** Unused, four pins, already on the connector (B-3). Second port or not.
 *(Raised in `Analyse_battery.md`, an earlier round, not WP6–8 — but still open and still has a
