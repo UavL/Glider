@@ -92,14 +92,47 @@ already in `pcb_common`), wired in the order that is most common for these two i
 | 5 | `TOUCH_INT#` | `PEN_INT#` |
 | 6 | `TOUCH_RST#` | `GND` |
 
-**~~This is a guess~~ — resolved 2026-08-19, and the six signals are right.** The
-`GDEP103TC2-FT11` listing gives *Touch IC `GT9110H`, Touch Connector 2×14 pin*, which looks
-incompatible with `J22`. It is not: `parts/Display/EN-DEJA-TC103.pdf` §4.4.2 says *"the
-touchscreen uses an external GT9110 touch board"*, and that board presents `TOUCH_SDA`,
-`TOUCH_SCL`, `TOUCH_INT`, `TOUCH_RST`. The 2×14 FFC runs from the panel's ITO sensor to that
-board and never reaches the mainboard. **Note the part is the `GT9110H`, not the `GT911` cited
-below** — larger-panel variant, same I²C interface. Still to get from the vendor: whether the
-touch board ships with the panel, and its output connector's **pin order** against `J22`'s.
+**~~This is a guess~~ — investigated 2026-08-19. `J22`'s six signals are still the right choice,
+but there is an adapter to design and it is not optional.**
+
+The `GDEP103TC2-FT11` listing gives *Touch IC `GT9110H`, Touch Connector 2×14 pin*. That 2×14 is
+**not** a host interface — it is the panel's raw ITO sensor tail, and it runs to an **external
+GT9110 touch board** that comes with the module, physically bonded near the panel's flex
+(`parts/Display/Bildschirmfoto_20260819_162728.png` shows the arrangement).
+
+The important qualifier, from `parts/Display/EN-DEJA-TC103.pdf` §4.4.2, and it was missed on the
+first read:
+
+> "since the touchscreen uses an external GT9110 touch board, the board has a reserved **USB**
+> communication interface. If using the IIC interface, **wiring modifications are required**. The
+> board already provides IIC test points for connection. **The adapter board between the two can be
+> designed independently and is not provided separately by our company.**"
+
+So the GT9110 board's *native* output is **USB**, and the `TOUCH_SDA`/`SCL`/`INT`/`RST` pins listed
+in §4.4.2 are the **ESP32 dev board's** I²C interface, not the touch board's default. Reaching I²C
+means a small adapter that Good Display explicitly does not sell.
+
+### Which interface R2 should take
+
+| | I²C into `J22` (as drawn) | USB into the free `USB1` |
+| --- | --- | --- |
+| Board cost | 6-pin FPC, already there | one more connector, plus routing a USB pair |
+| Driver | mainline `goodix` | generic USB HID multitouch — near-zero effort |
+| Adapter | **yes, self-designed** | probably none |
+| **Standby power** | **controller gated off `+3V3_TOUCH`; wake on `INT`** | **USB PHY must stay powered to see a touch** |
+
+**Stay with I²C.** On a battery e-reader the last row decides it: `+3V3_TOUCH` can be switched off
+entirely and the panel woken by a single interrupt line, where USB would hold a PHY up in standby.
+The adapter is a small flex or a 2-connector interposer, and it has to be designed either way
+because the vendor does not sell one.
+
+**What is still needed from the vendor:** the GT9110 touch board's own connector pinout and pitch,
+and its I²C test-point mapping. `J22`'s order is 1 `GND`, 2 `VCC`, 3 `RESET`, 4 `INT`, 5 `SDA`,
+6 `SCL` — the adapter absorbs any difference, so this does not block the mainboard, but it does
+block the adapter.
+
+**Note the part is the `GT9110H`, not the `GT911` cited below** — larger-panel variant, same I²C
+protocol, same mainline driver.
 
 The original note, kept because the reasoning still applies to any other panel: A capacitive touch controller's FPC
 and an EMR digitizer's FPC both have part-specific pinouts, and neither part is chosen — the panel
