@@ -216,9 +216,16 @@ not imposed by the generator — it falls out of the DXF's centrelines — so it
    DXF's four `MOUNTING_HOLES_LAYER` circles are the *plug's* locating holes rather than ours.
    Trusting them would have put both connectors 0.62 mm out.
 
-⚠ **The two receptacles are a BOM line the schematic does not generate** — 2 × `BTH-060-01-L-D-A-K-TR`,
-LCSC `C3646540`, of which LCSC has **60**, i.e. 30 boards. `som.md` §10. This is the tightest line
-on the whole BOM and it is not on it.
+**The two receptacles are now on the BOM** as `J26`/`J27`, purchase-only symbols that never reach
+the PCB — 2 × `BTH-060-01-L-D-A-K-TR`, LCSC `C3646540`, plus `MK20` for the M2.5 hardware.
+`som.md` §10. ⚠ **LCSC had 60 of them on 2026-08-20, i.e. 30 boards** — still the tightest line on
+the whole BOM, so re-check stock before ordering.
+
+The footprint's geometry was also diffed against **Samtec's own KiCad footprint**, which the owner
+downloaded the same day: pad size, row spacing, pitch, span, hole diameter and hole offset all
+agree exactly (`som.md` §10.2). Two things were adopted from it — the 1.991 mm hole offset, and
+`solder_mask_margin 0.102`, which makes each row **one gang mask opening with no webs**. That is
+correct at 0.5 mm pitch and is now explicit rather than inherited from the board's global margin.
 
 ## 4. Escape and net classes
 

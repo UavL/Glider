@@ -5405,6 +5405,67 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "r2:BOM_ITEM"
+				(exclude_from_sim yes)
+				(in_bom yes)
+				(on_board no)
+				(property "Reference" "MK"
+					(at 0 3.81 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Value" "BOM_ITEM"
+					(at 0 -3.81 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Footprint" ""
+					(at 0 0 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(property "Description" "Purchase-only BOM line: a part that is bought and fitted but has no pins and no land pattern of its own. on_board=no keeps it out of the netlist and the PCB; in_bom=yes keeps it on the order."
+					(at 0 0 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(hide yes)
+					)
+				)
+				(symbol "BOM_ITEM_0_1"
+					(rectangle
+						(start -8.89 2.54)
+						(end 8.89 -2.54)
+						(stroke
+							(width 0.254)
+							(type dash)
+						)
+						(fill
+							(type none)
+						)
+					)
+				)
+			)
 	)
 	(text "before it is powered, and +3V3 is VCCO for the FPGA bank facing it:"
 		(exclude_from_sim no)
@@ -11975,4 +12036,290 @@
 			)
 		)
 	)
+
+	(text "Purchase-only lines -- not on the board, not in the netlist. som.md §10"
+		(exclude_from_sim no)
+		(at 218.44 190.5 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7abc8464-76bc-4fd2-a3b6-15e2a5454b8a")
+	)
+	(symbol
+		(lib_id "r2:BOM_ITEM")
+		(at 236.22 203.2 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board no)
+		(dnp no)
+		(uuid "5fdadec6-77bb-473a-b972-c8ee7ac2af70")
+		(property "Reference" "J26"
+			(at 236.22 196.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "BTH-060-01-L-D-A-K-TR"
+			(at 236.22 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 236.22 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C3646540"
+			(at 236.22 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "BTH-060-01-L-D-A-K-TR"
+			(at 236.22 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Samtec"
+			(at 236.22 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "BOM Comments" "Board-side receptacle for the PCM-071, 2 per board. Soldered to r2:PCM-071_2xBTH-060-01-L-D-A-K, which carries both patterns in one footprint -- so this symbol is on_board=no and exists only to put the part on the order. LCSC stock was 60 on 2026-08-20; C3644612 is the same connector without the -K option. som.md section 10."
+			(at 236.22 203.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
+					(reference "J26")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "r2:BOM_ITEM")
+		(at 236.22 223.52 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board no)
+		(dnp no)
+		(uuid "46d06d58-bfdb-4b24-bc27-fc62cc1ee451")
+		(property "Reference" "J27"
+			(at 236.22 217.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "BTH-060-01-L-D-A-K-TR"
+			(at 236.22 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 223.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 223.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 236.22 223.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C3646540"
+			(at 236.22 223.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "BTH-060-01-L-D-A-K-TR"
+			(at 236.22 223.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Samtec"
+			(at 236.22 223.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "BOM Comments" "The second of the two. See J26."
+			(at 236.22 223.52 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
+					(reference "J27")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "r2:BOM_ITEM")
+		(at 236.22 243.84 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board no)
+		(dnp no)
+		(uuid "c1bf04f6-e42d-43cb-96c1-0031c0c86477")
+		(property "Reference" "MK20"
+			(at 236.22 237.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PCM-071 mounting kit"
+			(at 236.22 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 236.22 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "2x M2.5x5 F-F standoff, 4x M2.5x4 screw, 4x M2.5 washer"
+			(at 236.22 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "BOM Comments" "PHYTEC's own recommendation, L-1038e.A5 section 4.3. Not optional: the standoffs set the 5 mm stacking height the BTH-060 pair is specified for, so without them the connector solder joints carry the module's mechanical load. Holes are in the footprint at (2.8, 2.8) and (29.2, 40.2) relative to the module outline."
+			(at 236.22 243.84 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
+					(reference "MK20")
+					(unit 1)
+				)
+			)
+		)
+	)
+	
 )

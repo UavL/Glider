@@ -309,7 +309,7 @@ correctness rests on**, and pin numbers carry no footnotes.
    on (Facts §4.6 — 128.6 mW, ~150 ms) was measured *by PHYTEC on their carrier*, not here. It also
    gives the BSP and the provisioning flow (§10) somewhere to run before R2 exists.
 
-## 10. ⚠ The two receptacles are a BOM line this schematic does not produce
+## 10. The two receptacles — a BOM line the schematic did not produce, now fixed
 
 Found 2026-08-20 while building the footprint, and it is the kind of gap that is only visible from
 the assembly side.
@@ -325,9 +325,74 @@ SoM in**.
 | the footprint | `BTH-060-01-L-D-A-K-TR` | LCSC **`C3646540`** | **2** | the PCBA house |
 | the symbol | `PCM-071` | PHYTEC, direct | 1 | you, afterwards |
 
-A `BOM Comments` property on `X2` now records this, and `MPN`/`Manufacturer` name the module rather
-than leaving the line blank. **But the connector line still has to be added to the assembly BOM by
-hand** — no schematic symbol produces it, and adding one would duplicate 240 pads.
+> **FIXED 2026-08-20** by `tools/patch_bom_only_items.py`. Three **purchase-only** symbols now sit
+> on free canvas on this sheet: **`J26`/`J27`** (the receptacles) and **`MK20`** (the mounting
+> hardware). They use `r2:BOM_ITEM`, a pin-less rectangle, and are placed **`on_board no`** — so
+> they appear on the BOM and never reach the netlist or the PCB.
+>
+> Verified: **517 nets before and after with zero membership changes**, none of the three appears
+> among the netlist's components, ERC unchanged at 32 excluding `footprint_link_issues`, and a
+> grouped BOM export now carries `"J26,J27" | BTH-060-01-L-D-A-K-TR | C3646540` as one line of
+> quantity 2. Rendered and checked by eye.
+>
+> ⚠ One trap recorded in the script: the first attempt placed them on top of `J21`, the microSD
+> connector. Scanning a sheet's `(at ...)` values finds symbol **origins, not extents**, so a large
+> symbol reads as a single empty-looking point. **Free space on a dense sheet has to be confirmed by
+> rendering the page and looking at it.**
+
+`X2` also carries `MPN`/`Manufacturer` for the module and a `BOM Comments` property explaining that
+it is fitted by hand, not by the PCBA house.
+
+### 10.1 Why there is no connector symbol in the first place
+
+Worth stating plainly, because it looks like an omission and is not.
+`tools/gen_som_symbol.py` made the call and it still holds:
+
+> *"One symbol and one footprint, not two of each. The two `BTH-060` patterns have a fixed relative
+> position set by the module. Drawing them as two independent parts would let a layout move one
+> relative to the other and destroy the board with no DRC complaint; a single footprint carrying
+> both patterns makes that geometry unbreakable."*
+
+PHYTEC's DXF has since made that cost concrete. The two connectors are not merely 22.400 mm apart —
+they are also **staggered 4.800 mm**, which is exactly the kind of relationship a person nudges by
+accident and never notices. As one footprint it cannot be got wrong.
+
+There is a second reason, and it is the one that would bite whoever tried the other way. **Samtec
+numbers its pads 1–120, alternating between the two rows** (`SAMTEC_BTH-060-X-X-D-A-K.kicad_mod`:
+pad `01` at y −3.086, pad `02` at y +3.086, pad `03` at y −3.086 …). The module's pinout is
+`A1`–`A60` / `B1`–`B60` / `C1`–`C60` / `D1`–`D60`. So "just use the vendor's symbol and footprint"
+is a **240-line renumbering by hand**, on a part where every pin is invisible to ERC — the precise
+failure `gen_som_symbol.py` was written to avoid by generating from `som_pinout.json` instead.
+
+So the schematic models **the thing you reason about** (the SoM and its 240 signals) and the
+footprint models **the thing you solder** (two connectors at a fixed offset). That split is right.
+Its *only* real cost was the missing BOM line, and that is now covered by `J26`/`J27` rather than by
+compromising the symbol.
+
+### 10.2 Samtec's own KiCad footprint — an independent check that passed
+
+The owner downloaded `BTH-060-01-L-D-A-K-TR` from Samtec on 2026-08-20, and it contains a native
+`.kicad_mod`. Diffed against the generated footprint's per-connector geometry:
+
+| | Samtec | Generated | |
+| --- | --- | --- | --- |
+| pad | 0.305 × 1.448 | 0.305 × 1.448 | ✓ |
+| row spacing | 6.172 | 6.172 | ✓ |
+| pitch / span | **0.500 / 29.500** | 0.500 / 29.500 | ✓ |
+| NPTH diameter | 1.016 | 1.016 | ✓ |
+| hole off the row centreline | **2.032** | 2.032 | ✓ |
+| hole beyond the end pad | 1.991 | 1.986 → **adopted 1.991** | 5 µm |
+
+**Samtec's own KiCad file uses 0.500 pitch and 29.500 span, not the 0.5001 / 29.507 in their own
+dimension table** — the same choice this generator had made independently, and the same numbers
+PHYTEC's DXF gives. Three sources, one answer.
+
+Two things were taken from it: the 1.991 hole offset, and **`solder_mask_margin 0.102` on every
+pad**, which Samtec sets and the generator now does too. That is worth understanding rather than
+copying: 0.305 + 2 × 0.102 = 0.509 mm of opening on a 0.500 mm pitch, i.e. **one gang opening per
+row with no webs between pads**. That is deliberate at this pitch — a 0.093 mm web is under JLC's
+0.1 mm minimum and would be removed by the fab anyway, so stating it here makes the intent explicit
+instead of leaving it to the board's global mask margin.
 
 ⚠ **Stock is the tight part, and it was not on anyone's list.** LCSC has **60** of `C3646540` and
 the board needs two, so that is **30 boards** — the tightest line on the BOM by a wide margin

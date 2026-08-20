@@ -330,10 +330,19 @@ and which is vector and numeric where Figure 7 is a raster. It agreed to 8 µm i
 y** — worth correcting, since 61 µm is 20 % of a 0.305 mm pad's width. `som.md` §11. The generator
 now asserts its output against the DXF and the row skew is 0.0 µm.
 
-⚠ **And it turned up a missing BOM line.** `X2` is one symbol for the *module*; the parts an
-assembler solders are **2 × `BTH-060-01-L-D-A-K-TR`**, LCSC `C3646540`. No symbol generates that
-line, LCSC has **60** of them (30 boards), and it is now the tightest line on the BOM. `som.md`
-§10.
+⚠ **And it turned up a missing BOM line, since fixed.** `X2` is one symbol for the *module*; the
+parts an assembler solders are **2 × `BTH-060-01-L-D-A-K-TR`**, LCSC `C3646540`, and no symbol
+generated that line. `tools/patch_bom_only_items.py` adds `J26`/`J27` and `MK20` (the M2.5 hardware)
+as **purchase-only** symbols — `on_board no`, so they are on the BOM and never on the PCB. 517 nets
+before and after. `som.md` §10.
+
+**Why there is no connector symbol at all** is answered in `som.md` §10.1, because it looks like an
+omission and is not: one footprint makes the two connectors' 22.400 mm spacing *and* 4.800 mm
+stagger unbreakable, and Samtec numbers its pads 1–120 alternating between rows against the module's
+A1–D60, so using the vendor part would be a 240-line renumbering with no ERC to catch a slip.
+
+⚠ **LCSC had 60 of `C3646540` on 2026-08-20 — 30 boards.** Still the tightest line on the BOM.
+Re-check before ordering; `C3644612` is the same connector without `-K`, 36 more.
 
 **D-5 ✅ — SoM position and side. FULLY CLOSED by the owner 2026-08-20.** Top right beside the USB
 ports, on the face pointing **away from the panel**. `layout.md` §1.1, with the rest of the layout

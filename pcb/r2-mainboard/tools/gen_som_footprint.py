@@ -83,8 +83,18 @@ PAD_L, PAD_W = 1.448, 0.305       # L is across the row, W along it
 ROW_SPAN = 7.620                  # .3000, pad outer edge to pad outer edge
 ROW_PITCH = ROW_SPAN - PAD_L      # 6.172, centre to centre
 HOLE_D = 1.016                    # dia .0400, -A option, NPTH
-HOLE_END_OFF = 1.986              # .0782 REF, beyond the end pad along the row
-HOLE_TO_ROW = 1.054               # .0415, from the NEAR row's centre
+HOLE_END_OFF = 1.991              # Samtec's own KiCad footprint; the drawing
+                                  # prints .0782 [1.986] REF, 5 um away and REF
+HOLE_TO_ROW = 1.054               # .0415, from the NEAR row's centre; Samtec's
+                                  # footprint puts it 2.032 off the centreline,
+                                  # which is 3.086 - 1.054 exactly
+MASK_MARGIN = 0.102               # Samtec sets this on every pad. It makes the
+                                  # mask openings 0.509 on a 0.5 pitch, i.e. one
+                                  # gang opening per row with no webs -- which is
+                                  # deliberate at this pitch, and better stated
+                                  # here than left to the board's global margin
+                                  # (a 0.093 web would be under JLC's 0.1 minimum
+                                  # and removed anyway, but silently).
 
 # Figure 6: rows left to right are B A then D C; the alignment hole sits against
 # the LEFT row of each connector.
@@ -210,7 +220,9 @@ def build() -> str:
                 py = y1 + (n - 1) * PITCH
                 o += [f'\t(pad "{row}{n}" smd rect', f"\t\t(at {f(X(x))} {f(Y(py))})",
                       f"\t\t(size {f(PAD_L)} {f(PAD_W)})",
-                      '\t\t(layers "F.Cu" "F.Mask" "F.Paste")', f'\t\t(uuid "{uid()}")', "\t)"]
+                      '\t\t(layers "F.Cu" "F.Mask" "F.Paste")',
+                      f"\t\t(solder_mask_margin {f(MASK_MARGIN)})",
+                      f'\t\t(uuid "{uid()}")', "\t)"]
                 npads += 1
         hb, ht = y1 - HOLE_END_OFF, y1 + SPAN + HOLE_END_OFF
         for hy in (hb, ht):
