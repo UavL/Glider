@@ -452,32 +452,72 @@ had no `(model …)` at all until now — §9.1.
 ⚠ **If footprints vanish again after a KiCad update, run the script again** and look at that file
 first. Nothing in this project can cause it.
 
-### 9.1 3D models for this project's own footprints
+### 9.1 3D models — 322 of 327, and why the other five are honest
 
-`3dmodels/` now holds the two that exist, and `gen_som_footprint.py` references them by
-`${KIPRJMOD}`, so they travel with the repo:
+After `fix_kicad_paths.sh` set `KICAD10_3DMODEL_DIR`, **311 of 327 footprints resolved on their
+own.** `tools/add_3d_models.py` deals with the rest and makes the project self-contained: every
+model it uses ends up in `3dmodels/` referenced by `${KIPRJMOD}`, so the 3D view works on any
+machine that clones the repo. Re-runnable, backs the board up, refuses to run while KiCad is open.
 
-| Footprint | Model | Source |
+**Three different reasons a model was missing, needing three different answers.**
+
+**1 — a real model exists, but the path was somebody else's machine.** `pcb_common` keeps its 66
+STEP files *next to* the footprints rather than in a `.3dshapes` directory, which is why a search
+for 3D directories finds nothing. Several are referenced absolutely: `J24`'s pointed at
+`/Users/wenting/Documents/projects/Enchanter/…`. Copied into `3dmodels/` and re-pointed — **these
+are the real parts**:
+
+| Ref | Model |
+| --- | --- |
+| `J1` | `HRO_TYPE-C-31-M-12.step` — the actual USB-C receptacle. In `pcb_common` its filename has a **double space**, which is the sort of thing that breaks quietly on another filesystem; renamed on the way in |
+| `J24` | `FPC-SMD_8P-P0.50_HC-FPC-05-09-8RLTAG.step` |
+| `J21` | `HY-TF1007B.STEP` — the microSD socket |
+| `J6` | `FPC-SMD_50P-P0.50_FPC-05F-50PH20.step` — the panel connector |
+| `X2`, `J26`, `J27` | PHYTEC's and Samtec's own downloads |
+
+**2 — no model exists anywhere, so a dimensional stand-in.** `footprints:Xilinx_FTG256` is a
+`pcb_common` custom footprint whose model lived on the Modos author's KiCad 6 install — hence
+`${KICAD6_3DMODEL_DIR}`, a variable nothing defines any more — and KiCad's own library has no
+`Xilinx_FTG256` either.
+
+| Ref | Stand-in matches | Does not match |
 | --- | --- | --- |
-| `BTH-060-01-L-D-A-K_AB` / `_CD` | `BTH-060-01-L-D-A-K-TR.stp` | Samtec's own download |
-| `PCM-071_Module` | `PCM-071.step` | PHYTEC's `_Basic` model |
+| **`U41`** Spartan-6 | `BGA-256_17.0x17.0mm_Layout16x16_P1.0mm` — **the FTG256's exact geometry** | generic BGA, no marking |
+| `U1` charger | 4 × 4 mm, 24 pins, 0.5 mm | exposed pad 2.7 vs 2.6 mm |
+| `U2` gauge | 2 × 2 mm, 8 pins, 0.5 mm | exposed pad 0.6 vs 0.8 mm |
+| `U12` boost | 2 × 2 mm, 0.5 mm | 8 pins drawn where the part has 7 |
+| `U21`×3 `INA3221` | 4 × 4 mm, 16 pins, 0.65 mm | exposed pad 2.7 vs 2.1 mm |
+| `SW20` | 4.2 × 3.2 mm, same actuator class | different maker — **check actuator height against the enclosure rather than trusting this** |
+| `U13` buck-boost | 2 × 3 mm, 10 pins, 0.5 mm | VSON-HR has no exposed pad |
 
-Two caveats, both stated because a 3D view is persuasive in a way that has nothing to do with being
-right:
+⚠ **A stand-in is for clearance and collision, not for identity.** The body outline and height are
+right; pin detail, markings and often the exact pad field are not. Never read a stand-in as
+confirmation that the correct part is fitted — that is the BOM's job.
 
-- ⚠ **The connector model's rotation is a guess.** Samtec draw the part lying along X; this board
-  stands it up along Y, so `MODEL_CONN_ROT` is `(0, 0, 90)`. **Verify in the 3D viewer and flip to
-  −90 if it faces the wrong way.** Nothing electrical depends on it — it is a picture — but a
-  picture is what you are about to use for clearance checking.
-- **PHYTEC's README says the `_Basic` STEP may simplify component heights.** Good enough to see the
-  module sitting on its standoffs; not good enough to certify a case clearance. For that, the
-  numbers in `som.md` §11 are the source.
+**3 — nothing suitable exists, so nothing is faked.** Five remain, and each is reported by name
+every time the tool runs:
 
-**To attach a model to any other footprint yourself:** open it in the Footprint Editor
-(right-click the part → *Open in Footprint Editor*), *File → Footprint Properties → 3D Models*,
-*Add*, then set offset / scale / rotation and watch the preview. Put the file in `3dmodels/` and
-write the path as `${KIPRJMOD}/3dmodels/<file>` so it is not machine-specific. KiCad reads `.step`,
-`.stp` and `.wrl`.
+| Ref | Why | Where a real one would come from |
+| --- | --- | --- |
+| `X1` | KiCad ships no `ASE-4Pin` model | Abracon |
+| `L1` | no `NR-30xx` model anywhere | Taiyo Yuden publish STEP |
+| `J2` | only 1.25 mm PicoBlade exists, a *different* connector — and this one sits at the board edge, where a wrong body would mislead the enclosure check | Molex publish STEP for 504050 |
+| `U53` | 1.9 mm DSBGA, nothing dimensionally close | cosmetic at this size |
+| `J25` | bare copper solder pads | **correctly has none** |
+
+**One thing worth knowing about KiCad here:** a footprint edited in the library does **not**
+propagate to a board that already has it placed. `X2` kept the model-less copy it was imported with
+long after the generator started emitting one. `add_3d_models.py` refreshes every `r2:` footprint's
+model from its library file for exactly that reason — so if a model looks stale, run it again.
+
+**To attach one yourself:** right-click the part → *Open in Footprint Editor* →
+*Footprint Properties → 3D Models → Add*, then set offset / scale / rotation against the live
+preview. Put the file in `3dmodels/` and write the path as `${KIPRJMOD}/3dmodels/<file>` so it is
+not machine-specific. KiCad reads `.step`, `.stp` and `.wrl`.
+
+⚠ **The `BTH-060` model's rotation is still a guess** — Samtec draw the connector along X and this
+board stands it along Y, so `MODEL_CONN_ROT` is `(0, 0, 90)`. Check it in the viewer and flip to
+−90 if it faces the wrong way. Nothing electrical depends on it.
 
 ### 9.2 ⚠ If `kicad-cli` says &ldquo;Failed to load board&rdquo;
 

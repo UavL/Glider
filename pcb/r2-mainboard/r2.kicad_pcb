@@ -11988,6 +11988,11 @@
 			(uuid "d578da73-29b9-4cc5-a88f-2d0b63a31cdb")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/3dmodels/BTH-060-01-L-D-A-K-TR.stp"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
+		)
 	)
 	(footprint "Resistor_SMD:R_0402_1005Metric"
 		(layer "F.Cu")
@@ -13768,16 +13773,10 @@
 			(uuid "e3148a86-5616-422f-bfd2-acdf51755a5b")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Connector_USB.3dshapes/USB_C_Receptacle_HRO_TYPE-C-31-M-12.step"
-			(offset
-				(xyz 0 0 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 0)
-			)
+		(model "${KIPRJMOD}/3dmodels/HRO_TYPE-C-31-M-12.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "footprints:HC-FPC-05-09-8RLTAG"
@@ -14084,22 +14083,15 @@
 			(uuid "a036378d-c79b-4c37-aefd-60d15eef6ec9")
 		)
 		(embedded_fonts no)
-		(model "/Users/wenting/Documents/projects/Enchanter/pcb/pcb_common/footprints.pretty/FPC-SMD_8P-P0.50_HC-FPC-05-09-8RLTAG.step"
-			(offset
-				(xyz 0 0.65 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 -180)
-			)
+		(model "${KIPRJMOD}/3dmodels/FPC-SMD_8P-P0.50_HC-FPC-05-09-8RLTAG.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "r2:PCM-071_Module"
 		(layer "F.Cu")
 		(uuid "2200e001-a954-48b2-9629-bd47b75f0930")
-		(attr exclude_from_pos_files allow_missing_courtyard)
 		(at 164.2 41.028 90)
 		(descr "PHYTEC phyCORE-AM62x PCM-071, module outline and M2.5 mounting holes. NO PADS -- the 240 contacts belong to J26/J27, the two BTH-060 receptacles. The module is fitted by hand after assembly, so this is excluded from the position file. Outline and hole positions from PCM-071_1573-1.dxf (BOARD_OUTLINE 32.000 x 43.000; holes at 2.800/2.800 and 29.200/40.200, 2.600 drill, 4.000 plating). Stands 5 mm off the board on two M2.5 F-F standoffs. See som.md section 11.")
 		(tags "PHYTEC phyCORE AM62x PCM-071 SOM module outline mechanical mounting")
@@ -14195,6 +14187,7 @@
 				(pins)
 			)
 		)
+		(attr exclude_from_pos_files allow_missing_courtyard)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 16 -21.5)
@@ -14277,39 +14270,6 @@
 			(uuid "3d511218-97ec-4d9d-8f83-6d1619761beb")
 		)
 		(fp_rect
-			(start -16 21.5)
-			(end 16 -21.5)
-			(stroke
-				(width 0.1)
-				(type solid)
-			)
-			(fill no)
-			(layer "F.Fab")
-			(uuid "89bfbdb7-59c7-413c-8e3c-545837acada3")
-		)
-		(fp_circle
-			(center 13.2 -18.7)
-			(end 15.2 -18.7)
-			(stroke
-				(width 0.1)
-				(type dash)
-			)
-			(fill no)
-			(layer "F.Fab")
-			(uuid "7352620b-0d62-4bd9-b109-45ab884cc35b")
-		)
-		(fp_circle
-			(center -13.2 18.7)
-			(end -11.2 18.7)
-			(stroke
-				(width 0.1)
-				(type dash)
-			)
-			(fill no)
-			(layer "F.Fab")
-			(uuid "3c8d8e69-d773-43d5-bf6d-54c48fb9d25c")
-		)
-		(fp_rect
 			(start -14.1845 -19.9)
 			(end -8.2155 15.1)
 			(stroke
@@ -14342,6 +14302,39 @@
 			(layer "Dwgs.User")
 			(uuid "e24f5355-ee30-4c5e-916f-8962b7241ed8")
 		)
+		(fp_rect
+			(start -16 21.5)
+			(end 16 -21.5)
+			(stroke
+				(width 0.1)
+				(type solid)
+			)
+			(fill no)
+			(layer "F.Fab")
+			(uuid "89bfbdb7-59c7-413c-8e3c-545837acada3")
+		)
+		(fp_circle
+			(center 13.2 -18.7)
+			(end 15.2 -18.7)
+			(stroke
+				(width 0.1)
+				(type dash)
+			)
+			(fill no)
+			(layer "F.Fab")
+			(uuid "7352620b-0d62-4bd9-b109-45ab884cc35b")
+		)
+		(fp_circle
+			(center -13.2 18.7)
+			(end -11.2 18.7)
+			(stroke
+				(width 0.1)
+				(type dash)
+			)
+			(fill no)
+			(layer "F.Fab")
+			(uuid "3c8d8e69-d773-43d5-bf6d-54c48fb9d25c")
+		)
 		(pad "" np_thru_hole circle
 			(at -13.2 18.7 90)
 			(size 2.6 2.6)
@@ -14357,6 +14350,11 @@
 			(uuid "ddfa0908-e4d9-4579-bb30-37f6cf239b84")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/3dmodels/PCM-071.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
+		)
 	)
 	(footprint "Resistor_SMD:R_0402_1005Metric"
 		(layer "F.Cu")
@@ -16478,6 +16476,11 @@
 			(uuid "44826729-753c-40ca-8833-5c29ac7fdb04")
 		)
 		(embedded_fonts no)
+		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/DFN-10-1EP_2x3mm_P0.5mm_EP0.64x2.4mm.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
+		)
 	)
 	(footprint "Resistor_SMD:R_0402_1005Metric"
 		(layer "F.Cu")
@@ -17467,16 +17470,10 @@
 			(uuid "cdc46ee8-1f0e-45e5-af31-10bcbf480ffa")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/Texas_RGV0016A_VQFN-16-1EP_4x4mm_P0.65mm_EP2.1x2.1mm.step"
-			(offset
-				(xyz 0 0 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 0)
-			)
+		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/Texas_RSA_VQFN-16-1EP_4x4mm_P0.65mm_EP2.7x2.7mm.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "Capacitor_SMD:C_0805_2012Metric"
@@ -21922,16 +21919,10 @@
 			(uuid "ac216b9b-5c18-4aea-af9b-2738c840b220")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/Texas_RWU0007A_VQFN-7_2x2mm_P0.5mm.step"
-			(offset
-				(xyz 0 0 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 0)
-			)
+		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/DFN-8-1EP_2x2mm_P0.5mm_EP0.6x1.2mm.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "Capacitor_SMD:C_0402_1005Metric"
@@ -26737,16 +26728,10 @@
 			(uuid "ac0e857b-12d1-40c5-ad85-79166f6f1246")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/Texas_RGV0016A_VQFN-16-1EP_4x4mm_P0.65mm_EP2.1x2.1mm.step"
-			(offset
-				(xyz 0 0 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 0)
-			)
+		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/Texas_RSA_VQFN-16-1EP_4x4mm_P0.65mm_EP2.7x2.7mm.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "Capacitor_SMD:C_0402_1005Metric"
@@ -44271,16 +44256,10 @@
 			(uuid "73aebad2-7d84-4d01-b0fc-762b1779d971")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/datasheets/SoM Phycore AM62x/BTH-060-01-L-D-A-K-TR/BTH-060-01-L-D-A-K-TR.stp"
-			(offset
-				(xyz 0 0 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz -90 -0 -90)
-			)
+		(model "${KIPRJMOD}/3dmodels/BTH-060-01-L-D-A-K-TR.stp"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "LED_SMD:LED_0603_1608Metric"
@@ -44833,13 +44812,13 @@
 		(embedded_fonts no)
 		(model "${KICAD10_3DMODEL_DIR}/Connector_FFC-FPC.3dshapes/Hirose_FH12-8S-0.5SH_1x08-1MP_P0.50mm_Horizontal.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 -0.8 0)
 			)
 			(scale
-				(xyz 1 1 1)
+				(xyz 0.8 0.8 0.8)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz -0 -0 -90)
 			)
 		)
 	)
@@ -53028,16 +53007,10 @@
 			(uuid "ce8120bf-a49c-4c15-bac5-a2a8ff7c5f2b")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/Texas_RGV0016A_VQFN-16-1EP_4x4mm_P0.65mm_EP2.1x2.1mm.step"
-			(offset
-				(xyz 0 0 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 0)
-			)
+		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/Texas_RSA_VQFN-16-1EP_4x4mm_P0.65mm_EP2.7x2.7mm.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "Package_TO_SOT_SMD:SOT-23"
@@ -54812,16 +54785,10 @@
 			(uuid "d973408c-dab6-4027-9223-561d27e7e91b")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../pcb_common/footprints.pretty/FPC-SMD_50P-P0.50_FPC-05F-50PH20.step"
-			(offset
-				(xyz 0 1.6 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 0)
-			)
+		(model "${KIPRJMOD}/3dmodels/FPC-SMD_50P-P0.50_FPC-05F-50PH20.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "Capacitor_SMD:C_0402_1005Metric"
@@ -57366,7 +57333,7 @@
 	(footprint "footprints:TFC-WPAPR-08"
 		(layer "F.Cu")
 		(uuid "b27c8d84-c3ae-45f0-a6f7-967745ddd237")
-		(at 256.7488 101.548)
+		(at 265 103)
 		(descr "OFFSET X-> -0.950MM")
 		(tags "OFFSET X-> -0.950MM")
 		(property "Reference" "J21"
@@ -57857,16 +57824,10 @@
 			(uuid "8465d61b-e3aa-4309-9f0a-75e72ee04019")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../pcb_common/footprints.pretty/HY-TF1007B.STEP"
-			(offset
-				(xyz -7.25 -7.35 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz -90 0 -90)
-			)
+		(model "${KIPRJMOD}/3dmodels/HY-TF1007B.STEP"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "Resistor_SMD:R_0402_1005Metric"
@@ -63266,16 +63227,10 @@
 			(uuid "e86046c9-d856-4c66-a2ad-a3613af4c615")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Button_Switch_SMD.3dshapes/SW_Push_1P1T_XKB_TS-1187A.step"
-			(offset
-				(xyz 0 0 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 0)
-			)
+		(model "${KICAD10_3DMODEL_DIR}/Button_Switch_SMD.3dshapes/SW_Push_1P1T_NO_CK_KMR2.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "Capacitor_SMD:C_0402_1005Metric"
@@ -67359,16 +67314,10 @@
 			(uuid "fcd05d4b-08b8-4acd-88ba-dc7b162aefdd")
 		)
 		(embedded_fonts no)
-		(model "${KICAD6_3DMODEL_DIR}/Package_BGA.3dshapes/Xilinx_FTG256.wrl"
-			(offset
-				(xyz 0 0 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 0)
-			)
+		(model "${KICAD10_3DMODEL_DIR}/Package_BGA.3dshapes/BGA-256_17.0x17.0mm_Layout16x16_P1.0mm_Ball0.5mm_Pad0.4mm_NSMD.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "Package_QFP:LQFP-64_10x10mm_P0.5mm"
@@ -71340,16 +71289,10 @@
 			(uuid "027a3fe3-371b-4896-8d8f-685f52b935d8")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/WQFN-24-1EP_4x4mm_P0.5mm_EP2.6x2.6mm.step"
-			(offset
-				(xyz 0 0 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 0)
-			)
+		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/Texas_RTW_WQFN-24-1EP_4x4mm_P0.5mm_EP2.7x2.7mm.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "Resistor_SMD:R_0402_1005Metric"
@@ -76162,16 +76105,10 @@
 			(uuid "d74db559-f9e7-4c9c-8940-1a0ff3cf723d")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/TDFN-8-1EP_2x2mm_P0.5mm_EP0.8x1.2mm.step"
-			(offset
-				(xyz 0 0 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 0)
-			)
+		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/DFN-8-1EP_2x2mm_P0.5mm_EP0.6x1.2mm.step"
+			(offset (xyz 0 0 0))
+			(scale (xyz 1 1 1))
+			(rotate (xyz 0 0 0))
 		)
 	)
 	(footprint "footprints:D_SOD-323_Alt"
@@ -82277,14 +82214,11 @@
 		(layer "Edge.Cuts")
 		(uuid "998b3ab4-85a9-4420-94ed-70f021763e4c")
 	)
-	(embedded_fonts no)
-
 	(group "SoM: X2 + J26 + J27"
 		(uuid "db6bac2e-a78b-459f-b77b-788cb5ab189d")
-		(members
-			"2200e001-a954-48b2-9629-bd47b75f0930"
+		(members "1b24aa06-b18f-4e78-a7c5-cd93cf5dd40f" "2200e001-a954-48b2-9629-bd47b75f0930"
 			"81925fca-ef22-4cca-a487-e84efd632f81"
-			"1b24aa06-b18f-4e78-a7c5-cd93cf5dd40f"
 		)
 	)
+	(embedded_fonts no)
 )
