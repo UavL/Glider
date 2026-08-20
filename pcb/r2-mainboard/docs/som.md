@@ -405,6 +405,69 @@ singles connectors out. Check `J26`/`J27`'s angle against Samtec's pin-1 marking
 (The no-pad-designator question that the previous arrangement raised is moot — both receptacles now
 have real pads under their own references.)
 
+### 10.4 The CPL rotation check, and what it is
+
+The one thing left to confirm before a first assembly order. It is worth writing down properly
+because the failure is silent in every file and only visible on the finished board.
+
+**What a CPL is.** The Component Placement List — also called the pick-and-place, PnP or position
+file — is a CSV with one row per placed part:
+
+```
+Designator,Mid X,Mid Y,Layer,Rotation
+J26,88.8,97.6,Top,0
+J27,111.2,102.4,Top,0
+```
+
+`Mid X`/`Mid Y` are the centroid, and **`Rotation` is how far the machine turns the part before
+setting it down.**
+
+**Why the number can be right and the placement still wrong.** Rotation is measured from a 0°
+reference, and there are two different definitions of it:
+
+| | 0° means |
+| --- | --- |
+| **KiCad** | the part as drawn in the footprint editor |
+| **the machine** | the part as it sits in its tape pocket (EIA-481) |
+
+Nothing in the exported files reconciles those. If the footprint is drawn with pin 1 at the bottom
+but the part comes off the reel with pin 1 to the left, every placement is 90° out and the CSV still
+says `0`. For a resistor a 180° error is harmless. **For a 120-pin connector, pin 1 lands where pin
+60 belongs.**
+
+Connectors are the worst case because there is no convention: IPC-7351 fixes pin-1 orientation for
+standard IC packages and JLCPCB's library mostly follows the tape, but connector makers orient their
+parts however the pocket suits. JLCPCB's own guidance lists fixed corrections for SOT-23, QFN and so
+on, and says connectors *vary* — check the part.
+
+**What this footprint asserts.** At rotation 0, viewed from the top of the board:
+
+- pin 1 (`A1`/`B1`, `C1`/`D1`) is at the **bottom**, marked on `F.SilkS` by a bracket under each
+  row and the text `B1 A1` / `D1 C1`;
+- the **near row is on the left** — `B` then `A`, `D` then `C`, which is `L-1038e.A5` Figure 6;
+- the alignment hole sits 1.054 mm inboard of the left row, which is an asymmetry you can see, so
+  the footprint is not rotationally ambiguous even without the text.
+
+**How to check it, in order of usefulness:**
+
+1. **JLCPCB's order preview is the real check, and it is free.** After uploading gerbers, BOM and
+   CPL, their flow renders every part on the board before you confirm. Look at `J26`/`J27`: does the
+   part's pin-1 end sit where the silkscreen says? A 90° error is obvious — the connector will lie
+   across the pads instead of along them.
+2. **Cross-check the tape drawing.** `jlcpcb.com/parts/componentSearch?searchTxt=C3646540`, then the
+   datasheet's tape-and-reel page. Compare where pin 1 is in the pocket against the footprint above.
+3. **Community rotation databases will not help here.** They key on KiCad *library* footprint names,
+   and `BTH-060-01-L-D-A-K_AB` is ours, so it is in none of them. The preview is the check.
+
+**If it is wrong, correct it in the CPL, not in the PCB.** Add the offset to the `Rotation` column of
+the CSV before uploading. ⚠ **Do not rotate the footprint in KiCad** — that turns the *pads* too, and
+the copper has to stay exactly where PHYTEC's DXF puts it. `tools/check_pcb_connectors.py` would fail
+you for it, which is the point of the rotation assertion in there.
+
+**Two things that make this less frightening than it sounds.** Both connectors are the same part, so
+an error applies to both in the same direction — you cannot get one right and one wrong. And the
+first order can be five boards; check one seats the module before committing to volume.
+
 ⚠ **`C3646540` had 60 in stock on 2026-08-20** — two per board, so 30 boards. Still the tightest
 line on the BOM. `C3644612` is the same connector without the `-K` option, 36 more.
 

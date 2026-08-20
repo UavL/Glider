@@ -214,6 +214,7 @@ def build_connector(name: str, near: str, far: str, centroid) -> str:
     hx = xl + HOLE_TO_ROW
     half_h = SPAN / 2 + PAD_W / 2
 
+    BODY_H = 17.5          # Samtec's own F.Fab body half-length
     o = head(name,
              f"Samtec BTH-060-01-L-D-A-K-TR, 2x60 0.5 mm board-to-board receptacle. "
              f"Carries rows {near} and {far} of the PHYTEC PCM-071; pads are named as "
@@ -224,7 +225,10 @@ def build_connector(name: str, near: str, far: str, centroid) -> str:
              f"tools/check_pcb_connectors.py. See som.md section 11.",
              "Samtec BTH-060 board-to-board mezzanine 0.5mm PCM-071 phyCORE AM62x",
              "smd")
-    o += props(name, half_h)
+    # Reference and Value clear the *body*, not the pad field -- at half_h they
+    # landed exactly on the "B1 A1" pin-1 text, which is the one marking that
+    # matters when someone is checking which way round the part goes.
+    o += props(name, BODY_H)
 
     npads = 0
     for row, x in ((near, xl), (far, xr)):
