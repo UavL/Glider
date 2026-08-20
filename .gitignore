@@ -42,3 +42,13 @@ pcb/r2-mainboard/_restore_backup_*/
 # saved copies of published artifact pages
 /Reflow R2 System Map.html
 /Reflow R2 System Map_files/
+
+# PHYTEC's 3D archive (pcb/r2-mainboard/datasheets/SoM Phycore AM62x/).
+# The .zip is committed, so everything here is recoverable with `unzip`.
+# The DXF is committed *extracted* as well, because gen_som_footprint.py cites
+# it as the source for the PCM-071 land pattern and parses it directly --
+# see som.md section 11. The other three are 49 MB of 3D that only the
+# enclosure work needs.
+pcb/r2-mainboard/datasheets/**/PCM-071_1573-1.STEP
+pcb/r2-mainboard/datasheets/**/PCM-071_1573-1.x_t
+pcb/r2-mainboard/datasheets/**/PCM-071_1573-1_Basic.step

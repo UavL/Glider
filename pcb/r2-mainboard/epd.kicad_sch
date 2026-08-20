@@ -4398,14 +4398,6 @@
 				(justify left)
 			)
 		)
-		(property "BOM Comments" "DNP - decouples +5V2_FL, which has no source on this panel (panel.md, J6.7/J6.44 unused). Footprint kept in case a future panel drives it." (at 0 0 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
 		(property "Value" "100nF/50V"
 			(at 111.76 151.13 90)
 			(show_name no)
@@ -4441,6 +4433,17 @@
 		)
 		(property "Description" ""
 			(at 110.49 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "BOM Comments" "DNP - decouples +5V2_FL, which has no source on this panel (panel.md, J6.7/J6.44 unused). Footprint kept in case a future panel drives it."
+			(at 0 0 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

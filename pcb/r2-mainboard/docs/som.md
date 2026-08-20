@@ -308,3 +308,87 @@ correctness rests on**, and pin numbers carry no footnotes.
    working carrier for ~€70 more, and every module-level power and latency figure this design rests
    on (Facts §4.6 — 128.6 mW, ~150 ms) was measured *by PHYTEC on their carrier*, not here. It also
    gives the BSP and the provisioning flow (§10) somewhere to run before R2 exists.
+
+## 10. ⚠ The two receptacles are a BOM line this schematic does not produce
+
+Found 2026-08-20 while building the footprint, and it is the kind of gap that is only visible from
+the assembly side.
+
+`X2` is **one symbol for the module**. The BOM it generates has one line, `PCM-071`. But the parts
+that get soldered to `r2:PCM-071_2xBTH-060-01-L-D-A-K` are not the module — they are **two Samtec
+`BTH-060-01-L-D-A-K-TR` receptacles**, and the module plugs into them afterwards. A JLCPCB assembly
+order built from this schematic's BOM would arrive with **240 empty pads and nowhere to plug the
+SoM in**.
+
+| | Part | Source | Qty/board | Placed by |
+| --- | --- | --- | ---: | --- |
+| the footprint | `BTH-060-01-L-D-A-K-TR` | LCSC **`C3646540`** | **2** | the PCBA house |
+| the symbol | `PCM-071` | PHYTEC, direct | 1 | you, afterwards |
+
+A `BOM Comments` property on `X2` now records this, and `MPN`/`Manufacturer` name the module rather
+than leaving the line blank. **But the connector line still has to be added to the assembly BOM by
+hand** — no schematic symbol produces it, and adding one would duplicate 240 pads.
+
+⚠ **Stock is the tight part, and it was not on anyone's list.** LCSC has **60** of `C3646540` and
+the board needs two, so that is **30 boards** — the tightest line on the BOM by a wide margin
+(compare `U41` at 2 058, `U53` at 1). `C3644612` is the same connector without the `-K` option,
+36 more. Check both before ordering; if they are gone, Samtec sells direct with a long lead time.
+
+## 11. The `PCM-071` land pattern, and what settled it
+
+`tools/gen_som_footprint.py`, rebuilt 2026-08-20 on **PHYTEC's own DXF** —
+`datasheets/SoM Phycore AM62x/PCM-071_1573-1_3d/PCM-071_1573-1.dxf`, which came with the 3D archive
+and is vector, numeric, and named authoritative by PHYTEC's own README (*"Exact specifications can
+be found in the corresponding data sheets and DXF data"* — in the same breath as the warning that
+the STEP model may be simplified).
+
+The first version derived the placement from `L-1038e.A5` Figure 7 by reading numerals off a raster
+image. The DXF agreed with it to **8 µm in x and 61 µm in y** — close enough to be reassuring, far
+enough to be worth correcting, since 61 µm is 20 % of a 0.305 mm pad's width. The generator now
+asserts its output against the DXF's numbers and the skew is **0.0 µm**.
+
+What the DXF gives directly, origin at the module's lower-left corner
+(`BOARD_OUTLINE` is exactly `(0,0)`–`(32.000, 43.000)`):
+
+| | |
+| --- | --- |
+| four columns of **exactly 60 pads** | x = 1.95, 7.65, 24.35, 30.05 |
+| pitch | **0.500 mm exactly**, 59 gaps — not Samtec's inch-derived 0.5001 |
+| span | **29.500** — not the 29.507 in Samtec's table |
+| left connector pads | y = **9.150 … 38.650** |
+| right connector pads | y = **4.350 … 33.850** — 4.800 lower |
+| M2.5 mounting holes | (2.800, 2.800), (29.200, 40.200) — exactly Figure 7 |
+
+Those columns are the module's **BSH-060 plug**, so their 5.70 mm row spacing is not ours. Their
+*centrelines* are: **4.800 and 27.200** — 22.400 apart, which is Figure 7's number, and exactly
+symmetric about the module's 16.000 mm midline. Our receptacle's rows sit ±3.086 either side.
+
+### 11.1 The contradiction that was worth twenty minutes
+
+The DXF has four `MOUNTING_HOLES_LAYER` circles of **1.100 mm** at x 7.452 / 29.852, spaced
+**35.126** along the row. None of those is Samtec's `-A` diameter (1.016) or its "A" dimension
+(33.482), and the x is 4.692 mm away from where Figure 7 puts the alignment holes.
+
+**They are not our holes.** The `-A` option puts plastic locating pegs on each connector, dropping
+into holes in *the board that connector is soldered to*. The plug's pegs land in the module; the
+receptacle's pegs land in our board. The two sets never meet, so they have no reason to agree — and
+our holes come from Samtec's BTH drawing, referenced to *our* pads, which is what the generator
+does.
+
+Had this been "resolved" the other way — by trusting the DXF's hole positions for our footprint —
+both connectors would have been 0.62 mm out of place.
+
+### 11.2 What to download, and what not to bother with
+
+**Nothing.** The DXF in the repo is better than anything a library site offers, and the check is
+already automated:
+
+- **LCSC has no `PCM-071` and no `phyCORE` anything.** It is a PHYTEC module bought from PHYTEC, not
+  an LCSC line item, so no EasyEDA footprint exists for it. LCSC *does* stock the connector
+  (`C3646540`, §10) but sells no footprint with it.
+- **SnapEDA** (the link in `L-1038e.A5`) would be a genuinely independent check, but it is a
+  third-party redraw of the same DXF, so agreement proves less than it looks.
+- **The STEP models** are useful for the *enclosure*, not the footprint — `PCM-071_1573-1_Basic.step`
+  (8.9 MB) is the one to use for fit checking; PHYTEC's README explicitly warns the full
+  `.STEP` may simplify component heights. Neither is worth attaching to the KiCad footprint as a 3D
+  model at that size unless you want it in the 3D viewer.

@@ -16,3 +16,8 @@
 *.jpg   -diff
 *.jpeg  -diff
 *.bin   -diff
+*.dxf   -diff
+*.STEP  -diff
+*.step  -diff
+*.x_t   -diff
+*.zip   -diff

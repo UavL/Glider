@@ -7268,6 +7268,16 @@
 	)
 	(wire
 		(pts
+			(xy 177.8 76.2) (xy 154.94 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b7143d20-d9bc-431c-ba27-08d8693ac367")
+	)
+	(wire
+		(pts
 			(xy 104.14 130.81) (xy 114.3 130.81)
 		)
 		(stroke
@@ -7475,6 +7485,16 @@
 			(type default)
 		)
 		(uuid "f0a67c7d-6d62-4206-8f30-8c62ed14ead3")
+	)
+	(wire
+		(pts
+			(xy 177.8 73.66) (xy 154.94 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f15b5694-133b-410c-80ab-1f7afde79b57")
 	)
 	(wire
 		(pts
@@ -7913,6 +7933,17 @@
 		)
 		(uuid "91b10380-67e9-4dcc-89e1-0548e6d4609c")
 	)
+	(hierarchical_label "SOM_MCU_NRST"
+		(shape bidirectional)
+		(at 154.94 73.66 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "953e9f84-64cc-4ef3-9ff3-b333dc1454b6")
+	)
 	(hierarchical_label "SOM_WAKE#"
 		(shape bidirectional)
 		(at 154.94 71.12 180)
@@ -7978,6 +8009,17 @@
 			(justify right)
 		)
 		(uuid "e0119dfe-d693-48fb-8b13-21bde16ccbde")
+	)
+	(hierarchical_label "SOM_MCU_BOOT0"
+		(shape bidirectional)
+		(at 154.94 76.2 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "fa567b04-efaa-4fab-97c9-c86d8d4d3c16")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -8222,7 +8264,7 @@
 		(dnp no)
 		(uuid "21b2b393-0515-43a4-bcd9-78f51808d4db")
 		(property "Reference" "X2"
-			(at 45.72 11.43 0)
+			(at 56.642 36.83 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8233,7 +8275,7 @@
 			)
 		)
 		(property "Value" "PCM-071"
-			(at 45.72 13.97 0)
+			(at 56.642 39.37 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8245,6 +8287,39 @@
 		)
 		(property "Footprint" "r2:PCM-071_2xBTH-060-01-L-D-A-K"
 			(at 76.2 100.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "PCM-071"
+			(at 76.2 102.87 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "PHYTEC"
+			(at 76.2 105.41 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "BOM Comments" "Plug-in module, bought from PHYTEC and fitted after assembly -- NOT placed by the PCBA house. The parts that ARE soldered to this footprint are 2x Samtec BTH-060-01-L-D-A-K-TR, LCSC C3646540, and they are a separate purchase line this symbol does not generate. See som.md section 10."
+			(at 76.2 107.95 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11900,48 +11975,4 @@
 			)
 		)
 	)
-
-	(wire
-		(pts
-			(xy 177.8 73.66) (xy 154.94 73.66)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f15b5694-133b-410c-80ab-1f7afde79b57")
-	)
-	(hierarchical_label "SOM_MCU_NRST"
-		(shape bidirectional)
-		(at 154.94 73.66 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "953e9f84-64cc-4ef3-9ff3-b333dc1454b6")
-	)
-	(wire
-		(pts
-			(xy 177.8 76.2) (xy 154.94 76.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b7143d20-d9bc-431c-ba27-08d8693ac367")
-	)
-	(hierarchical_label "SOM_MCU_BOOT0"
-		(shape bidirectional)
-		(at 154.94 76.2 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "fa567b04-efaa-4fab-97c9-c86d8d4d3c16")
-	)
-	
 )

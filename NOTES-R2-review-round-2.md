@@ -87,9 +87,16 @@ membership**, and `epd_power` and `epd` were rendered and checked by eye.
 `J6.7`/`J6.44` stay — *"an unconnected connector pin is not an error. No change to this frozen
 sheet."* That ruling covered the pins but not the capacitor sitting on the dead net, which is a
 real BOM and pick-and-place line doing nothing. Deleting the symbol would leave dangling wires and
-a stray `GND` symbol on a reviewed sheet; marking it **DNP with `in_bom no`** removes it from the
-BOM and the placement file, keeps the topology untouched, and leaves the footprint on the board in
-case a future panel drives that rail. A `BOM Comments` property on the part records why.
+a stray `GND` symbol on a reviewed sheet; marking it **DNP** keeps the topology untouched and leaves
+the footprint on the board in case a future panel drives that rail. A `BOM Comments` property on the
+part records why.
+
+⚠ **Correction, 2026-08-20:** the text above said "DNP with `in_bom no`". `C147` is `(dnp yes)` but
+**`(in_bom yes)`** — it was never set to `in_bom no`, and it still is not. That is the ordinary
+KiCad arrangement and it is fine: the part appears on the BOM *flagged as do-not-populate*, which is
+what a fab wants to see, rather than vanishing. But it does mean **`C147` will be on the order
+unless whoever prepares it honours the DNP flag**, so check that before ordering rather than
+assuming the part is gone.
 
 **B-6 — "Why did `J3` exist on the original Caster design?"**
 It is the 16-pin half of Caster's two-connector panel interface. The 50-pin `J6` covers 8- and
@@ -316,15 +323,22 @@ Two corrections to what this entry used to say, both of which would have produce
   centred hole would put both connectors 2.06 mm out of place.
 
 An audit at the same time resolved every `Footprint` property in all 14 sheets: `PCM-071` was the
-**only** gap in the whole project. One task remains — the symbol's property still says
-`footprints:…` and must become `r2:…`.
+**only** gap in the whole project, and the `footprints:` → `r2:` rename is done.
 
-**D-5 ✅ — SoM position. ANSWERED by the owner 2026-08-20: top right, beside the USB ports.**
-Recorded with its consequences in `layout.md` §1.1, together with the rest of the layout sketch in
-§1.2. The USB 2.0 high-speed pair is the reason that position is the right one and not merely a
-preference. **Which side of the board is still not stated** — the recommendation is the side facing
-away from the panel, and the reasoning changed once the sketch showed the cell sitting *beside* the
-board rather than under it.
+**Rebuilt later the same day on PHYTEC's own DXF**, which the owner downloaded with the 3D archive
+and which is vector and numeric where Figure 7 is a raster. It agreed to 8 µm in x and **61 µm in
+y** — worth correcting, since 61 µm is 20 % of a 0.305 mm pad's width. `som.md` §11. The generator
+now asserts its output against the DXF and the row skew is 0.0 µm.
+
+⚠ **And it turned up a missing BOM line.** `X2` is one symbol for the *module*; the parts an
+assembler solders are **2 × `BTH-060-01-L-D-A-K-TR`**, LCSC `C3646540`. No symbol generates that
+line, LCSC has **60** of them (30 boards), and it is now the tightest line on the BOM. `som.md`
+§10.
+
+**D-5 ✅ — SoM position and side. FULLY CLOSED by the owner 2026-08-20.** Top right beside the USB
+ports, on the face pointing **away from the panel**. `layout.md` §1.1, with the rest of the layout
+sketch in §1.2. The USB 2.0 high-speed pair is why that position is right and not merely a
+preference; the panel sitting directly over the board is why that side is.
 
 **D-6 ✅ — `U41` speed grade. ANSWERED by the owner 2026-08-20: `-2`.** And on investigation it
 was never really a choice — full write-up in `fpga.md` §1.1:
@@ -346,18 +360,18 @@ because a `-2` part is roughly 10–15 % slower in the fabric. Two fallbacks exi
 close and neither is a respin: drop `DPI_PCLK` (§16 shows the panel needs far less), or lengthen
 `C3_MEMCLK_PERIOD`.
 
-**D-7 — Separate PCB for the panel connector? — half-answered 2026-08-20, needs one word back.**
-From `Analysis_epd_files.md`. Modos put the display connector on its own small board. Real
-trade-off: a separate board allows several panel sizes off one mainboard and keeps the 0.5 mm FPC
-away from the main assembly, at the cost of a second PCB, a board-to-board connector and its
-assembly. **Architectural — decide before layout, not during.**
+**D-7 ✅ — Separate PCB for the panel connector? CLOSED 2026-08-20: no.** The owner: *"the TTL
+interface is just the flex cable that is bent under the display and that's about where it lands on
+the PCB, so the connector can be fit accordingly."* The block on the sketch was never a board — it
+is a **landing zone**, which is a more useful thing to have.
 
-The owner's sketch of 2026-08-20 draws a **"TTL Interface"** block, ≈ 40 × 37 mm, with its own
-border and its own dimensions — but *inside* the mainboard outline. Own border says separate board;
-inside the outline says region of the mainboard. `layout.md` §1.2 records both readings and does not
-guess. **If it is a separate board, note what crosses the connector:** not just the panel signals
-but `+VP`, `+VGH`, `-VCOM`, `-VGL` and `-VN` — five high-voltage rails spanning ±29 V through a
-board-to-board connector, which needs a part chosen for creepage rather than for pin count.
+So `J6` is fixed in **position and orientation**, not just enclosure-fixed. `J22`/`J23` (touch, pen)
+are the same — the owner confirms touch is also a folded flex. A horizontal FPC connector facing the
+wrong way puts a 180° loop in a 0.5 mm flex, which is a reliability problem rather than a routing
+one, so orientation is worth deciding before placement rather than during. `layout.md` §1.2.
+
+None of the high-voltage worry in the previous version of this entry applies: `+VP`, `+VGH`,
+`-VCOM`, `-VGL` and `-VN` never leave the mainboard.
 
 **D-8 — Panel supplier silence.** Noted, no action available from here. Bench measurement when the
 panel arrives is the fallback, as you say.

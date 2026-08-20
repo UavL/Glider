@@ -53,30 +53,35 @@ the module next to the socket makes that pair short and straight. Nothing else o
 escape has that property — DPI is 22 slow single-ended lines, MMC1 is length-matched but short, and
 the rest is SPI and UART.
 
-**Side: not stated, and the recommendation is the side facing *away* from the panel.** The reasoning
-is thickness, and it changed when the sketch arrived. Previous revisions of this section called the
-SoM "the thickest thing in the device"; the sketch shows the cell **beside** the board, not under
-it, so the two stacks are independent and the SoM no longer competes with the 7.0 mm cell:
+**Side: the face pointing *away* from the panel. Confirmed by the owner 2026-08-20.** The panel is
+216.7 × 174.4 mm and sits directly over the board, so a 5 mm module on the panel-facing side would
+force a cut-out or a spacer through the largest and most fragile component in the device. The back
+face has nothing above it but the case.
+
+The thickness bookkeeping, since it also fixes the enclosure's depth:
 
 | Stack | Height |
 | --- | ---: |
 | panel module | 1.93 mm |
 | mainboard, panel side | PCB ~1.0 mm + whatever is placed there |
-| mainboard, back side | + **5.0 mm** if the SoM goes here, + module PCB |
-| the cell, in its own footprint beside the board | 7.0 mm |
+| mainboard, back side | + **5.0 mm** for the SoM's stack height, + the module's own PCB |
+| the cell, in its own area of the enclosure | 7.0 mm |
 
-Putting the SoM on the back keeps the panel-facing side flat, which matters because the panel is
-216.7 × 174.4 mm and sits directly over the board. Putting it on the panel-facing side would force
-a cut-out or a spacer through the largest, most fragile component in the device. **Confirm this
-before placement — it is the last thing on the critical path**, and it also decides which side `J1`
-(USB-C) mounts on, because a mid-mount or through-hole socket has a side.
+**The cell and the SoM do not stack.** The sketch draws the board and the cell as two separate
+rectangles that do not overlap in plan — the cell has its own patch of the enclosure beside the
+board, rather than sitting behind it. So the device's depth is the *larger* of the two stacks, not
+their sum, and the SoM is no longer "the thickest thing in the device" the way earlier revisions of
+this section claimed.
+
+**This also decides which side `J1` mounts on** — a mid-mount or through-hole USB-C socket has a
+side, and `USB1` (`NOTES-R2-review-round-2.md` D-3) would join it.
 
 **One thing the position costs, and it is not free.** Top-right is also where the panel's own tails
 want to be (§1.2), and `epd-port.md` §11 needs the HV chain near `J6`. Those two groups now compete
 for the same corner. The resolution is in `Project_description.md`'s favour: the SoM's USB pair is
 the timing-critical one, the HV chain is DC, so **the HV chain moves and the SoM does not**.
 
-### 1.2 The rest of the sketch — recorded, with the parts that still need confirming
+### 1.2 The rest of the sketch — recorded, and what each thing constrains
 
 Read off the owner's hand sketch of 2026-08-20. Dimensions are approximate where the sketch says so.
 
@@ -87,16 +92,36 @@ Read off the owner's hand sketch of 2026-08-20. Dimensions are approximate where
 | Cell | **90 × 60 mm**, beside the board | matches `PL706090` exactly (60 × 90 × 7.0 mm, `battery.md` §9.1) ✓ |
 | Power switch | right-hand edge, marked `ON` / `OFF` | this is `SW20` (`mcu.md` §5.5). An edge slider, not the recessed pinhole the doc left open. |
 | Touch | its own small board | consistent with `io-expansion.md` §4 — the `GT9110H` is on its own PCB, not on the panel flex. |
-| *"TTL Interface"* | its own block, ≈ **40 × 37 mm** | **⚠ this is decision D-7 and it needs confirming.** |
+| *"TTL Interface"* | a block ≈ **40 × 37 mm** | **not a board** — see below |
 
-**The `TTL Interface` block is the open question.** If it is a *separate PCB* carrying `J6` and the
-HV chain, then D-7 is answered "yes, separate" and that is a significant architectural change: the
-50-pin 0.5 mm FPC leaves the main assembly, several panel sizes become one mainboard, and the cost
-is a board-to-board connector carrying `+VP`, `+VGH`, `-VCOM`, `-VGL`, `-VN` — five high-voltage
-nets across a connector, which is not a trivial thing to specify. If it is instead a *region of the
-mainboard*, D-7 is answered "no" and nothing changes. The sketch draws it inside the mainboard
-outline, which argues for a region — but it is drawn with its own border and its own dimensions,
-which argues for a board. **Not inferred here; ask.**
+**The `TTL Interface` block is not a second PCB — it is where the panel's flex lands.** The owner,
+2026-08-20: *"the TTL interface is just the flex cable that is bent under the display and that's
+about where it lands on the PCB, so the connector can be fit accordingly."* **This closes D-7 as
+"no separate board"**, and it turns the block from an architectural question into the most useful
+kind of layout constraint: a fixed landing zone.
+
+So `J6` is **enclosure-fixed, and now positionally fixed too**. It is not free to move to wherever
+routing prefers; it goes where the folded tail arrives, facing the fold. Two consequences worth
+carrying into placement:
+
+- The **HV chain has to follow `J6`** (`epd-port.md` §11), and §1.1 already said the HV chain is
+  what moves when it competes with the SoM. That is now settled in both directions: the SoM is
+  fixed at top-right by USB, `J6` is fixed by the flex, and the HV chain fits around both.
+- The connector's **orientation matters as much as its position.** A tail folded under the panel
+  arrives from one direction only; a horizontal FPC connector facing the wrong way adds a 180° loop
+  in a 0.5 mm flex, which is a reliability problem, not a routing one.
+
+**`J22`/`J23`, touch and pen, are the same story.** The owner: *"touch is also a flexible connector
+that is folded under."* So they join `J6` and `J24` in the enclosure-fixed group and want the same
+treatment — landing zone first, orientation second, routing last. `io-expansion.md` §4's open item
+is unaffected: it is about the *pin order* on the `GT9110H`'s tail, which is still a vendor
+question, not about where the connector sits.
+
+**`J24`, the frontlight, is the one that is still undrawn.** The owner: *"the frontlight I still
+haven't drawn because the schematics in the display docs don't define it."* That is consistent with
+`frontlight.md` §7.2 — the tail is `LED1±`/`LED2±`, bare anodes and cathodes, and the vendor has not
+given the per-string current. The 8-pin FPC is on the board and the `LM3630A` drives it; what is
+missing is a number for the bench to confirm, not a circuit.
 
 **Three placement facts that arrived with the panel**, none of them blocking:
 
@@ -129,7 +154,7 @@ and only two do not resolve against the project's own libraries.** The project `
 healthy and points at `pcb_common/footprints.pretty` (204 footprints) and `r2.pretty`; the broken
 tables are the *global* ones, which are the owner's and do not affect this project.
 
-## 3. The two missing footprints
+## 3. Footprints — both gaps closed
 
 ### 3.1 ~~`r2:Texas_DLA0010A_VSON-HR-10_2x3mm_P0.5mm`~~ — **built 2026-08-15**
 
@@ -151,76 +176,49 @@ narrow and power-ground widest. The generator asserts both.
 
 ### 3.2 `r2:PCM-071_2xBTH-060-01-L-D-A-K` — the SoM
 
-> **BUILT 2026-08-20** by `tools/gen_som_footprint.py`. 240 SMD pads `A1`–`D60`, 4 NPTH alignment
-> holes, 2 M2.5 mounting holes. It went into **`r2.pretty`**, the project library, not into
-> `pcb_common` — it is an R2-only part and `pcb_common` is a submodule shared with the read-only R1
-> project. **The symbol's `Footprint` property therefore changes from `footprints:` to `r2:`.**
+> **BUILT 2026-08-20** by `tools/gen_som_footprint.py`, into **`r2.pretty`** (the project library,
+> not the `pcb_common` submodule — it is an R2-only part). 240 SMD pads `A1`–`D60`, 4 NPTH
+> alignment holes, 2 M2.5 mounting holes.
+>
+> **Rebuilt the same day on PHYTEC's own DXF**, which arrived with the 3D archive. The full
+> derivation, the numbers, and the one apparent contradiction that had to be resolved are in
+> **`som.md` §11**; this section keeps only what a person placing the board needs.
 
 The previous text here said this one "should not be built by hand" and pointed at SnapEDA. That was
-right when it was written and is worth keeping as the standing rule for connectors of this pitch —
-but it rested on the only source being a picture. Two drawings have since landed in
-`datasheets/SoM Phycore AM62x/` that between them **over-determine** the geometry, which is a
-different situation from measuring one:
-
-- `bth-xxx-xx-x-d-xx-footprint.pdf` — Samtec's own recommended PCB layout, REV D, one connector.
-- `L-1038e.A5` **Figure 7, "Carrier Board Alignment Hole Placement"** (p.19) — a carrier-board
-  drawing, dimensioning the two connectors against the module outline. Figure 6 (p.18) adds the row
-  order and pin-1 end.
-
-Samtec's sheet is **vector**, so the numerals were not the only source: the PDF content stream was
-parsed and the pad rectangles measured. Every measurement matched a printed dimension to under
-1 µm, and two printed dimensions that the drawing does not otherwise explain fell out of it:
-
-| Quantity | Measured | Printed | Agrees |
-| --- | --- | --- | --- |
-| pitch | 0.50000 mm | `.01969 [0.5000]` TYP | ✓ |
-| pad | 1.4478 × 0.3048 mm | `.0570 [1.448]` × `.0120 [0.305]` | ✓ |
-| row centre spacing | 6.1723 mm | = `.3000 [7.620]` − 1.448 | ✓ |
-| NPTH | 1.0138 mm | ⌀ `.0400 [1.016]`, `-A` option | ✓ |
-| hole to hole | 33.4818 mm | Table 1 "A" for −60 = 33.482 | ✓ |
-| hole to nearest pad centre, along the row | — | `.0782 [1.986]` REF = (33.482 − 29.507)/2 | ✓ |
-| hole to nearest **row**, across | 1.0538 mm | `.0415 [1.054]` | ✓ |
-
-**The last row is the one that makes the assembly solvable, and it is easy to miss.** The alignment
-hole is *not* on the connector's centreline — it sits 1.054 mm from one pad row and 5.118 mm from
-the other. Figure 7 dimensions the **holes**, so without that offset the rows cannot be placed at
-all, and a footprint built on the assumption of a centred hole would be 2.06 mm out.
-
-Figure 7, with the module outline's lower-left corner as origin:
+right when the only source was a picture. It is not the situation any more:
+`PCM-071_1573-1.dxf` is vector, numeric, gives the pad columns and the module outline directly, and
+PHYTEC's README names it authoritative. **The generator now asserts its own output against the
+DXF's numbers**, so this footprint is checked rather than measured.
 
 | | |
 | --- | --- |
-| SOM outline | 32.000 × 43.000 mm |
-| left alignment column | x = 2.760 |
-| right alignment column | x = 2.760 + **22.400** = 25.160 |
-| left connector, upper hole | y = 43.000 − 2.420 = 40.580 |
-| right connector | **4.800 mm lower** — the two are staggered, which Figure 6 also shows |
-| hole to hole, either connector | 33.482 |
+| module outline | **32.000 × 43.000 mm**, `BOARD_OUTLINE`, exact |
+| connector centrelines | x = **4.800** and **27.200** — 22.400 apart, symmetric about 16.000 |
+| pads, left connector | y = **9.150 … 38.650** |
+| pads, right connector | y = **4.350 … 33.850** — staggered **4.800 mm** lower |
+| pitch / span | **0.500** / **29.500**, exact |
+| rows, left to right | **B A** then **D C**; pin 1 at the bottom |
 | M2.5 mounting holes | (2.800, 2.800) and (29.200, 40.200); ⌀2.600 drill, ⌀4.000 plating |
-| row order, left to right | **B A** then **D C**; pin 1 at the bottom, pin 60 at the top |
+| stack height | 5 mm, set by two M2.5 F-F standoffs |
 
-**The check worth trusting is the one nothing forces.** Combine the Samtec offsets with Figure 7's
-placement and the `B` row lands **0.982 mm** inside the module's left edge while the `C` row lands
-**0.998 mm** inside the right. 16 µm of asymmetry across 32 mm, out of two independently printed
-dimensions — that is the drawing being self-consistent, and it would not survive a wrong row order
-or a mirrored hole offset. `check()` in the generator asserts it, along with the mirrored-orientation
-case (which puts `C` 0.4 mm off the edge of the module) and hole-to-pad clearance.
+Both outer rows land **0.990 mm** inside the module's edges, with 0.0 µm of skew. That symmetry is
+not imposed by the generator — it falls out of the DXF's centrelines — so it is a real check.
 
-Two deliberate departures, both recorded in the generator's docstring:
+**Two deliberate departures, both in the generator's docstring:**
 
-1. **Pitch is laid at exactly 0.500 mm, centred on the hole pair**, rather than Samtec's
-   inch-derived 0.5001. The holes are the mechanical datum and 0.5 mm is the design intent; the
-   disagreement with Samtec's own tabulated span is 5 µm at the end pads.
-2. **The courtyard encloses the connectors, not the module.** The module does not sit on the board
-   — it stands 5 mm off it, so low parts may live underneath. A 32 × 43 mm courtyard would forbid
-   that. ⚠ **The consequence is that DRC will not police component height under the SoM**; the
-   32 × 43 outline is on `F.Fab` and `User.Drawings` with silk corner ticks, and *"nothing taller
-   than ~4 mm under the module"* is a manual check at Stage D. The two M2.5 standoffs are what set
-   the real clearance, so measure against the assembled stack, not against the 5 mm number.
+1. **The courtyard encloses the connectors, not the module.** The module does not sit on the board;
+   it stands 5 mm off it, so low parts may live underneath, and a 32 × 43 courtyard would forbid
+   that. ⚠ **DRC therefore will not police component height under the SoM.** The outline is on
+   `F.Fab` and `User.Drawings` with silk corner ticks, and *"nothing tall under the module"* is a
+   manual check. Measure against the assembled stack, not the 5 mm number — the standoffs set it,
+   and the module carries components on its underside too.
+2. **The alignment holes come from Samtec, not from the DXF**, and `som.md` §11.1 explains why the
+   DXF's four `MOUNTING_HOLES_LAYER` circles are the *plug's* locating holes rather than ours.
+   Trusting them would have put both connectors 0.62 mm out.
 
-**Still worth doing before fabrication:** download the SnapEDA or Samtec pattern anyway and diff the
-pad coordinates against this one. It costs ten minutes and it is the only fully independent check
-available; everything above shares one source per number even where two numbers cross-check.
+⚠ **The two receptacles are a BOM line the schematic does not generate** — 2 × `BTH-060-01-L-D-A-K-TR`,
+LCSC `C3646540`, of which LCSC has **60**, i.e. 30 boards. `som.md` §10. This is the tightest line
+on the whole BOM and it is not on it.
 
 ## 4. Escape and net classes
 
@@ -261,13 +259,12 @@ Fixed points first, then the things whose position is dictated by them:
 
 ## 6. Open
 
-1. ~~**Board outline, SoM position, cell size**~~ — **all three answered.** Panel and cell have
-   dimensions; the SoM's position is §1.1 (top right, beside the USB ports). **Its side is
-   recommended, not decided** — see §1.1.
-2. ~~**The `PCM-071` footprint**~~ — **built 2026-08-20**, §3.2. One task left with it: the
-   `Footprint` property on the `PCM-071` symbol still reads `footprints:…` and must become
-   `r2:…` — six places across `som.kicad_sch`, `dpi_in.kicad_sch`, `r2.kicad_sym` and three
-   generators.
+1. ~~**Board outline, SoM position, cell size**~~ — **all answered.** Panel and cell have
+   dimensions; the SoM is top-right beside the USB ports, on the face pointing **away from the
+   panel** (owner, 2026-08-20). §1.1. **Nothing blocks placement any more.**
+2. ~~**The `PCM-071` footprint**~~ — **built and then rebuilt on PHYTEC's DXF, 2026-08-20**, §3.2
+   and `som.md` §11. The `footprints:` → `r2:` rename is done. ⚠ **What replaced it as an open
+   item is the connector BOM line** — 2 × `C3646540` per board, 60 in stock, `som.md` §10.
 3. ~~**The `TPS63802` footprint**~~ — **stale, it exists**: `r2:Texas_DLA0010A_VSON-HR-10_2x3mm_P0.5mm`,
    §3.1. A full audit on 2026-08-20 resolved every `Footprint` property in all 14 sheets against
    `r2.pretty` (4 footprints) and `pcb_common/footprints.pretty` (139), plus 37 KiCad stock
@@ -282,5 +279,10 @@ Fixed points first, then the things whose position is dictated by them:
 7. **⚠ New, and it is a placement constraint rather than a footprint one: the DDR3 bus has no
    margin at the FPGA.** `fpga.md` §1.1 — the `-2` part's MCB is rated 667 Mb/s against the
    666.67 Mb/s this design runs. §11.1's "666 MT/s is a lot of margin" is true of the DRAM only.
-8. **D-7, the separate panel-connector PCB**, is now half-answered by the owner's sketch and needs
-   one word back from them — §1.2.
+8. ~~**D-7, the separate panel-connector PCB**~~ — **CLOSED 2026-08-20: there is no second board.**
+   The sketch's "TTL Interface" block is where the panel's flex lands after folding under the
+   display. `J6` gains a fixed position and, more importantly, a fixed **orientation**; `J22`/`J23`
+   are the same. §1.2.
+9. **`J24`, the frontlight tail, is drawn but its current is undefined** — the display docs do not
+   specify the frontlight, so the per-string current is a bench measurement (`frontlight.md` §7.2,
+   D-8). Not a layout blocker; the connector and the `LM3630A` are placed either way.
