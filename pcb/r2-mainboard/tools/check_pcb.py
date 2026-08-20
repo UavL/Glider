@@ -212,11 +212,26 @@ def main() -> int:
     segs = len(re.findall(r"\n\t\(segment", text))
     vias = len(re.findall(r"\n\t\(via", text))
     print(f"\n6. routing: {segs} track segments, {vias} vias")
+    # ⚠ Read the report only if the run succeeded, and delete it first.
+    # This used to `json.load` the file unconditionally, so when `kicad-cli`
+    # failed to load the board it silently reported the PREVIOUS run's numbers
+    # -- which is how "4250 violations" got reported for a board that would not
+    # open at all. A check that reports stale data is worse than no check.
+    rep_path = pathlib.Path("/tmp/r2-drc.json")
+    rep_path.unlink(missing_ok=True)
     d = subprocess.run([str(KICAD_CLI), "pcb", "drc", "--format", "json",
-                        "-o", "/tmp/r2-drc.json", str(PCB)],
+                        "-o", str(rep_path), str(PCB)],
                        capture_output=True, text=True)
-    try:
-        rep = json.load(open("/tmp/r2-drc.json"))
+    if d.returncode != 0 or not rep_path.exists():
+        msg = (d.stdout + d.stderr).strip().splitlines()
+        fail.append("kicad-cli could not run DRC: "
+                    + (msg[-1] if msg else f"exit {d.returncode}")
+                    + ". A board that the CLI cannot load usually means a "
+                      "footprint references a layer this board does not have "
+                      "-- see docs/layout.md §9.2.")
+        print("   DRC: DID NOT RUN")
+    else:
+        rep = json.loads(rep_path.read_text())
         nv = len(rep.get("violations", []))
         nu = len(rep.get("unconnected_items", []))
         print(f"   DRC: {nv} violations, {nu} unconnected items")
@@ -224,8 +239,6 @@ def main() -> int:
             warn.append(f"DRC reports {nv} violations -- run it in Pcbnew for detail")
         if nu:
             warn.append(f"{nu} unconnected items still to route")
-    except Exception:
-        print(f"   DRC could not be read ({d.returncode})")
 
     print()
     for w in warn:

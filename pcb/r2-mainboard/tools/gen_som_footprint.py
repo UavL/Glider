@@ -319,7 +319,7 @@ def build_module() -> str:
              "exclude_from_pos_files allow_missing_courtyard")
     o += props(MODULE_NAME, cy0)
 
-    for layer in ("F.Fab", "User.Drawings"):
+    for layer in ("F.Fab", "Dwgs.User"):
         o += rect(X(0), Y(0), X(SOM_W), Y(SOM_H), layer, FAB_W)
     TICK = 3.0
     for mx, my, sx, sy in ((0, 0, 1, 1), (SOM_W, 0, -1, 1),
@@ -337,7 +337,7 @@ def build_module() -> str:
     # where the connectors must land, so a person placing by eye has a target
     for name, (_n, _fr, (mx, my)) in CONNECTORS.items():
         o += rect(X(mx) - 2.9845, Y(my) - 17.5, X(mx) + 2.9845, Y(my) + 17.5,
-                  "User.Drawings", FAB_W)
+                  "Dwgs.User", FAB_W)
     # The module sits 5 mm up on its standoffs; the STEP's own origin is its
     # lower-left corner, so it needs shifting to this footprint's centre.
     o += model(MODEL_MODULE, offset=(0, 0, 5.0))

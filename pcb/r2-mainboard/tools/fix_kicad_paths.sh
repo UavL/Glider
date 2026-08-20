@@ -34,7 +34,9 @@ say() { printf '  %s\n' "$*"; }
 die() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 
 # --- refuse to race KiCad ----------------------------------------------------
-if pgrep -x kicad >/dev/null 2>&1 || pgrep -f 'AppDir/bin/kicad' >/dev/null 2>&1; then
+# Check the process NAME, not a command-line pattern: `pgrep -f` happily
+# matches this script's own invocation and would refuse to ever run.
+if pgrep -x kicad >/dev/null 2>&1; then
     die "KiCad is running. It rewrites these files on exit, so close it first."
 fi
 

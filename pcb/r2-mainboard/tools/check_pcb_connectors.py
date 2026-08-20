@@ -99,9 +99,25 @@ def main() -> int:
 
     for ref, (dx, dy) in EXPECT.items():
         f = fps[ref]
-        # the offset is defined in X2's frame, so rotate it with X2
-        ex = ax + dx * cos - dy * sin
-        ey = ay + dx * sin + dy * cos
+        # The offset is defined in X2's frame, so it rotates with X2.
+        #
+        # ⚠ The sign here was wrong until 2026-08-21, and the way it was wrong
+        # is the dangerous kind: both offsets are exact negatives of each other,
+        # so a sign error does not produce a small error -- it SWAPS the two
+        # expected positions and reports a correctly-placed pair as 22 mm out.
+        # It would equally have blessed a board with J26 and J27 exchanged,
+        # which fits mechanically and puts every net on the wrong connector.
+        #
+        # Settled empirically rather than by reasoning, from a drill export of
+        # the real board: J26's alignment holes are asymmetric in x, so they
+        # distinguish the two conventions. Measured (144.259, 53.86) and
+        # (177.741, 53.86); this form predicts exactly that, the other predicts
+        # y = 49.796. Confirmed a second time against X2's own M2.5 holes.
+        #
+        # KiCad's `at` angle is counter-clockwise *as displayed*, and the file's
+        # y axis points down, so a positive angle is mathematically clockwise:
+        ex = ax + dx * cos + dy * sin
+        ey = ay - dx * sin + dy * cos
         gx, gy = f["at"]
         err = math.hypot(gx - ex, gy - ey)
         ok = err <= TOL

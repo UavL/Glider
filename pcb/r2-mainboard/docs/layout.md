@@ -479,6 +479,27 @@ right:
 write the path as `${KIPRJMOD}/3dmodels/<file>` so it is not machine-specific. KiCad reads `.step`,
 `.stp` and `.wrl`.
 
+### 9.2 ⚠ If `kicad-cli` says &ldquo;Failed to load board&rdquo;
+
+Found 2026-08-21, and it had been silently true from the first board: **`kicad-cli pcb` could not
+open `r2.kicad_pcb` at all.** Every `pcb` subcommand — DRC, drill, gerber, render — refused it.
+
+**The cause was ours.** `gen_som_footprint.py` wrote `(layer "User.Drawings")`. That is KiCad's
+*display alias*; the canonical name in a board file is **`Dwgs.User`**. The footprint editor accepts
+the alias — the library exports to SVG fine — but the board parser does not. On import, Pcbnew put
+those three rectangles on a layer literally named **`"Rescue"`**, which is not in the board's layer
+list, and from then on its own CLI would not read the file it had just written.
+
+Fixed in the generator, and the placed copy was repaired in place. The lesson generalises:
+**write canonical layer names in generated footprints**, and if the CLI ever refuses a board,
+compare the layers a footprint uses against the board's `(layers …)` block.
+
+⚠ **This also invalidated a number reported earlier.** `check_pcb.py` was loading
+`/tmp/r2-drc.json` without checking that the run had succeeded, so it reported the *previous* run's
+results — a board that would not open was described as having 4250 DRC violations. The script now
+deletes the report first, checks the exit status, and says `DRC: DID NOT RUN` rather than inventing
+a number. A check that reports stale data is worse than no check.
+
 ## 10. Open
 
 1. ~~**Board outline, SoM position, cell size**~~ — **all answered.** Panel and cell have

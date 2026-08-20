@@ -60,3 +60,6 @@ pcb/r2-mainboard/fp-lib-table.fixed
 
 # KiCad "Update PCB from Schematic" report, saved for diagnosis (layout.md §9)
 pcb/r2-mainboard/report.txt
+
+# Timestamped board backups written by tools/place_som.py
+pcb/r2-mainboard/*.kicad_pcb.bak-*
