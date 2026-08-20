@@ -4730,10 +4730,6 @@
 		(uuid "f099997f-870e-4c87-b5ae-b52ef8d78bac")
 	)
 	(no_connect
-		(at 180.34 185.42)
-		(uuid "10451e30-3f57-48e4-a91e-bf63af19c1f1")
-	)
-	(no_connect
 		(at 180.34 139.7)
 		(uuid "7f0f83c6-0fa4-47ca-9f86-1fa061b054cc")
 	)
@@ -7593,12 +7589,12 @@
 	)
 	(hierarchical_label "MCU_EN_TOUCH"
 		(shape output)
-		(at 190.5 134.62 0)
+		(at 114.3 167.64 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
 		(uuid "3ac8a884-6d7f-4037-857c-75cd349203aa")
 	)
@@ -7725,7 +7721,7 @@
 	)
 	(hierarchical_label "TOUCH_RST#"
 		(shape output)
-		(at 114.3 147.32 180)
+		(at 114.3 160.02 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7923,12 +7919,12 @@
 	)
 	(hierarchical_label "PEN_INT#"
 		(shape input)
-		(at 114.3 167.64 180)
+		(at 190.5 134.62 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
 		(uuid "d75f16c6-86a2-46a3-8c05-0cb277a9134a")
 	)
@@ -7967,7 +7963,7 @@
 	)
 	(hierarchical_label "TOUCH_INT#"
 		(shape input)
-		(at 114.3 160.02 180)
+		(at 114.3 147.32 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -12848,6 +12844,29 @@
 				)
 			)
 		)
+	)
+	
+
+	(wire
+		(pts
+			(xy 180.34 185.42) (xy 190.5 185.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d5a9f8ec-c3f1-4cf5-897a-749ffe2f87ff")
+	)
+	(hierarchical_label "FL_INT#"
+		(shape input)
+		(at 190.5 185.42 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2cc12d6c-ad2a-48c2-b3ab-9e3a1bbb3d24")
 	)
 	
 )

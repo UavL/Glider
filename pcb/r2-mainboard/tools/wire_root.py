@@ -57,21 +57,15 @@ PAGE_RIGHT = 410.0     # A3 is 420 wide; the frame's inner edge is about here
 # on one side and forgotten on the other -- which is exactly the class of mistake
 # a hierarchy this size hides well.
 DANGLING_OK = {
-    # Was empty as of 2026-08-15, and that is the point: every hierarchical
-    # label in the project had a counterpart on another sheet. WP7 closed the 22
-    # DPI names, WP8 the 12 CSR-SPI / housekeeping / USB ones, and
-    # patch_mcu_pg_som.py the last one. Anything that turns up one-sided from
-    # here is a genuinely forgotten interface, which is what this table exists
-    # to make visible -- so add an entry only with a reason and a work package.
+    # Empty, and that is the point: every hierarchical label in the project has
+    # a counterpart on another sheet. WP7 closed the 22 DPI names, WP8 the 12
+    # CSR-SPI / housekeeping / USB ones, patch_mcu_pg_som.py PG_SOM, and
+    # patch_exti_swap.py the last one -- FL_INT#, which had been the sole entry
+    # here since 2026-08-17 waiting for an MCU pin and now has PB12.
     #
-    # WP6, 2026-08-17. The LM3630A's INTN is an open-drain fault interrupt and
-    # the frontlight sheet declares it as an output, which is correct. It has no
-    # destination yet because claiming an MCU pin is not a free choice: the
-    # obvious donor is FL_PWM2, freed by this design, but that net also reaches
-    # J6.42 on `epd` -- a frozen, reviewed sheet -- so retiring it is a decision
-    # with a knock-on there. Tracked as docs/frontlight.md §10.3; closes when
-    # the MCU pin is assigned.
-    "FL_INT#": "an MCU pin for the LM3630A fault interrupt (frontlight.md §10.3)",
+    # Anything that turns up one-sided from here is a genuinely forgotten
+    # interface, which is what this table exists to make visible -- so add an
+    # entry only with a reason and a work package.
 }
 
 

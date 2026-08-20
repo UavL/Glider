@@ -171,13 +171,36 @@ answers, and the first triage did not account for that.
 
 | # | Item | From | Notes |
 | --- | --- | --- | --- |
-| C-1 | Every `TPS62A02` / `TPS63802` / `TPS22965` / `TPS61022` component-value question — `R29` vs the datasheet's 200 k, `R3` 470 k vs 100 k, `C_IN` 22 µF + 100 nF vs the app note's 1 µF, `C2` 2×22 µF vs the typical 3×, `C1` omission, `AGND`/`GND` tie, `R32`'s two different `VIN`s | `Analysis_power.md` | Each needs the datasheet section quoted and the arithmetic shown. `power.md` §3.1 already does this for the feedback dividers; extend the same treatment. **Biggest single block of work.** |
+| ~~C-1~~ | ~~Every `TPS62A02` / `TPS63802` / `TPS22965` / `TPS61022` component-value question~~ | `Analysis_power.md` | **CLOSED 2026-08-20 — it was already done.** Every question in that file has a `power.md` §10.x answer with the datasheet section quoted and the arithmetic shown; see the mapping below. This entry was the "biggest single block of work" in the queue and it was an artefact of the first triage not checking the sheet doc, exactly as the scope note at the top warns. |
 | C-2 | Charger questions: `CHG_PSEL` polarity, `TS` behaviour with a non-103AT NTC or none, `CHG_PG` pin 3 on the '892 vs the '890, I²C pull-up placement and which rail, `R_ILIM`/`K_ILIM` arithmetic, what `BATFET` and ship mode are | `Analyse_battery.md` | `battery.md` covers some; the pin-mismatch sweep between BQ25890/2/5/6 is genuinely new and matters for the second-source field. |
 | C-3 | `MAX17048`: `CELL` pin not connected, and whether hardware `QSTRT` is wanted | `Analyse_battery.md` | `CELL` unconnected is flagged by the analyzer too (`U2.CELL` single-pin net). Check against the datasheet before assuming it is correct. |
 | C-4 | Frontlight: `FL_INT#` appears unconnected; `IN` cap 4.7 µF + 100 nF vs the datasheet's "2.2 µF or greater"; `COUT` 2.2 µF vs the layout example's 1 µF; why half of `J24`'s pins are unused | `Analysis_Frontlight.md` | `FL_INT#` needs checking against the netlist first — `mcu.md` §5 reserved a GPIO with EXTI for it. |
 | C-5 | `C42` — "isn't this capacitor one too many?" | `Analysis_mcu.md` | Check against ST Figure 15's per-pin decoupling table. |
 | C-6 | `DPI_xy` label scheme, and the `X_VOUT0_SYNC` prose fix | `Analysis_dpi_and_som.md` | Cosmetic. Do it with the `Specter` → `Reflow` rename. |
 | C-7 | How to flash and reconfigure the MCU | `Analysis_mcu.md` | Partly written — `mcu.md` §5.7. The honest answer is bound up with D-2. |
+
+### C-1, checked line by line 2026-08-20
+
+`Analysis_power.md` has eleven questions. All eleven are answered, and none of the answers is a
+hand-wave — each quotes the datasheet section and shows the arithmetic:
+
+| Question in `Analysis_power.md` | Answered in | Verdict there |
+| --- | --- | --- |
+| `TPS62A02` `EN` — pulled high by `MCU_EN_FPGA_CORE`, low via the resistor? | `power.md` §10.1 | yes, exactly right — correct as drawn |
+| "Write down all layout guidelines, not just for this chip" | §10.2 → §11 | done, one section per converter |
+| `R29` vs the typical application's 200 kΩ | §10.3 | you were reading the 1.8 V circuit — correct as drawn |
+| `R32`: `VIN` differs for the `VIN` pin and the `PG` pin | §10.4 | yes, and the datasheet says so — correct as drawn |
+| `TPS63802` `AGND` and `GND` tied together | §10.5 | **must** be connected; TI deleted the advice to separate them |
+| `R3` 470 kΩ where TI draws 100 kΩ | §10.6 | correct as drawn — 0.26 mW of standby, with the `VOL`/leakage/RC margins worked |
+| Why `TPS22965` in tandem with `TPS61022` | §10.7 | **it should not be. `U11` deleted** — this question changed the sheet |
+| Does `+VSYS` need an input flag | §10.8 | it has one, on `battery.kicad_sch` |
+| `TPS61022` `C1` absent, and `C2` 2×22 µF vs the typical 3× | §10.9 | `C1` is `C25`; two output caps are right at our current |
+| `VBIAS` = `+VSYS`, the `+VSYS` voltage, the 10:1 `CIN`:`CL` ratio, `C_IN` 22 µF + 100 nF vs 1 µF | §10.10 | 1 µF is a **MIN** column, not a sufficiency claim; `CIN` is the whole node (~42.5 µF), not `C22` |
+| Part numbers and the BOM | §10.11–§10.13 | plan written; **executed 2026-08-19**, commit `77469bb` |
+
+Two of those answers were substantive rather than confirmatory — §10.7 deleted a part, and §10.11
+changed the inductors' `Value` fields — so the review round earned its keep. **Nothing is owed on
+this item.**
 
 ## D. Owner decisions — ⏳ means it cannot be taken after fabrication
 
@@ -222,21 +245,63 @@ where flash is not blank and `EMPTY` is clear.
 *(Raised in `Analyse_battery.md`, an earlier round, not WP6–8 — but still open and still has a
 fabrication deadline, so it stays on this list.)*
 
-**D-4 — The `X2` footprint.** `footprints:PCM-071_2xBTH-060-01-L-D-A-K` does not exist. The Samtec
-drawings are committed and give what a generator needs: 0.5 mm pitch, pad 1.448 × 0.305, row
-spacing 1.986, and the `-A` option's 1.016 mm NPTH holes. **The last footprint gap, and it blocks
-Stage D.** Offered; say the word.
+**D-4 ✅ — The `X2` footprint. BUILT 2026-08-20**, `tools/gen_som_footprint.py`, into `r2.pretty`.
+240 pads `A1`–`D60`, 4 NPTH alignment holes, 2 M2.5 mounting holes, and a `check()` that asserts the
+geometry three ways. Full derivation in `layout.md` §3.2.
 
-**D-5 — SoM position and side.** The only other Stage D blocker.
+Two corrections to what this entry used to say, both of which would have produced a wrong board:
 
-**D-6 — `U41` speed grade.** LCSC `C39313` is `XC6SLX16-**2**FTG256C`; `fpga.md` §2 specifies
-`-**3**`, verified against `caster.xise`. One of the two is wrong and Caster's timing closure
-depends on which.
+- **"row spacing 1.986" was wrong.** 1.986 mm is the offset from the *end* pad's centre to the
+  alignment hole, along the row. The row-to-row spacing is **6.172 mm** (`.3000 [7.620]` minus the
+  1.448 pad length), measured from the drawing's vector content and matching the printed overall to
+  the micron.
+- **The alignment hole is not on the connector's centreline.** It is 1.054 mm from one row and
+  5.118 mm from the other. Since PHYTEC's Figure 7 dimensions the *holes*, a footprint built on a
+  centred hole would put both connectors 2.06 mm out of place.
 
-**D-7 — Separate PCB for the panel connector?** From `Analysis_epd_files.md`. Modos put the display
-connector on its own small board. Real trade-off: a separate board allows several panel sizes off
-one mainboard and keeps the 0.5 mm FPC away from the main assembly, at the cost of a second PCB,
-a board-to-board connector and its assembly. **Architectural — decide before layout, not during.**
+An audit at the same time resolved every `Footprint` property in all 14 sheets: `PCM-071` was the
+**only** gap in the whole project. One task remains — the symbol's property still says
+`footprints:…` and must become `r2:…`.
+
+**D-5 ✅ — SoM position. ANSWERED by the owner 2026-08-20: top right, beside the USB ports.**
+Recorded with its consequences in `layout.md` §1.1, together with the rest of the layout sketch in
+§1.2. The USB 2.0 high-speed pair is the reason that position is the right one and not merely a
+preference. **Which side of the board is still not stated** — the recommendation is the side facing
+away from the panel, and the reasoning changed once the sketch showed the cell sitting *beside* the
+board rather than under it.
+
+**D-6 ✅ — `U41` speed grade. ANSWERED by the owner 2026-08-20: `-2`.** And on investigation it
+was never really a choice — full write-up in `fpga.md` §1.1:
+
+- **LCSC has no `-3` in FTG256 at all.** Every FTG256 option is `-2` (`C39313`, 2 058 in stock,
+  $7.79; `C415800` industrial, 431). The only `-3` on the catalogue is CSG324 — a different package
+  with a different ball map, i.e. a redesign.
+- **Nobody ever chose `-3`.** In `caster.xise` the device and package are marked
+  `valueState="non-default"`, but every speed-grade property is `valueState="default"` — ISE's
+  untouched built-in value, carried into `ise_flow.sh`'s command line.
+- ⚠ **But `-2` runs the DDR3 at exactly its rated ceiling.** `ds162.pdf` Table 25 gives the MCB's
+  DDR3 maximum as 800 Mb/s on `-3` and **667 Mb/s on `-2`**; Caster's MIG is generated for
+  `C3_MEMCLK_PERIOD = 3000` ps = **666.67 Mb/s**. That is **0.05 % of margin**.
+
+**One thing to do before the fab order, and it is free.** Retarget `par/ise_flow.sh` (two lines,
+`-ftg256-3` → `-ftg256-2`) and build on the ISE VM. The MCB is a hard macro and will not fail
+timing the way fabric does — the numbers to read are `TS_CLK33` and the 165 MHz `DPI_PCLK` path,
+because a `-2` part is roughly 10–15 % slower in the fabric. Two fallbacks exist if it does not
+close and neither is a respin: drop `DPI_PCLK` (§16 shows the panel needs far less), or lengthen
+`C3_MEMCLK_PERIOD`.
+
+**D-7 — Separate PCB for the panel connector? — half-answered 2026-08-20, needs one word back.**
+From `Analysis_epd_files.md`. Modos put the display connector on its own small board. Real
+trade-off: a separate board allows several panel sizes off one mainboard and keeps the 0.5 mm FPC
+away from the main assembly, at the cost of a second PCB, a board-to-board connector and its
+assembly. **Architectural — decide before layout, not during.**
+
+The owner's sketch of 2026-08-20 draws a **"TTL Interface"** block, ≈ 40 × 37 mm, with its own
+border and its own dimensions — but *inside* the mainboard outline. Own border says separate board;
+inside the outline says region of the mainboard. `layout.md` §1.2 records both readings and does not
+guess. **If it is a separate board, note what crosses the connector:** not just the panel signals
+but `+VP`, `+VGH`, `-VCOM`, `-VGL` and `-VN` — five high-voltage rails spanning ±29 V through a
+board-to-board connector, which needs a part chosen for creepage rather than for pin count.
 
 **D-8 — Panel supplier silence.** Noted, no action available from here. Bench measurement when the
 panel arrives is the fallback, as you say.
@@ -255,7 +320,11 @@ Two candidates were checked against LCSC's parametric table rather than by name,
 | --- | --- | --- | --- | --- | --- |
 | `C23150` | `0603WAF3903T5E` | **0603** | 390 kΩ ±1 % | **16** | ✗ wrong package, and less stock than we have |
 | `C44937` | `0402WGF390K TCE` | 0402 | **3.9 Ω** ‼ | 25 397 | ✗ the `390K` in the name is not 390 kΩ |
-| **`C2909352`** | **`FRC0402F3903TS`** | 0402 | **390 kΩ ±1 %**, 62.5 mW, 50 V | **40 540** | ✓ **use this** |
+| `C2909352` | `FRC0402F3903TS` | 0402 | 390 kΩ ±1 %, 62.5 mW, 50 V | 40 540 | ✓ would have worked |
+| **`C54920667`** | **`HRC0402F3903DNTO`** | 0402 | **390 kΩ ±1 %** | **20 000** | ✓ **fitted — this is what is on the board** |
+
+**Superseded 2026-08-19** — `C54920667` was fitted instead, and `epd-port.md` §10 records it.
+`C2909352` is a fine second source. Leaving both here because the *reasoning* is the durable part:
 
 `C44937` is the same trap as the five capacitors: a part number that reads like the value it is not.
 FOJAN is already a supplier on this board (`FRL0805FR020TS`, the 20 mΩ shunts). $0.0196 against

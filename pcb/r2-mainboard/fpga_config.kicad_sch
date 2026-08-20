@@ -8196,6 +8196,28 @@
 				)
 			)
 		)
+		(property "MPN" "XC6SLX16-2FTG256C"
+			(at 144.78 58.42 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "AMD/XILINX"
+			(at 144.78 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "A8"
 			(uuid "b3363f92-cfb6-4e85-b36c-4f6f07e74cf9")
 		)

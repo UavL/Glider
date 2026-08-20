@@ -190,7 +190,7 @@ def build(pins: dict) -> str:
     props = [
         ("Reference", "X", False),
         ("Value", NAME, False),
-        ("Footprint", "footprints:PCM-071_2xBTH-060-01-L-D-A-K", True),
+        ("Footprint", "r2:PCM-071_2xBTH-060-01-L-D-A-K", True),
         ("Datasheet", "L-1038e.A5_phyCORE-AM62x_HW Manual.pdf", True),
         ("Description",
          "PHYTEC phyCORE-AM62x SOM, connectorised. 240 pins on X1 columns A-D "

@@ -4,8 +4,12 @@ Branch `Board-Design`. Last updated **2026-08-17**.
 
 **Stage C (capture) is complete** — all 14 sheets drawn, `frontlight` last, and the root wired.
 WP6–WP8 are drawn but not yet reviewed by the owner; see **Stage C progress** below.
-**Stage D (layout) has not started** and is blocked on one decision: where the SoM sits
-(`docs/layout.md` §1). Per-sheet specs live in `pcb/r2-mainboard/docs/`.
+**Stage D (layout) has not started.** Its blockers cleared on 2026-08-20 — the owner placed the SoM
+top-right beside the USB ports and settled the `U41` speed grade, and the `PCM-071` footprint was
+built, which was the last footprint gap in the project. What remains before placement is not a
+blocker but a short list: which *side* the SoM mounts on, whether the panel connector gets its own
+PCB (`docs/layout.md` §1.2), and one free gateware build to confirm the `-2` part closes timing
+(`docs/fpga.md` §1.1). Per-sheet specs live in `pcb/r2-mainboard/docs/`.
 
 Evidence for every claim here is in **`NOTES-R2-hardware-facts.md`**. R1's state is in
 `NOTES-STATUS.md`. This file is only what to do and in what order.
@@ -258,7 +262,7 @@ and since the chosen module has touch bonded on, touch could reasonably be popul
 | ~~**`PCL-071` price, MOQ, will they sell 1–2 units**~~ | ~~YES~~ | **CLOSED 2026-08-13** — €281 @1–9, reel-only MOQ 5. Answered by moving to `PCM-071` (constraint 1) |
 | ~~**`PCM-071` price and MOQ**~~ | ~~YES~~ | **CLOSED 2026-08-18 — €250.00 @ 1–9 pcs**, variant `PCM-071-5432DE11I`, order code `C618992`, **MOQ 1**. Cheaper per unit than the `PCL-071` *and* orderable singly: ~€1 405 → €250 for the first prototype. Lead time still unstated |
 | Orderable variants (1 GB RAM, small eMMC, ~~`VDDSHV3` = 3.3 V~~, WiFi) | not for the prototype | The quote is for **2 GB DDR4 / 32 GB eMMC** — more than R2 uses, and memory is where the surcharge sits. `VDDSHV3` is struck: it is solder jumper `J4`, default 3.3 V, not an ordering option. Ask before a *production* order; a smaller population may carry its own MOQ |
-| ~~**The R2 schematic does not exist**~~ | ~~YES~~ | **Stage C is COMPLETE as of 2026-08-17** — all 14 sheets drawn, `frontlight` last. WP6–WP8 await owner review; Stage D (layout) has not started |
+| ~~**The R2 schematic does not exist**~~ | ~~YES~~ | **Stage C is COMPLETE as of 2026-08-17** — all 14 sheets drawn, `frontlight` last. WP6–WP8 reviewed by the owner 2026-08-19/20 and the findings applied; Stage D (layout) has not started |
 | ~~Will JLCPCB accept the 270-pin consigned module on a custom footprint~~ | ~~soon~~ | **Gone with the `PCM-071` switch** — nothing is consigned |
 | ~~Panel model~~ | ~~no~~ | **CLOSED 2026-08-17 — `GDEP103TC2-FT11`.** See "Panel choice" |
 | **Frontlight LED current per channel** | no — bounds margin, not design | Good Display. `docs/frontlight.md` §10.1 |
@@ -429,9 +433,21 @@ was declared `input` on both `fpga_io` and `fpga_config`, though `X1` is on
 `fpga_config` and the net leaves it. Two `input`s meeting is the one interface
 shape combination on this board that is never legitimate.
 
-Whole-project ERC as of 2026-08-13: **387 violations, of which 282 are
+Whole-project ERC as of **2026-08-20**: **337 violations, of which 305 are
 `footprint_link_issues`** (standing ask 3, the owner's broken library tables).
-Excluding those: **105**, down from 295 before the root was wired.
+Excluding those: **32**, down from 105 on 2026-08-13 and 295 before the root was
+wired. The 73 that went are the entire `isolated_pin_label` (68) and
+`label_dangling` (5) populations — WP7 and WP8 closed the interfaces they were
+counting, and `patch_exti_swap.py` closed `FL_INT#`, the last one. **Every
+hierarchical label in the project now has a counterpart**, and `DANGLING_OK` in
+`wire_root.py` is empty again.
+
+The remaining 32, all pre-existing and all explained below: 15
+`power_pin_not_driven`, 11 `four_way_junction`, 3 `multiple_net_names`, 2
+`lib_symbol_mismatch`, 1 `pin_to_pin`.
+
+The 2026-08-13 breakdown is kept below because the two `isolated_pin_label`
+lines are what the interface work was measured against:
 **Read the JSON report (`--format json`), not the text one** — the text report
 files `footprint_link_issues`, `isolated_pin_label` and `four_way_junction` under
 `***** Sheet /` no matter which child sheet the item is really on.

@@ -145,13 +145,13 @@ alternate functions from Tables 13–20; ADC and DAC channels from Table 12's "A
 | 13 | `PC0` | `MCU_EN_FPGA_CORE` | GPIO out | |
 | 14 | `PC1` | `MCU_EN_DDR` | GPIO out | |
 | 15 | `PC2` | `LED_STAT#` | GPIO out, sinks `D20` | |
-| 16 | `PC3` | `TOUCH_INT#` | GPIO in — ⚠ **EXTI3 taken by `PD3`**, see §3.4 | `io-expansion.md` |
+| 16 | `PC3` | `TOUCH_RST#` | GPIO out | `io-expansion.md`, §3.4 |
 | 25 | `PC4` | — | spare, `ADC_IN17` | |
 | 26 | `PC5` | — | spare, `ADC_IN18` | |
-| 38 | `PC6` | `PEN_INT#` | GPIO in — ⚠ **EXTI6 taken by `PD6`**, see §3.4 | `io-expansion.md` |
+| 38 | `PC6` | `MCU_EN_TOUCH` | GPIO out | `io-expansion.md`, §3.4 |
 | 39 | `PC7` | `KEY_PREV#` | GPIO in, **EXTI7** | |
 | 40 | `PD8` | `KEY_NEXT#` | GPIO in, **EXTI8** | |
-| 41 | `PD9` | `TOUCH_RST#` | GPIO out | `io-expansion.md` |
+| 41 | `PD9` | `TOUCH_INT#` | GPIO in, **EXTI9** | `io-expansion.md`, §3.4 |
 | 48 | `PC8` | `PG_SOM` | GPIO in (module power-good) | `som.md` §5 |
 | 49 | `PC9` | `MCU_EN_PEN` | GPIO out | `io-expansion.md` |
 | 50 | `PD0` | `CHG_INT#` | GPIO in, **EXTI0** | |
@@ -188,7 +188,7 @@ it is the reason `LED_STAT#` is on `PC2` and not on the otherwise-convenient `PC
 | 36 | `PA8` | `SOM_WAKE#` | GPIO out, open-drain | §4 |
 | 37 | `PA9` | `MCU_TXD` | `USART1_TX` (AF1) | Table 13 |
 | 42 | `PA10` | `MCU_RXD` | `USART1_RX` (AF1) | Table 13 |
-| 43 | `PA11` | `MCU_EN_TOUCH` | GPIO out (`USB_DM` capable) | `io-expansion.md` |
+| 43 | `PA11` | `PEN_INT#` | GPIO in, **EXTI11** (was the `USB_DM` reserve — §3.4) | `io-expansion.md`, §3.4 |
 | 44 | `PA12` | — | spare (`USB_DP` capable) | |
 | 45 | `PA13` | `MCU_SWDIO` | `SWDIO` (AF0) | Table 13 |
 | 46 | `PA14` | `MCU_SWCLK` | `SWCLK` (AF0), = `BOOT0` | Table 12 p.53 |
@@ -205,16 +205,27 @@ it is the reason `LED_STAT#` is on `PC2` and not on the otherwise-convenient `PC
 | 63 | `PB9` | `SDA_AON` | `I2C1_SDA` (AF6) | Table 15 |
 | 30 | `PB10` | `VCOM_MEA_EN` | GPIO out | |
 | 31 | `PB11` | `EPD_THROT` | GPIO out | |
-| 32 | `PB12` | — | spare, `ADC_IN16` | |
+| 32 | `PB12` | `FL_INT#` | GPIO in, **EXTI12**; also `ADC_IN16`, unused | `frontlight.md` §10.3, §3.4 |
 | 33 | `PB13` | `FPGA_PROG#` | GPIO out, open-drain | §4 |
 | 34 | `PB14` | `FPGA_DONE` | GPIO in | |
 | 35 | `PB15` | `FPGA_SUSP` | GPIO out | §4 |
 
-**50 signals, 10 spares** (`PC3`, `PC4`, `PC5`, `PC6`, `PC9`, `PC10`, `PD9`, `PB12`, `PA11`,
-`PA12`), of which four are ADC-capable. (`PC8` left the spare pool when
-`tools/patch_mcu_pg_som.py` claimed it for `PG_SOM`; §9's note that the count said 11 while the
-schematic had 10 is this, and is now resolved. Verified against the netlist: `/PG_SOM -> U20.48`.) Every spare carries a no-connect flag so ERC stays honest;
-any of them can be claimed later by deleting the flag.
+**One spare left: `PA12`.** Counted from the exported netlist 2026-08-20, after
+`patch_exti_swap.py` — of the LQFP64's 64 pins, **3 are supply** (`VBAT` 6, `VDD/VDDA` 8,
+`VSS/VSSA` 9), **1 is unconnected** (`PA12`, pad 44) and **60 are on a net**, `VREF+` included.
+The count in earlier revisions of this line ("50 signals, 10 spares", listing
+`PC3`, `PC4`, `PC5`, `PC6`, `PC9`, `PD9`, `PA11`, `PB12` among them) had drifted badly: every one of
+those except `PA12` was already wired, most of them by `patch_mcu_io_expansion.py` in WP6.
+`PC8` left the pool for `PG_SOM`, `PC10` for `FPGA_INIT`, and `PB12` for `FL_INT#` in §3.4.
+
+**The spare pool is effectively exhausted, and that is worth saying plainly before layout.** `PA12`
+is the only pin left with no net, and it was kept because it is `USB_DP`-capable — a capability that
+§5.7 has now ruled out using, since the USB-C data pair is committed to the SoM. So in practice the
+MCU is full. Anything new that needs a pin from here on is a trade, not an allocation, and the
+cheapest things to trade away are the two `PG_*` inputs that duplicate information the `INA3221`s
+already report over I²C.
+
+`PA12` carries a no-connect flag so ERC stays honest; it can be claimed by deleting the flag.
 
 `FL_PWM1` and `FL_PWM2` are deliberately two channels of the **same** timer, so warm and cool
 frontlight strings share a period and cannot beat against each other. Whether the frontlight is
@@ -301,7 +312,30 @@ On the schematic this is a relabel of four already-wired pads plus one new net, 
 **One resource decision it forces:** `PA11` was held back with `PA12` as the USB-capable pair
 (§5.7). Spending it on `PEN_INT#` gives up USB DFU — which §5.7 already rules out anyway, since the
 USB-C data pair is committed to the SoM, and §5.8 has now given the SoM a way to flash the MCU. So
-the reservation has no remaining purpose. **Not yet applied to the schematic.**
+the reservation has no remaining purpose.
+
+> **APPLIED 2026-08-20** by `tools/patch_exti_swap.py`. The four swaps are exchanges of the
+> hierarchical labels' positions — `TOUCH_INT#`/`TOUCH_RST#` share the left column so only the `at`
+> moves; `PEN_INT#`/`MCU_EN_TOUCH` are on opposite sides so the justify moves with it. `FL_INT#` is
+> a new stub on `PB12` (pad 32), one no-connect dropped and one sheet pin added to the root's `mcu`
+> box, followed by `wire_root.py`.
+>
+> **Nothing changed on the root for the four swaps, and that is the point worth recording**: a net's
+> interface *shape* travels with its name, not with its pad. `TOUCH_INT#` is still an input to the
+> MCU after it moves from `PC3` to `PD9`, so the root's declarations were already right. Only
+> `FL_INT#` needed a new pin — which is also why this patch had to re-run `wire_root.py` and the
+> four-swap half alone would not have.
+>
+> Verified against the netlist exported before the change: **518 → 517 nets**, the drop being the
+> `unconnected-(U20-PB12-Pad32)` pseudo-net going away, and exactly five membership changes —
+> `TOUCH_INT#` 16→41, `TOUCH_RST#` 41→16, `PEN_INT#` 38→43, `MCU_EN_TOUCH` 43→38, `FL_INT#` += 32.
+> Nothing else in the project moved. Rendered and checked by eye.
+>
+> **Two consequences beyond this sheet.** `wire_root.py` now reports **0 one-sided names** with
+> `FL_INT#` removed from `DANGLING_OK` — it was the last entry that was still genuinely dangling.
+> And whole-project ERC excluding `footprint_link_issues` is now **32**, down from 105: the 68
+> `isolated_pin_label` and 5 `label_dangling` violations are gone entirely, because WP7/WP8 closed
+> the interfaces they were counting and `FL_INT#` was the remainder.
 
 ### 5.1 Supply and decoupling
 

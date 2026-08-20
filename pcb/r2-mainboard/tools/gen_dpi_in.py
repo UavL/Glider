@@ -151,7 +151,7 @@ def build(rows: list) -> str:
     sh.lib.add_file("r2", PROJ / "r2.kicad_sym")
 
     u = sh.place("r2:PCM-071", "X2", "PCM-071", UX, UY, 0, unit=2,
-                 footprint="footprints:PCM-071_2xBTH-060-01-L-D-A-K",
+                 footprint="r2:PCM-071_2xBTH-060-01-L-D-A-K",
                  ref_at=(UX - 27.94, UY - 33.02),
                  val_at=(UX - 27.94, UY - 30.48), justify="left",
                  description="phyCORE-AM62x SOM, unit 2 of 4: VOUT0 parallel "

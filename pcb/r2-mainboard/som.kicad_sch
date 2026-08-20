@@ -451,7 +451,7 @@
 					)
 				)
 			)
-			(property "Footprint" "footprints:PCM-071_2xBTH-060-01-L-D-A-K"
+			(property "Footprint" "r2:PCM-071_2xBTH-060-01-L-D-A-K"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -8243,7 +8243,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "footprints:PCM-071_2xBTH-060-01-L-D-A-K"
+		(property "Footprint" "r2:PCM-071_2xBTH-060-01-L-D-A-K"
 			(at 76.2 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -9942,7 +9942,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "footprints:PCM-071_2xBTH-060-01-L-D-A-K"
+		(property "Footprint" "r2:PCM-071_2xBTH-060-01-L-D-A-K"
 			(at 213.36 88.9 0)
 			(hide yes)
 			(show_name no)
@@ -10976,7 +10976,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "footprints:PCM-071_2xBTH-060-01-L-D-A-K"
+		(property "Footprint" "r2:PCM-071_2xBTH-060-01-L-D-A-K"
 			(at 350.52 139.7 0)
 			(hide yes)
 			(show_name no)

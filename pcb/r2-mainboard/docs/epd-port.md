@@ -444,6 +444,68 @@ The divisor barely moves (0.5 %, which is this model against their measurement);
 does. **These must be re-measured on hardware before they are trusted.** The assistant cannot flash
 or measure the board.
 
+#### ⚠ And a second change in the same file, which is not optional
+
+Found 2026-08-20, reading `power.c` for the constants above. **The bring-up sanity window will
+reject a correctly built R2 board**, and it does not warn — it calls `fatal()`.
+
+```c
+// fw/User/power.c:199-204
+static bool epd_pos_rails_good(void) {
+    float vp  = power_get_rail_voltage(RAIL_VP);
+    float vgh = power_get_rail_voltage(RAIL_VGH);
+    return (vp  >= 14.0f) && (vp  <= 16.0f) &&
+           (vgh >= 21.0f) && (vgh <= 28.0f);   // <-- 28.0 is the problem
+}
+```
+
+`power_on_epd()` polls this for `EPD_PWRUP_TIMEOUT_MS` = 1200 ms and then, on `false`, calls
+`fatal("Failed to bring up pos rails")` (`power.c:239-244`). It is not a warning path.
+
+Line up the three numbers:
+
+| | `VGH` | vs the window's 28.0 V ceiling |
+| --- | ---: | --- |
+| R1 as built | 26.87 V at DAC = 0 | inside, with 1.1 V to spare — which is why nobody hit this |
+| **R2 nominal**, after `R225` = 20.5 k | **28.41 V** | **0.41 V over. Fails.** |
+| R2 low corner | 27.76 V | inside |
+| R2 high corner | 29.07 V | 1.07 V over |
+
+So R2 fails at *nominal*, and only the low tail of the tolerance band passes. The window was written
+around R1's chain and the panel change moved the rail out from under it. **The window has to move
+with the resistor** — the two are one change, not two:
+
+```c
+// was:  (vgh >= 21.0f) && (vgh <= 28.0f)
+//  now: (vgh >= 21.0f) && (vgh <= 30.0f)
+```
+
+30.0 V is the panel's absolute maximum (`VGL` + 50 V at `VGL` = −20 V, §10.3). That is the right
+*kind* of ceiling for a sanity check — its job is to catch a boost that has run away or a divider
+stuffed wrong, not to enforce the operating window, which is the DAC loop's business. The 21.0 V
+floor is left alone: it still catches "the boost never started", and the DAC legitimately pulls
+`VGH` down into the low 20s in normal use.
+
+**But 30.0 V is tighter than it looks, and this is the number to check on the bench.** The high
+tolerance corner is 29.07 V, and it is *measured* through `R98`/`R97` at 1 % each into a 12-bit ADC
+referenced to the `+3V3_AON` LDO — call it another 2 %, so a genuine 29.07 V board can report about
+29.6 V. That leaves 0.4 V, which is not much of a margin against a check whose failure mode is
+`fatal()`. Two ways out, both cheap, and the choice needs one bench measurement to make:
+
+- If the built boards land near 28.4 V nominal, **30.0 V is fine** and the corner is theoretical.
+- If they land high, either take `R224`/`R225` to 0.5 % (§10.3 — halves the band) or raise the check
+  to **31.0 V** and accept that it no longer catches a mild over-voltage, only a gross one.
+
+Do not raise it silently to "make the error go away" — 31.0 V is above what the panel is rated to
+survive, so it is a deliberate trade of protection for robustness, not a free fix.
+
+**Both changes are needed together.** Fitting `R225` = 20.5 k without touching the window turns a
+correct board into one that dies at every EPD power-up; changing the window without `R225` leaves
+`VGH` below the panel's minimum. Neither has been tested — see the caveat above.
+
+`epd_neg_rails_good()` was checked at the same time and needs nothing: it wants `VN` ∈ [−16, −14]
+and `VGL` ∈ [−21, −19], and the `GDEP103TC2` asks for `VGL` = −20 V ±1 V, which sits inside.
+
 ### 10.6 One observation the earlier review could not make
 
 `U24.4` (`EN`) and `U24.5` (`VIN`) are **both on `+5V_VGH`**, and `U23` is wired the same way.

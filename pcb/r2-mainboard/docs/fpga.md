@@ -18,11 +18,71 @@ by ball. It currently accounts for all 113 constrained balls with **0 failures**
 
 ## 1. The part
 
-**`XC6SLX16-FTG256-3`.** Verified three ways: `caster.xise` (`Device xc6slx16` / `Package ftg256` /
-`Speed Grade -3`), `par/ise_flow.sh` (`-p xc6slx16-ftg256-3`), and R1's own
-`pcb/mainboard/fpga_ddr.kicad_sch`. `NOTES-R2-plan.md` and `NOTES-R2-hardware-facts.md` both said
-`XC6SLX9`, and the facts file carried a priced BOM line for the wrong part; both are corrected, and
-the LX16 still needs an LCSC re-price.
+**`XC6SLX16-2FTG256C`** — LCSC `C39313`, **speed grade −2**. Device and package verified three
+ways: `caster.xise` (`Device xc6slx16` / `Package ftg256`), `par/ise_flow.sh`
+(`-p xc6slx16-ftg256-3`), and R1's own sheets, whose `Description` reads `XC6SLX16-FTG256`.
+`NOTES-R2-plan.md` and `NOTES-R2-hardware-facts.md` both said `XC6SLX9`, and the facts file carried
+a priced BOM line for the wrong part; both are corrected.
+
+### 1.1 The speed grade — settled 2026-08-20, and it is a sourcing answer, not a preference
+
+Earlier revisions of this section said `-3`, and the schematic carried `C39313`, which is a `-2`.
+That contradiction was open as decision **D-6**. It closes with three findings, in the order that
+matters:
+
+**1. There is no `-3` in FTG256 to buy.** LCSC's whole `XC6SLX16` line, queried 2026-08-20:
+
+| Code | Part | Package | Grade | Stock | Unit |
+| --- | --- | --- | --- | ---: | ---: |
+| **`C39313`** | `XC6SLX16-2FTG256C` | **FTG256** | **−2** | **2 058** | **$7.79** |
+| `C415800` | `XC6SLX16-2FTG256I` | FTG256 | −2, industrial | 431 | $12.68 |
+| `C169797` | `XC6SLX16-2CSG324C` | CSG324 | −2 | 1 057 | $9.07 |
+| `C1521718` | `XC6SLX16-3CSG324I` | CSG324 | −3 | 69 | $11.12 |
+
+The only `-3` on the catalogue is **CSG324**, a different package with a different ball map — not a
+substitution, a redesign. So `-2` is not a choice between two available parts; it is the part.
+`C415800` is the same silicon in the industrial temperature range and is the natural second source.
+
+**2. Nobody ever chose `-3`.** In `caster.xise` the device and package properties are marked
+`valueState="non-default"` — deliberately set — while every speed-grade property
+(`Speed Grade`, `Change Device Speed To`, `Device Speed Grade/Select ABS Minimum`) is
+`valueState="**default**"`, i.e. still holding ISE's built-in value, never edited. The `-3` in
+`par/ise_flow.sh` is that default carried into the command line. **It is a default, not a
+requirement**, which is why it never appeared in any Caster documentation.
+
+**3. But `-2` runs the DDR3 at exactly its rated ceiling, and that is worth knowing before the
+order goes out.** `ds162.pdf` Table 25, "Interface Performances", Memory Interfaces implemented
+using the MCB, standard `VCCINT`:
+
+| Interface | −3 | −2 | −1L |
+| --- | ---: | ---: | ---: |
+| DDR3 | 800 Mb/s | **667 Mb/s** | not supported |
+| DDR2 | 667 | 625 | 400 |
+| DDR | 400 | 400 | 350 |
+
+Caster's MIG is generated with `C3_MEMCLK_PERIOD = 3000` ps (`mig_wrapper.v:76`, and the same value
+inside `s6_ddr3.v`), so the memory clock is 333.33 MHz and the data rate is **666.67 Mb/s**.
+
+> Against `-2`'s 667 Mb/s ceiling that is **0.33 Mb/s of margin — 0.05 %.** In spec, and only just.
+> On `-3` the same design would have 20 % of headroom.
+
+This is not a reason to change the decision, because there is no `-3` to change to. It is a reason
+to do the one check that is free and has to happen before fabrication rather than after:
+
+**Build Caster for `-2` and read the timing report.** `par/ise_flow.sh` hardcodes
+`-p xc6slx16-ftg256-3` on the `ngdbuild` and `map` lines; changing those two to `-ftg256-2` retargets
+the flow, and the ISE VM already exists (`USAGE.md`). What to look for: the MCB is a hard macro and
+will not "fail timing" the way fabric does, so the report to trust is the `TIMESPEC TS_CLK33`
+constraint and the 165 MHz `DPI_PCLK` path — a `-2` part is roughly 10–15 % slower in the fabric,
+and `DPI_PCLK` is the constraint with the least room. **If that check has not been run, the board is
+being ordered on an assumption.**
+
+Two fallbacks exist if it does not close, and neither is a respin: drop `DPI_PCLK` (the panel needs
+far less than 165 MHz — §16), or lower `C3_MEMCLK_PERIOD` and give up some framebuffer bandwidth.
+
+**Not verified:** that ISE's default speed grade for `xc6slx16` is `-3` rather than the file having
+been edited and re-saved. `valueState="default"` is ISE's own marker for "untouched", which is the
+evidence used here; it has not been checked against a fresh ISE project.
 
 It is not a drop-in substitution in either direction: an LX9 would trip the MIG's
 `C3_SMALL_DEVICE` path (`s6_ddr3.v:234`, currently `"FALSE"` with the comment "set to TRUE for all
@@ -408,6 +468,12 @@ is the constraints placement has to satisfy.
 666 MT/s against a part rated for 1066+ is a lot of margin, and it is the single most useful fact
 for this layout: unit interval is 1.5 ns, so a 100 ps mismatch is under 7 % of a UI. Length matching
 still matters, but the tolerances are relaxed compared with a 1600 MT/s interface.
+
+⚠ **That margin is against the DRAM, and only against the DRAM.** At the FPGA end the `-2` part's
+MCB is rated for 667 Mb/s against the 666.67 Mb/s this design runs (§1.1) — 0.05 %. So the layout
+does *not* get to spend the DRAM's headroom: treat this bus as a bus with no margin at the
+controller, match it properly, and keep it over one continuous plane. The relaxed numbers below are
+what the *geometry* tolerates, not slack to give away.
 
 - **Match within a byte lane**, tightly: `DQ[7:0]` + `LDM` + `LDQS`/`LDQS#` as one group,
   `DQ[15:8]` + `UDM` + `UDQS`/`UDQS#` as the other. The two lanes need not match each other —

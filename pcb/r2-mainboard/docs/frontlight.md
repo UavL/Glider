@@ -230,7 +230,7 @@ This is the one thing on this sheet that would have been found at bring-up rathe
 | `FL_PWM1` | input | `mcu` (`TIM4_CH1`) — now also `U53.PWM` |
 | `SCL_AON` | bidirectional | the always-on bus |
 | `SDA_AON` | bidirectional | the always-on bus |
-| `FL_INT#` | output | `mcu`, a spare GPIO — **new, §10.3** |
+| `FL_INT#` | output | `mcu` **`PB12`**, EXTI12 — assigned 2026-08-20, §10.3 |
 
 `+VSYS_FL` in, `GND`, and `+3V3` for `R508` cross as global power nets. **`+5V2_FL` is gone.**
 
@@ -291,7 +291,7 @@ Read out of the exported netlist, not asserted:
 | `FL_EN` | `U20.59` + `J6.43` + `U53.B1` + `R507.1` — 4 nodes ✓ |
 | `FL_PWM1` | joined across sheets: `U53.C1` + `U20.60` + `J6.41` ✓ |
 | I²C | `SCL_AON` and `SDA_AON` gain exactly one node each (`U53.A2`/`U53.A1`) ✓ |
-| `FL_INT#` | `U53.B2` + `R508.1`; `R508.2` on `+3V3` ✓ — **one-sided by design**, §10.3 |
+| `FL_INT#` | `U53.B2` + `R508.1`; `R508.2` on `+3V3` ✓ — and now `U20.32` (`PB12`), §10.3 |
 | `+5V2_FL` | still exists on the frozen `epd` sheet (`J6.7`, `J6.44`, `C147.1`) and now has **no source**, which is intended — §7.1 |
 
 - **`check_grid()` and `check_label_crossings()` pass.** They run inside `render()`, so the sheet
@@ -343,7 +343,15 @@ and this one is asynchronous, so the diode is in the hot loop.
    **A second half to the question emerged from the design:** is 28.5 mA a *per-channel* rating or a
    combined budget across both sinks? §4.3's worst corner assumes per-channel.
 2. ~~**The 8-pin FPC part is not chosen**~~ — **CLOSED**, `HC-FPC-05-09-8RLTAG` / `C5213749`, §7.2.
-3. **`FL_INT#` needs an MCU pin.** `mcu.md` §3.2 has two spares left, `PA12` and `PB12`, both kept
+3. ~~**`FL_INT#` needs an MCU pin.**~~ **CLOSED 2026-08-20 — it is `PB12`**, applied by
+   `tools/patch_exti_swap.py` and written up in `mcu.md` §3.4. This section's *first* suggestion,
+   `PA12`/`PB12`, was the right one all along; `mcu.md` §9's later push for `PB7` (`FL_PWM2`) was
+   the mistake, because `PB7` is EXTI7 and `PC7` `KEY_PREV#` already holds that line — so a fault
+   interrupt there could never have fired. `PB12` is EXTI12, free, and its `ADC_IN16` capability is
+   not wanted by anything. The original text follows, because the reasoning about `FL_PWM2` and
+   `J6.42` is still the reason the obvious donor was the wrong one:
+
+   `mcu.md` §3.2 has two spares left, `PA12` and `PB12`, both kept
    deliberately for capabilities the others lack. `FL_PWM2` is freed by this design and is the
    natural donor — it is already routed to the right corner of the board.
 4. **9-series is inferred**, not read from a datasheet (§1). Harmless (§1), but it is not a ‡ fact.

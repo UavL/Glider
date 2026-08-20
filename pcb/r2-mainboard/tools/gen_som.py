@@ -155,7 +155,7 @@ def build(pins: dict, unit_of: dict) -> tuple[str, list]:
     for n in ("Device", "power"):
         sh.lib.add_dir(n, KI / f"{n}.kicad_symdir")
 
-    fp = "footprints:PCM-071_2xBTH-060-01-L-D-A-K"
+    fp = "r2:PCM-071_2xBTH-060-01-L-D-A-K"
     units = {}
     for u, (x, y, desc) in {
         1: (U1X, U1Y, "unit 1 of 4: VIN, VBAT, SoC_VDDSHV5_SDIO and 45 grounds"),
