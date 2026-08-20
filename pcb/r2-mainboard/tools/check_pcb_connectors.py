@@ -13,8 +13,8 @@ its pads.
 
 So the relationship is checked instead of trusted:
 
-    J26 = X2 + (-11.200, +2.400)
-    J27 = X2 + (+11.200, -2.400)
+    J26 = X2 + (-11.200, -2.400)
+    J27 = X2 + (+11.200, +2.400)
 
 which is PHYTEC's 22.400 mm connector spacing and 4.800 mm stagger
 (`PCM-071_1573-1.dxf`), split symmetrically about the module's centre. **This is
@@ -42,7 +42,7 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 PCB = HERE.parent / "r2.kicad_pcb"
 
-EXPECT = {"J26": (-11.200, +2.400), "J27": (+11.200, -2.400)}
+EXPECT = {"J26": (-11.200, -2.400), "J27": (+11.200, +2.400)}
 TOL = 0.001          # mm; these are generated numbers, not measured ones
 ANCHOR = "X2"
 

@@ -382,6 +382,62 @@ exits non-zero, so it can gate a release script, and it exits 0 with a note whil
 unbreakable but also unverifiable — there was nothing to check because nothing could differ. This
 one can differ and is checked, which is the better trade once the check exists.
 
+### 10.3 ⚠ SUPERSEDED — the owner has chosen the two-connector restructure
+
+**Decision, 2026-08-20.** The arrangement in §10.0 works but reads as a trick, and the owner would
+rather the schematic say what the board is: *"I would rather have the two BTH connectors and connect
+all signals/lines etc. to those two instead of the A,B,... split. Then routing it later would also
+make more sense for me."* That is the right instinct — clever loses to clear — and everything below
+§10.0 becomes history once the work below is done.
+
+**It is a repartition, not a renumber, and that is what makes it safe.** Pin numbers, names and
+electrical types all stay exactly as they are; only the *partition* changes. Verified against
+`som_pinout.json`:
+
+| | POWER | VIDEO | CTRL | NC | total |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| **`J26`** = rows A + B (module x = 4.800) | 30 | 20 | 12 | 58 | **120** |
+| **`J27`** = rows C + D (module x = 27.200) | 20 | 2 | 41 | 57 | **120** |
+
+`J27`'s VIDEO unit is just `D2`/`D4` — the two GPMC pins that Table 31 reveals as
+`VOUT0_DATA16/17`. A two-pin box on `dpi_in` looks odd and is honest: those pins really are on the
+other connector.
+
+**Pads keep the module's names.** `A1`–`A60` / `B1`–`B60` on `J26`, `C1`–`C60` / `D1`–`D60` on
+`J27` — *not* Samtec's `1`–`120` alternating numbering. So the schematic's pin numbers still match
+`L-1038e.A5` Tables 7–10 directly, there is no mapping table to get wrong, and §10.1's
+240-line-renumbering objection evaporates.
+
+**Two owner decisions, both taken 2026-08-20:**
+
+1. **`X2` survives as a mechanical footprint** — the 32 × 43 outline, the two M2.5 holes, silk and
+   fab, **zero pads, no nets**, `exclude_from_pos_files`, still a BOM line for the module. Layout
+   keeps the module's outline and its screw positions.
+2. **Sheet structure is unchanged** — `som` grows from 3 unit boxes to 6, `dpi_in` from 1 to 2. No
+   new sheet, so the root hierarchy and every other sheet are untouched.
+
+#### The work, in order
+
+1. `gen_som_symbol.py` — parameterise `NAME`/pin-set, emit **two** symbols instead of one.
+2. `gen_som_footprint.py` — emit **three** footprints: `BTH-060-01-L-D-A-K_AB` (120 pads +
+   2 NPTH, origin at module 4.800/23.900), `..._CD` (origin at 27.200/19.100), and
+   `PCM-071_Module` (outline + 2× M2.5, no pads).
+3. `gen_som.py` — six unit boxes plus `X2` mechanical. ⚠ **Add `A59`/`A60` to `WIRED`**
+   (`SOM_MCU_NRST`, `SOM_MCU_BOOT0`) — they are currently added by
+   `patch_som_mcu_recovery.py` *after* generation, and regenerating would lose them. They are
+   already unit 3 (`MCU_MCAN1_` is in `CTRL_PREFIXES`), so they fit the existing assertion.
+4. `gen_dpi_in.py` — two video boxes.
+5. Regenerate both sheets, re-run `wire_root.py`, re-apply the property patches.
+6. `check_pcb_connectors.py` — retarget from the marker footprints to the real ones.
+
+**The acceptance test is exact**, which is the reason this is worth doing rather than fearing: the
+netlist must come out **identical except that every `X2.<pin>` becomes `J26.<pin>` or `J27.<pin>`**,
+by whether the pin is in rows A/B or C/D. 517 nets, same membership, nothing else moved. Anything
+else is a defect.
+
+**Not started.** Both sheets are still pure generator output with no Eeschema hand-edits (checked
+against their git history), which is what makes regeneration safe.
+
 #### ⚠ Two things to confirm with JLCPCB before the first order
 
 Both are cheap to ask and expensive to get wrong.

@@ -27,8 +27,8 @@ on come from `X2`, which the assembler never needs to know.
 **The offsets are the whole safety argument, so they are checkable rather than
 remembered.** Relative to `X2`'s origin (the module's centre):
 
-    J26   (-11.200, +2.400)
-    J27   (+11.200, -2.400)
+    J26   (-11.200, -2.400)
+    J27   (+11.200, +2.400)
 
 which is the 22.400 mm spacing and 4.800 mm stagger of PHYTEC's DXF, split
 symmetrically. `tools/check_pcb_connectors.py` asserts exactly this against
@@ -67,7 +67,7 @@ HALF_LONG, HALF_SHORT = 17.5, 2.9845
 FAB_W, SILK_W = 0.10, 0.12
 # Where each instance must sit relative to X2's origin. Not used by the
 # footprint itself -- carried here so check_pcb_connectors.py has one source.
-OFFSETS = {"J26": (-11.200, +2.400), "J27": (+11.200, -2.400)}
+OFFSETS = {"J26": (-11.200, -2.400), "J27": (+11.200, +2.400)}
 
 
 def f(v: float) -> str:
@@ -85,8 +85,8 @@ def build() -> str:
          '\t(layer "F.Cu")',
          '\t(descr "Samtec BTH-060-01-L-D-A-K-TR, ASSEMBLY MARKER ONLY -- no pads. The pads for '
          'both receptacles live in r2:PCM-071_2xBTH-060-01-L-D-A-K under X2; this footprint exists '
-         'so each connector gets its own CPL row and BOM match. Place at X2 + (-11.200, +2.400) '
-         'for J26 and X2 + (+11.200, -2.400) for J27, verified by tools/check_pcb_connectors.py. '
+         'so each connector gets its own CPL row and BOM match. Place at X2 + (-11.200, -2.400) '
+         'for J26 and X2 + (+11.200, +2.400) for J27, verified by tools/check_pcb_connectors.py. '
          'Body outline is Samtec\'s own F.Fab rectangle, 35.0 x 5.969 mm, rotated vertical with '
          'pin 1 at the bottom. See som.md section 10.")',
          '\t(tags "Samtec BTH-060 assembly marker no-pads CPL placement PCM-071")',
