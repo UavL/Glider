@@ -309,7 +309,7 @@ correctness rests on**, and pin numbers carry no footnotes.
    on (Facts §4.6 — 128.6 mW, ~150 ms) was measured *by PHYTEC on their carrier*, not here. It also
    gives the BSP and the provisioning flow (§10) somewhere to run before R2 exists.
 
-## 10. The two receptacles — a BOM line the schematic did not produce, now fixed
+## 10. The two receptacles — how they get bought AND soldered
 
 Found 2026-08-20 while building the footprint, and it is the kind of gap that is only visible from
 the assembly side.
@@ -325,20 +325,74 @@ SoM in**.
 | the footprint | `BTH-060-01-L-D-A-K-TR` | LCSC **`C3646540`** | **2** | the PCBA house |
 | the symbol | `PCM-071` | PHYTEC, direct | 1 | you, afterwards |
 
-> **FIXED 2026-08-20** by `tools/patch_bom_only_items.py`. Three **purchase-only** symbols now sit
-> on free canvas on this sheet: **`J26`/`J27`** (the receptacles) and **`MK20`** (the mounting
-> hardware). They use `r2:BOM_ITEM`, a pin-less rectangle, and are placed **`on_board no`** — so
-> they appear on the BOM and never reach the netlist or the PCB.
+> **FIXED 2026-08-20** by `tools/patch_bom_only_items.py`. Three references now sit on free canvas
+> on this sheet: **`J26`/`J27`** (the receptacles) and **`MK20`** (the mounting hardware), all on
+> `r2:BOM_ITEM`, a pin-less rectangle.
 >
-> Verified: **517 nets before and after with zero membership changes**, none of the three appears
-> among the netlist's components, ERC unchanged at 32 excluding `footprint_link_issues`, and a
-> grouped BOM export now carries `"J26,J27" | BTH-060-01-L-D-A-K-TR | C3646540` as one line of
-> quantity 2. Rendered and checked by eye.
->
-> ⚠ One trap recorded in the script: the first attempt placed them on top of `J21`, the microSD
-> connector. Scanning a sheet's `(at ...)` values finds symbol **origins, not extents**, so a large
-> symbol reads as a single empty-looking point. **Free space on a dense sheet has to be confirmed by
-> rendering the page and looking at it.**
+> ⚠ **The first version of this fix was half a fix, and the half it got wrong is the one that
+> matters.** It made all three `on_board no`, which put the parts on the order and left the board
+> unassemblable. §10.0 explains why; the arrangement below is the corrected one.
+
+### 10.0 Getting the connectors *soldered* is a different problem from getting them *bought*
+
+A position file (CPL) has **one row per reference**. `X2` alone therefore produces a single
+placement at a single centroid — for a footprint that **two** separate parts occupy, 22.4 mm apart
+and 4.8 mm staggered. There is no part that covers all 240 pads. On top of that, JLCPCB rejects a
+CPL designator that has no BOM line, and `X2` matches no LCSC part.
+
+So a board ordered that way comes back with **240 bare pads** and nothing to plug the module into.
+Purchase-only symbols do not help: a part that is not on the board is not in the CPL either.
+
+**The corrected arrangement splits the two jobs.** The pads stay under `X2`; the placement moves to
+two references that exist to be placed:
+
+| Ref | Footprint | On the BOM | In the CPL | Carries nets | Fitted by |
+| --- | --- | --- | --- | --- | --- |
+| `X2` | `r2:PCM-071_2xBTH-060-01-L-D-A-K`, 246 pads | the module | **no** — `exclude_from_pos_files` | **yes, all of them** | you, by hand |
+| `J26`, `J27` | `r2:BTH-060-01-L-D-A-K_AssemblyOnly`, **no pads** | `C3646540` ×2 | **yes**, one row each | no | **the assembler** |
+| `MK20` | none, `on_board no` | the M2.5 kit | no | no | you |
+
+The assembler is told to place a `BTH-060-01-L-D-A-K-TR` at each of two centroids; the paste and
+copper it lands on come from `X2`, which they never need to know about. **The board arrives with
+both receptacles soldered and the module simply plugs in**, which is the point.
+
+Verified: **517 nets before and after with zero membership changes**, ERC unchanged at 32 excluding
+`footprint_link_issues`, and a grouped BOM export carries
+`"J26,J27" | BTH-060-01-L-D-A-K-TR | C3646540` as one line of quantity 2. Rendered and checked.
+
+#### The offsets are checked, not remembered
+
+Nothing in KiCad ties the three footprints together. Drag `J26` 2 mm at Stage D and DRC still
+passes, the BOM is still right, and a 120-pin 0.5 mm connector gets placed 2 mm off its pads. So
+the relationship is asserted by **`tools/check_pcb_connectors.py`**, to be run before every fab
+order:
+
+```
+J26 = X2 + (-11.200, +2.400)
+J27 = X2 + (+11.200, -2.400)
+```
+
+— PHYTEC's 22.400 mm spacing and 4.800 mm stagger, split symmetrically about the module centre. It
+also checks that all three are on the same side and rotation, that `J26`/`J27` have no pads, that
+`X2` *is* excluded from the position file and they are *not*, and that `X2` still has 246 pads. It
+exits non-zero, so it can gate a release script, and it exits 0 with a note while
+`r2.kicad_pcb` does not exist yet.
+
+**This is a stronger guarantee than the single footprint gave.** That arrangement was structurally
+unbreakable but also unverifiable — there was nothing to check because nothing could differ. This
+one can differ and is checked, which is the better trade once the check exists.
+
+#### ⚠ Two things to confirm with JLCPCB before the first order
+
+Both are cheap to ask and expensive to get wrong.
+
+1. **The no-pad designator.** A reference whose own footprint has no pads is a known technique, not
+   an exotic one, but their DFM review may query it. A query costs an email; a rejected order costs
+   a week. If they refuse it, the fallback is to restructure the schematic into two 120-pin
+   connector symbols with `X2` as a purchase-only module — see §10.1 for what that costs.
+2. **CPL rotation.** JLCPCB's pick-and-place does not share KiCad's rotation convention for every
+   part, and their own guidance singles connectors out. Verify `J26`/`J27`'s angle against Samtec's
+   pin-1 marking before uploading, and record any correction for future orders.
 
 `X2` also carries `MPN`/`Manufacturer` for the module and a `BOM Comments` property explaining that
 it is fitted by hand, not by the PCBA house.
@@ -365,9 +419,18 @@ is a **240-line renumbering by hand**, on a part where every pin is invisible to
 failure `gen_som_symbol.py` was written to avoid by generating from `som_pinout.json` instead.
 
 So the schematic models **the thing you reason about** (the SoM and its 240 signals) and the
-footprint models **the thing you solder** (two connectors at a fixed offset). That split is right.
-Its *only* real cost was the missing BOM line, and that is now covered by `J26`/`J27` rather than by
-compromising the symbol.
+footprint models **the thing you solder** (two connectors at a fixed offset). That split is right,
+and §10.0 pays its only real cost — the BOM and CPL rows — without compromising the symbol.
+
+**If JLCPCB ever refuses the no-pad designator, this is the fallback and it is not cheap.**
+Restructure into two 120-pin connector symbols, `J26`/`J27`, carrying the nets, with `X2` demoted to
+a purchase-only module line. The pad renumbering *can* be generated — both geometries are now known
+exactly, so module pin → Samtec pad is a script with assertions rather than 240 lines of typing, and
+that weakens the objection above. What it does not weaken is the rest: `som.kicad_sch` and
+`dpi_in.kicad_sch` are reviewed and committed, the units-by-function split would have to be redone
+(the DPI group spans columns A, B **and** D, so it straddles *both* connectors), and the two
+footprints could then drift apart in layout — which `check_pcb_connectors.py` would still have to
+police. It is a day of work to buy back something the current arrangement already has.
 
 ### 10.2 Samtec's own KiCad footprint — an independent check that passed
 

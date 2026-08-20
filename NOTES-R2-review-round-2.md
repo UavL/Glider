@@ -330,11 +330,19 @@ and which is vector and numeric where Figure 7 is a raster. It agreed to 8 µm i
 y** — worth correcting, since 61 µm is 20 % of a 0.305 mm pad's width. `som.md` §11. The generator
 now asserts its output against the DXF and the row skew is 0.0 µm.
 
-⚠ **And it turned up a missing BOM line, since fixed.** `X2` is one symbol for the *module*; the
-parts an assembler solders are **2 × `BTH-060-01-L-D-A-K-TR`**, LCSC `C3646540`, and no symbol
-generated that line. `tools/patch_bom_only_items.py` adds `J26`/`J27` and `MK20` (the M2.5 hardware)
-as **purchase-only** symbols — `on_board no`, so they are on the BOM and never on the PCB. 517 nets
-before and after. `som.md` §10.
+⚠ **And it turned up a hole that would have cost a fab order.** `X2` is one symbol for the
+*module*, so nothing generated a line for the **2 × `BTH-060-01-L-D-A-K-TR`** (`C3646540`) an
+assembler actually solders — and worse, a CPL has one row per reference, so `X2` alone would place
+one part where two belong, on a designator matching no LCSC part, which JLCPCB rejects outright.
+**A board ordered that way arrives with 240 bare pads.**
+
+Fixed in two passes, and the first pass was wrong in an instructive way: making `J26`/`J27`
+purchase-only (`on_board no`) put the parts on the order and left the board unassemblable, because a
+part that is not on the board is not in the CPL either. The corrected arrangement (`som.md` §10.0)
+keeps the pads under `X2`, marks `X2` `exclude_from_pos_files`, and gives `J26`/`J27` a **no-pad**
+footprint so each receptacle gets its own CPL row and BOM match. `MK20` carries the M2.5 hardware.
+517 nets before and after, ERC unchanged. `tools/check_pcb_connectors.py` asserts
+`J26`/`J27` = `X2` ± (11.200, 2.400) before every fab order — tested against a nudged board.
 
 **Why there is no connector symbol at all** is answered in `som.md` §10.1, because it looks like an
 omission and is not: one footprint makes the two connectors' 22.400 mm spacing *and* 4.800 mm

@@ -12037,7 +12037,7 @@
 		)
 	)
 
-	(text "Purchase-only lines -- not on the board, not in the netlist. som.md §10"
+	(text "J26/J27 place the two BTH-060 receptacles; their pads are X2's. som.md §10"
 		(exclude_from_sim no)
 		(at 218.44 190.5 0)
 		(effects
@@ -12046,7 +12046,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "7abc8464-76bc-4fd2-a3b6-15e2a5454b8a")
+		(uuid "965ca0df-cd65-4a98-ad7d-f41bd8e44b2b")
 	)
 	(symbol
 		(lib_id "r2:BOM_ITEM")
@@ -12054,9 +12054,9 @@
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
-		(on_board no)
+		(on_board yes)
 		(dnp no)
-		(uuid "5fdadec6-77bb-473a-b972-c8ee7ac2af70")
+		(uuid "5e73431c-858b-4ddd-a6e5-0adc7910f531")
 		(property "Reference" "J26"
 			(at 236.22 196.85 0)
 			(effects
@@ -12073,7 +12073,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "r2:BTH-060-01-L-D-A-K_AssemblyOnly"
 			(at 236.22 203.2 0)
 			(hide yes)
 			(effects
@@ -12127,7 +12127,7 @@
 				)
 			)
 		)
-		(property "BOM Comments" "Board-side receptacle for the PCM-071, 2 per board. Soldered to r2:PCM-071_2xBTH-060-01-L-D-A-K, which carries both patterns in one footprint -- so this symbol is on_board=no and exists only to put the part on the order. LCSC stock was 60 on 2026-08-20; C3644612 is the same connector without the -K option. som.md section 10."
+		(property "BOM Comments" "Board-side receptacle for the PCM-071, 2 per board, SOLDERED BY THE ASSEMBLER. Its pads are in r2:PCM-071_2xBTH-060-01-L-D-A-K under X2; this reference carries the CPL row and the BOM match, and its own footprint has no pads. Place at X2 + (-11.200, +2.400) -- checked by tools/check_pcb_connectors.py. LCSC stock was 60 on 2026-08-20; C3644612 is the same connector without the -K option. som.md section 10."
 			(at 236.22 203.2 0)
 			(hide yes)
 			(effects
@@ -12151,9 +12151,9 @@
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
-		(on_board no)
+		(on_board yes)
 		(dnp no)
-		(uuid "46d06d58-bfdb-4b24-bc27-fc62cc1ee451")
+		(uuid "ca909d27-8667-4b25-8c1a-021ebaca9393")
 		(property "Reference" "J27"
 			(at 236.22 217.17 0)
 			(effects
@@ -12170,7 +12170,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "r2:BTH-060-01-L-D-A-K_AssemblyOnly"
 			(at 236.22 223.52 0)
 			(hide yes)
 			(effects
@@ -12224,7 +12224,7 @@
 				)
 			)
 		)
-		(property "BOM Comments" "The second of the two. See J26."
+		(property "BOM Comments" "The second of the two. Place at X2 + (+11.200, -2.400). See J26."
 			(at 236.22 223.52 0)
 			(hide yes)
 			(effects
@@ -12250,7 +12250,7 @@
 		(in_bom yes)
 		(on_board no)
 		(dnp no)
-		(uuid "c1bf04f6-e42d-43cb-96c1-0031c0c86477")
+		(uuid "4c74bd43-f333-490b-9389-2e390ce63b7c")
 		(property "Reference" "MK20"
 			(at 236.22 237.49 0)
 			(effects

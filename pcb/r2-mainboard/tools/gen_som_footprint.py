@@ -202,7 +202,9 @@ def build() -> str:
          '-- see som.md. Courtyard covers the connectors only: the module stands 5 mm off the '
          'board, so parts may sit under it; the 32x43 mm outline is on F.Fab.")',
          '\t(tags "PHYTEC phyCORE AM62x PCM-071 SOM mezzanine Samtec BTH-060 board-to-board")',
-         "\t(attr smd)"]
+         # exclude_from_pos_files: this reference holds the pads but is not a
+         # placeable part -- J26/J27 carry the CPL rows. gen_bth060_marker.py.
+         "\t(attr smd exclude_from_pos_files)"]
 
     for kind, txt, yy, layer in (("Reference", "REF**", -cy0 - 1.2, "F.SilkS"),
                                  ("Value", NAME, cy0 + 1.2, "F.Fab")):
