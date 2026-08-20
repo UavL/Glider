@@ -121,9 +121,13 @@ def main() -> int:
                        f"CPL row and the connector never gets placed")
 
     if "exclude_from_pos_files" not in a["attr"]:
-        bad.append(f"{ANCHOR} is NOT excluded from the position file -- it will "
-                   f"appear as a CPL designator with no BOM match, which JLCPCB "
-                   f"rejects")
+        bad.append(
+            f"{ANCHOR} is NOT excluded from the position file -- it would appear "
+            f"as a CPL designator with no BOM match, which JLCPCB rejects. "
+            f"⚠ KiCad drops a flag-only (attr ...) when it imports a footprint, "
+            f"so this does not always survive `Update PCB from Schematic`: fix it "
+            f"on the board instead -- select X2, `E`, Fabrication Attributes, tick "
+            f"'Exclude from position files'.")
     if fps[ANCHOR]["npads"] != 2:
         bad.append(f"{ANCHOR} has {fps[ANCHOR]['npads']} pads, expected 2 "
                    f"(the M2.5 mounting holes; the contacts belong to J26/J27)")

@@ -52,3 +52,12 @@ pcb/r2-mainboard/_restore_backup_*/
 pcb/r2-mainboard/datasheets/**/PCM-071_1573-1.STEP
 pcb/r2-mainboard/datasheets/**/PCM-071_1573-1.x_t
 pcb/r2-mainboard/datasheets/**/PCM-071_1573-1_Basic.step
+
+# The corrected KiCad global footprint library table (docs/layout.md §9).
+# Machine-specific absolute paths -- regenerate rather than commit:
+#   sed 's|${KICAD10_FOOTPRINT_DIR}|<your kicad>/share/kicad/footprints|g' \
+#     <kicad>/share/kicad/template/fp-lib-table > fp-lib-table.fixed
+pcb/r2-mainboard/fp-lib-table.fixed
+
+# KiCad "Update PCB from Schematic" report, saved for diagnosis (layout.md §9)
+pcb/r2-mainboard/report.txt

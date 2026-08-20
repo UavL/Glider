@@ -96,6 +96,17 @@ HOLE_END_OFF = 1.991              # Samtec's own KiCad footprint; the drawing
 HOLE_TO_ROW = 1.054               # .0415, from the NEAR row's centre; Samtec's
                                   # footprint puts it 2.032 off the centreline,
                                   # which is 3.086 - 1.054 exactly
+# 3D models, relative to the project so they travel with the repo. The Samtec
+# .stp is their own download; PCM-071.step is PHYTEC's "Basic" model, which
+# their README says may simplify component heights -- fine for fit checking,
+# not for a clearance measurement you would bet a case on.
+MODEL_CONN = "${KIPRJMOD}/3dmodels/BTH-060-01-L-D-A-K-TR.stp"
+MODEL_MODULE = "${KIPRJMOD}/3dmodels/PCM-071.step"
+# ⚠ Samtec draw the connector lying along X; this board stands it up along Y, so
+# the model needs a quarter turn. The sign has NOT been verified in the 3D
+# viewer -- check it there and flip to -90 if the part faces the wrong way.
+# Nothing electrical depends on it; it is a picture.
+MODEL_CONN_ROT = (0, 0, 90)
 MASK_MARGIN = 0.102               # Samtec sets this on every pad. It makes the
                                   # mask openings 0.509 on a 0.5 pitch, i.e. one
                                   # gang opening per row with no webs -- which is
@@ -184,6 +195,15 @@ def rect(x1, y1, x2, y2, layer, w):
             f'\t\t(layer "{layer}")', f'\t\t(uuid "{uid()}")', "\t)"]
 
 
+def model(path: str, offset=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1)) -> list:
+    """A `(model ...)` block. KiCad's Y is inverted for 3D offsets."""
+    return ["\t(model \"%s\"" % path,
+            f"\t\t(offset (xyz {offset[0]:g} {offset[1]:g} {offset[2]:g}))",
+            f"\t\t(scale (xyz {scale[0]:g} {scale[1]:g} {scale[2]:g}))",
+            f"\t\t(rotate (xyz {rot[0]:g} {rot[1]:g} {rot[2]:g}))",
+            "\t)"]
+
+
 def head(name: str, descr: str, tags: str, attr: str) -> list:
     o = [f'(footprint "{name}"', "\t(version 20260206)",
          '\t(generator "gen_som_footprint.py")', '\t(generator_version "10.0")',
@@ -258,6 +278,7 @@ def build_connector(name: str, near: str, far: str, centroid) -> str:
     o += [f'\t(fp_text user "{near}1 {far}1"', f"\t\t(at 0 {f(sy + 1.1)} 0)",
           '\t\t(layer "F.SilkS")', f'\t\t(uuid "{uid()}")',
           "\t\t(effects (font (size 0.8 0.8) (thickness 0.12)))", "\t)"]
+    o += model(MODEL_CONN, rot=MODEL_CONN_ROT)
     o.append(")")
     print(f"  {name}: {npads} pads {near}1-{near}{N} / {far}1-{far}{N} + 2 NPTH")
     return "\n".join(o) + "\n"
@@ -290,7 +311,12 @@ def build_module() -> str:
              "2.600 drill, 4.000 plating). Stands 5 mm off the board on two M2.5 F-F "
              "standoffs. See som.md section 11.",
              "PHYTEC phyCORE AM62x PCM-071 SOM module outline mechanical mounting",
-             "exclude_from_pos_files")
+             # KiCad's own MountingHole footprints use exactly this flag-only
+             # form. `allow_missing_courtyard` is honest -- this footprint has
+             # none, because the module stands 5 mm off the board and a 32 x 43
+             # courtyard would forbid the parts that are allowed underneath.
+             # `exclude_from_bom` is deliberately NOT set: the module is bought.
+             "exclude_from_pos_files allow_missing_courtyard")
     o += props(MODULE_NAME, cy0)
 
     for layer in ("F.Fab", "User.Drawings"):
@@ -312,6 +338,9 @@ def build_module() -> str:
     for name, (_n, _fr, (mx, my)) in CONNECTORS.items():
         o += rect(X(mx) - 2.9845, Y(my) - 17.5, X(mx) + 2.9845, Y(my) + 17.5,
                   "User.Drawings", FAB_W)
+    # The module sits 5 mm up on its standoffs; the STEP's own origin is its
+    # lower-left corner, so it needs shifting to this footprint's centre.
+    o += model(MODEL_MODULE, offset=(0, 0, 5.0))
     o.append(")")
     print(f"  {MODULE_NAME}: outline {SOM_W} x {SOM_H}, 2 M2.5 NPTH, 0 pads")
     return "\n".join(o) + "\n"

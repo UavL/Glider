@@ -402,7 +402,83 @@ datasheet open:
 | `frontlight` | `frontlight.md` §9 | it belongs next to `J24`, not next to `U12` |
 | `io_expansion` | `io-expansion.md` §7 | enclosure-fixed, and the load switches follow their connectors |
 
-## 9. Open
+## 9. ⚠ If the PCB editor says 305 footprints are missing
+
+**Diagnosed 2026-08-20, and it is not a project problem.** The first `Update PCB from Schematic`
+produced 305 `Error: Cannot add … (footprint '…' not found)` — every one of them from a *stock*
+KiCad library (`Resistor_SMD`, `Capacitor_SMD`, `Package_TO_SOT_SMD`, `Connector_USB` …), while
+every `footprints:` and `r2:` footprint resolved. That split is the whole diagnosis: the two project
+libraries are found by relative path, and the global table is broken.
+
+**The cause.** `~/.config/kicad/10.0/fp-lib-table` holds a single entry:
+
+```
+(lib (name "KiCad") (type "Table")
+     (uri "/tmp/.mount_kicadremp4722615889122143643/share/kicad/template/fp-lib-table"))
+```
+
+That is an **AppImage mount point**. AppImages mount themselves at `/tmp/.mount_<random>`, the name
+changes every launch, and the directory disappears when the app exits. So the table was written once
+from inside a running AppImage and has pointed at nothing ever since. This is the same fault as
+standing ask 3 — the 305 `footprint_link_issues` in every ERC run since WP1 are this, and they were
+dismissed as cosmetic because they were only ever seen in the schematic.
+
+**The fix, which is outside this repo and therefore the owner's to apply.** A corrected table with
+absolute paths is prepared at `fp-lib-table.fixed`; all 155 of its library paths were checked to
+exist. Back up first:
+
+```bash
+cp ~/.config/kicad/10.0/fp-lib-table ~/.config/kicad/10.0/fp-lib-table.bak
+cp <scratchpad>/fp-lib-table.fixed ~/.config/kicad/10.0/fp-lib-table
+```
+
+Then, with KiCad closed, reopen and run `Update PCB from Schematic` again.
+
+**Also set the two path variables**, in *Preferences → Configure Paths*, because stock footprints
+reference their 3D models through one of them and it is currently unset
+(`kicad_common.json` has `"vars": null`):
+
+| Variable | Value |
+| --- | --- |
+| `KICAD10_FOOTPRINT_DIR` | `/home/lum/Apps/kicad-10.0.4/share/kicad/footprints` |
+| `KICAD10_3DMODEL_DIR` | `/home/lum/Apps/kicad-10.0.4/share/kicad/3dmodels` |
+
+**That is also why the 3D viewer is empty**, and it is the larger half of it: every stock footprint
+carries `(model "${KICAD10_3DMODEL_DIR}/…")`, so with the variable unset there is no model to load
+even for the parts that *did* place. The other half is that this project's own generated footprints
+had no `(model …)` at all until now — §9.1.
+
+⚠ **Expect this to recur after a KiCad update**, since the fault is written by the AppImage. If
+footprints vanish again, look at that file first.
+
+### 9.1 3D models for this project's own footprints
+
+`3dmodels/` now holds the two that exist, and `gen_som_footprint.py` references them by
+`${KIPRJMOD}`, so they travel with the repo:
+
+| Footprint | Model | Source |
+| --- | --- | --- |
+| `BTH-060-01-L-D-A-K_AB` / `_CD` | `BTH-060-01-L-D-A-K-TR.stp` | Samtec's own download |
+| `PCM-071_Module` | `PCM-071.step` | PHYTEC's `_Basic` model |
+
+Two caveats, both stated because a 3D view is persuasive in a way that has nothing to do with being
+right:
+
+- ⚠ **The connector model's rotation is a guess.** Samtec draw the part lying along X; this board
+  stands it up along Y, so `MODEL_CONN_ROT` is `(0, 0, 90)`. **Verify in the 3D viewer and flip to
+  −90 if it faces the wrong way.** Nothing electrical depends on it — it is a picture — but a
+  picture is what you are about to use for clearance checking.
+- **PHYTEC's README says the `_Basic` STEP may simplify component heights.** Good enough to see the
+  module sitting on its standoffs; not good enough to certify a case clearance. For that, the
+  numbers in `som.md` §11 are the source.
+
+**To attach a model to any other footprint yourself:** open it in the Footprint Editor
+(right-click the part → *Open in Footprint Editor*), *File → Footprint Properties → 3D Models*,
+*Add*, then set offset / scale / rotation and watch the preview. Put the file in `3dmodels/` and
+write the path as `${KIPRJMOD}/3dmodels/<file>` so it is not machine-specific. KiCad reads `.step`,
+`.stp` and `.wrl`.
+
+## 10. Open
 
 1. ~~**Board outline, SoM position, cell size**~~ — **all answered.** Panel and cell have
    dimensions; the SoM is top-right beside the USB ports, on the face pointing **away from the
