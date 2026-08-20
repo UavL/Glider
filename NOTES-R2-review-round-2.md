@@ -241,9 +241,65 @@ first programming must be followed by a power cycle or `OBL_LAUNCH` to reload op
 part keeps re-entering the bootloader; and the `BOOT0` pin still earns its keep for *recovery*,
 where flash is not blank and `EMPTY` is clear.
 
-**D-3 ⏳ — `USB1`.** Unused, four pins, already on the connector (B-3). Second port or not.
-*(Raised in `Analyse_battery.md`, an earlier round, not WP6–8 — but still open and still has a
-fabrication deadline, so it stays on this list.)*
+**D-3 ⏳ — `USB1`, a second USB-C port.** Unused, four pins, already on the connector (B-3). The
+owner's position, 2026-08-20: *"I think two USB-C ports is a good thing and should be pursued if
+possible."* **Recommendation: do it.** The analysis, so the decision is made on numbers.
+
+**It cannot be retrofitted and it is the cheap half of a port.** `X_USB1_DP`/`DM`/`VBUS`/`DRVVBUS`
+are on `X2` today at zero cost; everything else is ordinary parts. What a Type-C *host* port needs,
+and what R2 already has:
+
+| Need | Part | Status |
+| --- | --- | --- |
+| Receptacle | `C165948` `TYPE-C-31-M-12` | **already the BOM line for `J1`** — second unit, no new line |
+| ESD on `D±` | `USBLC6-2SC6` `C7519` | **already the BOM line for `U3`** |
+| VBUS switch, current-limited | `SY6280AAC` `C55136`, SOT-23-5, adjustable limit, auto-restart, 233 k stock, $0.097 — or `TPS2051BDBVR` `C24593` for a fixed 500 mA at $0.194 | **new**, 1 line |
+| Source advertisement | 2 × **56 kΩ** `Rp`, one per `CC` pin, to the switched 5 V | new, 2 passives |
+| VBUS bulk + bypass | 10 µF + 100 nF | new, 2 passives |
+
+≈ **$0.60 and one new BOM line.** `DRVVBUS` drives the switch's enable directly — that is what the
+pin is for — so the SoM owns when the port is live and there is no standby cost at all: with
+`+5V_DCDC` down, the `Rp` resistors have nothing to pull up to.
+
+⚠ **`Rp` is 56 kΩ and not 5.1 kΩ, and getting that backwards is the classic way to build a port
+that does nothing.** `J1` has 5.1 kΩ `Rd` on both `CC` pins (`battery.md` §181) because it is a
+*sink*. A source presents `Rp` **to VBUS**: 56 kΩ = "Default USB", i.e. 500 mA, which is the right
+advertisement for a bus-powered dongle. One resistor per `CC` pin, never bridged — same rule as
+`J1`.
+
+**The one number that needs watching is the boost's inductor, not the boost.** `power.md` §8.1
+budgets `+5V_DCDC` at 1.3 A worst realistic (SoM design bound 1.0 A + an EPD refresh) against a
+1.5 A design point, and `L10`'s `Isat` is 4.8 A against a 3.10 A peak — 55 % of margin. A port
+current-limited at 500 mA takes the worst case to 1.8 A and the peak to ≈ 4.0 A, leaving **≈ 20 %**.
+That is still margin, and the coincidence it assumes — a 500 mA sink *and* an EPD refresh *and* the
+SoM at its design bound, simultaneously — is not a realistic reading state. A keyboard/mouse dongle
+is 25–100 mA, not 500. **500 mA is the limit the port advertises, not the load it carries.** If that
+20 % is judged too thin, the answer is not to drop the port: it is either to set `SY6280`'s
+adjustable limit lower (a resistor) or to re-run `power.md` §3.2 for a higher-`Isat` `L10`.
+
+**What it actually costs is board edge and a case opening, and the sketch says there is room.** The
+receptacle is 8.94 mm wide; the SoM takes 32 mm of a ~90 mm top edge (`layout.md` §1.2), leaving
+~58 mm for two of them.
+
+**Two things worth saying against it, neither decisive:**
+
+1. **Two identical-looking C ports that behave differently is a usability trap.** Only `J1`
+   charges — the charger's `VBUS` input is on `J1` alone, and ORing a second inlet is not worth it.
+   Mark them, or accept that users will try the wrong one.
+2. **Most legacy dongles are USB-A**, so a C-to-A adapter is in the loop. USB-A would avoid that but
+   its receptacle is 14.5 × 5.7 mm against C's 8.94 × 3.26 — real thickness in a device whose panel
+   is 1.93 mm. **C is right**; the adapter is the buyer's problem, and C hubs and dongles are now
+   ordinary.
+
+**The alternative that does not need `USB1` was checked and is worse.** `J1` could in principle be
+dual-role: `CHG_OTG` is already declared and wired to `PB3`, and the `BQ25892` boosts `VBUS` in OTG
+mode. But it needs *more* parts than `USB1`, not fewer — a DRP `CC` controller to swap `Rd` for
+`Rp`, plus `C2` on `PMID` raised from its 8.2 µF no-OTG value (`battery.md` §312) — and it makes
+hosting and charging mutually exclusive, which is exactly when someone wants both.
+
+**The asymmetry is the argument.** Fitting the port and never using it costs $0.60 and a connector.
+Not fitting it and later wanting a keyboard costs a respin. *(Raised in `Analyse_battery.md`, an
+earlier round, not WP6–8 — but still open and still has a fabrication deadline.)*
 
 **D-4 ✅ — The `X2` footprint. BUILT 2026-08-20**, `tools/gen_som_footprint.py`, into `r2.pretty`.
 240 pads `A1`–`D60`, 4 NPTH alignment holes, 2 M2.5 mounting holes, and a `check()` that asserts the
