@@ -63,9 +63,17 @@ import sys
 import uuid
 
 HERE = pathlib.Path(__file__).resolve().parent
-OUT = HERE.parent / "r2.pretty" / "PCM-071_2xBTH-060-01-L-D-A-K.kicad_mod"
+OUT_DIR = HERE.parent / "r2.pretty"
 
-NAME = "PCM-071_2xBTH-060-01-L-D-A-K"
+# One footprint per physical connector, plus one for the module's mechanical
+# presence. The single 240-pad footprint this replaced is why som.md §10 exists:
+# a position file has one row per reference, so it could never place two parts.
+MODULE_NAME = "PCM-071_Module"
+CONNECTORS = {
+    # name: (near row = left, far row = right, centroid in the module frame)
+    "BTH-060-01-L-D-A-K_AB": ("B", "A", (4.800, 23.900)),
+    "BTH-060-01-L-D-A-K_CD": ("D", "C", (27.200, 19.100)),
+}
 
 # --- PHYTEC PCM-071_1573-1.dxf, module frame, origin at the lower-left --------
 SOM_W, SOM_H = 32.000, 43.000     # BOARD_OUTLINE, 4 vertices, exact
@@ -108,24 +116,14 @@ def f(v: float) -> str:
     return f"{round(v, 4):g}"
 
 
-def geometry():
-    """[(left row, right row, x_left, x_right, x_hole, y_pin1)] per connector."""
-    out = []
-    for (near, far), cx, y1 in zip(ROWS, CONN_CX, PIN1_Y):
-        xl = cx - ROW_PITCH / 2
-        out.append((near, far, xl, xl + ROW_PITCH, xl + HOLE_TO_ROW, y1))
-    return out
-
-
 def check() -> None:
     """Everything that would produce a board the module does not fit."""
     assert abs((ROW_PITCH + PAD_L) - ROW_SPAN) < 1e-9
     assert abs(SPAN - 29.500) < 1e-9
 
-    g = geometry()
     xs = {}
-    for near, far, xl, xr, _hx, _y1 in g:
-        xs[near], xs[far] = xl, xr
+    for near, far, (cx, _cy) in CONNECTORS.values():
+        xs[near], xs[far] = cx - ROW_PITCH / 2, cx + ROW_PITCH / 2
 
     left_edge = xs["B"] - PAD_L / 2
     right_edge = xs["C"] + PAD_L / 2
@@ -137,31 +135,36 @@ def check() -> None:
     skew = abs(left_edge - (SOM_W - right_edge))
     assert skew < 0.001, f"rows are not symmetric in the module: {skew:.4f} mm"
 
-    # The two numbers Figure 7 prints, rederived from the DXF's pad columns.
-    assert abs((CONN_CX[1] - CONN_CX[0]) - 22.400) < 1e-9, "connector spacing"
-    assert abs((PIN1_Y[0] - PIN1_Y[1]) - 4.800) < 1e-9, "connector stagger"
+    cxs = [c for _n, _f, (c, _y) in CONNECTORS.values()]
+    cys = [y for _n, _f, (_c, y) in CONNECTORS.values()]
+    assert abs((cxs[1] - cxs[0]) - 22.400) < 1e-9, "connector spacing"
+    assert abs((cys[0] - cys[1]) - 4.800) < 1e-9, "connector stagger"
+    # the centroids must be what the DXF's pad columns average to
+    for (cx, cy), y1 in zip([c for _n, _f, c in CONNECTORS.values()], PIN1_Y):
+        assert abs(cy - (y1 + SPAN / 2)) < 1e-9, f"centroid {cy} vs pads at {y1}"
 
     # Nothing drilled may touch a pad or another hole. M2.5 is checked against
     # its 4.000 plating, not its 2.600 drill: that is the copper-free zone.
     holes = []
-    for _near, _far, _xl, _xr, hx, y1 in g:
-        holes += [(hx, y1 - HOLE_END_OFF, HOLE_D / 2),
-                  (hx, y1 + SPAN + HOLE_END_OFF, HOLE_D / 2)]
+    for near, _far, (cx, cy) in CONNECTORS.values():
+        hx = cx - ROW_PITCH / 2 + HOLE_TO_ROW
+        holes += [(hx, cy - SPAN / 2 - HOLE_END_OFF, HOLE_D / 2),
+                  (hx, cy + SPAN / 2 + HOLE_END_OFF, HOLE_D / 2)]
     holes += [(mx, my, MTG_PLATE / 2) for mx, my in MTG]
     for i, (ax, ay, ar) in enumerate(holes):
         for bx, by, br in holes[i + 1:]:
             d = ((ax - bx) ** 2 + (ay - by) ** 2) ** 0.5
             assert d > ar + br + 0.2, f"holes collide at {d:.3f} mm"
-        for _near, _far, xl, xr, _hx, y1 in g:
-            for x in (xl, xr):
-                for py in (y1, y1 + SPAN):
+        for near, far, (cx, cy) in CONNECTORS.values():
+            for x in (cx - ROW_PITCH / 2, cx + ROW_PITCH / 2):
+                for py in (cy - SPAN / 2, cy + SPAN / 2):
                     dx = max(0.0, abs(ax - x) - PAD_L / 2)
                     dy = max(0.0, abs(ay - py) - PAD_W / 2)
                     d = (dx * dx + dy * dy) ** 0.5
                     assert d > ar + 0.15, f"hole ({ax},{ay}) is {d:.3f} mm from a pad"
 
     print(f"check: B and C rows both {left_edge:.3f} mm inside the module edges "
-          f"(skew {skew * 1000:.1f} um); 22.400 spacing and 4.800 stagger rederived")
+          f"(skew {skew * 1000:.1f} um); 22.400 spacing and 4.800 stagger hold")
 
 
 # --- emit --------------------------------------------------------------------
@@ -181,9 +184,92 @@ def rect(x1, y1, x2, y2, layer, w):
             f'\t\t(layer "{layer}")', f'\t\t(uuid "{uid()}")', "\t)"]
 
 
-def build() -> str:
-    check()
-    cx0, cy0 = SOM_W / 2, SOM_H / 2   # origin at the module centre, KiCad Y down
+def head(name: str, descr: str, tags: str, attr: str) -> list:
+    o = [f'(footprint "{name}"', "\t(version 20260206)",
+         '\t(generator "gen_som_footprint.py")', '\t(generator_version "10.0")',
+         '\t(layer "F.Cu")', f'\t(descr "{descr}")', f'\t(tags "{tags}")',
+         f"\t(attr {attr})"]
+    return o
+
+
+def props(name: str, half_h: float) -> list:
+    o = []
+    for kind, txt, yy, layer in (("Reference", "REF**", -half_h - 1.4, "F.SilkS"),
+                                 ("Value", name, half_h + 1.4, "F.Fab")):
+        o += [f'\t(property "{kind}" "{txt}"', f"\t\t(at 0 {f(yy)} 0)",
+              f'\t\t(layer "{layer}")', f'\t\t(uuid "{uid()}")',
+              "\t\t(effects (font (size 1 1) (thickness 0.15)))", "\t)"]
+    return o
+
+
+def build_connector(name: str, near: str, far: str, centroid) -> str:
+    """One receptacle: 120 pads named as the module names them, plus 2 NPTH.
+
+    Local frame, origin at the connector's centroid, KiCad Y down. The near row
+    is on the left and the far row on the right, which is Figure 6's B A / D C
+    order, and the alignment hole sits 1.054 mm inboard of the near row.
+    """
+    cx, cy = centroid
+    xl, xr = -ROW_PITCH / 2, ROW_PITCH / 2
+    hx = xl + HOLE_TO_ROW
+    half_h = SPAN / 2 + PAD_W / 2
+
+    o = head(name,
+             f"Samtec BTH-060-01-L-D-A-K-TR, 2x60 0.5 mm board-to-board receptacle. "
+             f"Carries rows {near} and {far} of the PHYTEC PCM-071; pads are named as "
+             f"L-1038e.A5 Tables 7-10 name them, NOT Samtec's 1-120. Land pattern from "
+             f"Samtec drawing BTH-XXX-XX-X-D-XX REV D and their own KiCad footprint; "
+             f"placement from PHYTEC PCM-071_1573-1.dxf. Two of these take the module. "
+             f"Must sit at X2 + ({cx - SOM_W / 2:+.3f}, {SOM_H / 2 - cy:+.3f}) -- checked by "
+             f"tools/check_pcb_connectors.py. See som.md section 11.",
+             "Samtec BTH-060 board-to-board mezzanine 0.5mm PCM-071 phyCORE AM62x",
+             "smd")
+    o += props(name, half_h)
+
+    npads = 0
+    for row, x in ((near, xl), (far, xr)):
+        for n in range(1, N + 1):
+            # pin 1 at the bottom: local y = +SPAN/2 down to -SPAN/2
+            py = SPAN / 2 - (n - 1) * PITCH
+            o += [f'\t(pad "{row}{n}" smd rect', f"\t\t(at {f(x)} {f(py)})",
+                  f"\t\t(size {f(PAD_L)} {f(PAD_W)})",
+                  '\t\t(layers "F.Cu" "F.Mask" "F.Paste")',
+                  f"\t\t(solder_mask_margin {f(MASK_MARGIN)})",
+                  f'\t\t(uuid "{uid()}")', "\t)"]
+            npads += 1
+    for hy in (SPAN / 2 + HOLE_END_OFF, -SPAN / 2 - HOLE_END_OFF):
+        o += ['\t(pad "" np_thru_hole circle', f"\t\t(at {f(hx)} {f(hy)})",
+              f"\t\t(size {f(HOLE_D)} {f(HOLE_D)})", f"\t\t(drill {f(HOLE_D)})",
+              '\t\t(layers "F&B.Cu" "*.Mask")', f'\t\t(uuid "{uid()}")', "\t)"]
+
+    # Samtec's own F.Fab body, 35.0 x 5.969, rotated vertical.
+    o += rect(-2.9845, -17.5, 2.9845, 17.5, "F.Fab", FAB_W)
+    # courtyard reaches past the pads to the holes -- the body covers them
+    o += rect(-ROW_PITCH / 2 - PAD_L / 2 - CRT_GAP, -17.5 - CRT_GAP,
+              ROW_PITCH / 2 + PAD_L / 2 + CRT_GAP, 17.5 + CRT_GAP, "F.CrtYd", CRT_W)
+    # pin-1 bracket below each row, clear of the pads
+    sy = SPAN / 2 + PAD_W / 2 + 0.35
+    for x in (xl, xr):
+        o += line(x - PAD_L / 2, sy, x + PAD_L / 2, sy, "F.SilkS", SILK_W)
+    o += [f'\t(fp_text user "{near}1 {far}1"', f"\t\t(at 0 {f(sy + 1.1)} 0)",
+          '\t\t(layer "F.SilkS")', f'\t\t(uuid "{uid()}")',
+          "\t\t(effects (font (size 0.8 0.8) (thickness 0.12)))", "\t)"]
+    o.append(")")
+    print(f"  {name}: {npads} pads {near}1-{near}{N} / {far}1-{far}{N} + 2 NPTH")
+    return "\n".join(o) + "\n"
+
+
+def build_module() -> str:
+    """`X2`: the module's outline and mounting holes. No pads, no nets.
+
+    The `PCM-071` is a plug-in module fitted by hand after assembly, so it is not
+    a placeable part -- `exclude_from_pos_files` keeps it out of the CPL, where a
+    designator with no BOM match would be rejected. What it *is* good for is
+    layout: the 32 x 43 outline says where the module sits and the two M2.5 holes
+    say where the standoffs go, and both are positional facts the connectors
+    alone do not carry.
+    """
+    cx0, cy0 = SOM_W / 2, SOM_H / 2
 
     def X(x):
         return x - cx0
@@ -191,69 +277,25 @@ def build() -> str:
     def Y(y):
         return cy0 - y
 
-    o = [f'(footprint "{NAME}"', "\t(version 20260206)",
-         '\t(generator "gen_som_footprint.py")', '\t(generator_version "10.0")',
-         '\t(layer "F.Cu")',
-         '\t(descr "PHYTEC phyCORE-AM62x PCM-071 System on Module, 240 pins over two '
-         'Samtec BTH-060-01-L-D-A-K-TR (2x60, 0.5 mm pitch, 5 mm stack height). Rows B A D C '
-         'left to right, pin 1 at the bottom, right connector staggered 4.8 mm down. Placement '
-         'and module outline from PHYTEC PCM-071_1573-1.dxf; land pattern from Samtec drawing '
-         'BTH-XXX-XX-X-D-XX REV D. The two receptacles are a separate BOM line, LCSC C3646540 x2 '
-         '-- see som.md. Courtyard covers the connectors only: the module stands 5 mm off the '
-         'board, so parts may sit under it; the 32x43 mm outline is on F.Fab.")',
-         '\t(tags "PHYTEC phyCORE AM62x PCM-071 SOM mezzanine Samtec BTH-060 board-to-board")',
-         # exclude_from_pos_files: this reference holds the pads but is not a
-         # placeable part -- J26/J27 carry the CPL rows. gen_bth060_marker.py.
-         "\t(attr smd exclude_from_pos_files)"]
-
-    for kind, txt, yy, layer in (("Reference", "REF**", -cy0 - 1.2, "F.SilkS"),
-                                 ("Value", NAME, cy0 + 1.2, "F.Fab")):
-        o += [f'\t(property "{kind}" "{txt}"', f"\t\t(at 0 {f(yy)} 0)",
-              f'\t\t(layer "{layer}")', f'\t\t(uuid "{uid()}")',
-              "\t\t(effects (font (size 1 1) (thickness 0.15)))", "\t)"]
+    o = head(MODULE_NAME,
+             "PHYTEC phyCORE-AM62x PCM-071, module outline and M2.5 mounting holes. "
+             "NO PADS -- the 240 contacts belong to J26/J27, the two BTH-060 receptacles. "
+             "The module is fitted by hand after assembly, so this is excluded from the "
+             "position file. Outline and hole positions from PCM-071_1573-1.dxf "
+             "(BOARD_OUTLINE 32.000 x 43.000; holes at 2.800/2.800 and 29.200/40.200, "
+             "2.600 drill, 4.000 plating). Stands 5 mm off the board on two M2.5 F-F "
+             "standoffs. See som.md section 11.",
+             "PHYTEC phyCORE AM62x PCM-071 SOM module outline mechanical mounting",
+             "exclude_from_pos_files")
+    o += props(MODULE_NAME, cy0)
 
     for layer in ("F.Fab", "User.Drawings"):
         o += rect(X(0), Y(0), X(SOM_W), Y(SOM_H), layer, FAB_W)
-
-    npads = 0
-    for near, far, xl, xr, hx, y1 in geometry():
-        for row, x in ((near, xl), (far, xr)):
-            for n in range(1, N + 1):
-                py = y1 + (n - 1) * PITCH
-                o += [f'\t(pad "{row}{n}" smd rect', f"\t\t(at {f(X(x))} {f(Y(py))})",
-                      f"\t\t(size {f(PAD_L)} {f(PAD_W)})",
-                      '\t\t(layers "F.Cu" "F.Mask" "F.Paste")',
-                      f"\t\t(solder_mask_margin {f(MASK_MARGIN)})",
-                      f'\t\t(uuid "{uid()}")', "\t)"]
-                npads += 1
-        hb, ht = y1 - HOLE_END_OFF, y1 + SPAN + HOLE_END_OFF
-        for hy in (hb, ht):
-            o += ['\t(pad "" np_thru_hole circle', f"\t\t(at {f(X(hx))} {f(Y(hy))})",
-                  f"\t\t(size {f(HOLE_D)} {f(HOLE_D)})", f"\t\t(drill {f(HOLE_D)})",
-                  '\t\t(layers "F&B.Cu" "*.Mask")', f'\t\t(uuid "{uid()}")', "\t)"]
-        fx0, fx1 = xl - PAD_L / 2, xr + PAD_L / 2
-        fy0, fy1 = y1 - PAD_W / 2, y1 + SPAN + PAD_W / 2
-        o += rect(X(fx0), Y(fy0), X(fx1), Y(fy1), "F.Fab", FAB_W)
-        # The courtyard reaches past the pads to the holes -- the connector body
-        # covers them, so a pad-field courtyard would let a neighbour sit on the
-        # plastic.
-        o += rect(X(fx0 - CRT_GAP), Y(min(fy0, hb - HOLE_D / 2) - CRT_GAP),
-                  X(fx1 + CRT_GAP), Y(max(fy1, ht + HOLE_D / 2) + CRT_GAP),
-                  "F.CrtYd", CRT_W)
-        for _row, x in ((near, xl), (far, xr)):
-            sy = fy0 - 0.35
-            o += line(X(x - PAD_L / 2), Y(sy), X(x + PAD_L / 2), Y(sy), "F.SilkS", SILK_W)
-        o += [f'\t(fp_text user "{near}1 {far}1"',
-              f"\t\t(at {f(X((xl + xr) / 2))} {f(Y(fy0 - 1.4))} 0)",
-              '\t\t(layer "F.SilkS")', f'\t\t(uuid "{uid()}")',
-              "\t\t(effects (font (size 0.8 0.8) (thickness 0.12)))", "\t)"]
-
     TICK = 3.0
     for mx, my, sx, sy in ((0, 0, 1, 1), (SOM_W, 0, -1, 1),
                            (SOM_W, SOM_H, -1, -1), (0, SOM_H, 1, -1)):
         o += line(X(mx), Y(my), X(mx + sx * TICK), Y(my), "F.SilkS", SILK_W)
         o += line(X(mx), Y(my), X(mx), Y(my + sy * TICK), "F.SilkS", SILK_W)
-
     for mx, my in MTG:
         o += ['\t(pad "" np_thru_hole circle', f"\t\t(at {f(X(mx))} {f(Y(my))})",
               f"\t\t(size {f(MTG_DRILL)} {f(MTG_DRILL)})", f"\t\t(drill {f(MTG_DRILL)})",
@@ -262,16 +304,26 @@ def build() -> str:
               f"\t\t(end {f(X(mx) + MTG_PLATE / 2)} {f(Y(my))})",
               f"\t\t(stroke (width {FAB_W}) (type dash))", "\t\t(fill none)",
               '\t\t(layer "F.Fab")', f'\t\t(uuid "{uid()}")', "\t)"]
-
+    # where the connectors must land, so a person placing by eye has a target
+    for name, (_n, _fr, (mx, my)) in CONNECTORS.items():
+        o += rect(X(mx) - 2.9845, Y(my) - 17.5, X(mx) + 2.9845, Y(my) + 17.5,
+                  "User.Drawings", FAB_W)
     o.append(")")
-    print(f"pads: {npads} SMD + 4 NPTH alignment + 2 M2.5")
+    print(f"  {MODULE_NAME}: outline {SOM_W} x {SOM_H}, 2 M2.5 NPTH, 0 pads")
     return "\n".join(o) + "\n"
 
 
 def main() -> int:
-    OUT.parent.mkdir(exist_ok=True)
-    OUT.write_text(build())
-    print(f"wrote {OUT.relative_to(HERE.parent)}")
+    check()
+    OUT_DIR.mkdir(exist_ok=True)
+    old = OUT_DIR / "PCM-071_2xBTH-060-01-L-D-A-K.kicad_mod"
+    if old.exists():
+        old.unlink()
+        print(f"  removed {old.name} -- superseded by the two-connector split")
+    for name, (near, far, centroid) in CONNECTORS.items():
+        (OUT_DIR / f"{name}.kicad_mod").write_text(
+            build_connector(name, near, far, centroid))
+    (OUT_DIR / f"{MODULE_NAME}.kicad_mod").write_text(build_module())
     return 0
 
 

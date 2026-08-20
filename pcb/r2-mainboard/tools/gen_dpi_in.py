@@ -50,6 +50,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from schgen import Sheet, sheet_uuids  # noqa: E402
 from sheet_pins import set_sheet_pins  # noqa: E402
+from gen_som import CONN, MPN, LCSC  # noqa: E402
 
 PROJ = HERE.parent
 
@@ -69,7 +70,10 @@ KICAD_CLI = pathlib.Path.home() / "Apps/kicad-10.0.4/usr/bin/kicad-cli"
 # Both must be multiples of the 1.27 mm grid, or every pin on the part lands
 # off-grid and ERC reports 22 `endpoint_off_grid` warnings. 130.0 was the
 # first choice and was wrong by 0.36 mm; schgen.check_grid() now catches it.
-UX, UY = 127.0, 130.81     # unit 2 origin (100 x 1.27, 103 x 1.27)
+UX, UY = 127.0, 130.81     # J26's unit 2 origin (100 x 1.27, 103 x 1.27)
+# J27's unit 2 is two pins, so it goes above rather than below -- the note block
+# starts at UY + 40.64 and a box under J26 would sit in it.
+BOX_Y = {"J26": UY, "J27": 62.23}
 LABEL_X = 190.5            # the hierarchical-label column
 CHANNEL = "BGR"            # data[5:0] blue, [11:6] green, [17:12] red
 
@@ -143,22 +147,40 @@ def build(rows: list) -> str:
         title="Glider-R2 / Reflow mainboard",
         rev="A", date="2026-08-15",
         comments=(
-            "dpi_in — PCM-071 unit 2: 18-bit RGB666 parallel video into Caster",
+            "dpi_in — J26/J27 unit 2: 18-bit RGB666 parallel video into Caster",
             "See docs/som.md §2. Pin numbers from datasheets/som_pinout.json.",
         ),
         pwr_base=700,
     )
     sh.lib.add_file("r2", PROJ / "r2.kicad_sym")
 
-    u = sh.place("r2:PCM-071", "X2", "PCM-071", UX, UY, 0, unit=2,
-                 footprint="r2:PCM-071_2xBTH-060-01-L-D-A-K",
-                 ref_at=(UX - 27.94, UY - 33.02),
-                 val_at=(UX - 27.94, UY - 30.48), justify="left",
-                 description="phyCORE-AM62x SOM, unit 2 of 4: VOUT0 parallel "
-                             "video. Units 1/3/4 are on som.kicad_sch.")
+    # Two boxes, because the DPI group straddles both connectors: 20 of its 22
+    # signals are on the module's A/B columns and two -- D2 and D4, the GPMC
+    # pins Table 31 reveals as VOUT0_DATA16/17 -- are on C/D. A two-pin box
+    # looks odd and is honest; those pins really are on the other receptacle.
+    # Unit 2 is one right-hand column, so its box height follows directly from
+    # how many of the 22 signals this connector carries. A fixed ref_at offset
+    # put J27B's designator off the top of the frame, since its box is two pins
+    # tall against J26B's twenty.
+    def half_height(ref: str) -> float:
+        n = sum(1 for r in rows if (r[0][0] in "AB") == (ref == "J26"))
+        return (n - 1) * 2.54 / 2 + 2.54
+
+    units = {}
+    for ref, (lib, rows_, fp, what) in CONN.items():
+        x, y = UX, BOX_Y[ref]
+        hh = half_height(ref)
+        units[ref] = sh.place(
+            lib, ref, MPN, x, y, 0, unit=2, footprint=fp,
+            extra={"LCSC": LCSC, "MPN": MPN, "Manufacturer": "Samtec"},
+            ref_at=(x - 27.94, y - hh - 5.08), val_at=(x - 27.94, y - hh - 2.54),
+            justify="left",
+            description=f"Samtec {MPN} carrying {what} of the PCM-071. Unit 2 of 4: "
+                        f"VOUT0 parallel video. Units 1/3/4 are on som.kicad_sch.")
 
     for x1, _som, net in rows:
-        px, py = u.pin(x1)
+        ref = "J26" if x1[0] in "AB" else "J27"
+        px, py = units[ref].pin(x1)
         sh.wire((px, py), (LABEL_X, py))
         sh.hlabel(LABEL_X, py, net, shape="output")
 
@@ -182,7 +204,9 @@ def main() -> int:
     set_sheet_pins(PROJ / "r2.kicad_sch", "dpi_in",
                    sorted((r[2], "output") for r in rows))
 
-    print(f"wrote {out.name}: 22 DPI signals, 1 part, 0 components")
+    n26 = sum(1 for r in rows if r[0][0] in "AB")
+    print(f"wrote {out.name}: 22 DPI signals, {n26} on J26 and {22 - n26} on J27, "
+          f"0 components")
     for x1, som, net in rows:
         print(f"  {x1:4s} {som:26s} -> {net}")
     return 0

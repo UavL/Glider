@@ -174,58 +174,53 @@ edge lands on ±1.20 mm — which is what makes the three different widths and t
 consistent rather than arbitrary — and the width tiers match the pin functions exactly, signal
 narrow and power-ground widest. The generator asserts both.
 
-### 3.2 `r2:PCM-071_2xBTH-060-01-L-D-A-K` — the SoM
+### 3.2 The SoM: two connector footprints plus a module outline
 
-> **BUILT 2026-08-20** by `tools/gen_som_footprint.py`, into **`r2.pretty`** (the project library,
-> not the `pcb_common` submodule — it is an R2-only part). 240 SMD pads `A1`–`D60`, 4 NPTH
-> alignment holes, 2 M2.5 mounting holes.
->
-> **Rebuilt the same day on PHYTEC's own DXF**, which arrived with the 3D archive. The full
-> derivation, the numbers, and the one apparent contradiction that had to be resolved are in
-> **`som.md` §11**; this section keeps only what a person placing the board needs.
+> **Built 2026-08-20**, and **restructured the same day** when the owner chose two connector symbols
+> over one 240-pin module symbol. `tools/gen_som_footprint.py` now emits three footprints into
+> `r2.pretty`. The full derivation and the verification are in **`som.md` §10 and §11**; this
+> section keeps what a person placing the board needs.
 
-The previous text here said this one "should not be built by hand" and pointed at SnapEDA. That was
-right when the only source was a picture. It is not the situation any more:
-`PCM-071_1573-1.dxf` is vector, numeric, gives the pad columns and the module outline directly, and
-PHYTEC's README names it authoritative. **The generator now asserts its own output against the
-DXF's numbers**, so this footprint is checked rather than measured.
+| Footprint | Ref | Pads | Origin, in the module frame |
+| --- | --- | --- | --- |
+| `r2:BTH-060-01-L-D-A-K_AB` | `J26` | 120 (`A1`–`A60`, `B1`–`B60`) + 2 NPTH | (4.800, 23.900) |
+| `r2:BTH-060-01-L-D-A-K_CD` | `J27` | 120 (`C1`–`C60`, `D1`–`D60`) + 2 NPTH | (27.200, 19.100) |
+| `r2:PCM-071_Module` | `X2` | **none** — outline and 2× M2.5 only | module centre |
+
+Pads keep the **module's** names, not Samtec's `1`–`120`, so a pad reads straight against
+`L-1038e.A5` Tables 7–10 while routing.
 
 | | |
 | --- | --- |
 | module outline | **32.000 × 43.000 mm**, `BOARD_OUTLINE`, exact |
 | connector centrelines | x = **4.800** and **27.200** — 22.400 apart, symmetric about 16.000 |
-| pads, left connector | y = **9.150 … 38.650** |
-| pads, right connector | y = **4.350 … 33.850** — staggered **4.800 mm** lower |
+| stagger | `J27` sits **4.800 mm** lower than `J26` |
 | pitch / span | **0.500** / **29.500**, exact |
 | rows, left to right | **B A** then **D C**; pin 1 at the bottom |
 | M2.5 mounting holes | (2.800, 2.800) and (29.200, 40.200); ⌀2.600 drill, ⌀4.000 plating |
 | stack height | 5 mm, set by two M2.5 F-F standoffs |
 
-Both outer rows land **0.990 mm** inside the module's edges, with 0.0 µm of skew. That symmetry is
-not imposed by the generator — it falls out of the DXF's centrelines — so it is a real check.
+Both outer rows land **0.990 mm** inside the module's edges, with 0.0 µm of skew — a real check,
+since it falls out of the DXF rather than being imposed.
 
-**Two deliberate departures, both in the generator's docstring:**
+⚠ **`tools/check_pcb_connectors.py` must pass before every fab order.** Nothing in KiCad ties the
+three footprints together, so it asserts `J26` = `X2` + (−11.200, −2.400), `J27` = `X2` +
+(+11.200, +2.400), same side, same rotation, 122 pads on each receptacle and 2 on the module. It
+exits non-zero, so it can gate a release script.
 
-1. **The courtyard encloses the connectors, not the module.** The module does not sit on the board;
-   it stands 5 mm off it, so low parts may live underneath, and a 32 × 43 courtyard would forbid
-   that. ⚠ **DRC therefore will not police component height under the SoM.** The outline is on
-   `F.Fab` and `User.Drawings` with silk corner ticks, and *"nothing tall under the module"* is a
-   manual check. Measure against the assembled stack, not the 5 mm number — the standoffs set it,
-   and the module carries components on its underside too.
-2. **The alignment holes come from Samtec, not from the DXF**, and `som.md` §11.1 explains why the
+**Two things layout has to know:**
+
+1. **The courtyards cover the connectors, not the module.** The module stands 5 mm off the board, so
+   low parts may live underneath — and `X2` has no courtyard at all. ⚠ **DRC will not police
+   component height under the SoM.** The 32 × 43 outline is on `F.Fab` and `User.Drawings` with silk
+   corner ticks, and *"nothing tall under the module"* is a manual check. Measure against the
+   assembled stack, not the 5 mm number.
+2. **The alignment holes come from Samtec, not from the DXF** — `som.md` §11.1 explains why the
    DXF's four `MOUNTING_HOLES_LAYER` circles are the *plug's* locating holes rather than ours.
    Trusting them would have put both connectors 0.62 mm out.
 
-**The two receptacles are now on the BOM** as `J26`/`J27`, purchase-only symbols that never reach
-the PCB — 2 × `BTH-060-01-L-D-A-K-TR`, LCSC `C3646540`, plus `MK20` for the M2.5 hardware.
-`som.md` §10. ⚠ **LCSC had 60 of them on 2026-08-20, i.e. 30 boards** — still the tightest line on
-the whole BOM, so re-check stock before ordering.
-
-The footprint's geometry was also diffed against **Samtec's own KiCad footprint**, which the owner
-downloaded the same day: pad size, row spacing, pitch, span, hole diameter and hole offset all
-agree exactly (`som.md` §10.2). Two things were adopted from it — the 1.991 mm hole offset, and
-`solder_mask_margin 0.102`, which makes each row **one gang mask opening with no webs**. That is
-correct at 0.5 mm pitch and is now explicit rather than inherited from the board's global margin.
+**Sourcing:** 2 × `BTH-060-01-L-D-A-K-TR`, LCSC `C3646540`, **60 in stock on 2026-08-20** — 30
+boards, the tightest line on the BOM. Plus `MK20`, PHYTEC's M2.5 kit.
 
 ## 4. Escape and net classes
 

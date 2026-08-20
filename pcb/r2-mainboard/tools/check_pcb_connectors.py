@@ -3,13 +3,11 @@
 
 Run before every fabrication order, once `r2.kicad_pcb` exists.
 
-`X2` carries all 240 pads; `J26` and `J27` carry no pads at all and exist so
-that each physical receptacle gets its own row in the position file (`som.md`
-§10). That split is what makes the board assemblable -- and it is also the one
-thing about it that can silently go wrong, because nothing in KiCad ties the
-three footprints together. Drag `J26` 2 mm and the board still passes DRC, the
-BOM is still right, and the assembler puts a 120-pin 0.5 mm connector 2 mm off
-its pads.
+`J26` and `J27` are the two `BTH-060` receptacles and carry every pad and every
+net; `X2` is the module -- outline and two M2.5 holes, no pads, fitted by hand.
+Nothing in KiCad ties the three together, so the geometry PHYTEC's DXF fixes can
+silently drift: drag `J26` 2 mm and the board still passes DRC and the BOM is
+still right, but the module will not seat.
 
 So the relationship is checked instead of trusted:
 
@@ -27,9 +25,10 @@ Also checked, because each has bitten a real board somewhere:
 * all three are on the **same side** -- a mirrored `J26` places the connector
   on the back of the board;
 * rotations agree, so the CPL angles are consistent;
-* `X2` is `exclude_from_pos_files` and `J26`/`J27` are not, which is the whole
-  BOM/CPL bargain;
-* `J26`/`J27` really have **no pads**, since pads here would collide with `X2`'s.
+* `X2` is `exclude_from_pos_files` and `J26`/`J27` are not -- the module is
+  fitted by hand, the receptacles are placed by the assembler;
+* `J26`/`J27` really carry **122 pads** each (120 contacts + 2 alignment NPTH)
+  and `X2` carries **2** (the M2.5 holes), so nobody has swapped a footprint.
 
 Exit status is 0 when everything holds and 1 otherwise, so it can gate a
 release script.
@@ -114,9 +113,9 @@ def main() -> int:
             bad.append(f"{ref} is on {f['layer']} and {ANCHOR} is on {a['layer']}")
         if abs((f["rot"] - a["rot"] + 180) % 360 - 180) > 0.01:
             bad.append(f"{ref} is rotated {f['rot']}, {ANCHOR} is {a['rot']}")
-        if f["npads"]:
-            bad.append(f"{ref} has {f['npads']} pads; it must have none "
-                       f"(they would collide with {ANCHOR}'s)")
+        if f["npads"] != 122:
+            bad.append(f"{ref} has {f['npads']} pads, expected 122 "
+                       f"(120 contacts + 2 alignment NPTH)")
         if "exclude_from_pos_files" in f["attr"]:
             bad.append(f"{ref} is excluded from the position file, so it gets no "
                        f"CPL row and the connector never gets placed")
@@ -125,9 +124,9 @@ def main() -> int:
         bad.append(f"{ANCHOR} is NOT excluded from the position file -- it will "
                    f"appear as a CPL designator with no BOM match, which JLCPCB "
                    f"rejects")
-    if fps[ANCHOR]["npads"] != 246:
-        bad.append(f"{ANCHOR} has {fps[ANCHOR]['npads']} pads, expected 246 "
-                   f"(240 SMD + 4 alignment + 2 M2.5)")
+    if fps[ANCHOR]["npads"] != 2:
+        bad.append(f"{ANCHOR} has {fps[ANCHOR]['npads']} pads, expected 2 "
+                   f"(the M2.5 mounting holes; the contacts belong to J26/J27)")
 
     if bad:
         print("\nFAIL:")
@@ -135,7 +134,7 @@ def main() -> int:
             print(f"  - {b}")
         return 1
     print("\nOK: both receptacles are on their pads, same side, same rotation, "
-          "and the BOM/CPL split is intact.")
+          "and the module will seat.")
     return 0
 
 

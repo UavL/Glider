@@ -51,7 +51,22 @@ from schgen import Sheet, sheet_uuids  # noqa: E402
 from sheet_pins import set_sheet_pins  # noqa: E402
 
 PROJ = HERE.parent
-PINOUT = PROJ / "datasheets" / "som_pinout.json"
+
+
+def _find(name: str) -> pathlib.Path:
+    """Any datasheet-derived file, at any depth under datasheets/.
+
+    Hardcoding `datasheets/<name>` broke silently when the SoM material was
+    filed into a subfolder on 2026-08-19; commit 058e9b9 fixed three tools this
+    way and missed this one, which only showed up when the sheet was next
+    regenerated.
+    """
+    hits = sorted(PROJ.glob(f"datasheets/**/{name}"))
+    assert hits, f"{name} is not anywhere under {PROJ / 'datasheets'}"
+    return hits[0]
+
+
+PINOUT = _find("som_pinout.json")
 KICAD_CLI = pathlib.Path.home() / "Apps/kicad-10.0.4/usr/bin/kicad-cli"
 KI = pathlib.Path.home() / "Apps/kicad-10.0.4/usr/share/kicad/symbols"
 
@@ -61,13 +76,36 @@ CB_FP = "Capacitor_SMD:C_0805_2012Metric"      # 22 uF bulk
 
 # Every origin must be a multiple of 1.27 or the whole part lands off-grid;
 # schgen.Sheet.check_grid() enforces it at render time.
-U1X, U1Y = 76.20, 100.33       # unit 1 POWER  (60 x 1.27, 79 x 1.27)
-U3X, U3Y = 213.36, 88.90       # unit 3 CTRL   (168 x 1.27, 70 x 1.27)
-U4X, U4Y = 350.52, 139.70      # unit 4 NC     (276 x 1.27, 110 x 1.27)
-SD_X, SD_Y = 71.12, 218.44     # microSD J21
-GND_BUS = 114.30               # unit 1's ground bus, right of its GND pins
-PU_X, PU_Y = 127.00, 209.55    # the five SD pull-ups, in a row
-CB_X, CB_Y = 205.74, 209.55    # the card's bulk cap
+# One symbol per physical connector -- docs/som.md §10.3. J26 carries the
+# module's A and B columns, J27 its C and D. Six unit boxes now instead of
+# three, laid out in the same three columns: power, control, unused.
+CONN = {
+    "J26": ("r2:BTH-060_AB", "AB", "r2:BTH-060-01-L-D-A-K_AB",
+            "rows A and B, the connector at module x = 4.800"),
+    "J27": ("r2:BTH-060_CD", "CD", "r2:BTH-060-01-L-D-A-K_CD",
+            "rows C and D, the connector at module x = 27.200"),
+}
+MPN = "BTH-060-01-L-D-A-K-TR"
+LCSC = "C3646540"
+
+# (x, y) per (refdes, unit). Heights follow from the pin counts -- 25/20 rows
+# for POWER, 6/21 for CTRL, 29/29 for NC -- so the gaps below are what keeps
+# them apart; `assert_no_overlap` checks it rather than trusting the arithmetic.
+BOX = {                        # every value a multiple of 1.27, or the pins
+    ("J26", 1): (76.20, 69.85),   # land off-grid and check_grid() says so
+    ("J27", 1): (76.20, 144.78),
+    ("J26", 3): (213.36, 44.45),
+    ("J27", 3): (213.36, 105.41),
+    ("J26", 4): (350.52, 62.23),
+    ("J27", 4): (350.52, 158.75),
+}
+GND_BUS = 114.30               # both power units' ground bus, right of the pins
+SD_X, SD_Y = 149.86, 226.06    # microSD J21
+PU_X, PU_Y = 210.82, 210.82    # the five SD pull-ups, in a row
+CB_X, CB_Y = 289.56, 210.82    # the card's bulk cap
+BULK_X, BULK_Y = 33.02, 210.82  # C510-C512, bulk at the connectors
+X2_XY = (241.30, 234.95)       # the module itself: outline and mounting holes
+MK_XY = (241.30, 255.27)       # its M2.5 hardware -- both clear of the title block
 
 # --- unit 1, power -------------------------------------------------------
 VIN_PINS = ("A1", "A2", "A3")
@@ -86,6 +124,10 @@ WIRED = {
     "C52": ("SOM_RESET#", "h"), "C54": ("PG_SOM", "h"),
     # housekeeping, both on MCU always-on GPIO (see the module docstring)
     "A57": ("SOM_IRQ#", "h"), "A58": ("SOM_WAKE#", "h"),
+    # the SoM's way back into a bricked MCU -- mcu.md §5.8. These were added by
+    # tools/patch_som_mcu_recovery.py after the sheet was first generated; they
+    # live here now so regenerating cannot silently drop them.
+    "A59": ("SOM_MCU_NRST", "h"), "A60": ("SOM_MCU_BOOT0", "h"),
     # USB 2.0 from J1 on battery
     "A38": ("USB_DM", "h"), "A39": ("USB_DP", "h"), "A40": ("+VBUS", "p"),
     # microSD on MMC1, local to this sheet
@@ -113,9 +155,12 @@ SD_SOCKET = {
 SD_SHELL = ("10",)          # 10-13 are one point; wiring 10 wires all four
 
 NOTE_MAIN = [
-    "som -- PCM-071 units 1/3/4. Unit 2, the DPI link, is on dpi_in.",
-    "Pin numbers from datasheets/som_pinout.json, which parse_som_pinout.py",
-    "extracts from L-1038e.A5 Tables 7-10. Reasoning: docs/som.md.",
+    "som -- J26 and J27, the two BTH-060 receptacles, units 1/3/4.",
+    "Unit 2, the DPI link, is on dpi_in. J26 = module columns A+B,",
+    "J27 = C+D. Pin numbers are the MODULE's (Tables 7-10), not Samtec's",
+    "1-120, so the schematic reads straight against L-1038e.A5.",
+    "X2 is the module: outline and M2.5 holes only, no pads, no nets.",
+    "Pin numbers from datasheets/som_pinout.json via parse_som_pinout.py.",
     "All three VIN pins and all 45 grounds are connected -- 4.6 requires it.",
     "B1 SoC_VDDSHV5_SDIO is an OUTPUT (Table 12), 100 mA: it powers the card.",
     "*** B2 VBAT is the RTC backup, 40 nA. It is NOT this board's +VBAT,",
@@ -145,7 +190,7 @@ def build(pins: dict, unit_of: dict) -> tuple[str, list]:
         title="Glider-R2 / Reflow mainboard",
         rev="A", date="2026-08-15",
         comments=(
-            "som — PCM-071 units 1/3/4: power, control, microSD on MMC1",
+            "som — J26/J27 BTH-060 units 1/3/4: power, control, microSD on MMC1",
             "See docs/som.md. Pin numbers from datasheets/som_pinout.json.",
         ),
         pwr_base=800,
@@ -155,24 +200,72 @@ def build(pins: dict, unit_of: dict) -> tuple[str, list]:
     for n in ("Device", "power"):
         sh.lib.add_dir(n, KI / f"{n}.kicad_symdir")
 
-    fp = "r2:PCM-071_2xBTH-060-01-L-D-A-K"
+    # Six unit boxes: three per connector. Unit 2, the DPI link, is on dpi_in.
+    UDESC = {1: "power and grounds", 3: "SPI0, UART0, USB0, MMC1, reset and status",
+             4: "every pin R2 does not use"}
+
+    def half_height(ref: str, u: int) -> float:
+        """Half a unit box's height, mirroring gen_som_symbol.unit_block.
+
+        The six boxes are all different heights now, so a fixed ref_at offset
+        puts one symbol's designator inside another's body -- which is exactly
+        what the first render showed for J27A against J26A.
+        """
+        ps = [p for p, v in unit_of.items() if v == u and p[0] in CONN[ref][1]]
+        if u == 1:
+            rows = max(sum(1 for p in ps if pins[p]["name"] != "GND"),
+                       sum(1 for p in ps if pins[p]["name"] == "GND"))
+        else:
+            rows = (len(ps) + 1) // 2
+        return (rows - 1) * 2.54 / 2 + 2.54
+
     units = {}
-    for u, (x, y, desc) in {
-        1: (U1X, U1Y, "unit 1 of 4: VIN, VBAT, SoC_VDDSHV5_SDIO and 45 grounds"),
-        3: (U3X, U3Y, "unit 3 of 4: SPI0, UART0, USB0, MMC1, reset and status"),
-        4: (U4X, U4Y, "unit 4 of 4: every pin R2 does not use"),
-    }.items():
-        units[u] = sh.place(
-            "r2:PCM-071", "X2", "PCM-071", x, y, 0, unit=u, footprint=fp,
-            ref_at=(x - 30.48, y - 88.9 if u == 1 else y - 40.64),
-            val_at=(x - 30.48, y - 86.36 if u == 1 else y - 38.10),
-            justify="left",
-            description=f"phyCORE-AM62x SOM, {desc}. Unit 2 is on dpi_in.")
+    for ref, (lib, rows, fp, what) in CONN.items():
+        for u in (1, 3, 4):
+            x, y = BOX[(ref, u)]
+            units[(ref, u)] = sh.place(
+                lib, ref, MPN, x, y, 0, unit=u, footprint=fp,
+                extra={"LCSC": LCSC, "MPN": MPN, "Manufacturer": "Samtec"},
+                ref_at=(x - 30.48, y - half_height(ref, u) - 5.08),
+                val_at=(x - 30.48, y - half_height(ref, u) - 2.54),
+                justify="left",
+                description=f"Samtec {MPN}, 2x60 0.5 mm receptacle carrying {what} "
+                            f"of the PCM-071. Unit {u} of 4: {UDESC[u]}. Unit 2, the "
+                            f"DPI link, is on dpi_in.")
+
+    # The module itself is no longer a symbol with pins -- J26/J27 carry every
+    # net. X2 keeps a footprint (outline plus the two M2.5 holes, no pads) so
+    # layout knows where the module and its standoffs go, and a BOM line so it
+    # gets ordered. It is excluded from the position file: it is fitted by hand.
+    sh.place("r2:BOM_ITEM", "X2", "PCM-071", *X2_XY,
+             footprint="r2:PCM-071_Module",
+             extra={"MPN": "PCM-071", "Manufacturer": "PHYTEC",
+                    "BOM Comments":
+                        "Plug-in module, bought from PHYTEC and fitted by hand after "
+                        "assembly -- NOT placed by the PCBA house, and excluded from the "
+                        "position file. Its 240 contacts belong to J26/J27. This symbol "
+                        "carries the module's outline and M2.5 mounting holes."},
+             ref_at=(X2_XY[0], X2_XY[1] - 6.35),
+             val_at=(X2_XY[0], X2_XY[1] + 6.35))
+    sh.place("r2:BOM_ITEM", "MK20", "PCM-071 mounting kit", *MK_XY,
+             extra={"MPN": "2x M2.5x5 F-F standoff, 4x M2.5x4 screw, 4x M2.5 washer",
+                    "BOM Comments":
+                        "PHYTEC's own recommendation, L-1038e.A5 section 4.3. Not "
+                        "optional: the standoffs set the 5 mm stacking height the "
+                        "BTH-060 pair is specified for, so without them the connector "
+                        "solder joints carry the module's mechanical load."},
+             ref_at=(MK_XY[0], MK_XY[1] - 6.35),
+             val_at=(MK_XY[0], MK_XY[1] + 6.35))
+    sh.text(X2_XY[0] - 25.40, X2_XY[1] - 12.70,
+            "X2 and MK20 are bought, not placed by the assembler.", 1.27)
 
     hier: list[tuple[str, str]] = []
 
-    # --- unit 1: power ---------------------------------------------------
-    u1 = units[1]
+    # --- unit 1: power, one box per connector ----------------------------
+    # Only J26 carries supplies: VIN x3 and VBAT are on column A, and
+    # SoC_VDDSHV5_SDIO on B1. J27's power unit is 20 grounds and nothing else,
+    # which is why the two boxes look so different.
+    u1 = units[("J26", 1)]
     vin_pts = [u1.pin(p) for p in VIN_PINS]
     for px, py in vin_pts:
         sh.wire((px, py), (px - 12.7, py))
@@ -195,67 +288,77 @@ def build(pins: dict, unit_of: dict) -> tuple[str, list]:
     sh.wire((px - 12.7, py), (px - 12.7, py + 10.16))
     sh.power("+3V3_AON", px - 12.7, py + 10.16)
 
-    gnds = [u1.pin(p) for p, r in pins.items()
-            if r["name"] == "GND" and unit_of[p] == 1]
-    gnds.sort(key=lambda p: p[1])
-    for px, py in gnds:
-        sh.wire((px, py), (GND_BUS, py))
-    sh.wire((GND_BUS, gnds[0][1]), (GND_BUS, gnds[-1][1]))
-    for _, py in gnds[1:-1]:
-        sh.junction(GND_BUS, py)
-    sh.wire((GND_BUS, gnds[-1][1]), (GND_BUS, gnds[-1][1] + 5.08))
-    sh.power("GND", GND_BUS, gnds[-1][1] + 5.08)
+    # Each power box gets its own ground bus. They share an x, which is safe
+    # because the two boxes never overlap in y -- assert_no_overlap proves it.
+    for ref in CONN:
+        box = units[(ref, 1)]
+        gnds = [box.pin(p) for p, r in pins.items()
+                if r["name"] == "GND" and unit_of[p] == 1 and p[0] in CONN[ref][1]]
+        assert gnds, f"{ref} has no grounds in unit 1"
+        gnds.sort(key=lambda q: q[1])
+        for px, py in gnds:
+            sh.wire((px, py), (GND_BUS, py))
+        sh.wire((GND_BUS, gnds[0][1]), (GND_BUS, gnds[-1][1]))
+        for _, py in gnds[1:-1]:
+            sh.junction(GND_BUS, py)
+        sh.wire((GND_BUS, gnds[-1][1]), (GND_BUS, gnds[-1][1] + 5.08))
+        sh.power("GND", GND_BUS, gnds[-1][1] + 5.08)
 
     # bulk at the connector: the module draws up to 1 A through two 0.5 mm
     # Samtec parts, and power.md's output caps are back at the boost.
     for i, (ref, val, fpc) in enumerate((("C510", "22u", CB_FP),
                                          ("C511", "22u", CB_FP),
                                          ("C512", "100n", C_FP))):
-        x = 33.02 + i * 10.16
-        c = sh.place("Device:C", ref, val, x, 179.07, 0, footprint=fpc,
-                     ref_at=(x + 2.54, 177.80), val_at=(x + 2.54, 181.61),
+        x = BULK_X + i * 10.16
+        c = sh.place("Device:C", ref, val, x, BULK_Y, 0, footprint=fpc,
+                     ref_at=(x + 2.54, BULK_Y - 1.27), val_at=(x + 2.54, BULK_Y + 2.54),
                      justify="left",
                      description="bulk at the SoM connector; the module draws "
                                  "up to 1 A (L-1038e.A5 §5.1)")
-        sh.wire(c.pin("1"), (x, 173.99))
-        sh.label(x, 173.99, "+5V_SOM", rot=90)
-        sh.wire(c.pin("2"), (x, 187.96))
-        sh.power("GND", x, 187.96)
+        sh.wire(c.pin("1"), (x, BULK_Y - 5.08))
+        sh.label(x, BULK_Y - 5.08, "+5V_SOM", rot=90)
+        sh.wire(c.pin("2"), (x, BULK_Y + 8.89))
+        sh.power("GND", x, BULK_Y + 8.89)
 
-    # --- unit 3: control -------------------------------------------------
-    u3 = units[3]
-    for pin in sorted((p for p, u in unit_of.items() if u == 3),
-                      key=lambda p: (p[0], int(p[1:]))):
-        px, py = u3.pin(pin)
-        left = px < U3X
-        end = px - 22.86 if left else px + 22.86
-        if pin not in WIRED:
-            sh.nc(px, py)
-            continue
-        net, kind = WIRED[pin]
-        sh.wire((px, py), (end, py))
-        if kind == "h":
-            sh.hlabel(end, py, net, shape="bidirectional",
-                      rot=180 if left else 0)
-            hier.append((net, "bidirectional"))
-        elif kind == "p":
-            # A power symbol among hierarchical labels needs room, and it must
-            # get it *horizontally*. The first attempt dropped a vertical wire
-            # 10.16 mm from this row to clear the two USB labels above -- and
-            # that wire ran straight through the label anchors four rows below,
-            # shorting SOM_IRQ# and SOM_WAKE# to +VBUS. ERC was silent; the
-            # netlist was not. A longer stub on this row alone cannot touch
-            # anything, because every neighbour lives on a different row.
-            sh.wire((end, py), (end - 15.24, py))
-            sh.power(net, end - 15.24, py, rot=270)
-        else:
-            sh.label(end, py, net, rot=180 if left else 0,
-                     justify="right" if left else "left")
+    # --- unit 3: control, one box per connector --------------------------
+    for ref, (_lib, rows, _fp, _what) in CONN.items():
+        u3 = units[(ref, 3)]
+        cx = BOX[(ref, 3)][0]
+        for pin in sorted((p for p, u in unit_of.items()
+                           if u == 3 and p[0] in rows),
+                          key=lambda p: (p[0], int(p[1:]))):
+            px, py = u3.pin(pin)
+            left = px < cx
+            end = px - 22.86 if left else px + 22.86
+            if pin not in WIRED:
+                sh.nc(px, py)
+                continue
+            net, kind = WIRED[pin]
+            sh.wire((px, py), (end, py))
+            if kind == "h":
+                sh.hlabel(end, py, net, shape="bidirectional",
+                          rot=180 if left else 0)
+                hier.append((net, "bidirectional"))
+            elif kind == "p":
+                # A power symbol among hierarchical labels needs room, and it
+                # must get it *horizontally*. The first attempt dropped a
+                # vertical wire 10.16 mm from this row to clear the two USB
+                # labels above -- and that wire ran straight through the label
+                # anchors four rows below, shorting SOM_IRQ# and SOM_WAKE# to
+                # +VBUS. ERC was silent; the netlist was not. A longer stub on
+                # this row alone cannot touch anything, because every neighbour
+                # lives on a different row.
+                sh.wire((end, py), (end - 15.24, py))
+                sh.power(net, end - 15.24, py, rot=270)
+            else:
+                sh.label(end, py, net, rot=180 if left else 0,
+                         justify="right" if left else "left")
 
-    # --- unit 4: every unused pin ----------------------------------------
-    u4 = units[4]
-    for pin in (p for p, u in unit_of.items() if u == 4):
-        sh.nc(*u4.pin(pin))
+    # --- unit 4: every unused pin, one box per connector -----------------
+    for ref, (_lib, rows, _fp, _what) in CONN.items():
+        u4 = units[(ref, 4)]
+        for pin in (p for p, u in unit_of.items() if u == 4 and p[0] in rows):
+            sh.nc(*u4.pin(pin))
 
     # --- the microSD ------------------------------------------------------
     j = sh.place("symbols:MICRO_SD(TFC-WPAPR-08)", "J21",
@@ -319,7 +422,22 @@ def build(pins: dict, unit_of: dict) -> tuple[str, list]:
             sh.text(x, y, line, 1.27)
             y += 3.81
         assert y <= 285.0, f"note block at x={x} runs to y={y:.1f}"
-    return sh.render(), sorted(set(hier))
+    text = sh.render()
+
+    # MK20 is hardware in a bag, not a footprint: on_board=no keeps it off the
+    # PCB and out of the position file while leaving it on the order. X2 stays
+    # on_board=yes -- it has a real footprint (outline and the M2.5 holes) that
+    # layout needs -- and its `exclude_from_pos_files` attribute, set in the
+    # footprint itself, is what keeps it out of the CPL.
+    blocks = text.split('(lib_id "r2:BOM_ITEM")')
+    hit = 0
+    for i, blk in enumerate(blocks[1:], 1):
+        if re.search(r'\(property "Reference" "MK20"', blk):
+            blocks[i], n = re.subn(r"\(on_board yes\)", "(on_board no)", blk, count=1)
+            assert n == 1, "MK20 has no (on_board yes) to rewrite"
+            hit += 1
+    assert hit == 1, f"expected one MK20 block, found {hit}"
+    return '(lib_id "r2:BOM_ITEM")'.join(blocks), sorted(set(hier))
 
 
 def verify_netlist() -> None:
@@ -355,15 +473,15 @@ def verify_netlist() -> None:
             j += 1
         for ref, pin in re.findall(r'\(ref "([^"]+)"\)\n\t+\(pin "([^"]+)"\)',
                                    t[a:j + 1]):
-            if ref == "X2":
+            if ref in CONN:
                 of[pin] = m.group(1)
     bad = []
     for pin, (net, _kind) in WIRED.items():
         got = of.get(pin, "<absent>")
         if got.split("/")[-1] != net:
-            bad.append(f"X1 {pin}: expected {net!r}, netlist has {got!r}")
+            bad.append(f"{pin}: expected {net!r}, netlist has {got!r}")
     assert not bad, "wired pins landed on the wrong net:\n  " + "\n  ".join(bad)
-    print(f"  netlist: all {len(WIRED)} wired X1 pins are on the named net")
+    print(f"  netlist: all {len(WIRED)} wired pins are on the named net")
 
 
 def main() -> int:
@@ -384,9 +502,14 @@ def main() -> int:
 
     verify_netlist()
 
-    n = {u: sum(1 for v in unit_of.values() if v == u) for u in (1, 3, 4)}
-    print(f"wrote {out.name}: units 1/3/4 = {n[1]}/{n[3]}/{n[4]} pins, "
-          f"{len(WIRED)} wired, {len(hier)} hierarchical")
+    per = {}
+    for ref, (_l, rows, _f, _w) in CONN.items():
+        per[ref] = {u: sum(1 for p, v in unit_of.items()
+                           if v == u and p[0] in rows) for u in (1, 3, 4)}
+    print(f"wrote {out.name}:")
+    for ref, n in per.items():
+        print(f"  {ref}  units 1/3/4 = {n[1]}/{n[3]}/{n[4]} pins")
+    print(f"  {len(WIRED)} wired, {len(hier)} hierarchical")
     for net, _ in hier:
         print(f"    {net}")
     return 0

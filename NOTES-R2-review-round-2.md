@@ -308,49 +308,29 @@ hosting and charging mutually exclusive, which is exactly when someone wants bot
 Not fitting it and later wanting a keyboard costs a respin. *(Raised in `Analyse_battery.md`, an
 earlier round, not WP6–8 — but still open and still has a fabrication deadline.)*
 
-**D-4 ✅ — The `X2` footprint. BUILT 2026-08-20**, `tools/gen_som_footprint.py`, into `r2.pretty`.
-240 pads `A1`–`D60`, 4 NPTH alignment holes, 2 M2.5 mounting holes, and a `check()` that asserts the
-geometry three ways. Full derivation in `layout.md` §3.2.
+**D-4 ✅ — The `X2` footprint. BUILT and then RESTRUCTURED, 2026-08-20.**
 
-Two corrections to what this entry used to say, both of which would have produced a wrong board:
+Built first as one 240-pad footprint from PHYTEC's own DXF, which is vector and numeric where
+`L-1038e.A5` Figure 7 is a raster picture. It agreed with a Figure-7-derived first attempt to 8 µm
+in x and **61 µm in y** — worth correcting, since 61 µm is 20 % of a 0.305 mm pad's width. Two traps
+found on the way, both in `som.md` §11:
 
-- **"row spacing 1.986" was wrong.** 1.986 mm is the offset from the *end* pad's centre to the
-  alignment hole, along the row. The row-to-row spacing is **6.172 mm** (`.3000 [7.620]` minus the
-  1.448 pad length), measured from the drawing's vector content and matching the printed overall to
-  the micron.
-- **The alignment hole is not on the connector's centreline.** It is 1.054 mm from one row and
-  5.118 mm from the other. Since PHYTEC's Figure 7 dimensions the *holes*, a footprint built on a
-  centred hole would put both connectors 2.06 mm out of place.
+- **"Row spacing 1.986" was wrong** — 1.986 mm is the end pad to alignment hole offset *along* the
+  row. Row-to-row is **6.172 mm**.
+- **The alignment hole is not on the connector's centreline** (1.054 mm from one row, 5.118 from the
+  other), and the DXF's own four holes are the **plug's**, not ours. Trusting them would have put
+  both connectors 0.62 mm out.
 
-An audit at the same time resolved every `Footprint` property in all 14 sheets: `PCM-071` was the
-**only** gap in the whole project, and the `footprints:` → `r2:` rename is done.
+Then **restructured at the owner's decision** into two connector symbols and three footprints —
+`BTH-060-01-L-D-A-K_AB`, `..._CD` and `PCM-071_Module`. `som.md` §10 has the whole argument; the
+short version is that one 240-pad footprint could not be assembled, because a position file has one
+row per reference and there is no single part covering 240 pads.
 
-**Rebuilt later the same day on PHYTEC's own DXF**, which the owner downloaded with the 3D archive
-and which is vector and numeric where Figure 7 is a raster. It agreed to 8 µm in x and **61 µm in
-y** — worth correcting, since 61 µm is 20 % of a 0.305 mm pad's width. `som.md` §11. The generator
-now asserts its output against the DXF and the row skew is 0.0 µm.
+Verified by an exact acceptance test: the netlist is **identical except every `X2.<pin>` became
+`J26.<pin>` or `J27.<pin>`** — 517 nets, 270 named nets with identical membership, 247 unconnected
+pins. ERC unchanged at 32.
 
-⚠ **And it turned up a hole that would have cost a fab order.** `X2` is one symbol for the
-*module*, so nothing generated a line for the **2 × `BTH-060-01-L-D-A-K-TR`** (`C3646540`) an
-assembler actually solders — and worse, a CPL has one row per reference, so `X2` alone would place
-one part where two belong, on a designator matching no LCSC part, which JLCPCB rejects outright.
-**A board ordered that way arrives with 240 bare pads.**
-
-Fixed in two passes, and the first pass was wrong in an instructive way: making `J26`/`J27`
-purchase-only (`on_board no`) put the parts on the order and left the board unassemblable, because a
-part that is not on the board is not in the CPL either. The corrected arrangement (`som.md` §10.0)
-keeps the pads under `X2`, marks `X2` `exclude_from_pos_files`, and gives `J26`/`J27` a **no-pad**
-footprint so each receptacle gets its own CPL row and BOM match. `MK20` carries the M2.5 hardware.
-517 nets before and after, ERC unchanged. `tools/check_pcb_connectors.py` asserts
-`J26`/`J27` = `X2` ± (11.200, 2.400) before every fab order — tested against a nudged board.
-
-**Why there is no connector symbol at all** is answered in `som.md` §10.1, because it looks like an
-omission and is not: one footprint makes the two connectors' 22.400 mm spacing *and* 4.800 mm
-stagger unbreakable, and Samtec numbers its pads 1–120 alternating between rows against the module's
-A1–D60, so using the vendor part would be a 240-line renumbering with no ERC to catch a slip.
-
-⚠ **LCSC had 60 of `C3646540` on 2026-08-20 — 30 boards.** Still the tightest line on the BOM.
-Re-check before ordering; `C3644612` is the same connector without `-K`, 36 more.
+⚠ **`C3646540` had 60 in stock — 30 boards.** The tightest line on the BOM.
 
 **D-5 ✅ — SoM position and side. FULLY CLOSED by the owner 2026-08-20.** Top right beside the USB
 ports, on the face pointing **away from the panel**. `layout.md` §1.1, with the rest of the layout
