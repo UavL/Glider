@@ -417,39 +417,40 @@ libraries are found by relative path, and the global table is broken.
      (uri "/tmp/.mount_kicadremp4722615889122143643/share/kicad/template/fp-lib-table"))
 ```
 
-That is an **AppImage mount point**. AppImages mount themselves at `/tmp/.mount_<random>`, the name
-changes every launch, and the directory disappears when the app exits. So the table was written once
-from inside a running AppImage and has pointed at nothing ever since. This is the same fault as
-standing ask 3 — the 305 `footprint_link_issues` in every ERC run since WP1 are this, and they were
-dismissed as cosmetic because they were only ever seen in the schematic.
+`/tmp/.mount_<random>` is where an **AppImage mounts itself while it runs** — a new name every launch,
+gone the moment it exits. The owner does *not* run the AppImage now: KiCad lives as an extracted
+AppDir at `~/Apps/kicad-10.0.4` (a symlink to `./AppDir`) and is launched through `AppRun`. So this
+is a leftover, written once during an AppImage run before the extraction, and dead ever since. The
+symbol table never broke because it was written with absolute paths — compare
+`sym-lib-table`, which points straight at `/home/lum/Apps/kicad-10.0.4/share/kicad/symbols/…`.
 
-**The fix, which is outside this repo and therefore the owner's to apply.** A corrected table with
-absolute paths is prepared at `fp-lib-table.fixed`; all 155 of its library paths were checked to
-exist. Back up first:
+This is also standing ask 3: the 305 `footprint_link_issues` in every ERC run since WP1 are this
+same fault, dismissed as cosmetic because they had only ever been seen in the schematic.
+
+**The fix is `tools/fix_kicad_paths.sh`.** It is idempotent, backs up everything it replaces with a
+timestamp, verifies all 155 library paths exist *before* installing, and **refuses to run while
+KiCad is open** — KiCad rewrites these files on exit and would silently undo it.
 
 ```bash
-cp ~/.config/kicad/10.0/fp-lib-table ~/.config/kicad/10.0/fp-lib-table.bak
-cp <scratchpad>/fp-lib-table.fixed ~/.config/kicad/10.0/fp-lib-table
+# close KiCad first
+./tools/fix_kicad_paths.sh
 ```
 
-Then, with KiCad closed, reopen and run `Update PCB from Schematic` again.
+It does three things: writes the stock library table with absolute paths taken from the running
+install; sets `KICAD10_FOOTPRINT_DIR`, `KICAD10_3DMODEL_DIR` and `KICAD10_SYMBOL_DIR` in
+`kicad_common.json` (they were literally `"vars": null`); and probes four representative footprints
+plus the 3D model tree to prove the result.
 
-**Also set the two path variables**, in *Preferences → Configure Paths*, because stock footprints
-reference their 3D models through one of them and it is currently unset
-(`kicad_common.json` has `"vars": null`):
-
-| Variable | Value |
-| --- | --- |
-| `KICAD10_FOOTPRINT_DIR` | `/home/lum/Apps/kicad-10.0.4/share/kicad/footprints` |
-| `KICAD10_3DMODEL_DIR` | `/home/lum/Apps/kicad-10.0.4/share/kicad/3dmodels` |
+Then in KiCad: reopen the project, `F8`, and `python3 tools/check_pcb.py` — presence should read
+327 of 327.
 
 **That is also why the 3D viewer is empty**, and it is the larger half of it: every stock footprint
 carries `(model "${KICAD10_3DMODEL_DIR}/…")`, so with the variable unset there is no model to load
 even for the parts that *did* place. The other half is that this project's own generated footprints
 had no `(model …)` at all until now — §9.1.
 
-⚠ **Expect this to recur after a KiCad update**, since the fault is written by the AppImage. If
-footprints vanish again, look at that file first.
+⚠ **If footprints vanish again after a KiCad update, run the script again** and look at that file
+first. Nothing in this project can cause it.
 
 ### 9.1 3D models for this project's own footprints
 
