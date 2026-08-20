@@ -34,7 +34,7 @@ would "fix" into failure.
    to fit in what is left behind the panel and beside the cell. R1 is **90 × 80 mm** for reference —
    so R1's area fits behind this panel with room over, and **thickness, not area, is the binding
    dimension.** The outline itself is still the owner's to draw, but it is no longer unconstrained.
-   `panel.md` §0, `battery.md` §9.1.
+   `panel.md` §0, `battery.md` §8.1.
 2. ~~**Where the SoM sits, and on which side**~~ — **position ANSWERED 2026-08-20, side inferred.**
    See §1.1.
 3. ~~**Battery cell size and position**~~ — size **closed** (60 × 90 × 7.0 mm). Position follows
@@ -89,7 +89,7 @@ Read off the owner's hand sketch of 2026-08-20. Dimensions are approximate where
 | --- | --- | --- |
 | Enclosure | ≈ **220 × 180 mm** | panel module is 216.7 × 174.4 mm ‡ — so the case is the panel plus ~3 mm of bezel each way. Consistent. |
 | Mainboard | ≈ **90 × 70 mm**, *"the same as R1 but can be made bigger"* | R1 is 90 × 80 mm. So R2 is R1's footprint or slightly smaller, with room to grow. |
-| Cell | **90 × 60 mm**, beside the board | matches `PL706090` exactly (60 × 90 × 7.0 mm, `battery.md` §9.1) ✓ |
+| Cell | **90 × 60 mm**, beside the board | matches `PL706090` exactly (60 × 90 × 7.0 mm, `battery.md` §8.1) ✓ |
 | Power switch | right-hand edge, marked `ON` / `OFF` | this is `SW20` (`mcu.md` §5.5). An edge slider, not the recessed pinhole the doc left open. |
 | Touch | its own small board | consistent with `io-expansion.md` §4 — the `GT9110H` is on its own PCB, not on the panel flex. |
 | *"TTL Interface"* | a block ≈ **40 × 37 mm** | **not a board** — see below |
@@ -119,13 +119,13 @@ question, not about where the connector sits.
 
 **`J24`, the frontlight, is the one that is still undrawn.** The owner: *"the frontlight I still
 haven't drawn because the schematics in the display docs don't define it."* That is consistent with
-`frontlight.md` §7.2 — the tail is `LED1±`/`LED2±`, bare anodes and cathodes, and the vendor has not
+`frontlight.md` §6.2 — the tail is `LED1±`/`LED2±`, bare anodes and cathodes, and the vendor has not
 given the per-string current. The 8-pin FPC is on the board and the `LM3630A` drives it; what is
 missing is a number for the bench to confirm, not a circuit.
 
 **Three placement facts that arrived with the panel**, none of them blocking:
 
-- **A new connector, `J24`** — the 8-pin frontlight FPC (`frontlight.md` §7.2). It joins `J6`,
+- **A new connector, `J24`** — the 8-pin frontlight FPC (`frontlight.md` §6.2). It joins `J6`,
   `J22` and `J23` in the enclosure-fixed group, because all four tails emerge from the panel.
   That corner is now four connectors plus a DSBGA boost.
 - **`frontlight`'s layout rules changed completely.** `power.md` §11.2 no longer applies to that
@@ -245,21 +245,164 @@ Proposed net classes, derived from the per-sheet guidelines rather than invented
 inert density-expansion nets, and a net-class length-match rule would drag the real group's
 tolerance around for two dead traces.
 
-## 5. Placement order, once there is an outline
+## 5. Placement order
 
-Fixed points first, then the things whose position is dictated by them:
+Superseded by **§6.3**, which has the same order plus the fixed points the panel's folded flex and
+the SoM decision have since pinned down, and the instruction to lock each one as it goes.
 
-1. **`J6`** the panel connector, and **`J1`** USB-C — both are enclosure-fixed.
-2. **The SoM**, because it is 32 × 43 mm and everything routes to or past it.
-3. **The FPGA and its DRAM**, together, with the DDR3 group kept short. `fpga.md` §11.1.
-4. **The four converters** on `power`, each with its input capacitor loop closed before anything
-   else is placed near it. `power.md` §11.1.
-5. **The HV chain**, near `J6`, with §11.1's two islands laid out deliberately.
-6. **The MCU**, its crystal, and the buttons — the crystal wants quiet, so it is placed against the
-   constraint rather than in the space that is left.
-7. Everything else.
+## 6. Starting the board in KiCad — the order that avoids rework
 
-## 6. Open
+Nothing here is drawn yet: `r2.kicad_pcb` does not exist. These steps are in the order that stops
+you redoing them, which is not the order the menus suggest.
+
+### 6.1 Create the board and set it up **before** importing anything
+
+1. **Open the project** (`r2.kicad_pro`) and click **PCB Editor**. That creates `r2.kicad_pcb`.
+2. **File → Board Setup → Physical Stackup.** Set **4 layers**, and copy R1's stack, which runs this
+   same DDR3-666 and Spartan-6 and works (§2): `F.Cu` / `In1.Cu` / `In2.Cu` / `B.Cu`, 0.127 mm
+   prepreg / 0.6 mm core / 0.127 mm prepreg, ≈ **1.0 mm** finished.
+   **`In1.Cu` is the ground plane and `In2.Cu` the power plane** — decide that now, because §8's
+   rules about "continuous reference" all mean `In1.Cu`.
+3. **Board Setup → Constraints.** Start at **0.2 mm track / 0.2 mm clearance, 0.6 mm via / 0.3 mm
+   drill** — comfortably inside JLCPCB's 4-layer capability and cheap. Do **not** start at their
+   0.09 mm minimum; you will not need it, and it changes the price band.
+4. **Board Setup → Net Classes.** Create the seven in §4 now. Assigning them after routing means
+   re-routing, and the DDR3 and DPI groups are exactly the ones you do not want to do twice.
+
+### 6.2 Import, then draw the outline
+
+5. **Tools → Update PCB from Schematic** (**F8**). Everything arrives in a heap off to one side.
+   That is normal.
+6. **Draw the outline on `Edge.Cuts`** before placing. The sketch says ≈ **90 × 70 mm** (§1.2) —
+   draw it as a rectangle to start; it can grow. Add the mounting holes the enclosure needs.
+7. **Run `python3 tools/check_pcb.py`.** At this point it should report every part present and
+   nothing extra. That is the cheapest moment to catch a footprint that did not come across.
+
+### 6.3 Place in this order, and lock as you go
+
+The first three are not free choices — they are fixed by the enclosure, and everything else
+arranges around them. **Lock each one once placed** (select → `L`), so a later drag cannot nudge it.
+
+| | What | Why it is fixed |
+| --- | --- | --- |
+| 1 | **`J6`**, the panel connector | the folded flex lands there (§1.2); its *orientation* matters as much as its position |
+| 2 | **`J22`/`J23`/`J24`** — touch, pen, frontlight | same corner, same reason; all three tails emerge from the panel |
+| 3 | **`J1`** USB-C, and `USB1` if fitted | case opening |
+| 4 | **`X2` + `J26` + `J27`**, the SoM | top right, on the face **away from the panel** (§1.1). Place `X2` first, then the two receptacles against it, then run `tools/check_pcb_connectors.py` |
+| 5 | **`U41` + `U52`**, FPGA and DRAM, together | the DDR3 group wants to be short; place them as a pair before anything competes for the space |
+| 6 | **The four converters** on `power` | each with its input-capacitor loop closed before anything else is placed near it |
+| 7 | **The HV chain** on `epd_power`, near `J6` | with §7's two islands laid out deliberately |
+| 8 | **`U20`**, its crystal, and the buttons | the crystal is placed *against* its constraint, not into the space that is left |
+| 9 | Everything else | |
+
+### 6.4 Route in this order
+
+1. **DDR3** — `DDR3_CLK` first as a proper differential pair, then each byte lane. It has no margin
+   at the FPGA (§8), and it is the group that dictates where everything else can go.
+2. **`USB_DP`/`DM`** — 90 Ω differential, `J1` → `U3` → `J26`. Short is the whole point (§1.1).
+3. **`DPI`** — 22 signals, `J26`/`J27` → FPGA bank 1, over continuous ground.
+4. **The switching loops** — by hand, deliberately, per §7. Never autoroute these.
+5. **`MMC1`**, then everything else.
+6. **Pour `In1.Cu` (GND) last**, and check what it did under the HV islands (§7.1).
+
+## 7. ⚠ The five things that destroy the board
+
+Everything in the per-sheet docs matters. These five are the ones where the failure is *permanent*,
+*silent in every file*, and *not caught by DRC*. Read them before placing anything.
+
+### 7.1 `U9` and `U26` have a `GND` pin that is not ground
+
+`epd-port.md` §11.1, and it is the single most dangerous item in this project.
+
+| Part | Pin 2, labelled `GND` | Actually sits at |
+| --- | --- | --- |
+| `U9` `LGS5145` | `-VGL` | **≈ −20 V** |
+| `U26` `LGS5145` | `-VN` | **≈ −15 V** |
+
+Both are inverting buck-boosts, so the IC's ground reference *is* its negative output. Each needs
+its **own local copper island**, with the plane **cut away beneath it** — not merely avoided on the
+outer layer. Connect either to the ground plane and the part sees its full input across the wrong
+terminals.
+
+> **Silkscreen both islands.** This is the one thing on the board that a competent person will
+> "fix". `tools/check_pcb.py` refuses a copper zone on `-VGL` or `-VN`, which catches the
+> commonest version of the mistake but not a stray plane stitch.
+
+### 7.2 The DDR3 bus has no margin *at the FPGA*
+
+`fpga.md` §1.1 and §11.1. The `-2` part's MCB is rated **667 Mb/s**; this design runs **666.67**.
+The DRAM's 1066 rating is irrelevant — you do not get to spend its headroom.
+
+Match within a byte lane (`DQ[7:0]`+`LDM`+`LDQS`/`#`, then `DQ[15:8]`+`UDM`+`UDQS`/`#`); the two
+lanes need not match each other. Address/command matched to the clock pair. **Keep the whole bus
+over one continuous `In1.Cu`** — a split under it is the classic way to lose the margin.
+
+⚠ **`DRAM_ADDR13`/`ADDR14` must be excluded from the matched set.** They are inert at both ends and
+look exactly like address lines to a net-class rule; matching them drags the real group around.
+
+### 7.3 The crystal is the easiest thing here to break with copper
+
+`mcu.md` §11.3. `Y20` is a 250–630 nA oscillator. `Y20`, `C46`, `C47` hard against pins 4/5, same
+layer, **no vias in `OSC32_IN`/`OSC32_OUT`**, a ground guard ring around the whole circuit and solid
+ground beneath. Nothing switching crosses or runs beside it on **any** layer — specifically not
+`MCU_SWCLK`, the I²C pair, `FL_PWM1/2`, or anything from `power`. The symptom is an RTC that gains
+or loses time, which is a miserable bug to chase.
+
+### 7.4 Every switching converter: the input loop, before the inductor
+
+`power.md` §11.1, which is the same sentence from four different TI datasheets. **The capacitor's
+ground must land on the IC's own ground pin, not on a plane somewhere else.** The loop that carries
+the chopped current has an area, that area is an inductance, and that inductance turns every edge
+into a spike on the IC's own reference.
+
+Two riders worth having in front of you:
+
+- **`U12` `TPS61022`: the critical loop is the *output* loop**, not the input — FET → rectifier →
+  output caps → back to the FET's ground (`power.md` §11.2 item 1).
+- **`U13` `TPS63802` has *two* switching nodes**, `L1` and `L2`. Both are aggressors
+  (`power.md` §11.3).
+
+### 7.5 The 20 mΩ shunts need Kelvin connections
+
+`epd-port.md` §11.5. At 20 mΩ, **1 mΩ of trace is a 5 % error**. Sense traces leave from the
+**inside edges** of the shunt pads, symmetrically, as a tight pair, routed together and away from
+the converters. A shunt sensed at the wrong end of its own pad measures the pad.
+
+## 8. The review loop
+
+**`python3 tools/check_pcb.py`** — run it after every session, not at the end. It exits non-zero on
+a failure and it carries each rule's source, so a complaint tells you which doc to read. It checks:
+
+1. every schematic part is on the board, and nothing extra;
+2. `X2`/`J26`/`J27` hold PHYTEC's geometry (delegates to `check_pcb_connectors.py`);
+3. **33 proximity rules** taken from the per-sheet guidelines — the decoupling and hot-loop
+   distances, which are the ones that quietly drift during placement;
+4. no copper zone on `-VGL`, `-VN`, `+DRAM_VREF` or `+3V3_VREF`;
+5. the seven net classes of §4 exist;
+6. DRC, via `kicad-cli`.
+
+**What it cannot check, and therefore what a human review is for:** loop *area* rather than
+component distance; whether the plane is actually continuous under the DDR3 group; what the pour did
+beneath the HV islands; whether a "quiet" trace is genuinely quiet; length matching; and every
+mechanical question. That list is short, and it is exactly §8 plus the per-sheet docs.
+
+### 8.1 The per-sheet detail, indexed
+
+`check_pcb.py` encodes the numbers. These carry the reasoning, and each was written with the
+datasheet open:
+
+| Sheet | Guidelines | The one thing that matters most |
+| --- | --- | --- |
+| `battery` | `battery.md` §11 | the grounds are not all the same net |
+| `power` | `power.md` §11 | four converters, one shared rule; `TPS63802` has **two** switching nodes |
+| `mcu` | `mcu.md` §11 | the 32.768 kHz crystal |
+| `epd`, `epd_power`, `power_mon` | `epd-port.md` §11 | ⚠ **two ICs have a `GND` pin that is not ground** |
+| `fpga_*` | `fpga.md` §11 | no margin at the controller; `M5` (`ZIO`) gets **no copper** |
+| `som`, `dpi_in` | `som.md` §8, §10.4 | MMC1 within 12.7 mm; `DPI_R6`/`R7` carry no components |
+| `frontlight` | `frontlight.md` §9 | it belongs next to `J24`, not next to `U12` |
+| `io_expansion` | `io-expansion.md` §7 | enclosure-fixed, and the load switches follow their connectors |
+
+## 9. Open
 
 1. ~~**Board outline, SoM position, cell size**~~ — **all answered.** Panel and cell have
    dimensions; the SoM is top-right beside the USB ports, on the face pointing **away from the
@@ -286,5 +429,5 @@ Fixed points first, then the things whose position is dictated by them:
    display. `J6` gains a fixed position and, more importantly, a fixed **orientation**; `J22`/`J23`
    are the same. §1.2.
 9. **`J24`, the frontlight tail, is drawn but its current is undefined** — the display docs do not
-   specify the frontlight, so the per-string current is a bench measurement (`frontlight.md` §7.2,
+   specify the frontlight, so the per-string current is a bench measurement (`frontlight.md` §6.2,
    D-8). Not a layout blocker; the connector and the `LM3630A` are placed either way.
