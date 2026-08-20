@@ -146,7 +146,7 @@ def sch_refs() -> set:
 def main() -> int:
     if not PCB.exists():
         print(f"{PCB.name} does not exist yet -- Stage D has not started.")
-        print("Create it in KiCad (docs/layout.md §7) and run this again.")
+        print("Create it in KiCad (docs/layout.md §6) and run this again.")
         return 0
 
     text = PCB.read_text()
