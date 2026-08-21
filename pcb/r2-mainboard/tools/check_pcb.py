@@ -27,6 +27,8 @@ Six groups of check:
    thing on the board a competent person would "fix" into failure.
 5. **Net classes** exist and carry the nets `layout.md` §4 assigns them.
 6. **Ratsnest and DRC** -- how much is left to route, and what `kicad-cli` says.
+7. **Width on the nets that carry current**, and only those. Not a per-class
+   width rule -- see the comment on `HIGH_CURRENT` for why that idea was wrong.
 
 Every rule carries its source, because a check whose reason has been forgotten
 gets deleted the first time it is inconvenient.
@@ -124,7 +126,44 @@ EXPECTED_CLASSES = {
     "USB": (2, "USB_DP/DM, 90 ohm differential"),
     "MMC1": (7, "the microSD nets, matched within 12.7 mm"),
     "HV": (5, "+VP, +VGH, -VCOM, -VGL, -VN -- clearance, not width"),
-    "PWR": (16, "every rail plus GND -- a floor on width, not a target"),
+    "PWR": (15, "every rail except GND -- see HIGH_CURRENT for why GND left"),
+}
+
+
+# --- 7. the nets that actually carry current ----------------------------------
+# ⚠ This is NOT "every segment must meet its net class width", which was the
+# first idea and was wrong. GND killed it: GND sits in PWR for its via size, but
+# almost every GND segment is a 0.2 mm stub from a pad to a stitching via, and
+# the current path is the In1.Cu plane, not the trace. Flagging those is noise,
+# and a noisy check gets switched off -- taking the real findings with it.
+#
+# So the rule is inverted: only nets where a document states a current, with the
+# width that current needs. Working figure is IPC-2152, 1 oz outer copper, 20 C
+# rise, which lands near 0.5 mm per amp in this range -- deliberately rounded
+# DOWN to a floor, because a trace that passes here is merely not a fire risk.
+# Thermal design is still the doc's job.
+#
+# A net not listed here is not thereby unimportant; it is a net nobody has put a
+# number on. Add it with its source when someone does.
+HIGH_CURRENT = {
+    "Net-(U12-SW)": (0.6, "boost inductor current: ~2.8 A avg, 3.4 A peak. "
+                          "power.md §3.2 and §11.2 -- and TI §10.1 wants this "
+                          "node SHORT as well as fat, so widen, do not pour"),
+    "+VSYS": (0.6, "up to ~2.8 A into the boost alone. power.md §11.6 item 1 "
+                   "calls it a plane, not a trace -- this floor is for the "
+                   "stubs off it"),
+    "+VBAT": (0.6, "full charge AND discharge current; charger runs 1.5 A in. "
+                   "battery.md §11 item 8: 'give it real copper'"),
+    "+VBUS": (0.5, "USB-C input, 1.5 A at the charger. battery.md §11 item 10"),
+    "+5V_DCDC": (0.5, "SoM VIN design bound 1.0 A plus an EPD refresh, and "
+                      "they coincide. power.md §8.1"),
+    "+5V_SOM": (0.5, "same rail past the shunt. power.md §8.1"),
+    "Net-(U13-L1)": (0.5, "TPS63802 buck-boost switch node, 2 A part, L11 "
+                          "rated 7.4 A Isat. power.md §11.3 item 1"),
+    "Net-(U13-L2)": (0.5, "the buck-boost's SECOND switch node -- both are "
+                          "aggressors. power.md §11.3 item 1"),
+    "Net-(U14-SW)": (0.4, "TPS62A02 buck, 2 A part. power.md §11.4 item 1"),
+    "Net-(U15-SW)": (0.4, "TPS62A02 buck, 2 A part. power.md §11.4 item 1"),
 }
 
 
@@ -271,8 +310,41 @@ def main() -> int:
         print(f"   DRC: {nv} violations, {nu} unconnected items")
         if nv:
             warn.append(f"DRC reports {nv} violations -- run it in Pcbnew for detail")
+
         if nu:
             warn.append(f"{nu} unconnected items still to route")
+
+    # 7. current-carrying nets
+    print("\n7. nets with a stated current:")
+    widths = {}
+    for m in re.finditer(r"\n\t\(segment\b", text):
+        i = m.start() + 2
+        d, j = 0, i
+        while True:
+            if text[j] == "(":
+                d += 1
+            elif text[j] == ")":
+                d -= 1
+                if d == 0:
+                    break
+            j += 1
+        blk = text[i:j + 1]
+        n = re.search(r'\(net "([^"]*)"\)', blk)
+        w = re.search(r"\(width ([\d.]+)\)", blk)
+        if n and w:
+            widths.setdefault(n.group(1), []).append(float(w.group(1)))
+    routed = [k for k in HIGH_CURRENT if k in widths]
+    for net in routed:
+        floor, why = HIGH_CURRENT[net]
+        thin = [w for w in widths[net] if w < floor - 1e-9]
+        if thin:
+            fail.append(f"{net} has {len(thin)} of {len(widths[net])} segments "
+                        f"below {floor} mm (narrowest {min(thin)}) -- {why}")
+    print(f"   {len(routed)} of {len(HIGH_CURRENT)} listed nets are routed; "
+          f"{sum(1 for n in routed if min(widths[n]) < HIGH_CURRENT[n][0] - 1e-9)}"
+          f" too thin somewhere")
+    print("   (GND is absent on purpose -- its path is the In1.Cu plane, not "
+          "its traces)")
 
     print()
     for w in warn:

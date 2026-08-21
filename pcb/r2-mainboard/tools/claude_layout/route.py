@@ -371,29 +371,44 @@ class Router:
                 self.stamp_rect(li, x - 0.41, y - 0.41, x + 0.41, y + 0.41,
                                 nid, only_empty=True)
 
-    def route_net(self, net, terms, width, snap=None):
-        """Grow a tree: repeatedly connect the nearest unconnected terminal."""
+    def route_net(self, net, terms, width, snap=None, passes=3):
+        """Grow a tree: connect terminals in sweeps, deferring the ones that fail.
+
+        The obvious loop -- rescan every remaining terminal from the start after
+        each success -- is quadratic in the number of *unroutable* terminals,
+        and each of those costs a full-budget search. On `+3V3` (63 pads) that
+        is on the order of 20 x 43 = 860 hopeless 30 000-expansion searches for
+        one net, and it is why a full run sat on a single net for 25 minutes.
+
+        Instead: one sweep over the outstanding terminals, laying whatever
+        connects and setting the rest aside. A deferred terminal is only
+        retried on the next sweep, because the only thing that can change its
+        answer is the tree having grown -- and then only while a sweep is still
+        making progress.
+        """
         nid = self.nid(net)
         self.build_via_tables(nid)
         connected = set(terms[0])
         rest = list(terms[1:])
         done = 0
-        misses = 0
-        while rest:
-            best = None
-            for i, t in enumerate(rest):
+        for _ in range(passes):
+            if not rest:
+                break
+            deferred = []
+            progressed = False
+            for t in rest:
                 path = self._astar(nid, connected, set(t), width)
-                if path is not None:
-                    best = (i, path)
-                    break
-            if best is None:
-                return done, len(rest)
-            misses = 0
-            i, path = best
-            self.lay(path, net, width, snap)
-            self.build_via_tables(nid)
-            connected |= set(rest.pop(i))
-            connected |= {li * self.n + iy * self.nx + ix
-                          for (li, ix, iy) in path}
-            done += 1
-        return done, 0
+                if path is None:
+                    deferred.append(t)
+                    continue
+                self.lay(path, net, width, snap)
+                self.build_via_tables(nid)
+                connected |= set(t)
+                connected |= {li * self.n + iy * self.nx + ix
+                              for (li, ix, iy) in path}
+                done += 1
+                progressed = True
+            rest = deferred
+            if not progressed:
+                break
+        return done, len(rest)

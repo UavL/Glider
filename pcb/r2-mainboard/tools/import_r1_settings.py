@@ -197,8 +197,20 @@ PATTERNS = [
     ("PWR", "+1V2_DCDC"),
     ("PWR", "+1V5"),
     ("PWR", "+1V5_DCDC"),
-    ("PWR", "GND"),
 ]
+
+# ⚠ GND is deliberately NOT in PWR, removed 2026-08-22 on the owner's objection:
+# "I can't always have a 0.6 mm GND trace. Sometimes for signals it's just not
+# necessary." Correct, and the class was the thing at fault. GND's current path
+# is the In1.Cu plane; a GND *segment* is almost always a short stub from a pad
+# to a stitching via, where 0.6 mm buys nothing and just gets overridden by hand
+# every time. On Default it routes at 0.2 mm and takes a 0.6/0.3 via, which is
+# also the more useful stitching via -- PWR's 0.8/0.35 is clumsy under a BGA.
+# Clearance is 0.11 either way, so nothing is lost.
+#
+# +VSYS stays in PWR even though power.md §11.6 calls it a plane too, because
+# unlike GND it has real routed runs to the four converters that genuinely want
+# to start wide.
 
 # ⚠ NOT in PWR, on purpose: +DRAM_VREF and +3V3_VREF are divider taps that must
 # stay hairline and unpoured (check_pcb.py NO_ZONE_NETS), and +5V_EG / +5V_ES /
@@ -297,11 +309,23 @@ def build(r1: dict, r2: dict) -> tuple[dict, list[str]]:
             c["pcb_color"] = col
         c["tuning_profile"] = ""
         classes.append(c)
-    ns["classes"] = classes
-    ns["netclass_patterns"] = [{"netclass": n, "pattern": p} for n, p in PATTERNS]
+    # ⚠ Keep any class the owner added by hand. This used to assign `classes`
+    # wholesale, which would have silently deleted `Signals_NET` the second time
+    # anyone ran it -- a tool that eats the user's work on a re-run is worse than
+    # no tool. Same for their patterns: only ours are replaced.
+    ours = {c["name"] for c in classes}
+    kept = [c for c in ns["classes"] if c["name"] not in ours]
+    ns["classes"] = classes + kept
+    kept_pats = [q for q in ns["netclass_patterns"] if q["netclass"] not in ours]
+    ns["netclass_patterns"] = [{"netclass": n, "pattern": p} for n, p in PATTERNS] \
+        + kept_pats
+    if kept:
+        log.append(f"  kept {len(kept)} hand-made class(es) untouched:  "
+                   f"{[c['name'] for c in kept]} "
+                   f"({len(kept_pats)} of their patterns)")
     ns["net_colors"] = dict(NET_COLORS)
     log.append(f"  net classes                     {old_names}  ->  "
-               f"{[c['name'] for c in classes]}")
+               f"{[c['name'] for c in ns['classes']]}")
     log.append(f"  netclass patterns                                "
                f"{len(PATTERNS)} rules, {len(CLASSES) - 1} classes assigned")
     return out, log
