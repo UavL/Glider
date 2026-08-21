@@ -63,3 +63,6 @@ pcb/r2-mainboard/report.txt
 
 # Timestamped board backups written by tools/place_som.py
 pcb/r2-mainboard/*.kicad_pcb.bak-*
+
+# tool backups -- kept on disk, not in history
+pcb/r2-mainboard/*.bak-*
