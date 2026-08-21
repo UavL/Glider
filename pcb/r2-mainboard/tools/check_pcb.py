@@ -80,6 +80,9 @@ PROXIMITY = [
     ("L13", "U15", 4.0, "power.md §11.4 item 1"),
     ("C20", "U10", 3.5, "power.md §11.5 item 1"),
     ("C21", "U10", 3.5, "power.md §11.5 item 1"),
+    ("C6", "U1", 5.0, "battery.md §10.14 -- bq25896.pdf pin 22: the REGN "
+                      "cap \"should be placed close to the IC\"; it feeds the "
+                      "low-side gate driver and the bootstrap diode at 1.5 MHz"),
     ("C1", "U1", 5.0, "battery.md §11.1 -- C1's ground must land on PGND at the pin"),
     ("C2", "U1", 5.0, "battery.md §11.2 item 1 -- the PMID->SW->PGND hot loop"),
     ("C3", "U1", 5.0, "battery.md §11.2 item 4 -- BTST is a high-dV/dt loop on SW"),

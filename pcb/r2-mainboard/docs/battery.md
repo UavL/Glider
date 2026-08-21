@@ -113,7 +113,7 @@ External components, from the typical application ‡ (`bq25896.pdf` §10.2, p.4
 | `VBUS`–GND | 1 µF | ‡ |
 | `PMID`–GND | 8.2 µF (≥25 V rating) | ‡ §10.2.2.2, "8.2 µF suggested for 3–5 A charging" |
 | `BTST`–`SW` | 47 nF | ‡ pin 21 description |
-| `REGN`–GND | 4.7 µF / 10 V | ‡ pin 22 description |
+| `REGN`–GND | 4.7 µF / **16 V**, 0603 | ‡ pin 22 description; package and rating in §10.14 |
 | `SYS`–GND | 20 µF (2× 10 µF) | ‡ pin 15,16 description |
 | `BAT`–GND | 10 µF | ‡ pin 13,14 description |
 | `SW`–`SYS` | 1 µH | ‡ typical app |
@@ -177,7 +177,9 @@ Hierarchical labels leaving the sheet:
   We declare `CHG_OTG`; decide whether OTG is actually used before fixing this capacitor.
 - The WQFN exposed pad is the thermal and electrical ground path — it must be stitched, not just
   soldered.
-- `REGN` is also the `TS` bias rail ‡; the divider loads it. 4.7 µF is not optional.
+- `REGN` is also the `TS` bias rail ‡, so every JEITA threshold is a percentage of it.
+  That is a **DC** load (377 µA at 25 °C, §10.14) and says nothing about capacitance —
+  the reason 4.7 µF is not optional is ‡ pin 22 and the gate drive, not the divider.
 - USB-C: 5.1 kΩ `Rd` on **both** `CC1` and `CC2`, each to GND separately — never bridged.
 - `USBLC6-2SC6` covers `D±` and `VBUS` only. `CC1`/`CC2` protection is a separate decision.
 
@@ -615,6 +617,101 @@ If USB 3 were a hard requirement it would mean changing the SoM, which reopens
 the whole Stage A decision. It is not worth it for this.
 
 ---
+
+### 10.14 `C6` — why 0805, and why it is now 0603 / 16 V. **Changed 2026-08-21.**
+
+**The question was "can this be smaller".** It can, and the smaller part is the better
+part — but not for the reason §6 used to give.
+
+**What `REGN` is.** ‡ pin 22, verbatim: *"PWM low side driver positive supply output.
+Internally, REGN is connected to the cathode of the boot-strap diode. Connect a 4.7 µF
+(10 V rating) ceramic capacitor from REGN to analog GND. The capacitor should be placed
+close to the IC."* So it is the **gate-drive rail** — it sources the low-side gate charge
+and refills `C3`, the 47 nF bootstrap cap, through the diode, every cycle at **1.5 MHz** ‡.
+
+**The bias is 4.8 V, not 5.** ‡ spec table: `V(REGN)` = 4.7 V min / 4.8 V typ at
+`V(VBUS)` = 5 V, `I(REGN)` = 20 mA. (The 4.8/5/5.5 V row is the `V(VBUS)` = 9 V case.)
+§3 fixes this board at 5 V in, so 4.8 V is the number. Pin abs-max is 7 V ‡.
+
+**Three candidate reasons to keep 4.7 µF, and only two of them survive.**
+
+1. **‡ pin 22 says so.** One number, one rating, no range — unlike `tps63802.pdf`
+   §8.2.2.3, which gives an explicit 10–50 µF window for its output cap and a warning
+   that "a ceramic capacitor can lose more than 50 % of its capacitance at its rated
+   voltage" (`power.md` §10.11). TI publishes no equivalent window for `REGN`, so
+   anything materially below 4.7 µF effective is extrapolation we cannot check.
+2. **Gate-drive reservoir.** Real, but not binding. Even at a generous 20 nC of
+   per-cycle gate charge (**estimate** — TI does not publish `Qg`), 1 µF effective gives
+   ΔV = 20 mV = 0.42 % of `REGN`; 3 µF gives 0.14 %. The `TS` hysteresis bands are
+   1–1.4 % ‡, so ripple has margin at every package under discussion.
+3. **~~The `TS` divider loads it.~~** This does not hold, and §6 has been corrected.
+   `RT1` 5.23 kΩ + (`RT2` 30.1 kΩ ∥ 10 kΩ NTC) = 12.74 kΩ at 25 °C draws **377 µA**
+   from `REGN`. A steady DC load is the LDO's job (it limits at 50 mA ‡), not the
+   capacitor's. The divider constrains nothing about the package.
+
+**So the value is fixed at 4.7 µF nominal and the package is the only free variable.**
+A ceramic loses capacitance in proportion to the field across its dielectric, so for a
+given value a *higher voltage rating in a smaller case* can beat a lower rating in a
+larger one. LCSC, queried 2026-08-21:
+
+| LCSC | MPN | Pkg | V | Diel | Tol | Stock | JLC | $1 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **C19666** | **CL10A475KO8NNNC** | **0603** | **16 V** | X5R | ±10 % | 6.35 M | **basic** | 0.0087 |
+| C69335 | CL10A475KA8NQNC | 0603 | 25 V | X5R | ±10 % | 872 k | extended | 0.0137 |
+| C1705 | CL10A475KP8NNNC | 0603 | 10 V | X5R | ±10 % | 4.72 M | extended | 0.0046 |
+| C23733 | CL05A475MP5NRNC | 0402 | 10 V | X5R | ±20 % | 4.77 M | basic | 0.0045 |
+| C2858031 | GRM155R61E475ME15D | 0402 | 25 V | X5R | — | 654 k | extended | 0.0346 |
+| C1779 | CL21A475KAQNNNE | 0805 | 25 V | X5R | ±10 % | 5.20 M | basic | 0.0113 |
+
+**Fitted: `C19666`, 4.7 µF 16 V X5R ±10 % 0603.** It keeps TI's nominal value, exceeds
+TI's 10 V rating, is a JLCPCB *basic* part, and is smaller and lower-ESL than the 0805 —
+which serves ‡ §12.1 guideline 6 ("decoupling capacitors should be placed next to the IC
+pins") better than the part it replaces. Per `power.md` §10.13 the MPN lives here and not
+in a `Description` field; the sheet's other capacitors have empty `Description`s and this
+one stays consistent with them.
+
+**0402 was rejected.** `C23733` is ±20 % *before* derating, sits at only 2.1× voltage
+margin on a 4.8 V rail, and has the worst bias derating of the set. The 25 V 0402 fixes
+the bias but is extended, thinner stock, and 4× the price of the 0603 basic part — more
+money for a less-characterised part to save 0.7 mm².
+
+**Needs verification before ordering (inferred, not verified).** The ranking above is
+from dielectric-thickness physics, not from measured curves: nobody here has pulled the
+DC-bias curve for `CL10A475KO8NNNC`. That 0603/16 V ≥ 0603/10 V is safe; that it also
+beats 0805/10 V is *plausible but unconfirmed*, because a 4.7 µF/16 V in 0603 is an
+aggressive part and the two effects fight. The repo's anchor for the scale of the effect
+is `power.md` §10.11: 22 µF 10 V X7R 0805 at 5 V bias, ~−45 %. **Check the curve in
+Samsung's MLCC tool at the BOM pass.** If certainty is worth more than basic-part status,
+`C69335` (25 V) is the conservative pick and is a drop-in.
+
+**Do not generalise this to the sheet's other capacitors.** `C4`/`C5` (`SYS`), `C7`
+(`BAT`) and `C2` (`PMID`) carry switching ripple current, where 0805 is earning its place
+on ripple rating and not only on value — and `C2` still has the open OTG question in §6
+(8.2 µF now, 40 µF if OTG is ever used).
+
+**Applied by `tools/patch_c6_0603.py`**, which patches `battery.kicad_sch` *and*
+`r2.kicad_pcb` (the footprint body, and the routed `REGN` track, whose endpoint moved
+with pad 1 from x = 61.05 to x = 61.225) and refuses to run twice. `C6` also gained the
+`check_pcb.py` proximity rule it never had — 5.0 mm to `U1`, the same limit as `C1`/`C2`/
+`C3`; it currently sits at 4.15 mm and passes.
+
+**Verification.** ERC unchanged (32 violations, none of them `C6`'s). Netlist export
+confirms `C6` pin 1 on `/battery/REGN`, pin 2 on `GND`, footprint `C_0603_1608Metric`,
+value `4.7uF/16V`. Sheet and board both rendered to PNG and inspected. Board geometry
+checked numerically: pads at x = 61.225 / 62.775, 0.9 × 0.95 mm, courtyard 2.96 × 1.46 mm,
+`REGN` track landing exactly on the new pad-1 centre.
+
+**DRC went 46 → 44, and the two that went are real.** The 0805's pad 2 sat **0.075 mm**
+from a `Net-(C3-Pad2)` track against the `PWR` netclass's 0.110 mm clearance — two
+`clearance` violations. 0603 pulls pad 2 back from x = 62.95 to x = 62.775 and clears
+both. Unconnected items unchanged at 499.
+
+**A note on how that was measured, because the first attempt was wrong.** `git stash` was
+used to get a "before" board, which reverts to **HEAD** and therefore throws away the
+owner's uncommitted placement work — it compared the wrong two things and reported "no
+change". The working tree here routinely carries uncommitted layout work, so a before/after
+on `r2.kicad_pcb` must be built by **reverse-applying the patch to the current file**, never
+by stashing.
 
 ## 11. Layout guidelines — collected now, to be applied at Stage D
 
