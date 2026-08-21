@@ -2562,7 +2562,7 @@
 		)
 		(uuid "21f1abf9-ea5d-4e24-8ed2-1c863a633192")
 	)
-	(label "USB_DP"
+	(label "USBD+"
 		(at 83.82 60.96 0)
 		(effects
 			(font
@@ -2592,7 +2592,7 @@
 		)
 		(uuid "250c3b99-5c31-429a-a2aa-a53cdf64ce2b")
 	)
-	(label "USB_DM"
+	(label "USBD-"
 		(at 381 68.58 0)
 		(effects
 			(font
@@ -3052,7 +3052,7 @@
 		)
 		(uuid "559975ed-d2c1-420b-a271-a85c2f8aeff9")
 	)
-	(label "USB_DP"
+	(label "USBD+"
 		(at 381 71.12 0)
 		(effects
 			(font
@@ -3672,7 +3672,7 @@
 		)
 		(uuid "a9ae93e6-5840-4235-b473-f1303877b40d")
 	)
-	(label "USB_DM"
+	(label "USBD-"
 		(at 83.82 63.5 0)
 		(effects
 			(font
@@ -4760,7 +4760,7 @@
 				(justify right)
 			)
 		)
-		(pin "USB_DM" bidirectional
+		(pin "USBD-" bidirectional
 			(at 375.92 68.58 0)
 			(uuid "046ce1c3-95bc-4399-b5c9-2ef1f5833da8")
 			(effects
@@ -4770,7 +4770,7 @@
 				(justify right)
 			)
 		)
-		(pin "USB_DP" bidirectional
+		(pin "USBD+" bidirectional
 			(at 375.92 71.12 0)
 			(uuid "3090a170-c3d7-417d-af1b-9b0fb6ac274c")
 			(effects
@@ -6342,7 +6342,7 @@
 				(justify right)
 			)
 		)
-		(pin "USB_DP" bidirectional
+		(pin "USBD+" bidirectional
 			(at 78.74 60.96 0)
 			(uuid "a2763046-68d6-499d-aa40-9fe985b1ce55")
 			(effects
@@ -6352,7 +6352,7 @@
 				(justify right)
 			)
 		)
-		(pin "USB_DM" bidirectional
+		(pin "USBD-" bidirectional
 			(at 78.74 63.5 0)
 			(uuid "e7f57710-89d5-4f4d-8acc-c5cf09a63190")
 			(effects

@@ -72,6 +72,19 @@ class Footprint:
     def pad_xy(self, pad: Pad) -> tuple:
         return self.to_board(pad.lx, pad.ly)
 
+    @staticmethod
+    def pad_size(pad: Pad) -> tuple:
+        """Board-space (width, height) of a pad.
+
+        `pad.rot` as stored is the pad's *absolute* angle -- it already carries
+        the footprint's rotation. Adding the footprint's rotation on top double
+        counts it, and for `U26` (TSOT-23-6 at 90 deg) that transposed every
+        pad: 1.32 x 0.60 instead of 0.60 x 1.32. The router then stamped the
+        wrong rectangle and drove tracks straight through -VN.
+        """
+        w, h = pad.w, pad.h
+        return (h, w) if int(round(pad.rot)) % 180 else (w, h)
+
     def courtyard_box(self, clearance: float = 0.0) -> tuple:
         """Axis-aligned board-space bounding box of the courtyard."""
         if self.courtyard is None:

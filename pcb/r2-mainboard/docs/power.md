@@ -417,9 +417,26 @@ Three things to settle before layout:
    `Texas_VSON-HR-8_1.5x2mm_P0.5mm` numbers pads 1–8 and nothing else, confirming the family
    convention. This is the only footprint that has to be drawn from scratch, and it is the one
    `footprint_link_issues` warns about in ERC today.
-2. **`Texas_RWU0007A_VQFN-7_2x2mm_P0.5mm` leaves its thermal-pad segments unnumbered**, so the
-   netlist does not connect them and `TPS61022`'s heat path is not tied to `GND`. Copy it into
-   `r2.pretty` and number those pads `1` (the `GND` pin) before layout.
+2. ~~**`Texas_RWU0007A_VQFN-7_2x2mm_P0.5mm` leaves its thermal-pad segments unnumbered**, so the
+   netlist does not connect them and `TPS61022`'s heat path is not tied to `GND`.~~
+   **WRONG — withdrawn 2026-08-22. No fix needed; do not "correct" this footprint.**
+   The six unnumbered pads are **`F.Paste` only**. They are stencil apertures, not copper: each of
+   the three large pads is split into two paste openings to control solder volume, which is the
+   standard KiCad idiom for a pad this size. Read off the placed footprint:
+
+   | pad | layers | net |
+   | --- | --- | --- |
+   | *(six unnumbered)* | `F.Paste` | — |
+   | `1` | `F.Cu` `F.Mask` | `GND` |
+   | `2` | `F.Cu` `F.Mask` | `Net-(U12-SW)` |
+   | `3` | `F.Cu` `F.Mask` | `+5V_DCDC` |
+   | `4`–`7` | `F.Cu` `F.Mask` `F.Paste` | `FB`, `MCU_EN_5V`, `MODE`, `+VSYS` |
+
+   Every copper pad is numbered and netted. Pin 1 *is* the thermal path (‡ Table 5-1) and it is on
+   `GND`. The original note was written from a pad list that did not show the layer field, and it
+   would have sent someone to copy a correct library footprint into `r2.pretty` and renumber paste
+   apertures into copper — creating the short it was trying to prevent. §11.2 item 5 amended to
+   match.
 3. **Both inductor footprints are placeholders.** KiCad has no land pattern for either Murata DFE
    series, so `L10`/`L12`/`L13` currently carry `Inductor_SMD:L_1210_3225Metric` and `L11` carries
    `Inductor_SMD:L_1008_2520Metric`. Those are the right body sizes — 3.2 × 2.5 mm and
@@ -567,7 +584,8 @@ that four bucks could not be turned off at all. The result here is that they can
   `GND` pin sits on the negative rail so it sees ~25 V, but **at startup that rail is at 0 V** and
   the part sees `+VSYS` alone — 3.0 V from a flat cell will not start it. The 5 V feed stays.
 - **Spartan-6 sequencing** — §5.
-- **The `DLA0010A` footprint and the `RWU0007A` thermal pad** — §7.
+- **The `DLA0010A` footprint** — §7. (The `RWU0007A` thermal pad was also listed here; that
+  concern was wrong and is withdrawn — §7 item 2.)
 - **BOM fields.** `MPN` and `LCSC` symbol properties are not populated on any sheet yet; §10.13 says
   why that is deliberate and when it happens.
 
@@ -980,9 +998,11 @@ The boost is the part to place first: it runs at 1 MHz ‡ with up to 3.4 A of p
 4. **`FB` is a 732 k/100 k divider**, i.e. a ~5 µA, high-impedance node. Route `R21`/`R22` and the
    `Net-(U12-FB)` trace short and away from `SW` and from `L10`'s body. `C28`'s DNP pad sits across
    `R21`; keep it adjacent so fitting it later does not need a long stub.
-5. **The thermal pad must be connected.** ‡ Table 5-1 makes `GND` (pin 1) the thermal path, and §7 of
-   this doc records that KiCad's `Texas_RWU0007A_VQFN-7_2x2mm_P0.5mm` leaves the pad segments
-   unnumbered — fix the footprint before layout or the heat path is simply absent. Then stitch it.
+5. **The thermal pad must be connected.** ‡ Table 5-1 makes `GND` (pin 1) the thermal path. The
+   footprint is fine as it stands — §7 item 2 used to claim otherwise and is withdrawn — so this is
+   purely a layout instruction: pin 1 is the heat path as well as the return, so give it copper on
+   `F.Cu` and stitch it down to `In1.Cu` with several vias directly under and beside the pad, not a
+   single via on a neck.
 6. **Thermals.** ‡ §10.3 gives `PD(max)` = (125 − TA)/RθJA. At ~1.5 A out and ~94 % efficiency the
    part dissipates a few hundred mW in a 2 × 2 mm package; it wants copper, and it is the one part on
    this sheet where that is true.
