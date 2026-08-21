@@ -33,6 +33,8 @@ gets deleted the first time it is inconvenient.
 """
 from __future__ import annotations
 
+import collections
+import fnmatch
 import json
 import math
 import pathlib
@@ -44,6 +46,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 PROJ = HERE.parent
 PCB = PROJ / "r2.kicad_pcb"
 SCH = PROJ / "r2.kicad_sch"
+PRO = PROJ / "r2.kicad_pro"
 KICAD_CLI = pathlib.Path.home() / "Apps/kicad-10.0.4/usr/bin/kicad-cli"
 
 # --- 3. proximity -------------------------------------------------------------
@@ -100,14 +103,25 @@ NO_ZONE_NETS = {
 }
 
 # --- 5. net classes -----------------------------------------------------------
+# ⚠ These live in `r2.kicad_pro`, NOT in the board file. This check used to
+# grep `r2.kicad_pcb` for `(net_class "..."` and a JSON `"name":` key, neither
+# of which a KiCad 10 .kicad_pcb ever contains -- so it reported "0 of 7
+# present" no matter what Board Setup said, which is a check that can only ever
+# be wrong. `tools/import_r1_settings.py` writes them.
+#
+# The count next to each name is what the pattern set is expected to catch; a
+# net class with the right name and no nets in it is the failure this catches.
 EXPECTED_CLASSES = {
-    "DDR3": "the 48 bank-3 nets, length-matched per byte lane",
-    "DDR3_CLK": "DRAM_CKP/CKN, differential, R100 at the DRAM end",
-    "DPI": "the 22 DPI_* nets over continuous ground",
-    "USB": "USB_DP/DM, 90 ohm differential",
-    "MMC1": "the microSD nets, matched within 12.7 mm",
-    "HV": "+VP, +VGH, -VCOM, -VGL, -VN -- clearance, not width",
-    "PWR": "+VSYS, +5V_SOM, +3V3, +1V2_FPGA, +1V5 -- width for current",
+    "DDR3": (45, "bank-3 data/addr/ctrl, length-matched per byte lane. "
+                 "ADDR13/14 excluded on purpose -- fpga.md §11.1"),
+    "DDR3_CLK": (2, "DRAM_CKP/CKN, differential, R100 at the DRAM end"),
+    "DPI": (22, "the DPI_* nets over continuous ground"),
+    "EPD": (23, "EPDC_D0P/N..D7P/N plus the gate and source strobes. "
+                "Not in layout.md §4's original table; carried over from R1"),
+    "USB": (2, "USB_DP/DM, 90 ohm differential"),
+    "MMC1": (7, "the microSD nets, matched within 12.7 mm"),
+    "HV": (5, "+VP, +VGH, -VCOM, -VGL, -VN -- clearance, not width"),
+    "PWR": (16, "every rail plus GND -- a floor on width, not a target"),
 }
 
 
@@ -198,15 +212,32 @@ def main() -> int:
     print(f"   {len(set(zones))} distinct nets have zones; "
           f"{sum(1 for n in NO_ZONE_NETS if n in zones)} of them must not")
 
-    # 5. net classes
+    # 5. net classes -- from the PROJECT file, and checked for members
     print("\n5. net classes:")
-    have = set(re.findall(r'\(net_class "([^"]+)"', text)) | \
-        set(re.findall(r'"name": "([^"]+)"', text))
-    for cls, why in EXPECTED_CLASSES.items():
+    pro = json.loads(PRO.read_text())
+    ns = pro["net_settings"]
+    have = {c["name"] for c in ns["classes"]}
+    nets = sorted(set(re.findall(r'\(net "([^"]*)"\)', text)))
+    got = {}
+    for net in nets:
+        for pat in ns["netclass_patterns"]:
+            if fnmatch.fnmatchcase(net, pat["pattern"]):
+                got[net] = pat["netclass"]
+                break
+    counts = collections.Counter(got.values())
+    for cls, (want, why) in EXPECTED_CLASSES.items():
         if cls not in have:
             warn.append(f"no net class {cls!r} -- {why} (layout.md §4)")
-    print(f"   {len(EXPECTED_CLASSES) - len([w for w in warn if 'net class' in w])}"
-          f" of {len(EXPECTED_CLASSES)} expected classes present")
+        elif counts[cls] != want:
+            warn.append(f"net class {cls!r} holds {counts[cls]} nets, "
+                        f"expected {want} -- {why}")
+    dead = [p["pattern"] for p in ns["netclass_patterns"]
+            if not any(fnmatch.fnmatchcase(n, p["pattern"]) for n in nets)]
+    for p in dead:
+        warn.append(f"netclass pattern {p!r} matches no net on this board")
+    print(f"   {len(have & set(EXPECTED_CLASSES))} of {len(EXPECTED_CLASSES)} "
+          f"expected classes present, {len(got)} of {len(nets)} nets assigned "
+          f"({len(dead)} dead patterns)")
 
     # 6. ratsnest and DRC
     segs = len(re.findall(r"\n\t\(segment", text))

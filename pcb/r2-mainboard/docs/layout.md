@@ -238,12 +238,71 @@ Proposed net classes, derived from the per-sheet guidelines rather than invented
 | `USB` | `USB_DP`/`DM` | 90 Ω differential |
 | `MMC1` | the 8 microSD nets | length-match within 12.7 mm; `som.md` §8 |
 | `HV` | `+VP`, `+VGH`, `-VCOM`, `-VGL`, `-VN` | not plane nets; clearance, not width |
-| `PWR` | `+VSYS`, `+5V_SOM`, `+3V3`, `+1V2_FPGA`, `+1V5` | width for current |
+| `EPD` | the 23 `EPDC_*` | added 2026-08-21 — the table above missed them; R1 had a class for them and they are the second-largest routed group here |
+| `PWR` | every rail, and `GND` | width for current |
 | default | everything else | |
 
 `DRAM_ADDR13`/`ADDR14` must be **excluded** from the `DDR3` class (`fpga.md` §11.1): they are the
 inert density-expansion nets, and a net-class length-match rule would drag the real group's
-tolerance around for two dead traces.
+tolerance around for two dead traces. That is why the address patterns are written as ranges
+(`DRAM_ADDR[0-9]`, `DRAM_ADDR1[0-2]`) rather than `DRAM_ADDR*`.
+
+### 4.1 The numbers — imported from R1, 2026-08-21
+
+Run once, with KiCad closed:
+
+```bash
+python3 tools/import_r1_settings.py            # dry run, prints every change
+python3 tools/import_r1_settings.py --write
+```
+
+**R2's stackup is byte-identical to R1's** — same 0.127 mm prepreg, 0.6 mm core, 0.035 mm outer
+copper, ENIG — so every geometry R1 proved at DDR3-666 on a Spartan-6 transfers with its impedance
+intact. That is the whole justification for copying rather than calculating.
+
+| Class | Track | Clearance | Via | Pair (W/gap) | Where the number comes from |
+| --- | --- | --- | --- | --- | --- |
+| default | **0.20** | 0.11 | 0.6/0.3 | 0.2/0.2 | nothing needs less unless it is escaping a fine-pitch part |
+| `DDR3` | 0.127 | 0.11 | 0.45/0.3 | 0.127/0.11 | R1's `SDRAM_A`/`_H`/`_L`, verbatim |
+| `DDR3_CLK` | 0.127 | 0.11 | 0.45/0.3 | 0.127/0.11 | same, split out so it routes first |
+| `DPI` | 0.15 | 0.11 | 0.45/0.3 | — | no length-match to hold, long run |
+| `EPD` | 0.11 | 0.11 | 0.45/0.3 | 0.127/0.11 | R1's `EPD`, verbatim |
+| `USB` | 0.11 | 0.11 | 0.45/0.3 | 0.15/0.11 | R1's `USB`, verbatim |
+| `MMC1` | 0.15 | 0.11 | 0.45/0.3 | — | `som.md` §8 |
+| `HV` | 0.30 | 0.11 | 0.6/0.3 | — | handling and etch tolerance, not ampacity |
+| `PWR` | **0.60** | 0.11 | 0.8/0.35 | — | a **floor**, not a target — see below |
+
+**Two of these are easy to misread.**
+
+`PWR`'s 0.60 mm is the narrowest a rail may ever neck down to, not the width to draw. `power.md`
+§11.6 item 2: the boost pulls **~2.8 A off `+VSYS` at 1 MHz** and wants real copper. `+VSYS` is a
+plane. A 0.6 mm trace carries roughly 1.5–2 A on 1 oz outer copper, so anything at that width on a
+rail is a mistake waiting to be found with a thermal camera.
+
+`HV`'s clearance is **0.11 mm like everything else**, which looks wrong for rails running +28.4 V to
+−20 V. The separation those need is enforced in `r2.kicad_dru` instead, as a rule restricted to
+tracks — because a net-class clearance is *also* checked pad-to-pad inside a footprint, and `+VGH`
+lands on a 0.5 mm-pitch VSON-HR-10 whose own pads sit 0.25 mm apart. Raising the class clearance
+would produce DRC errors that no amount of routing can clear.
+
+### 4.2 ⚠ Why clearance is 0.11 mm and not 0.2 mm
+
+§6.1 originally said to start at **0.2 mm clearance**. That was written before these footprints
+existed and it is wrong. Measured on the placed board (different-net pad pairs, per footprint):
+
+| Part | Tightest different-net pad gap |
+| --- | --- |
+| `U1` BQ25792 QFN-24 | **0.125 mm** |
+| `U7`/`U8`/`U54`/`U55`, `U14`/`U15` | 0.150 mm |
+| `U53` YFQ0012 DSBGA-12 | 0.160 mm |
+| `J26`/`J27` BTH-060 | 0.195 mm |
+| `J1` USB-C | 0.200 mm |
+
+KiCad checks class clearance **between pads inside one footprint**, so a 0.2 mm default would flag
+eight packages on the day of import, with no fix available short of lowering it again. R1's 0.11 mm
+clears every one of them — and is what a board this dense was always going to need.
+
+The DRC *floor* (Board Setup → Constraints → minimum clearance) stays at R1's 0.1 mm.
 
 ## 5. Placement order
 
@@ -252,22 +311,34 @@ the SoM decision have since pinned down, and the instruction to lock each one as
 
 ## 6. Starting the board in KiCad — the order that avoids rework
 
-Nothing here is drawn yet: `r2.kicad_pcb` does not exist. These steps are in the order that stops
-you redoing them, which is not the order the menus suggest.
+> **Where this stands, 2026-08-21.** Steps 1, 2 and 5 are done: the board exists, the stackup
+> matches R1 byte for byte, all 327 footprints are imported, and the SoM is placed and grouped.
+> Steps 3 and 4 are now one script (below). Step 6 is **half done** — there is an `Edge.Cuts`
+> rectangle, but it is **185.5 × 95 mm**, a holding pen for the imported heap rather than the
+> ≈ 90 × 70 mm the sketch calls for. Drawing the real outline is the first thing left to do.
 
-### 6.1 Create the board and set it up **before** importing anything
+### 6.1 Set the board up **before** routing anything — now one command
 
-1. **Open the project** (`r2.kicad_pro`) and click **PCB Editor**. That creates `r2.kicad_pcb`.
-2. **File → Board Setup → Physical Stackup.** Set **4 layers**, and copy R1's stack, which runs this
-   same DDR3-666 and Spartan-6 and works (§2): `F.Cu` / `In1.Cu` / `In2.Cu` / `B.Cu`, 0.127 mm
-   prepreg / 0.6 mm core / 0.127 mm prepreg, ≈ **1.0 mm** finished.
-   **`In1.Cu` is the ground plane and `In2.Cu` the power plane** — decide that now, because §8's
-   rules about "continuous reference" all mean `In1.Cu`.
-3. **Board Setup → Constraints.** Start at **0.2 mm track / 0.2 mm clearance, 0.6 mm via / 0.3 mm
-   drill** — comfortably inside JLCPCB's 4-layer capability and cheap. Do **not** start at their
-   0.09 mm minimum; you will not need it, and it changes the price band.
-4. **Board Setup → Net Classes.** Create the seven in §4 now. Assigning them after routing means
-   re-routing, and the DDR3 and DPI groups are exactly the ones you do not want to do twice.
+1. ~~**Open the project** and click **PCB Editor.**~~ Done.
+2. ~~**Board Setup → Physical Stackup**, 4 layers, R1's stack.~~ Done, and verified identical to
+   R1's: `F.Cu` / 0.127 prepreg / `In1.Cu` / 0.6 core / `In2.Cu` / 0.127 prepreg / `B.Cu`,
+   0.035 mm outer copper, ENIG, ≈ **1.0 mm** finished.
+   **`In1.Cu` is the ground plane and `In2.Cu` the power plane** — §8's rules about "continuous
+   reference" all mean `In1.Cu`.
+3. **Constraints, track/via presets and all nine net classes**: **close KiCad**, then
+
+   ```bash
+   python3 tools/import_r1_settings.py            # dry run
+   python3 tools/import_r1_settings.py --write
+   ```
+
+   It refuses to write while KiCad is open, because KiCad holds the whole project in memory and
+   rewrites `r2.kicad_pro` on save — the edit would vanish without an error. §4.1 has the numbers
+   and why each one is what it is.
+4. **Reopen and confirm** in **Board Setup → Net Classes** that the assignment columns are
+   populated, not empty, and that the toolbar's track-width dropdown now offers 0.1 → 2.0 mm.
+   Then `python3 tools/check_pcb.py` — group 5 should read *8 of 8 expected classes present* with
+   no dead patterns.
 
 ### 6.2 Import, then draw the outline
 
@@ -296,6 +367,11 @@ arranges around them. **Lock each one once placed** (select → `L`), so a later
 | 9 | Everything else | |
 
 ### 6.4 Route in this order
+
+**Set the net class, then route — do not pick widths off the toolbar.** With §4.1 imported, KiCad
+picks the width for you from the net's class; the dropdown should sit on *"use net class width"*.
+The presets exist for the exceptions (a neck-down through a BGA field, a hand-widened rail), not for
+everyday routing.
 
 1. **DDR3** — `DDR3_CLK` first as a proper differential pair, then each byte lane. It has no margin
    at the FPGA (§8), and it is the group that dictates where everything else can go.
@@ -369,6 +445,11 @@ Two riders worth having in front of you:
 the converters. A shunt sensed at the wrong end of its own pad measures the pad.
 
 ## 8. The review loop
+
+**Starting a fresh session?** Paste `docs/session-prompt-layout.md` — it carries the ground rules,
+where the board stands, and what is open, so the assistant does not re-derive any of it. Update its
+status list when something changes.
+
 
 **`python3 tools/check_pcb.py`** — run it after every session, not at the end. It exits non-zero on
 a failure and it carries each rule's source, so a complaint tells you which doc to read. It checks:

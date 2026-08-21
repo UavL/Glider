@@ -1,12 +1,18 @@
 # Glider-R2 — plan
 
-Branch `Board-Design`. Last updated **2026-08-17**.
+Branch `Board-Design`. Last updated **2026-08-21**.
 
 **Stage C (capture) is complete** — all 14 sheets drawn, `frontlight` last, and the root wired.
 WP6–WP8 are drawn but not yet reviewed by the owner; see **Stage C progress** below.
-**Stage D (layout) has not started, and as of 2026-08-20 nothing blocks it.** The owner placed the
-SoM top-right beside the USB ports on the face away from the panel, settled the `U41` speed grade at
-`-2`, and confirmed the panel connector does *not* get its own PCB — the sketch's "TTL Interface"
+**Stage D (layout) is under way and is the owner's own work** — the assistant reviews, it does not
+place or route. `r2.kicad_pcb` exists with all 327 footprints, the SoM placed and grouped, 322 of
+327 3D models resolving, and the design settings and nine net classes imported from R1
+(`docs/layout.md` §4.1, `tools/import_r1_settings.py`, 2026-08-21). Nothing is routed yet and
+placement is untouched since import. **`docs/session-prompt-layout.md` is the message to paste into
+a fresh session** to pick this up — keep its status list current.
+
+Earlier: the owner placed the SoM top-right beside the USB ports on the face away from the panel,
+settled the `U41` speed grade at `-2`, and confirmed the panel connector does *not* get its own PCB — the sketch's "TTL Interface"
 block is where the folded flex lands, which fixes `J6`'s position and orientation. The `PCM-071`
 footprint was built and then rebuilt on PHYTEC's own DXF; it was the last footprint gap.
 
