@@ -1,0 +1,19 @@
+(version 1)
+
+# R2 custom DRC rules. KiCad loads this automatically because it is named after
+# the board; Board Setup > Custom Rules shows and syntax-checks it.
+#
+# Delete this file and the board still routes -- nothing here is load-bearing.
+
+# The HV rails run to +28.4 V (+VGH) and down to -20 V (-VGL): 48 V between the
+# two extremes. IPC-2221 wants 0.13 mm between them under permanent solder mask,
+# so 0.4 mm is roughly 3x the requirement and costs nothing on a board with this
+# much room in the EPD corner.
+#
+# This is a rule and not a net-class clearance because a class clearance is also
+# checked pad-to-pad INSIDE a footprint, and +VGH lands on a 0.5 mm-pitch
+# VSON-HR-10 whose own pads are 0.25 mm apart. Excluding pads keeps the check on
+# the copper we actually draw.
+(rule "HV track separation"
+	(constraint clearance (min 0.4mm))
+	(condition "A.NetClass == 'HV' && B.NetClass != 'HV' && A.Type != 'Pad' && B.Type != 'Pad'"))

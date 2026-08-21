@@ -244,7 +244,15 @@ def build_connector(name: str, near: str, far: str, centroid) -> str:
              f"Must sit at X2 + ({cx - SOM_W / 2:+.3f}, {SOM_H / 2 - cy:+.3f}) -- checked by "
              f"tools/check_pcb_connectors.py. See som.md section 11.",
              "Samtec BTH-060 board-to-board mezzanine 0.5mm PCM-071 phyCORE AM62x",
-             "smd")
+             # ⚠ `allow_soldermask_bridges` is not cosmetic. MASK_MARGIN makes the
+             # apertures 0.509 on a 0.5 pitch, so every neighbouring pair in a row
+             # shares one opening -- deliberate, and what Samtec's own footprint
+             # does. Without this attribute DRC raises `solder_mask_bridge` on
+             # every adjacent pad: 200 errors from these two parts alone, which is
+             # 82 % of the board's total and enough noise to hide a real one for
+             # the whole of layout. Samtec's file predates the attribute (it is a
+             # `tedit`-era KiCad 5/6 footprint), which is why it lacks it.
+             "smd allow_soldermask_bridges")
     # Reference and Value clear the *body*, not the pad field -- at half_h they
     # landed exactly on the "B1 A1" pin-1 text, which is the one marking that
     # matters when someone is checking which way round the part goes.

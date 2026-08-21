@@ -30,10 +30,6 @@
 		(29 "B.CrtYd" user "B.Courtyard")
 		(35 "F.Fab" user)
 		(33 "B.Fab" user)
-		(39 "User.1" user)
-		(41 "User.2" user)
-		(43 "User.3" user)
-		(45 "User.4" user)
 	)
 	(setup
 		(stackup
@@ -117,6 +113,7 @@
 		)
 		(capping no)
 		(filling no)
+		(zone_defaults)
 		(pcbplotparams
 			(layerselection 0x00000000_00000000_55555555_5755f5ff)
 			(plot_on_all_layers_selection 0x00000000_00000000_00000000_00000000)
@@ -10718,7 +10715,7 @@
 				)
 			)
 		)
-		(attr smd)
+		(attr smd allow_soldermask_bridges)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 2.362 15.2525)
@@ -26970,7 +26967,7 @@
 	(footprint "Capacitor_SMD:C_0402_1005Metric"
 		(layer "F.Cu")
 		(uuid "41e564ab-f332-4c69-a202-aae5b15a852b")
-		(at 50.81 45.53)
+		(at 57 37)
 		(descr "Capacitor SMD 0402 (1005 Metric), square (rectangular) end terminal, IPC-7351 nominal, (Body size source: IPC-SM-782 page 76, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf)")
 		(tags "capacitor")
 		(property "Reference" "C1"
@@ -30461,7 +30458,7 @@
 	(footprint "Inductor_SMD:L_Taiyo-Yuden_NR-30xx"
 		(layer "F.Cu")
 		(uuid "51936d1a-a6fa-4f82-8f8d-47680d27bcde")
-		(at 65.6 37)
+		(at 68 36)
 		(descr "Inductor, Taiyo Yuden, NR series, Taiyo-Yuden_NR-30xx, 3.0mmx3.0mm")
 		(tags "inductor taiyo-yuden nr smd")
 		(property "Reference" "L1"
@@ -43034,7 +43031,7 @@
 				)
 			)
 		)
-		(attr smd)
+		(attr smd allow_soldermask_bridges)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 2.362 15.2525)
@@ -68903,11 +68900,11 @@
 	(footprint "Capacitor_SMD:C_0805_2012Metric"
 		(layer "F.Cu")
 		(uuid "d3b2867a-b14d-4dc3-a73c-e174cfe16d52")
-		(at 51.6 31)
+		(at 61 35.5 180)
 		(descr "Capacitor SMD 0805 (2012 Metric), square (rectangular) end terminal, IPC-7351 nominal, (Body size source: IPC-SM-782 page 76, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf, https://docs.google.com/spreadsheets/d/1BsfQQcO9C6DZCsRaXUlFlo91Tg2WpOkGARC1WS5S8t0/edit?usp=sharing)")
 		(tags "capacitor")
 		(property "Reference" "C2"
-			(at 0 -1.68 0)
+			(at -2.5 3 0)
 			(layer "F.SilkS")
 			(uuid "b7a2d47e-56e5-4c47-bb9c-a7f99f35900f")
 			(effects
@@ -68975,16 +68972,6 @@
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
-			(start -0.261252 -0.735)
-			(end 0.261252 -0.735)
-			(stroke
-				(width 0.12)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "e0889a42-e9bd-454a-b47e-84b130faf817")
-		)
-		(fp_line
 			(start -0.261252 0.735)
 			(end 0.261252 0.735)
 			(stroke
@@ -68993,6 +68980,16 @@
 			)
 			(layer "F.SilkS")
 			(uuid "095edf50-e46b-4a9e-b88c-c70679d62ead")
+		)
+		(fp_line
+			(start -0.261252 -0.735)
+			(end 0.261252 -0.735)
+			(stroke
+				(width 0.12)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "e0889a42-e9bd-454a-b47e-84b130faf817")
 		)
 		(fp_rect
 			(start -1.7 -0.98)
@@ -69017,7 +69014,7 @@
 			(uuid "0c57d31b-d17a-437e-aaf8-324423e6981c")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 0 0)
+			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
 			(uuid "6595ae7d-c9df-4064-afff-d2242f7852e4")
@@ -69029,7 +69026,7 @@
 			)
 		)
 		(pad "1" smd roundrect
-			(at -0.95 0)
+			(at -0.95 0 180)
 			(size 1 1.45)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
@@ -69038,7 +69035,7 @@
 			(uuid "f1d93927-d813-4f59-bb4d-e86f0b442938")
 		)
 		(pad "2" smd roundrect
-			(at 0.95 0)
+			(at 0.95 0 180)
 			(size 1 1.45)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
@@ -70669,7 +70666,7 @@
 		(descr "WQFN, 24 Pin (http://www.ti.com/lit/ds/symlink/lm26480.pdf#page=39)")
 		(tags "WQFN NoLead")
 		(property "Reference" "U1"
-			(at 0 -3.33 0)
+			(at 4.05 -1.85 0)
 			(layer "F.SilkS")
 			(uuid "c3f886dd-e9fb-42a6-bb36-375c57dba7d6")
 			(effects
@@ -82309,6 +82306,22 @@
 		(fill no)
 		(layer "Edge.Cuts")
 		(uuid "998b3ab4-85a9-4420-94ed-70f021763e4c")
+	)
+	(segment
+		(start 60.45 39.35)
+		(end 60.5 39.3)
+		(width 0.1)
+		(layer "F.Cu")
+		(net "GND")
+		(uuid "00dafa2f-4954-449a-8a1a-4f7e4279932f")
+	)
+	(segment
+		(start 60.5 39.3)
+		(end 60.5 39)
+		(width 0.1)
+		(layer "F.Cu")
+		(net "GND")
+		(uuid "d1d871e0-d344-4fa2-9641-bf4e9e29dbae")
 	)
 	(group "SoM: X2 + J26 + J27"
 		(uuid "db6bac2e-a78b-459f-b77b-788cb5ab189d")

@@ -532,3 +532,26 @@ already automated:
   (8.9 MB) is the one to use for fit checking; PHYTEC's README explicitly warns the full
   `.STEP` may simplify component heights. Neither is worth attaching to the KiCad footprint as a 3D
   model at that size unless you want it in the 3D viewer.
+
+### 11.3 ⚠ The mask apertures merge on purpose — `allow_soldermask_bridges`
+
+`MASK_MARGIN` is 0.102 mm, which Samtec set on every pad of their own footprint. On a 0.5 mm pitch
+that makes each aperture 0.305 + 2 × 0.102 = **0.509 mm**, so neighbouring openings in a row overlap
+by 9 µm and the whole row becomes one gang opening. That is deliberate at this pitch: the 0.093 mm
+web the alternative would need is below JLCPCB's 0.1 mm minimum and would be dropped by the fab
+anyway — silently, which is worse.
+
+KiCad's DRC does not know that, and raised `solder_mask_bridge` on **every adjacent pair**: 200
+errors from `J26` and `J27` alone, 82 % of the board's total, which is enough noise to bury a real
+violation for the whole of layout. Both footprints now carry `(attr smd allow_soldermask_bridges)`,
+which is exactly the attribute KiCad provides for a footprint whose apertures merge by design.
+Board total went 244 → 44.
+
+Samtec's own `.kicad_mod` lacks it only because it predates the attribute — it is a `tedit`-era
+KiCad 5/6 file.
+
+**Two places, not one.** As with the 3D models (`layout.md` §9.1), editing the library footprint does
+**not** propagate to an instance already placed on the board. `tools/gen_som_footprint.py` and both
+`r2.pretty/*.kicad_mod` carry the attribute for anything placed in future; `J26` and `J27` on
+`r2.kicad_pcb` were patched separately. If DRC ever shows `lib_footprint_mismatch` on one of them,
+that is the two copies having drifted apart again.

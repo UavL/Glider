@@ -600,7 +600,20 @@ not machine-specific. KiCad reads `.step`, `.stp` and `.wrl`.
 board stands it along Y, so `MODEL_CONN_ROT` is `(0, 0, 90)`. Check it in the viewer and flip to
 −90 if it faces the wrong way. Nothing electrical depends on it.
 
-### 9.2 ⚠ If `kicad-cli` says &ldquo;Failed to load board&rdquo;
+### 9.2 ⚠ `kicad-cli pcb drc` will not tell you a custom rule is broken
+
+`r2.kicad_dru` holds the HV track-separation rule (§4.1). If its syntax is wrong, **`kicad-cli pcb
+drc` ignores the file and reports success** — no error, no warning, exit status 0, the rules simply
+never applied. Verified 2026-08-21 by feeding it a deliberately unterminated rule: identical clean
+output.
+
+So a clean command-line DRC is *not* evidence the rules are live. The only check is the GUI:
+**Board Setup → Custom Rules → Check rule syntax.** Do that once after any edit to the file.
+
+The same caution as §9 applies in reverse — `tools/check_pcb.py` reports what `kicad-cli` says, and
+`kicad-cli` cannot see this class of problem at all.
+
+### 9.3 ⚠ If `kicad-cli` says &ldquo;Failed to load board&rdquo;
 
 Found 2026-08-21, and it had been silently true from the first board: **`kicad-cli pcb` could not
 open `r2.kicad_pcb` at all.** Every `pcb` subcommand — DRC, drill, gerber, render — refused it.

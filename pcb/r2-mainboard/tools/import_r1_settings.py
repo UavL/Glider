@@ -347,8 +347,16 @@ def main() -> int:
     else:
         print(f"\n{DRU.name} already exists -- left alone")
     print(f"wrote {R2.name}, backup at {bak.name}")
-    print("\nOpen the project and check Board Setup > Net Classes: the seven "
-          "assignment columns should be populated, not empty.")
+    print("\nReopen the project and check two things:\n"
+          "  Board Setup > Net Classes  -- nine classes, assignment columns\n"
+          "                                populated rather than empty.\n"
+          "  Board Setup > Custom Rules -- press 'Check rule syntax'. This is\n"
+          "                                the ONLY way to validate the .dru:\n"
+          "                                `kicad-cli pcb drc` silently ignores\n"
+          "                                a rules file it cannot parse (tested\n"
+          "                                2026-08-21 with a deliberately broken\n"
+          "                                one -- no error, no exit code, rules\n"
+          "                                just not applied).")
     return 0
 
 

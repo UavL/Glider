@@ -5,7 +5,7 @@
 	(layer "F.Cu")
 	(descr "Samtec BTH-060-01-L-D-A-K-TR, 2x60 0.5 mm board-to-board receptacle. Carries rows D and C of the PHYTEC PCM-071; pads are named as L-1038e.A5 Tables 7-10 name them, NOT Samtec's 1-120. Land pattern from Samtec drawing BTH-XXX-XX-X-D-XX REV D and their own KiCad footprint; placement from PHYTEC PCM-071_1573-1.dxf. Two of these take the module. Must sit at X2 + (+11.200, +2.400) -- checked by tools/check_pcb_connectors.py. See som.md section 11.")
 	(tags "Samtec BTH-060 board-to-board mezzanine 0.5mm PCM-071 phyCORE AM62x")
-	(attr smd)
+	(attr smd allow_soldermask_bridges)
 	(property "Reference" "REF**"
 		(at 0 -18.9 0)
 		(layer "F.SilkS")
