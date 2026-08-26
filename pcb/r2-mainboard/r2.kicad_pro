@@ -242,6 +242,7 @@
         0.2,
         0.25,
         0.3,
+        0.35,
         0.4,
         0.5,
         0.6,
@@ -592,9 +593,9 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "DDR3",
-        "pcb_color": "rgb(255, 92, 56)",
-        "priority": 1,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "pcb_color": "rgb(9, 255, 144)",
+        "priority": 4,
+        "schematic_color": "rgb(9, 255, 144)",
         "track_width": 0.127,
         "tuning_profile": "",
         "via_diameter": 0.45,
@@ -610,9 +611,9 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "DDR3_CLK",
-        "pcb_color": "rgb(255, 139, 0)",
-        "priority": 2,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "pcb_color": "rgb(15, 255, 243)",
+        "priority": 5,
+        "schematic_color": "rgb(15, 255, 243)",
         "track_width": 0.127,
         "tuning_profile": "",
         "via_diameter": 0.45,
@@ -628,9 +629,9 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "DPI",
-        "pcb_color": "rgb(216, 223, 0)",
-        "priority": 3,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "pcb_color": "rgb(255, 236, 58)",
+        "priority": 6,
+        "schematic_color": "rgb(255, 236, 58)",
         "track_width": 0.15,
         "tuning_profile": "",
         "via_diameter": 0.45,
@@ -646,14 +647,22 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "EPD",
-        "pcb_color": "rgb(179, 228, 50)",
-        "priority": 4,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "pcb_color": "rgb(255, 156, 23)",
+        "priority": 7,
+        "schematic_color": "rgb(255, 156, 23)",
         "track_width": 0.11,
         "tuning_profile": "",
         "via_diameter": 0.45,
         "via_drill": 0.3,
         "wire_width": 6
+      },
+      {
+        "line_style": 0,
+        "name": "GND",
+        "pcb_color": "rgb(64, 64, 64)",
+        "priority": 2,
+        "schematic_color": "rgb(64, 64, 64)",
+        "tuning_profile": ""
       },
       {
         "bus_width": 12,
@@ -664,14 +673,22 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "HV",
-        "pcb_color": "rgb(255, 37, 28)",
-        "priority": 5,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "pcb_color": "rgb(220, 28, 14)",
+        "priority": 8,
+        "schematic_color": "rgb(220, 28, 14)",
         "track_width": 0.3,
         "tuning_profile": "",
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
+      },
+      {
+        "line_style": 0,
+        "name": "I2C",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
+        "schematic_color": "rgb(123, 133, 181)",
+        "tuning_profile": ""
       },
       {
         "bus_width": 12,
@@ -682,9 +699,9 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "MMC1",
-        "pcb_color": "rgb(185, 61, 143)",
-        "priority": 6,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "pcb_color": "rgb(255, 166, 240)",
+        "priority": 9,
+        "schematic_color": "rgb(255, 166, 240)",
         "track_width": 0.15,
         "tuning_profile": "",
         "via_diameter": 0.45,
@@ -700,9 +717,9 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "PWR",
-        "pcb_color": "rgb(0, 94, 255)",
-        "priority": 7,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "pcb_color": "rgb(164, 75, 63)",
+        "priority": 10,
+        "schematic_color": "rgb(164, 75, 63)",
         "track_width": 0.6,
         "tuning_profile": "",
         "via_diameter": 0.8,
@@ -711,16 +728,25 @@
       },
       {
         "clearance": 0.11,
+        "line_style": 0,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "Signals_NET",
-        "pcb_color": "rgb(255, 77, 241)",
-        "priority": 0,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "pcb_color": "rgb(185, 85, 255)",
+        "priority": 3,
+        "schematic_color": "rgb(185, 85, 255)",
         "track_width": 0.2,
         "tuning_profile": "",
         "via_diameter": 0.6,
         "via_drill": 0.3
+      },
+      {
+        "line_style": 0,
+        "name": "TX/RX",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgb(141, 41, 82)",
+        "tuning_profile": ""
       },
       {
         "bus_width": 12,
@@ -731,9 +757,9 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "USB",
-        "pcb_color": "rgb(6, 255, 0)",
-        "priority": 8,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "pcb_color": "rgb(56, 255, 12)",
+        "priority": 11,
+        "schematic_color": "rgb(56, 255, 12)",
         "track_width": 0.11,
         "tuning_profile": "",
         "via_diameter": 0.45,
@@ -748,172 +774,76 @@
     "netclass_assignments": null,
     "netclass_patterns": [
       {
-        "netclass": "PWR",
-        "pattern": "+1V2_DCDC"
+        "netclass": "USB",
+        "pattern": "/USB*"
       },
       {
-        "netclass": "PWR",
-        "pattern": "+1V2_FPGA"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+1V5"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+1V5_DCDC"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+3V3"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+3V3_AON"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+3V3_AON_DCDC"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+3V3_DCDC"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+5V_DCDC"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+5V_EPD"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+5V_SOM"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+VBAT"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+VBUS"
-      },
-      {
-        "netclass": "HV",
-        "pattern": "+VGH"
-      },
-      {
-        "netclass": "HV",
-        "pattern": "+VP"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+VSYS"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+VSYS_FL"
-      },
-      {
-        "netclass": "HV",
-        "pattern": "-VCOM"
-      },
-      {
-        "netclass": "HV",
-        "pattern": "-VGL"
-      },
-      {
-        "netclass": "HV",
-        "pattern": "-VN"
+        "netclass": "DDR3",
+        "pattern": "/fpga_ddr*"
       },
       {
         "netclass": "DPI",
-        "pattern": "/DPI_*"
+        "pattern": "/DPI*"
       },
       {
-        "netclass": "EPD",
-        "pattern": "/EPDC_*"
+        "netclass": "USB",
+        "pattern": "/battery/USB*"
       },
       {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_ADDR1[0-2]"
+        "netclass": "I2C",
+        "pattern": "/SDA*"
       },
       {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_ADDR[0-9]"
+        "netclass": "I2C",
+        "pattern": "/SCL*"
       },
       {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_BA[0-2]"
+        "netclass": "Signals_NET",
+        "pattern": "/CHG*"
       },
       {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_CASB"
-      },
-      {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_CKE"
-      },
-      {
-        "netclass": "DDR3_CLK",
-        "pattern": "/fpga_ddr/DRAM_CKN"
-      },
-      {
-        "netclass": "DDR3_CLK",
-        "pattern": "/fpga_ddr/DRAM_CKP"
-      },
-      {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_CSB"
-      },
-      {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_DATA1[0-5]"
-      },
-      {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_DATA[0-9]"
-      },
-      {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_ODT"
-      },
-      {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_RASB"
-      },
-      {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_RST"
-      },
-      {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_WEB"
-      },
-      {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_[LU]DM"
-      },
-      {
-        "netclass": "DDR3",
-        "pattern": "/fpga_ddr/DRAM_[LU]DQS[PN]"
-      },
-      {
-        "netclass": "MMC1",
-        "pattern": "/som/SD_*"
+        "netclass": "Signals_NET",
+        "pattern": "/GAUGE_*"
       },
       {
         "netclass": "PWR",
+        "pattern": "/V*"
+      },
+      {
+        "netclass": "GND",
         "pattern": "GND"
       },
       {
-        "netclass": "USB",
-        "pattern": "/USBD+"
+        "netclass": "TX/RX",
+        "pattern": "/*TX*"
       },
       {
-        "netclass": "USB",
-        "pattern": "/USBD-"
+        "netclass": "TX/RX",
+        "pattern": "/*RX*"
+      },
+      {
+        "netclass": "Signals_NET",
+        "pattern": "/*/KEY*"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "/EPD*"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "+*"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "-*"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "/*/+*"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "/*/-*"
       }
     ]
   },
@@ -1071,7 +1001,7 @@
         "uuid": "dee825bf-c2f1-415d-afdf-cf702072a6e8"
       }
     ],
-    "used_designators": "D7,R37,#PWR45",
+    "used_designators": "SW1,D7,R37,#PWR45",
     "variants": []
   },
   "sheets": [

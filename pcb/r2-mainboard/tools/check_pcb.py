@@ -246,13 +246,41 @@ def main() -> int:
           f"{sum(1 for f in fail if ' mm from ' in f)} violated")
 
     # 4. nets that must not be poured
+    #
+    # ⚠ This used to grep for `(net_name "...")`. A KiCad 10 .kicad_pcb writes
+    # `(net "GND")` on a zone -- the bare net NAME, not the number, and not
+    # `net_name` -- so the old pattern matched nothing and this check reported
+    # "0 distinct nets have zones" with three zones on the board. Same failure
+    # mode as check 5 had. If you touch this, verify against the file, not
+    # against what the S-expression looks like it should be.
     print("\n4. nets that must not carry a zone:")
-    zones = re.findall(r'\(zone\n(?:(?!\(zone).)*?\(net_name "([^"]*)"', text, re.S)
+    # The terminator is a LOOKAHEAD on purpose. Zones sit back-to-back, so a
+    # consuming `\n\t\)\n` eats the newline that the next zone's `\n\t\(zone`
+    # needs and every second zone vanishes -- that is how the SW pour went
+    # unreported here while sitting in the file.
+    zblocks = re.findall(r'\n\t\(zone\n([\s\S]*?)(?=\n\t\)\n)', text)
+    zones = []
+    for b in zblocks:
+        n = re.search(r'\(net "([^"]*)"\)', b)
+        lyr = re.search(r'\(layers? "([^"]+)"\)', b)
+        nm = re.search(r'\(name "([^"]*)"\)', b)
+        zones.append((n.group(1) if n else "", lyr.group(1) if lyr else "?",
+                      nm.group(1) if nm else ""))
+    names = [z[0] for z in zones]
     for net, why in NO_ZONE_NETS.items():
-        if net in zones:
+        if net in names:
             fail.append(f"there is a copper zone on {net!r} -- {why}")
-    print(f"   {len(set(zones))} distinct nets have zones; "
-          f"{sum(1 for n in NO_ZONE_NETS if n in zones)} of them must not")
+    print(f"   {len(zones)} zones on {len(set(names))} distinct nets; "
+          f"{sum(1 for n in NO_ZONE_NETS if n in names)} of them must not")
+    for net, lyr, nm in zones:
+        tag = f"  [{nm}]" if nm else ""
+        print(f"     {lyr:<8} {net}{tag}")
+    # A zone whose stored name does not mention its own net is usually a
+    # copy-paste of another pour; harmless in copper, misleading to read.
+    for net, lyr, nm in zones:
+        if nm and net and net.split("-")[0].strip("+") not in nm:
+            warn.append(f"zone on {net!r} ({lyr}) is still named {nm!r} -- "
+                        f"looks copied from another pour; rename it")
 
     # 5. net classes -- from the PROJECT file, and checked for members
     print("\n5. net classes:")

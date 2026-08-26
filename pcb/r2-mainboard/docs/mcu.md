@@ -205,7 +205,7 @@ it is the reason `LED_STAT#` is on `PC2` and not on the otherwise-convenient `PC
 | 63 | `PB9` | `SDA_AON` | `I2C1_SDA` (AF6) | Table 15 |
 | 30 | `PB10` | `VCOM_MEA_EN` | GPIO out | |
 | 31 | `PB11` | `EPD_THROT` | GPIO out | |
-| 32 | `PB12` | `FL_INT#` | GPIO in, **EXTI12**; also `ADC_IN16`, unused | `frontlight.md` §10.3, §3.4 |
+| 32 | `PB12` | ~~`FL_INT#`~~ **spare** | **released 2026-08-23** — `U53.B2` has no escape route, so `FL_INT#` no longer exists. `frontlight.md` §9.1 |
 | 33 | `PB13` | `FPGA_PROG#` | GPIO out, open-drain | §4 |
 | 34 | `PB14` | `FPGA_DONE` | GPIO in | |
 | 35 | `PB15` | `FPGA_SUSP` | GPIO out | §4 |
@@ -305,7 +305,7 @@ need an interrupt line at all:
 | `TOUCH_RST#` | `PD9` | **`PC3`** | plain output, EXTI irrelevant |
 | `PEN_INT#` | `PC6` | **`PA11`** | EXTI11 free |
 | `MCU_EN_TOUCH` | `PA11` | **`PC6`** | plain output |
-| `FL_INT#` | *unassigned* | **`PB12`** | EXTI12 free; also `ADC_IN16`, which nothing needs |
+| ~~`FL_INT#`~~ | *unassigned* | ~~`PB12`~~ **withdrawn** | signal deleted 2026-08-23; `PB12` returns to the spare pool. `frontlight.md` §9.1 |
 
 On the schematic this is a relabel of four already-wired pads plus one new net, not a rewire.
 

@@ -648,8 +648,8 @@ a number. A check that reports stale data is worse than no check.
    libraries. **`PCM-071` was the only gap, and it is closed.**
 4. **`EPD_THROT` still occupies `U41.M16`** and nothing drives it (`fpga.md` §2.1).
    `NOTES-R2-plan.md` says decide before Stage D: reclaim the ball or keep it reserved.
-5. ~~**WP6 is not drawn.**~~ **Both sheets are drawn as of 2026-08-17.** `FL_INT#` now has a pin —
-   `PB12`, `mcu.md` §3.4 — leaving only the DNP touch/pen connectors, whose pad order is a vendor
+5. ~~**WP6 is not drawn.**~~ **Both sheets are drawn as of 2026-08-17.** ~~`FL_INT#` now has a pin —
+   `PB12`, `mcu.md` §3.4~~ **`FL_INT#` was deleted 2026-08-23 — `frontlight.md` §9.1** — leaving only the DNP touch/pen connectors, whose pad order is a vendor
    question (`io-expansion.md` §5).
 6. **A PDS impedance simulation** for the FPGA rails is still the honest answer to `fpga.md` §11.5,
    and is a Stage-D item rather than a defect.

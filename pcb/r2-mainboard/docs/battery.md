@@ -2,7 +2,7 @@
 
 R2 work package 1. Status: **reviewed once; review-1 fixes applied.** The cell and its
 attachment were settled on 2026-08-17 — §9.1 and §9.2 — by `tools/patch_battery_connector.py`.
-Last updated 2026-08-17.
+Last updated 2026-08-26 (§1.1 withdraws the four-part drop-in; §10.1.1 adds the ICO caveat).
 
 §10 answers the points raised in `../manual-analysis/Analyse_battery.md` and lists what changed
 in the schematic as a result. Read that section first if you are coming from
@@ -48,27 +48,46 @@ LCSC stock, queried 2026-08-05:
 | `BQ25895RTWR` | `C80200` | 1 851 | D+/D−/DSEL |
 | `BQ25890RTWR` | `C130451` | 830 | D+/D−/DSEL |
 
-**Decision: `BQ25892RTWR` (`C165480`) as the primary**, with a **three-resistor option field on pins
-2, 3 and 24** so any of the four drops in. 832 units against 127, same family, and the PSEL/PG
-variant is the one we actually want.
+**Decision: `BQ25892RTWR` (`C165480`).** 832 units against 127, same family, and the PSEL/PG variant
+is the one we actually want.
 
 Why the PSEL variant is the *right* choice and not merely the available one: we decided D+/D− go to
 the SoM so books can be sideloaded over USB. A `BQ25890`/`BQ25895` would want those same two lines
 for its BC1.2 detection and would need an external analog mux driven by `DSEL` — a part, a rail and
-a failure mode we do not need. The PSEL devices have no D+/D− pins at all and use the Input Current
-Optimizer instead, probing the source by loading it until `VBUS` droops ‡.
+a failure mode we do not need. The PSEL devices have no D+/D− pins at all; they take the source type
+from a strap and leave the rest to the host over I²C — with the caveat in §10.1.1.
 
-Option field (0402 pads, decided at assembly). Everything in the right-hand
-column is `DNP` in the schematic today:
+### 1.1 The four-part drop-in — withdrawn 2026-08-26
 
-| Net | PSEL variant fitted (`BQ25892`/`96`) | D+/D− variant fitted (`BQ25890`/`95`) |
-| --- | --- | --- |
-| pin 2 | `R38` 10 kΩ to `REGN` (PSEL high). `R11` 0 Ω to GND is the adapter option — **DNP** | `R14` 0 Ω to `USB_DP` |
-| pin 3 | `R3` 10 kΩ pull-up to `+3V3_AON`, net `CHG_PG#` | `R15` 0 Ω to `USB_DM` |
-| pin 24 | not fitted | `R16` 10 kΩ pull-up to `+3V3_AON`, net `CHG_DSEL` |
+Earlier revisions of this section claimed a **three-resistor option field on pins 2, 3 and 24**, so
+that any of the four family members could be stuffed onto the same bare board. The premise is sound
+— all four are RTW WQFN-24 4×4, one register map, identical on pins 1 and 4–23 ‡ — but **the field
+was never captured, and it is now dropped rather than completed.**
 
-`R38` and `R11` are mutually exclusive — fitting both shorts `REGN` to ground
-through 10 kΩ and pins PSEL at ~0 V. The sheet says so next to them.
+Two reasons. First, the parts are simply not there: `R14`/`R15`/`R16` — the 0 Ω links that would
+have taken `USBD+`/`USBD−` to pins 2 and 3 and pulled `DSEL` up on pin 24 — do not exist on
+`battery.kicad_sch`, whose resistors run R1–R13, R17–R19, R37, R38. Second, adding them would not
+have been sufficient: a `BQ25890`/`95` shares D+/D− with the SoM's USB port and wants the
+`DSEL`-driven analog mux this design deliberately avoids, so the "drop-in" would have needed a
+component the board does not carry.
+
+**As drawn, the board takes a `BQ25892` or a `BQ25896` and nothing else.** What survives is the
+`PSEL` polarity pair on pin 2:
+
+| Position | Value | State | Effect |
+| --- | --- | --- | --- |
+| `R38` | 10 kΩ, `CHG_PSEL` → `REGN` | **fitted** | `PSEL` high — USB SDP, 500 mA power-on default ‡ |
+| `R11` | 0 Ω, `CHG_PSEL` → GND | **DNP** | `PSEL` low — adapter, 3.25 A power-on default ‡ |
+
+Exactly one of the two must be stuffed: `PSEL` is a plain digital input with no internal pull ‡
+(only `/QON` has one, 200 kΩ ‡). They are mutually exclusive — fitting both shorts `REGN` to ground
+through 10 kΩ and pins `PSEL` at ~0 V. The sheet says so next to them. §10.1 has the reasoning for
+high, and for pulling up to `REGN` rather than `+3V3_AON`.
+
+Pin 3's `R3`, 10 kΩ to `+3V3_AON` on net `CHG_PG#`, is the `BQ25892`'s ordinary `PG` pull-up, not an
+option position. Pin 24 is `NC` on this part, but the sheet still carries a `CHG_DSEL` label on it —
+a leftover of the withdrawn drop-in, and the reason the netlist shows a one-node net. Harmless;
+worth deleting on the next surgical pass over the sheet.
 
 ## 2. Part list
 
@@ -76,7 +95,7 @@ through 10 kΩ and pins PSEL at ~0 V. The sheet says so next to them.
 | --- | --- | --- | --- |
 | `U1` | `BQ25892RTWR` | `C165480` | charger, power path, I²C, boost, ship mode. WQFN-24 4×4, EP to GND |
 | `U2` | `MAX17048G+T10` | `C2682616` | fuel gauge, TDFN-8 2×2, ~3 µA, no sense resistor |
-| `U3` | `USBLC6-2SC6` | `C7519` | ESD on `USB_DP`/`USB_DM` + `VBUS` clamp, SOT-23-6 |
+| `U3` | `USBLC6-2SC6` | `C7519` | ESD on `USBD+`/`USBD−` + `VBUS` clamp, SOT-23-6 |
 | `J1` | USB-C receptacle, 16-pin USB 2.0 | `C165948` (`TYPE-C-31-M-12`) | **pinout to be verified against the connector drawing before capture** |
 | `J2` | **`Molex 504050-0391`** Pico-Lock 1.5 mm, 3-circuit, right-angle SMT | none — Newark `98AC8179` | cell connector. 3.5 A/contact, 2.00 mm mated, positive lock. `BAT+`, `NTC`, `BAT−`. **§9.2** |
 | `J25` | **solder pads**, 3× 2.0×3.0 mm on 3.5 mm pitch | — | bare copper, no part to fit. Same three nets as `J2`. `tools/gen_solderpads.py`, **§9.2** |
@@ -125,7 +144,8 @@ Using the max so the limit is never *under*-estimated: `RILIM` = 260 Ω → 390/
 is also the datasheet's own typical-application value ‡. That is 7.5 W in — enough to run the board
 (~2.5 W active) and still put ~5 W into the cell. **`RILIM` = 130 Ω raises the ceiling to 3 A** if a
 known-good 3 A source is used; it is a one-resistor change and the ICO backs off from a weaker
-source regardless.
+source regardless — **provided firmware starts the ICO**, which on a PSEL part it must do
+explicitly: §10.1.1.
 
 **TS network.** Use the pack's 103AT-class 10 kΩ NTC ‡ (recommended part). `RT1` from `REGN` to
 `TS`, `RT2` from `TS` to GND, NTC in parallel with `RT2`. JEITA thresholds as a percentage of
@@ -166,7 +186,7 @@ Hierarchical labels leaving the sheet:
 | `CHG_OTG` | in | `mcu` |
 | `CHG_QON#` | bidir | `mcu` + power button |
 | `GAUGE_ALRT#` | out | `mcu` |
-| `USB_DP` / `USB_DM` | bidir | `som` — USB2 device port |
+| `USBD+` / `USBD−` | bidir | `som` — USB2 device port |
 | `VBUS_DET` | out | `mcu` |
 
 ## 6. Traps to check at review
@@ -341,9 +361,10 @@ Source: `../manual-analysis/Analyse_battery.md`. Everything below marked ‡ is 
 
 `PSEL` only sets the *power-on default* — step 3 of the power-up sequence ‡,
 before firmware exists. The `R8` = 260 Ω `ILIM` resistor still caps the real
-limit at 1.5 A, so `PSEL` low would have meant "help yourself to 1.5 A from
-whatever you were plugged into", with `VINDPM` foldback as the only brake. On a
-laptop port that is out of spec. High is the compliant default, and the MCU
+limit at `KILIM`/`R8` = 355/260 ≈ **1.37 A typ** — 1.23–1.5 A over the 320–390
+A·Ω `KILIM` spread ‡ — so `PSEL` low would have meant "help yourself to ~1.4 A
+from whatever you were plugged into", with `VINDPM` foldback as the only brake.
+On a laptop port that is out of spec. High is the compliant default, and the MCU
 raises `IINLIM` over I²C once it knows better.
 
 **Which rail to pull up to matters more than it looks.** `+3V3_AON` is generated
@@ -356,6 +377,33 @@ and 6 V at 9 V ‡, against a 7 V absolute maximum on `PSEL` ‡ and a 1.3 V `VI
 
 Applied: **`R38` 10 kΩ from `CHG_PSEL` to `REGN`, fitted; `R11` 0 Ω to GND
 marked DNP.**
+
+### 10.1.1 ICO does not rescue this on its own — firmware has to act
+
+Recorded 2026-08-26, correcting §1, which used to say the PSEL parts "use the
+Input Current Optimizer instead" as though the hardware sorted itself out.
+
+‡ §9.2.4 is specific about when ICO self-starts: the algorithm "runs
+automatically when ICO_EN bit is set" **after a DCP or MaxCharge type input
+source is detected**. With `PSEL` high the `BQ25892` reports `VBUS_STAT` = 001,
+USB Host SDP ‡ (Table 9-20 gives this part only 000 / 001 / 010 / 111 — there is
+no DCP result on a PSEL device at all). So the trigger condition never occurs and
+ICO never runs by itself.
+
+The board therefore sits at a **500 mA input limit indefinitely** unless the MCU
+does one of two things over I²C:
+
+- write `IINLIM` (`REG00[5:0]`) directly, or
+- set `FORCE_ICO` (`REG09[7]`, self-clearing once ICO starts ‡) and let the
+  algorithm find the source's maximum power point.
+
+Either way the ceiling stays the lower of `IINLIM`/`IDPM_LIM` and the `ILIM` pin
+‡ — ~1.37 A typ from `R8`, above.
+
+**This is a firmware requirement, not a schematic change.** Nothing on the sheet
+moves; but a board with no charger driver, or one that stops at reading status
+registers, will charge at 500 mA off a 3 A wall brick and nobody will notice
+except by the clock.
 
 ### 10.2 `TS` — what if the pack has no `103AT`, or a different NTC?
 
@@ -388,7 +436,7 @@ The ratio 5.2276 is fixed by the charger's own thresholds and never changes; onl
 Practical consequence for the cell hunt: **prefer a pack with a 10 kΩ / β 3435
 NTC** (that is what `103AT-2` is). Anything else means recomputing two resistors.
 
-### 10.3 `PG` on pin 3 — correct as drawn, and that is the whole point of the option field
+### 10.3 `PG` on pin 3 — correct as drawn
 
 ‡ Figures 7-1 and 7-2 print both pinouts on one page:
 
@@ -400,10 +448,14 @@ NTC** (that is what `103AT-2` is). Anything else means recomputing two resistors
 
 **Pins 1 and 4–23 are identical across all four ‡** — I re-read the table pin by
 pin for this review, not just the summary. `U1`'s symbol is drawn for the
-`BQ25892`, which is the part we are fitting, so `PG` on pin 3 is right. `R14`,
-`R15` and `R16` are the pads that convert the board to the `BQ25890`/`95`
-pinout; all three are DNP. That option field already covers the `892` — the
-"fitted" column *is* the `892` configuration.
+`BQ25892`, which is the part we are fitting, so `PG` on pin 3 is right, pulled up
+by `R3` 10 kΩ to `+3V3_AON`.
+
+This review answer originally continued "`R14`, `R15` and `R16` are the pads that
+convert the board to the `BQ25890`/`95` pinout; all three are DNP." **That was
+wrong — those three references do not exist on the sheet**, and the conversion
+option has since been withdrawn outright (§1.1). Nothing about `PG` on pin 3
+depends on it.
 
 One asymmetry worth knowing: the two families are not interchangeable in
 firmware either. Their I²C addresses differ ‡ — `6AH` for `BQ25890`, `6BH` for
@@ -450,7 +502,9 @@ IINMAX = K_ILIM / R_ILIM
 
 I used the **max** so the ceiling is never *under*-estimated: 390 / 260 Ω =
 **1.5 A**. TI's own typical application uses the same 260 Ω for 1.5 A ‡, which is
-the check that the arithmetic is right.
+the check that the arithmetic is right. §10.1 quotes the **typ** figure instead,
+355 / 260 ≈ 1.37 A, because the question there is what the board will actually
+pull rather than what it might at worst — same equation, different corner.
 
 Two things follow that are worth having in your head:
 

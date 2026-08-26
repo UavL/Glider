@@ -1204,16 +1204,6 @@
 	)
 	(wire
 		(pts
-			(xy 276.86 60.96) (xy 281.94 60.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8108b57c-26b3-4eac-b879-179e6d3f1e01")
-	)
-	(wire
-		(pts
 			(xy 177.8 111.76) (xy 182.88 111.76)
 		)
 		(stroke
@@ -1631,16 +1621,6 @@
 			(type default)
 		)
 		(uuid "b1003168-eca1-45c9-a3e8-f61aa41f287a")
-	)
-	(wire
-		(pts
-			(xy 375.92 154.94) (xy 381 154.94)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b2b9f51f-46cb-4404-8bca-ad539bcda257")
 	)
 	(wire
 		(pts
@@ -2682,16 +2662,6 @@
 		)
 		(uuid "2d018875-e516-4e6a-9c47-fecdaa1e0ba1")
 	)
-	(label "FL_INT#"
-		(at 381 154.94 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "2e0a11ff-facf-4ce0-8175-6c3f57c574cb")
-	)
 	(label "DPI_R5"
 		(at 182.88 119.38 0)
 		(effects
@@ -3351,16 +3321,6 @@
 			(justify left bottom)
 		)
 		(uuid "744ace53-f4b7-4c17-839f-ebe747b808a5")
-	)
-	(label "FL_INT#"
-		(at 281.94 60.96 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "7757038e-edef-410f-996c-92fe72076a37")
 	)
 	(label "SDA_AON"
 		(at 83.82 289.56 0)
@@ -5880,16 +5840,6 @@
 				(justify right)
 			)
 		)
-		(pin "FL_INT#" output
-			(at 375.92 154.94 0)
-			(uuid "527b03a4-414a-4ace-a8e4-423fd049163f")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8"
@@ -6501,16 +6451,6 @@
 		(pin "FL_EN" output
 			(at 276.86 58.42 0)
 			(uuid "c23eb628-677a-46c5-9d69-613d170164f8")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "FL_INT#" input
-			(at 276.86 60.96 0)
-			(uuid "84d01648-4113-48a4-9021-06e0e227abd6")
 			(effects
 				(font
 					(size 1.27 1.27)

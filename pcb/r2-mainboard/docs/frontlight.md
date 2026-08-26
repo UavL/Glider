@@ -165,8 +165,8 @@ All parts are chosen and the sheet is captured against this table.
 | `C516` | 100 nF / 16 V | 0402 | | local HF bypass at `IN` |
 | `J24` | — | **`HC-FPC-05-09-8RLTAG`**, 8-pin 0.5 mm | `C5213749` | §7.2. The 8-pin sibling of the `C5213748` on `J22`/`J23`, **footprint already in `pcb_common`**. 500 mA / 50 V per contact against 28.5 mA at 28.5 V. 49 k in stock |
 | `R507` | 100 kΩ | 0402 | | `HWEN` pull-down: keeps the driver off until the MCU asserts `FL_EN`, as all four `MCU_EN_*` rails do |
-| `R508` | 10 kΩ | 0402 | | `INTN` pull-up to `+3V3`; `INTN` is open-drain |
-| `R509` | **0 Ω to `IN`** | 0402 | | **`SEL` strap — see §5.** Sets I²C address 0x38 |
+| `R508` | ~~10 kΩ~~ **`dnp` + `on_board no`** | — | | was the `INTN` pull-up to `+3V3`. **`INTN` is unconnected — §9.1.** Still `in_bom yes`; clear that before the JLCPCB BOM |
+| ~~`R509`~~ | ~~0 Ω to `IN`~~ | — | | **deleted 2026-08-23 — §9.1.** `SEL` (`C2`) now ties straight to `IN` (`C3`), its own neighbour |
 
 Deleted from the sheet as captured: `R505` (732 k), `R506` (100 k) — the `TPS61022` feedback
 divider. `+5V2_FL` disappears as a net.
@@ -217,8 +217,10 @@ So the default strap puts the frontlight driver on the same address as `U2`, on
 (0x40–0x43) and, later, touch. Two devices answering one address takes the bus down, and it takes
 the fuel gauge and the charger with it.
 
-`SEL` → `IN` gives **0x38**, which is clear of every address on that bus. `R509` is drawn as a 0 Ω
-link rather than a hard net so the alternative remains a stuffing option.
+`SEL` → `IN` gives **0x38**, which is clear of every address on that bus. ~~`R509` is drawn as a 0 Ω
+link rather than a hard net so the alternative remains a stuffing option.~~ **Superseded 2026-08-23
+(§9.1): `R509` is deleted and `SEL` ties directly to `IN`.** The stuffing option was never real —
+the only alternative strap is `GND`, which is 0x36, which is the collision this section is about.
 
 This is the one thing on this sheet that would have been found at bring-up rather than at review.
 
@@ -230,7 +232,7 @@ This is the one thing on this sheet that would have been found at bring-up rathe
 | `FL_PWM1` | input | `mcu` (`TIM4_CH1`) — now also `U53.PWM` |
 | `SCL_AON` | bidirectional | the always-on bus |
 | `SDA_AON` | bidirectional | the always-on bus |
-| `FL_INT#` | output | `mcu` **`PB12`**, EXTI12 — assigned 2026-08-20, §10.3 |
+| ~~`FL_INT#`~~ | — | **withdrawn 2026-08-23 — §9.1.** `B2` cannot be escaped; `PB12` returns to the spare pool |
 
 `+VSYS_FL` in, `GND`, and `+3V3` for `R508` cross as global power nets. **`+5V2_FL` is gone.**
 
@@ -309,6 +311,12 @@ Read out of the exported netlist, not asserted:
 devices on the always-on bus. `U53` is the seventh, and touch will be the eighth. Re-check before
 fab rather than at bring-up.
 
+> ⚠ **This run predates §9.1 (2026-08-23).** The three net rows above are the state as captured on
+> 2026-08-17 and are kept as the record. After §9.1: `R509` is gone, so `Net-(U53-SEL)` disappears
+> and `U53.C2` joins `+VSYS_FL` (which loses `R509.1` and gains `U53.C2`, still 7 nodes); and
+> `FL_INT#` is gone, so `U53.B2` and `R508` are no-connects and `U20.32` is a spare again.
+> **Re-run the netlist check after the schematic edits.**
+
 ## 9. Layout guidelines — for Stage D
 
 `power.md` §11.2's `TPS61022` section **no longer applies** — different part, different topology,
@@ -332,6 +340,47 @@ and this one is asynchronous, so the diode is in the hot loop.
   `tools/gen_yfq0012.py` emits; no via-in-pad.
 - `SCL_AON`/`SDA_AON` reach here from the always-on bus. With `io_expansion`, this is now the second
   long leg; see §8.
+
+### 9.1 ⚠ `B2` and `C2` have no escape route — resolved 2026-08-23
+
+Found in Stage D while routing `U53`. **The two interior pads of the DSBGA cannot be escaped on
+`F.Cu` at any manufacturable width or clearance.** This is geometry, not a rule setting.
+
+`tools/gen_yfq0012.py` emits 3 columns x 4 rows, 0.4 mm pitch, **circular pads of 0.24 mm**. So:
+
+| gap | width | largest trace at the 0.11 mm class clearance |
+| --- | --- | --- |
+| orthogonal, pad to pad | 0.4 - 0.24 = **0.16 mm** | `w <= -0.06` -- **nothing fits** |
+| diagonal, between rings | 0.4*sqrt(2) - 0.24 = **0.326 mm** | `w <= 0.106` -- 0.10 fits, 0.11 misses by 4 um |
+
+The diagonal channel is a decoy. **Every path from column 2 to the outside crosses a wall** --
+column 1 and column 3 are 4-pad walls, rows A and D are 3-pad walls, and every gap in all four is
+0.16 mm. A 45 deg escape from `B2` clears the `B1`/`A2` gap and then dead-ends in the pocket around
+`A1`, whose only two exits (`A1`-`B1`, `A1`-`A2`) are 0.16 mm again. Crossing 0.16 mm needs
+`w + 2c <= 0.16`; JLCPCB's finest 4-layer option is 3 mil / 3 mil (0.0762 mm), which needs 0.229 mm.
+
+**A smaller via does not help either.** The 4-pad void centre sits 0.283 mm from each pad centre, so
+a via there needs `r_via + 0.12 + 0.11 <= 0.283`, i.e. **diameter 0.106 mm max**. No purchasable via
+fits inside a 0.4 mm-pitch array; that is what via-in-pad exists for, and §9 rules it out.
+
+Both pads are resolved without it:
+
+- **`C2` = `SEL` -- tie it to its neighbour.** §5 requires `SEL` at `IN`, and **`C3` *is* `IN`**
+  (`+VSYS_FL`). `C2` and `C3` are orthogonally adjacent, so a plain 0.4 mm trace between them needs
+  no escape: at 0.2 mm wide it clears `B2`/`B3`/`D2`/`D3` by 0.18 mm. **`R509` is deleted.** All it
+  bought was the stuffing option to strap `SEL` to `GND` for 0x36 -- the `MAX17048`'s fixed address,
+  i.e. the exact collision §5 exists to prevent. The option could never have been exercised.
+  It is also the better strap: no stub beside the `SW` node.
+- **`B2` = `INTN` -- left unconnected.** Its neighbours are `SCL`, `HWEN`, `GND` and `SEL`, so no
+  adjacency trick exists, and the only alternative was resin-filled-and-capped via-in-pad -- a
+  board-wide process change, cost and lead time, for one optional signal. The same information is
+  I2C-readable: **Interrupt Status `0x09`** and **Fault Status `0x0B`** (`lm3630a.pdf` Tables 13 and
+  15), on a bus the MCU already polls for the gauge and the three `INA3221`s. **`R508` is set
+  `dnp yes` + `on_board no`** — it leaves the netlist and the PCB entirely — and **`PB12` returns to
+  `mcu.md` §3.2's spare pool**, undoing the `patch_exti_swap.py` assignment of 2026-08-20.
+
+**What this costs:** fault handling becomes polled instead of interrupt-driven. OCP, OVP and TSD
+latch in `0x0B` until read, so nothing is missed -- only the latency is. Not measured on hardware.
 
 ## 10. Open
 

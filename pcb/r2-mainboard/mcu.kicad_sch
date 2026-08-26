@@ -4761,6 +4761,10 @@
 		(at 180.34 139.7)
 		(uuid "7f0f83c6-0fa4-47ca-9f86-1fa061b054cc")
 	)
+	(no_connect
+		(at 180.34 185.42)
+		(uuid "be1ca276-f9db-471c-9d4f-c16e3395b8a9")
+	)
 	(wire
 		(pts
 			(xy 180.34 172.72) (xy 190.5 172.72)
@@ -6140,16 +6144,6 @@
 			(type default)
 		)
 		(uuid "d3e35b34-2515-41f8-a116-a666ee1b73c7")
-	)
-	(wire
-		(pts
-			(xy 180.34 185.42) (xy 190.5 185.42)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d5a9f8ec-c3f1-4cf5-897a-749ffe2f87ff")
 	)
 	(wire
 		(pts
@@ -7714,17 +7708,6 @@
 		)
 		(uuid "2c44c4e1-66e7-4d6f-b77f-3af0a85863e4")
 	)
-	(hierarchical_label "FL_INT#"
-		(shape input)
-		(at 190.5 185.42 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "2cc12d6c-ad2a-48c2-b3ab-9e3a1bbb3d24")
-	)
 	(hierarchical_label "SOM_IRQ#"
 		(shape output)
 		(at 365.76 72.39 0)
@@ -9251,7 +9234,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 25.4 49.53 0)
 			(hide yes)
 			(show_name no)
@@ -11666,120 +11649,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Switch:SW_Push")
-		(at 276.86 246.38 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "aece1cde-1754-47d7-812f-f2e1e0d6ef00")
-		(property "Reference" "SW20"
-			(at 275.59 240.03 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "SW"
-			(at 275.59 252.73 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A"
-			(at 276.86 246.38 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 276.86 246.38 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power button — shorts CHG_QON# to GND galvanically, the only ship-mode exit needing neither a cable nor a live I²C host (bq25890.pdf §9.2.10.2). 1.6 N, 100 k cycles is ample for a rarely-pressed key (XKB TS-1187A-B-A-B, LCSC C318884, JLC Basic)"
-			(at 276.86 246.38 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" "C318884"
-			(at 276.86 246.38 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer" "XKB Connection"
-			(at 0 0 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "TS-1187A-B-A-B"
-			(at 0 0 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "56f85071-daeb-4331-b8a1-61143d7ceeee")
-		)
-		(pin "2"
-			(uuid "ece937e2-0ff0-49e5-a648-59e9dc276e02")
-		)
-		(instances
-			(project "r2"
-				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a89f58f8-b115-4f71-9806-30f9bff6e587"
-					(reference "SW20")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R")
 		(at 261.62 229.87 0)
 		(unit 1)
@@ -12226,6 +12095,86 @@
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a89f58f8-b115-4f71-9806-30f9bff6e587"
 					(reference "#PWR1131")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 276.86 246.38 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "db1dab9b-312e-4c09-a8fa-e2d25b13efb3")
+		(property "Reference" "SW20"
+			(at 276.86 238.76 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "EVQPUC02K"
+			(at 276.86 241.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Button_Switch_SMD:Panasonic_EVQPUL_EVQPUC"
+			(at 276.86 241.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C79174.pdf?spm=wm.sxq.inf.ggs___wm.fly.bg.22.stp&lcsc_vid=RFINUQVSFFNZAQFeRFJdBlwHElhYUlNVEwVYVwdTQFgxVlNeQFVdU1deQVBXUjsOAxUeFF5JWBILBhYFH08MFQUQEk8NCAlJ"
+			(at 276.86 241.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Push button switch, generic, two pins"
+			(at 276.86 246.38 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "0da3f262-b105-4cac-a12e-6bab54d696e8")
+		)
+		(pin "1"
+			(uuid "b8e1830e-f7e2-4985-beee-96413a332282")
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/a89f58f8-b115-4f71-9806-30f9bff6e587"
+					(reference "SW20")
 					(unit 1)
 				)
 			)
