@@ -2,6 +2,8 @@
 
 Status: **drawn, verified against the gateware, reviewed 2026-08-15 — §15.** One change came out of
 the review: `J3` is deleted. Companion to `battery.md`, `power.md`, `mcu.md` and `epd-port.md`.
+Last updated 2026-08-29 (§7 restates what UG393 does and does not sanction about the 22 µF bulk;
+§11.5 records the `power_mon` shunts in the path).
 
 **The binding constraint on these three sheets is not R1's schematic — it is Caster's
 `constraint.ucf`.** The pinout is fixed by the gateware, and fixed harder than that by the silicon:
@@ -376,14 +378,34 @@ triples per rail:
 **One change made: `C509`, a fifth 4.7 µF on `VCCINT`.** It is a 0402 and it costs nothing; the
 alternative is to argue from a PDS impedance simulation nobody here has run.
 
-**Nothing else changed**, deliberately. Table 2-1 note 3 says the guidelines "do not include some of
-the 100 µF capacitors of previous versions and the total capacitance requirement can include an
-increase in the quantity of 4.7 µF capacitors. Both versions of these guideline are valid." R1 has
-taken exactly that trade, with 22 µF 0603s in quantity, and it runs DDR3 at full rate. The bulk
-shortfall is also covered at board level — `+3V3` carries about 200 µF of distributed bulk and each
-buck has 22 µF at its own output. Making this rigorous means simulating the PDS impedance from
-100 kHz to 500 MHz, which is what UG393 actually asks for and is out of scope here; it is a Stage-D
-item (§11.5), not a defect.
+**Nothing else changed**, deliberately — but be precise about what licenses the 22 µF, because it is
+weaker than it first reads.
+
+**UG393 has no 22 µF part.** Table 2-2 (p.16) offers exactly three classes — 100 µF/1210,
+4.7 µF/0805, 0.47 µF/0402-or-0204 — under four substitution rules: values may be *larger*, body size
+may be *smaller*, ESR must stay in 10–60 mΩ, voltage rating may be higher. Rule 2 is what legalises
+our 4.7 µF parts, which are 0402 `CL05A475MQ5NRNC` against a listed 0805. **Rule 1 does not do the
+same job for the bulk**: 22 µF is *smaller* than 100 µF, and the Capacitor Consolidation Rules
+(p.17) run the other direction — many small into one large, never one large into several small. So
+no clause in UG393 makes 5×22 µF a sanctioned stand-in for 1×100 µF.
+
+Table 2-1 note 3 is the nearest thing to support, and it is directional rather than dispositive: the
+guidelines "do not include some of the 100 µF capacitors of previous versions and the total
+capacitance requirement can include an increase in the quantity of **4.7 µF** capacitors. Both
+versions of these guideline are valid." That sanctions trading bulk against *4.7 µF* parts. It never
+names 22 µF. R1's arrangement is in the spirit of it, not licensed by it.
+
+**What the 22 µF actually is: this design's house bulk part, inherited.** `CL10A226MQ8NRNC`, 0603
+X5R 6.3 V, LCSC `C59461` — 15 instances, plus 16 more of the 10 V 0805 variant. R2 contains **no
+capacitor larger than 22 µF anywhere on the board**; there is no 100 µF and no 1210 footprint. The
+choice predates all R2 work (`pcb/mainboard/` goes back to `r0p4` in this repo's history).
+
+Three things do support it, in descending order of strength: R1's board runs DDR3 at full rate;
+board-level bulk covers part of the shortfall (`+3V3` carries about 200 µF distributed, and each
+buck has a 22 µF/10 V 0805 at its own output — `C30`/`C32`/`C34`, with the caveat in §11.5); and
+note 3's direction of travel is toward less bulk, not more. Making this rigorous means simulating the
+PDS impedance from 100 kHz to 500 MHz, which is what UG393 actually asks for and is out of scope
+here; it is a Stage-D item (§11.5), not a defect.
 
 ## 8. The root sheet
 
@@ -530,10 +552,26 @@ what the *geometry* tolerates, not slack to give away.
   impedance must be at or below the recommended one from 100 kHz to 500 MHz, which is a placement
   property: the 470 nF parts belong hard against their balls with their own vias, the 4.7 µF behind
   them, the 22 µF anywhere reasonable on the rail.
+- Bulk substituted *downward* (§7) means placement carries more of the load than it would with the
+  100 µF UG393 assumes: there is less low-frequency charge stored, so the path to it matters more.
+  The 470 nF in particular cannot be consolidated or relocated — UG393 p.17 is explicit that a
+  high-frequency capacitor's usefulness "depends on the number of PCB vias accessed."
+- **The `power_mon` shunts are in the path, and that weakens one of §7's three supports.** UG393's
+  "PCB Bulk Capacitors" paragraph (p.16) allows the regulator's own output capacitors to count
+  toward the Table 2-1 bulk "provided there is no inductor, ferrite bead, choke, or other filter
+  between the FPGA and the bulk capacitors." There is something: `R60` (20 mΩ, 0805) sits between
+  `+1V2_DCDC` and `+1V2_FPGA`, `R56` between `+1V5_DCDC` and `+1V5`, `R61` between `+3V3_DCDC` and
+  `+3V3`. **(inferred, not from UG393)** A shunt is a resistor rather than a bead, and 20 mΩ is
+  *inside* the 10–60 mΩ ESR band Xilinx specifies for the capacitors themselves, so it does not
+  isolate the way a filter element would — but `C30`/`C32`/`C34` are not straightforwardly parallel
+  with the FPGA's own bulk either, and the layout should keep the buck → shunt → FPGA path short and
+  wide. Do not treat the buck output capacitors as free bulk without saying this out loud.
 - The one genuinely open question is whether the 22 µF-in-quantity substitution for the listed
   100 µF holds up on this stack-up. R1's board is the evidence that it does; a PDS simulation is the
-  proof, and neither has been done for R2's geometry. Flagging it here so it is a decision at Stage
-  D rather than a discovery at bring-up.
+  proof, and neither has been done for R2's geometry. UG393 names the price itself — the ESR ranges
+  "can be over-ridden. However, this requires analysis of the resulting power distribution system
+  impedance to ensure that no resonant impedance spikes result" (p.16). Flagging it here so it is a
+  decision at Stage D rather than a discovery at bring-up.
 
 ### 11.6 Power-up
 

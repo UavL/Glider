@@ -3,6 +3,7 @@
 Status: **drawn; reviewed once, review-1 fixes applied.** The review answers are §10. Companion to
 `battery.md` and `power.md`. Every claim cites a datasheet in `../datasheets/` (with the table or
 page), the LCSC catalogue, or a file in this repo. Estimates are marked **(est.)**.
+Last updated 2026-08-29 (§11.3: `Y20` has no case ground — the guard-ring instruction is corrected).
 
 `mcu.kicad_sch` has been saved in Eeschema, so **the sheet — not `gen_mcu.py` — is the source of
 truth.** The review-1 fixes were applied surgically by `tools/patch_mcu_review1.py`; the generator
@@ -1101,8 +1102,13 @@ which makes it the easiest thing on this sheet to break with copper:
 
 - `Y20`, `C46` and `C47` as close to pins 4/5 as the footprints allow, on the same layer, with the
   shortest possible traces. No vias in `OSC32_IN`/`OSC32_OUT`.
-- A **guard ring** tied to `GND` around the whole oscillator, with the crystal's own ground and both
-  load capacitors' returns landing on it, and a solid ground directly beneath.
+- A **guard ring** tied to `GND` around the whole oscillator, with both load capacitors' returns
+  landing on it and a solid ground directly beneath. **`Y20` has no case ground to land** — the
+  footprint is `Crystal_SMD_3215-2Pin_3.2x1.5mm`, two pads and nothing else — so the ring's only
+  connections are `C46`/`C47` and its own stitching vias. The ring has to be *drawn*: `In1.Cu` is a
+  board-wide `GND` zone, so "solid ground beneath" comes free, but there is no `F.Cu` pour anywhere
+  near `U20`, and `U20`'s nearest `VSS` (pin 9) is 2.0–2.5 mm away behind `VDD`/`VREF+`/`VBAT`, so it
+  is not the return to use.
 - Nothing switching may cross or run beside `OSC32_IN`/`OSC32_OUT` on any layer — specifically not
   `MCU_SWCLK`, the I²C pair, `FL_PWM1`/`FL_PWM2`, or anything from `power.kicad_sch`'s switching
   nodes. Crosstalk here shows up as an RTC that gains or loses time, which is a miserable bug to
