@@ -3,6 +3,9 @@
 Status: **ported; reviewed once — accepted as a 1:1 port.** The review raised one question, about
 why the panel connector lives on a separate adapter board; it is answered in §9. Companion to
 `battery.md`, `power.md` and `mcu.md`.
+Last updated 2026-08-30: **§9.5 — `J6` is now a 40-pin `XF2M-4015-1A` wired straight to the panel.
+The adapter is gone, and with it `+5V2_FL`, `C147` and the three `FL_*` pins. §9.6 — both panel
+connectors moved to `B.Cu` and both took a mirrored land pattern, for opposite reasons.**
 
 These three sheets are **copied** from `pcb/mainboard/`, not redrawn. The acceptance criterion here
 is "is it the same as R1", so every part, value, coordinate and wire is carried over byte-for-byte
@@ -277,7 +280,7 @@ mainboard willing to spend the area could not be panel-agnostic without adapters
 So: it is not because it is a dev kit. It is because the dev kit's job is to drive *any* panel, and
 `README.md`'s Appendix 1 screen list has an "Adapter" column precisely so a user can look theirs up.
 
-### 9.2 What R2 inherited, and what I recommend
+### 9.2 What R2 inherited, and what I recommend — **superseded 2026-08-30, see §9.5**
 
 R2 carries the same bus, ported unchanged: `J6` = `FPC-05F-50PH20` (50-pin, 0.5 mm, horizontal) and
 `J3` = `FPC-05F-16PH20` (16-pin). So R2 is on the adapter model today by inheritance, not by
@@ -336,6 +339,115 @@ item, now in §7 rather than a change made on a guess.
 This review round is answers only. `epd`, `epd_power` and `power_mon` are untouched, so §6's
 verification — `epd` and `epd_power` provably net-identical to R1, `power_mon` differing in exactly
 four intended groups — still stands as run.
+
+### 9.5 Decided 2026-08-30: direct 40-pin, no adapter
+
+§9.2 recommended keeping the adapter "**for now**, and revisit at Stage D — because the panel is not
+chosen yet". Both halves of that condition have since expired:
+
+1. **The panel is chosen** — `GDEP103TC2-FT11`, 2026-08-17, `panel.md`. Its tail is 40-pin 0.5 mm
+   (`196033-40041`), measured on the received part at ~20 mm over 40 contacts.
+2. **The owner removed the adapter from the mechanical plan**, 2026-08-20, `layout.md` §1.2: *"the
+   TTL interface is just the flex cable that is bent under the display and that's about where it
+   lands on the PCB, so the connector can be fit accordingly."* A folded flex landing directly on
+   the board and an adapter PCB are not compatible plans.
+
+**The part: Omron `XF2M-4015-1A`, LCSC `C225713`.** Chosen over the 50-pin family's own 40-pin
+sibling (`FPC-05FB-40PH20`, `C2856837`) for three reasons: it has **double-sided contacts**, so the
+panel tail's pads-up orientation is not a constraint; its footprint
+(`Connector_FFC-FPC:Omron_XF2M-4015-1A_1x40-1MP_P0.5mm_Horizontal`) is in KiCad's stock library, so
+no library work; and it is the connector fitted at the `40P-A/B` position on the **Glider Mega
+Adapter**, where the owner test-fitted this exact tail on 2026-08-30. The old `FPC-05F-50PH20`
+(`C2856813`) is **bottom contact** and would have been the wrong orientation anyway.
+
+**The pin map is `pcb/40p-adapter-ab`'s, not a new one.** That project is the built, authoritative
+40→50 mapping; `tools/patch_j6_40pin.py` transcribes it. `EPDC_DkP` carries the panel's `ED(2k)` and
+`EPDC_DkN` carries `ED(2k+1)`, which is what the sheet's `SE_D*` annotations have always said.
+
+| Pin | Net | | Pin | Net | | Pin | Net | | Pin | Net |
+| ---: | --- | --- | ---: | --- | --- | ---: | --- | --- | ---: | --- |
+| 1 | `-VGL` | | 11 | `+3V3` | | 21 | `EPDC_D3N` | | 31 | `EPDC_SDCE0` |
+| 2 | NC | | 12 | `GND` | | 22 | `GND` | | 32 | `EPDC_SDLE` |
+| 3 | `+VGH` | | 13 | `EPDC_SE_CLK` | | 23 | `EPDC_D4P` | | 33 | `EPDC_SDOE` |
+| 4 | NC | | 14 | `EPDC_D0P` | | 24 | `EPDC_D4N` | | 34 | NC |
+| 5 | `+3V3` | | 15 | `EPDC_D0N` | | 25 | `EPDC_D5P` | | 35 | NC |
+| 6 | `EPDC_GDOE` | | 16 | `EPDC_D1P` | | 26 | `EPDC_D5N` | | 36 | `+VP` |
+| 7 | `EPDC_GDCLK` | | 17 | `EPDC_D1N` | | 27 | `EPDC_D6P` | | 37 | NC |
+| 8 | `EPDC_GDSP` | | 18 | `EPDC_D2P` | | 28 | `EPDC_D6N` | | 38 | `-VN` |
+| 9 | `GND` | | 19 | `EPDC_D2N` | | 29 | `EPDC_D7P` | | 39 | NC |
+| 10 | `-VCOM` | | 20 | `EPDC_D3P` | | 30 | `EPDC_D7N` | | 40 | `-VCOM` |
+
+`MP` is `GND`.
+
+**What went with the ten pins.** The 40-pin tail carries none of them, so:
+
+- **`+5V2_FL` is deleted, and it was already dead** — the netlist had exactly three nodes on it
+  (`C147.1`, `J6.7`, `J6.44`) and nothing driving them. `frontlight.md` records that the provisional
+  `TPS61022` and `+5V2_FL` went when the `LM3630A` design landed; `J6` is where the remains sat.
+  **`C147` (100 nF 0402) is deleted with it.**
+- **`FL_PWM2` loses its last consumer.** It was `U20.61` + `J6.42`; it is now a one-node net, so
+  **`PB7` is free** — which is the donor `mcu.md` §9 wants for `FL_INT#`. That decision is still
+  open, and until it is taken ERC reports four `isolated_pin_label` warnings on `FL_PWM2`.
+- **`FL_PWM1` and `FL_EN` lose their `J6` stubs** and keep their real paths to `U53` and `U20`. One
+  less discontinuity on two PWM lines.
+- Eight of eleven `GND` contacts and one of two `+3V3` contacts go. That is the panel's choice, not
+  ours: three `GND` contacts at 500 mA each return the whole HV chain plus logic.
+
+The root sheet's `epd` sheet pins for `FL_EN`/`FL_PWM1`/`FL_PWM2` and their stubs were removed with
+the same script, or ERC reports `hier_label_mismatch`.
+
+**Verification.** `tools/patch_j6_40pin.py` is idempotent and prints what it changed. After it:
+all 34 connected `J6` pins match the table above, `MP` is `GND`, `C147` is gone and the other six
+caps remain, and ERC goes from 43 violations to 47 — **no errors either side**; the delta is
+−1 `power_pin_not_driven` (`+5V2_FL` gone), +4 `isolated_pin_label` (`FL_PWM2`, above) and
++1 `lib_symbol_mismatch` (the generated `Conn_01x40_MountingPin` against a system library that is
+not installed here — the same class as the three that predate this change).
+
+### 9.6 Board side and pin order — settled on the bench, 2026-08-30
+
+**Side: `B.Cu`.** `X2` and the SoM are on `F.Cu`, which §1.1 of `layout.md` fixes as the face
+*away* from the panel — so `B.Cu` is the panel-facing side, and the tails land on the face they
+arrive from instead of wrapping the board edge. `J6` and `J24` were both moved there by the owner.
+
+**Pin order: the two tails run opposite ways, and so do the two stock footprints.** This is the fact
+worth carrying, because "do the same to both connectors" is wrong here.
+
+| | tail's pin 1, as folded | footprint's pin 1 (local x) | as placed on `B.Cu` rot −90 | verdict |
+| --- | --- | --- | --- | --- |
+| `J24` frontlight | **top** | `HC-FPC-05-09-8RLTAG`: **+1.75** | pin 1 at the bottom | mismatch |
+| `J6` panel TTL | **bottom** | `Omron XF2M-4015-1A`: **−9.75** | pin 1 at the top | mismatch |
+
+Both needed correcting, but they started from opposite ends. The owner read each tail against the
+placed footprint in Pcbnew; the transform used to compute the tables above was validated against
+that reading before either change was made.
+
+**The correction is a `_Mirrored` land pattern, never a renumbered schematic.** `tools/gen_mirrored_fpc.py`
+generates both into the project-local `r2.pretty` (not the `pcb_common` submodule):
+
+| Ref | Footprint |
+| --- | --- |
+| `J24` | `r2:HC-FPC-05-09-8RLTAG_Mirrored` |
+| `J6` | `r2:Omron_XF2M-4015-1A_1x40-1MP_P0.5mm_Horizontal_Mirrored` |
+
+It mirrors the **numbered pads only**. Both parts carry two *symmetric* mechanical pads (±2.75 mm
+and ±11.4 mm), so the land pattern is mechanically identical to the original — the same part solders
+down in the same orientation, and only which net reaches which contact changes, along with the
+pin-1 silk tick. This is the library's own convention; `pcb_common` already ships eight `_Mirrored`
+variants for the same reason.
+
+**Why not renumber the nets instead**, which is the obvious-looking fix:
+
+1. The schematic stays true to the source. `J6` pin 1 is `−VGL` in the panel drawing, in
+   `pcb/40p-adapter-ab`, and in §9.5's table. Renumbering would make every future cross-check
+   require a silent mental reversal.
+2. The silkscreen pin-1 marker would stop meaning pin 1 — an assembly and rework trap.
+3. **The failure modes are not symmetric.** Get the land pattern wrong and the connector simply does
+   not line up: you find it at fit-check and change one property. Get a renumbered *schematic*
+   wrong and `+VGH` (+28.5 V) lands on the panel's `−VN` while `−VGL` lands on `−VCOM` — the panel
+   is destroyed on first power-up. The cheap-to-detect failure is the one to design for.
+
+Nothing electrical changed: the netlist's `J6` map is byte-identical before and after, and ERC is
+unchanged at 14 errors / 19 warnings (all errors are the pre-existing `power_pin_not_driven` class).
 
 ## 10. `VGH` for the `GDEP103TC2` — the one value the port has to change
 
@@ -600,8 +712,8 @@ a shunt sensed at the wrong end of its own pad measures the pad too.
 
 ### 11.6 The panel connector
 
-`J6` (`FPC-05F-50PH20`, 50-pin 0.5 mm) is the board's edge interface and it carries five HV rails,
-`+3V3`, the frontlight pair and the whole source/gate bus.
+`J6` (`XF2M-4015-1A`, **40-pin** 0.5 mm — §9.5) is the board's edge interface and it carries five HV
+rails, `+3V3` and the whole source/gate bus. The frontlight pair no longer passes through it.
 
 - **Place it first.** It is the one part whose position is fixed by the enclosure and the panel's
   own tail, and everything else on this sheet arranges around it.
@@ -609,4 +721,8 @@ a shunt sensed at the wrong end of its own pad measures the pad too.
   since these are not plane nets.
 - `EPDC_SE_CLK` and the source bus are the fastest signals here; keep them over continuous ground.
 - `J3` is **gone** (§7), so the 16-pin connector's board edge is free — worth remembering when the
-  outline is drawn, because that was ~13 mm of edge on R1.
+  outline is drawn, because that was ~13 mm of edge on R1. `J6` dropping 50 → 40 pins frees a
+  further ~5 mm of that same edge.
+- **Orientation is not free.** `XF2M-4015-1A` has double-sided contacts, so the tail can arrive pads
+  up or pads down — but the connector still faces one way, and the tail folds under the panel from
+  one direction only. `layout.md` §1.2.

@@ -4773,7 +4773,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "0188cdee-9381-4610-b6a8-46a78b78dff7")
+		(uuid "01bf42bf-64e3-4ee7-a259-b1ab50d9a4ec")
 	)
 	(wire
 		(pts
@@ -5507,16 +5507,6 @@
 	)
 	(wire
 		(pts
-			(xy 358.14 102.87) (xy 365.76 102.87)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5d9b30af-bce9-4d20-9cc9-6c5ea65b75ab")
-	)
-	(wire
-		(pts
 			(xy 358.14 57.15) (xy 365.76 57.15)
 		)
 		(stroke
@@ -6054,6 +6044,16 @@
 			(type default)
 		)
 		(uuid "c37ebeea-37ec-4890-b67c-668dc7fd1d4b")
+	)
+	(wire
+		(pts
+			(xy 358.14 102.87) (xy 365.76 102.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c6e99787-0ac8-41f3-a9d3-c9f9c665db3e")
 	)
 	(wire
 		(pts
@@ -6795,16 +6795,6 @@
 		)
 		(uuid "45859474-032d-4a08-84d7-c48623453ea8")
 	)
-	(label "FL_PWM2"
-		(at 358.14 102.87 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "45cfca41-dce8-4757-ab29-69b2accc673b")
-	)
 	(label "CHG_OTG"
 		(at 220.98 130.81 180)
 		(effects
@@ -6844,16 +6834,6 @@
 			(justify right bottom)
 		)
 		(uuid "52613be1-c353-4b08-b11a-eacf5a98aa0c")
-	)
-	(label "FL_PWM2"
-		(at 190.5 172.72 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "52750c37-f7e5-4ea6-9c4d-5e256127a492")
 	)
 	(label "FL_PWM1"
 		(at 358.14 97.79 180)
@@ -7345,6 +7325,16 @@
 		)
 		(uuid "bf486f96-eaaa-41f6-bdd7-c286d5d50299")
 	)
+	(label "USB1_FAULT#"
+		(at 358.14 102.87 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "c12f11e5-1373-45ea-a361-68c8818deeef")
+	)
 	(label "SOM_WAKE#"
 		(at 190.5 132.08 0)
 		(effects
@@ -7464,6 +7454,16 @@
 			(justify left bottom)
 		)
 		(uuid "dc4c3403-73b8-488f-a497-f3ec0a249f02")
+	)
+	(label "USB1_FAULT#"
+		(at 190.5 172.72 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e187d07c-d11f-4d17-ac98-135ea640070d")
 	)
 	(label "VCOM_MEA"
 		(at 190.5 127 0)
@@ -7664,17 +7664,6 @@
 		)
 		(uuid "1c05d0d1-f5df-4a23-b26b-80b715a1bbfc")
 	)
-	(hierarchical_label "FL_PWM2"
-		(shape output)
-		(at 365.76 102.87 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "1d514a85-61f6-4347-91a1-5556be8302e8")
-	)
 	(hierarchical_label "CHG_INT#"
 		(shape input)
 		(at 228.6 110.49 0)
@@ -7850,6 +7839,17 @@
 			(justify right)
 		)
 		(uuid "5f4908cf-abd1-4a7e-b8c7-a1545e3a574b")
+	)
+	(hierarchical_label "USB1_FAULT#"
+		(shape input)
+		(at 365.76 102.87 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "654e519f-8adc-42dc-a5a9-bef4a108e1f4")
 	)
 	(hierarchical_label "MCU_EN_3V3"
 		(shape output)

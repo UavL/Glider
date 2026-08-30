@@ -1,7 +1,7 @@
-# `io_expansion` — touch and pen, provisioned but not fitted — R2 work package 6
+# `io_expansion` — touch, pen and the USB host port — R2 work package 6
 
-Status: **drawn 2026-08-15, not yet reviewed. Everything on this sheet is DNP.**
-One decision is owed before fab — §5.
+Status: **drawn 2026-08-15, not yet reviewed. The touch and pen provision is DNP; the USB1 host
+port added 2026-08-30 is fitted.** One decision is owed before fab — §5.
 
 `NOTES-R2-plan.md` constraint 3: *"First board is compute + display + power only. Touch and pen
 get unpopulated FPC connectors so they can be added without a respin."* This sheet is that
@@ -221,3 +221,83 @@ Shapes are from this sheet's point of view: the interrupts leave it, the enables
    pool.
 5. **Whether touch is populated on board 1 at all** is reopened by the panel: the chosen module has
    touch bonded on, so `NOTES-R2-plan.md` constraint 3 is worth revisiting. Owner's call.
+
+
+## 7. The USB1 host port — added 2026-08-30
+
+Owner's decision. Closes `NOTES-R2-review-round-2.md` **D-3**, which had it as *"the cheap half of a
+port … it cannot be retrofitted"* — the four `USB1` pins were already on `J26` and cost nothing until
+the board was fabbed.
+
+**Host only, not dual-role.** The USB-C port `J1` is a permanent sink: `R1`/`R2` are fixed 5.1 kΩ Rd
+on `CC1`/`CC2`, so it can never source. Making *that* port dual-role would need a CC controller, the
+`X_USB0_DRVVBUS` ball wired, and `C2` on `PMID` taken from 8.2 µF to 40 µF (`battery.md` §6). A
+second, source-only port needs none of that, and it does not touch the charge path.
+
+### 7.1 The circuit
+
+| Ref | Part | LCSC | Why |
+| --- | --- | --- | --- |
+| `J28` | `TYPE-C-31-M-12` | `C165948` | the same receptacle as `J1` — no new BOM line |
+| `U56` | **`TPS2553DBVR`** SOT-23-6 | `C55266` | adjustable current limit, `EN` **active high** |
+| `U57` | `USBLC6-2SC6` | `C7519` | same ESD part and same wiring as `U3` on `battery` |
+| `R520`, `R521` | 56 kΩ | — | Rp on `CC1`/`CC2`: a source advertising *Default USB Power* |
+| `R522` | 49.9 kΩ 1 % | — | `ILIM` |
+| `R523` | 100 kΩ | — | pull-up on the open-drain `FAULT` |
+| `C519` | 100 nF | — | at `IN`; the datasheet's pin table asks for ≥0.1 µF "as close as possible" |
+| `C520`, `C521` | 22 µF, 100 nF | — | on the switched output |
+
+**Why a current-limited switch and not a plain load switch.** `+5V_DCDC` is shared with the SoM. A
+stick that shorts VBUS, or one with a large inrush, would otherwise brown the module out — a hard
+reset of the whole device. `tps2553.pdf` §7.5 gives `tIOS` = **2 µs** response to a short, which is
+what makes that impossible. The board's existing `TPS22965`/`TPS22914` load switches have no current
+limit and would not do.
+
+**`R522` = 49.9 kΩ.** Straight off the datasheet's `IOS` row, not a formula:
+**475 / 520 / 565 mA** over −40 °C ≤ TJ ≤ 125 °C. That is the USB 2.0 host budget, and it is what
+the 56 kΩ Rp advertises, so the electrical limit and the Type-C advertisement agree.
+
+**Rp goes to `+5V_DCDC`, not to the switched output.** A source should advertise before VBUS
+appears. With nothing plugged in, `CC` is open and the pull-ups pass no current, so this costs
+nothing in standby — and `+5V_DCDC` is off with `MCU_EN_5V` anyway, so the port is dead when the
+reader is asleep.
+
+**The rail is `+5V_DCDC`, deliberately.** There is no net called `+5V` on this board: the boost
+output is `+5V_DCDC` and it splits into `+5V_SOM`, `+5V_EPD` and the rest *after* the `power_mon`
+shunts. Hanging the port on `+5V_SOM` would corrupt `U22` ch1's reading of the module. The cost is
+that USB current is not separately measured; `USB1_FAULT#` is the signal that something is wrong.
+
+### 7.2 Control and fault
+
+| Net | From | To |
+| --- | --- | --- |
+| `USB1_DRVVBUS` | SoM `J26.B42` (`X_USB1_DRVVBUS`) | `U56.EN` — the SoM's own VBUS gate, active high |
+| `USB1_VBUS` | `U56.OUT` | `J28` VBUS, `U57`, and SoM `J26.B41` so the controller senses its own output |
+| `USB1_DM` / `USB1_DP` | SoM `J26.B39`/`B40` | `U57` then `J28`'s two D− and two D+ contacts |
+| `USB1_FAULT#` | `U56.FAULT`, open drain + `R523` | MCU `PB7` (`U20.61`) |
+
+`PB7` is the pin freed when `FL_PWM2` was retired the same day (`mcu.md` §16.1). It went straight
+back out again, which is the best possible outcome for a spare.
+
+### 7.3 ⚠ What this costs the `+5V` budget
+
+`power.md` §8.1 sized `L10` against a worst realistic case of **1.3 A** — the SoM's 1.0 A design
+bound plus an EPD refresh — with 1.5 A the design point and 2.0 A the line where "margin is gone".
+The port's limit is 565 mA at its worst corner, so **worst case becomes 1.865 A**. That is inside
+2.0 A but it is the whole remaining margin, and it is why the limit is 49.9 kΩ and not something
+looser. Recorded in `power.md` §8.1.
+
+Two things make it less alarming than the arithmetic looks: the SoM's 1.0 A is a *design bound*
+against 651 mA measured under a heavy load Glider does not run and 324 mA idle; and firmware owns
+`USB1_DRVVBUS`, so it can refuse to enable the port during an EPD refresh if bring-up ever shows it
+matters.
+
+### 7.4 Open
+
+- **The schematic block is dense.** The passives are on a 7.62 mm pitch and KiCad's auto-placed
+  reference and value text overlaps in places. Nothing is electrically ambiguous — the netlist was
+  verified net by net — but *Tools → Autoplace Fields* on this sheet would be worth a minute.
+- **No CC sensing.** The AM62x's `USB1` group is `DM`/`DP`/`VBUS`/`DRVVBUS` only; there is no CC
+  input. Attach detection is therefore the ordinary USB 2.0 one — the device's D+ pull-up, seen once
+  VBUS is on — so firmware should just enable `USB1_DRVVBUS` while the system is awake. Type-C's own
+  attach logic is not available and is not needed for a fixed-role source.

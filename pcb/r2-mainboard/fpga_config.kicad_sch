@@ -10137,7 +10137,7 @@
 		(dnp no)
 		(uuid "46efe4ca-0b7c-477f-8322-4617a90a88d0")
 		(property "Reference" "U42"
-			(at 71.12 170.18 0)
+			(at 84.836 185.674 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects

@@ -1,0 +1,10 @@
+﻿"Symbol";"Value";"Unit";
+"TraceParts.PartNumber";"90-16042024-082614";"";
+"REFERENCE";"5040500391";"";
+"TraceParts.PartTitle";"Pico-Lock";"";
+"TraceParts.InstanceId";"90-16042024-0826142N3XX9WWY2MK673V115V3T3RA";"";
+"SUPPLIER";"Molex";"";
+"DESIGN";"1.50mm Pitch, Pico-Lock PCB Header, Single Row, Right-Angle, Surface Mount, Gold (Au) Plating, Positive Lock, 3 Circuits, Tape and Reel";"";
+"TRACEPARTS";"TRACEPARTS";"";
+"TraceParts.PartLanguage";"en";"";
+"TraceParts.PartVersion";"1.0.2";"";

@@ -23,6 +23,16 @@ Interface" — which covers only the 40-pin EPD tail — did not find it. Read a
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | | `LED1+` | `LED1−` | NC | NC | `LED2+` | `LED2−` | NC | NC |
 
+**`J24` uses the mirrored land pattern** `r2:HC-FPC-05-09-8RLTAG_Mirrored` — the tail's pin 1 sits
+at the *top* as folded, and the stock footprint put pin 1 at the bottom. The schematic is untouched;
+`epd-port.md` §9.6 has the reasoning and the same story for `J6`.
+
+**Confirmed against the received part, 2026-08-30.** The frontlight FFC that shipped with the panel
+is marked `HL1030DT241-V0` and silkscreened `1.LED1+`, `2.LED1−`, `5.LED2+`, `6.LED2−` — the drawing
+is right and `J24` is wired correctly. Pitch measured 0.5 mm (~4 mm across 8 contacts), which is what
+`HC-FPC-05-09-8RLTAG` takes, and that part has **double-sided contacts**, so the tail's pads-up
+orientation costs nothing.
+
 The lesson worth keeping: **on a Good Display drawing the interface tables live in the title block,
 not in the numbered sections.** The touch tail is still missing for the same reason — it is not in
 the title block either, so it genuinely is a vendor question (§10.2).

@@ -634,6 +634,20 @@ results — a board that would not open was described as having 4250 DRC violati
 deletes the report first, checks the exit status, and says `DRC: DID NOT RUN` rather than inventing
 a number. A check that reports stale data is worse than no check.
 
+### 9.4 ⚠ Pcbnew's save writes the schematics back, and will undo an edit made under it
+
+Hit on 2026-08-30. A schematic patch ran, was verified by ERC, and reverted minutes later with no
+error anywhere. `epd.kicad_sch`, `mcu.kicad_sch` and `r2.kicad_sch` all carried the *same* mtime
+afterwards — the signature of KiCad writing the whole project from memory.
+
+**What happened:** the schematic editor was open with state loaded *before* the patch. Saving the
+project wrote that stale state over the changed files. `epd.kicad_sch` survived only because KiCad
+had been prompted to reload it; the two files patched later did not.
+
+**The rule: close the schematic editor, or File → Revert, before editing a `.kicad_sch` outside
+KiCad — and reload afterwards.** The failure is silent in both directions: the patch script reports
+success, and KiCad reports nothing. The tell is an ERC violation you had already fixed coming back.
+
 ## 10. Open
 
 1. ~~**Board outline, SoM position, cell size**~~ — **all answered.** Panel and cell have

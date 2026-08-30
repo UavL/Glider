@@ -7308,6 +7308,16 @@
 		)
 		(uuid "9743c167-d4d8-4550-98b2-7efa154d6554")
 	)
+	(text "VCCINT"
+		(exclude_from_sim no)
+		(at 397.764 144.272 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "adf7c2f5-a8f6-4bd9-acd0-adf8f5447ac9")
+	)
 	(text "on VCCINT that UG393 Table 2-1 (FTG256 LX16) wants and R1 does not fit."
 		(exclude_from_sim no)
 		(at 296 207.35 0)
@@ -7318,6 +7328,16 @@
 			(justify left bottom)
 		)
 		(uuid "bbd0d988-bd81-4367-812d-06a88dfd8bee")
+	)
+	(text "VCCAUX"
+		(exclude_from_sim no)
+		(at 362.458 172.212 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "dd682859-b996-4ee2-8f70-751c4bc32de8")
 	)
 	(text "it on power.kicad_sch, which in R2 has no FPGA. C509 is the fifth 4.7uF"
 		(exclude_from_sim no)

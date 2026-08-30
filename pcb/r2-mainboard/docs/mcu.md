@@ -3,7 +3,8 @@
 Status: **drawn; reviewed once, review-1 fixes applied.** The review answers are §10. Companion to
 `battery.md` and `power.md`. Every claim cites a datasheet in `../datasheets/` (with the table or
 page), the LCSC catalogue, or a file in this repo. Estimates are marked **(est.)**.
-Last updated 2026-08-29 (§11.3: `Y20` has no case ground — the guard-ring instruction is corrected).
+Last updated 2026-08-30 (§11.3: `Y20` has no case ground — the guard-ring instruction is corrected;
+`PB7` retired to the spare pool, see §16.1).
 
 `mcu.kicad_sch` has been saved in Eeschema, so **the sheet — not `gen_mcu.py` — is the source of
 truth.** The review-1 fixes were applied surgically by `tools/patch_mcu_review1.py`; the generator
@@ -54,7 +55,7 @@ Supporting parts:
 | `SW20` | `TS-1187A-B-A-B` | `C318884` | power button, 1.6 N, 100 k cycles, **JLC Basic**, 1.68 M stock |
 | `SW21`, `SW22` | `EVQPLHA15` (Panasonic) | `C79172` | page buttons, 1.6 N, 1.5 mm, **500 k cycles** (§5.5) |
 | `D20` | `LTST-C191KGKT` | `C125098` | green status LED, 0603 |
-| `J20` | 1×5 2.54 mm header, **not fitted** | — | SWD pads (§6) |
+| `J20` | **2×6 1.27 mm SMD socket, not fitted** | — | MCU SWD **+ FPGA JTAG** (§5.6) |
 
 `FB20`'s DCR is listed because it is load-bearing, not incidental: Table 21 caps `VREF+` at
 `min(VDD + 0.4, 4.0) V`, so a series element there must have almost no DC drop. See §5.2.
@@ -201,7 +202,7 @@ it is the reason `LED_STAT#` is on `PC2` and not on the otherwise-convenient `PC
 | 58 | `PB4` | `SOM_IRQ#` | GPIO out, open-drain | §4 |
 | 59 | `PB5` | `FL_EN` | GPIO out | |
 | 60 | `PB6` | `FL_PWM1` | `TIM4_CH1` (AF9) | Table 16 |
-| 61 | `PB7` | `FL_PWM2` | `TIM4_CH2` (AF9) | Table 16 |
+| 61 | `PB7` | ~~`FL_PWM2`~~ **spare** | — | **released 2026-08-30** — §16.1 |
 | 62 | `PB8` | `SCL_AON` | `I2C1_SCL` (AF6) | Table 15 |
 | 63 | `PB9` | `SDA_AON` | `I2C1_SDA` (AF6) | Table 15 |
 | 30 | `PB10` | `VCOM_MEA_EN` | GPIO out | |
@@ -513,9 +514,22 @@ makes boot selection come from the option bytes rather than the pin. `R40` (10 k
 fitted anyway: it is invisible to a push-pull debugger and it guarantees "boot from main flash"
 even if `nBOOT_SEL` is ever cleared by accident. Recovery is then via SWD, which is always present.
 
-`J20` is a 1×5 2.54 mm header **with pads only, not fitted** — `+3V3_AON`, `SWCLK`, `GND`, `SWDIO`,
-`NRST`, matching the `CN4` order on ST Nucleo boards so a stock ST-LINK cable fits. Leaving it
-unpopulated keeps the device thin; a header can be soldered in for bring-up and removed.
+`J20` is a **2×6 1.27 mm SMD socket with pads only, not fitted**. It was a 1×5 2.54 mm SWD-only
+header until `tools/patch_mcu_debug_header.py`; it now carries **FPGA JTAG as well**, restoring what
+R1 had on `J5` (§14.8):
+
+| | | | |
+| ---: | --- | ---: | --- |
+| 1 | `FPGA_TCK` | 2 | `GND` |
+| 3 | `FPGA_TDI` | 4 | `GND` |
+| 5 | `FPGA_TDO` | 6 | `GND` |
+| 7 | `FPGA_TMS` | 8 | `GND` |
+| 9 | `MCU_SWCLK` | 10 | `MCU_NRST` |
+| 11 | `MCU_SWDIO` | 12 | `+3V3_AON` |
+
+Leaving it unpopulated keeps the device thin; a socket can be soldered on for bring-up. **It is the
+only way into either programmable device if the SoM is dead**, which is the argument for fitting it
+on the first boards even though the SoM paths (§5.7, `fpga.md` §4.1) cover the normal cases.
 
 ### 5.7 How the MCU gets programmed
 
@@ -705,7 +719,7 @@ All stock KiCad 10, all verified present in this KiCad install:
 | `D20` | `LED_SMD:LED_0603_1608Metric` |
 | `SW20` | `Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A` |
 | `SW21`, `SW22` | `Button_Switch_SMD:SW_SPST_Panasonic_EVQPL_3PL_5PL_PT_A15` |
-| `J20` | `Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical` |
+| `J20` | `Connector_PinSocket_1.27mm:PinSocket_2x06_P1.27mm_Vertical_SMD` |
 | `R4x`, `C4x` | `Resistor_SMD:R_0402_1005Metric`, `Capacitor_SMD:C_0402_1005Metric` |
 
 Nothing has to be authored for this sheet — unlike `power.md` §7, which still owes three.
@@ -771,14 +785,9 @@ error and the sheets are drawn months apart.
 - **The spare count in §3.2 says 11 and the schematic has 10.** `PC10` was claimed for `FPGA_INIT`
   in WP5 and the sentence was not updated. Live spares, read out of the netlist: `PA11`, `PA12`,
   `PB12`, `PC3`, `PC4`, `PC5`, `PC6`, `PC8`, `PC9`, `PD9` — nine after `PG_SOM` takes one.
-- ⚠ **`FL_PWM2` is freed and `FL_INT#` is owed, both by WP6's frontlight redesign (2026-08-17).**
-  The `LM3630A` dims per channel over I²C and uses a single hardware PWM input, so `FL_PWM1`
-  (`PB6`/`TIM4_CH1`) is kept and **`FL_PWM2` (`TIM4_CH2`) no longer drives anything on the
-  frontlight**. In exchange the driver's open-drain fault output `FL_INT#` needs a GPIO with EXTI.
-  **`FL_PWM2` is the natural donor** — same corner of the board, already routed — but it is not a
-  free swap: that net also reaches `J6.42` on `epd`, a frozen reviewed sheet, so retiring it leaves
-  a connector pin undriven or needs that sheet reopened. Until this is decided `FL_INT#` is
-  one-sided and declared in `tools/wire_root.py`'s `DANGLING_OK`. `frontlight.md` §10.3.
+- ~~⚠ **`FL_PWM2` is freed and `FL_INT#` is owed** …~~ **CLOSED 2026-08-30 — see §16.1.** Both
+  halves resolved: `FL_INT#` was withdrawn on 2026-08-23 (`frontlight.md` §9.1), and `J6` losing
+  pin 42 removed `FL_PWM2`'s last node. `PB7` is a plain spare.
 - **`Y20`'s load capacitance is unverified.** Epson FC-135 exists in 12.5 pF, 9 pF and 7 pF;
   **`C46` and `C47`** are 18 pF on the assumption of 12.5 pF and ~3 pF stray (§5.4). Confirm from the
   Epson datasheet before layout, and check the crystal's drive-level rating against the G0's LSE
@@ -1368,13 +1377,18 @@ and the H750 boots the system bootloader, which enumerates as DFU on the USB-C t
 carrying FPGA JTAG (`FPGA_TCK`/`TDI`/`TDO`/`TMS`) **and** MCU SWD (`MCU_SWCLK`/`MCU_SWDIO`), not
 marked DNP.
 
-R2 has none of that. The MCU's USB is unused, `BOOT0` is held low by `R40`, and `MCU_NRST` reaches
-only `J20`, which is unfitted pads. **Reflashing R2's MCU currently means opening the case and
-soldering a header.** That is a real regression, and R1 shows the pattern worth copying: give the
-bootloader a route in that survives the device being sealed. §5.7 works out the R2 equivalents —
-the factory USART bootloader is *already* on `MCU_TXD`/`MCU_RXD`, so it needs only a SoM-drivable
-`NRST` and `BOOT0`; or route the free `PA11`/`PA12` for USB DFU. §9 carries it as a WP8 item, and it
-should be settled while the SoM's pin budget is still being written.
+R2 has no USB DFU — the MCU's USB is unused and the USB-C data pair is committed to the SoM. When
+this section was written `BOOT0` was held low by `R40` and `MCU_NRST` reached only `J20`, so
+reflashing meant opening the case; that was recorded here as a real regression against R1.
+
+**~~That regression is closed.~~ §5.8, applied 2026-08-19.** The SoM now drives both halves of the
+control path — `SOM_MCU_NRST` (`X2` A59) through `Q9` to `MCU_NRST`, and `SOM_MCU_BOOT0` (A60)
+through `R511` to `PA14`/`BOOT0` — and the data path was always there, because `MCU_TXD`/`MCU_RXD`
+*are* `PA9`/`PA10`, the ST ROM bootloader's first USART. So **the MCU is reflashable and
+un-brickable from the SoM with the case shut**: the ROM bootloader is mask ROM, so a bad write is
+always recoverable. `J20` remains the path for bring-up and for the case where the SoM itself is
+dead. `fpga.md` §4.1 is the equivalent for the FPGA — the SoM writes `U42` while the MCU holds
+`FPGA_PROG#` low.
 
 ### 14.9 Sheet-interface style, and why R2 pays a cost for it
 
@@ -1393,3 +1407,42 @@ be wired**, and until it is, most of the project's ERC noise is the consequence 
 R1 left **6 of 100 pins** unconnected; R2 leaves **11 of 60**. The smaller part is proportionally
 *less* fully used, on purpose: R2 is a sealed device with no planned respin, and four of its spares
 are ADC-capable. §9 argues some of them should get test pads for the same reason.
+
+
+## 16.1 `PB7` retired to the spare pool — 2026-08-30
+
+**Why `FL_PWM2` existed at all.** R1 drove the frontlight *through the panel connector*: `FL_PWM1`,
+`FL_PWM2`, `FL_EN` and `+5V2_FL` all left the board on `J6`, because on R1 the LED driver lived on
+the panel or adapter side, not on the mainboard. Two PWM channels meant two independently dimmed
+strings — cool and warm. R2 ported that arrangement pin-for-pin, and `PB7`/`TIM4_CH2` came with it.
+
+WP6's frontlight redesign (2026-08-17) moved the driver onto the board as `U53`, an `LM3630A`, which
+sets each channel's current over I²C and takes a **single** hardware PWM input. From that day
+`FL_PWM2` drove nothing. It survived only as a stub to `J6.42`, which is why this file carried it as
+an open item rather than deleting it: `epd` was a frozen sheet.
+
+**Why it is not renamed `FL_INT#`.** `FL_INT#` no longer exists. Two independent reasons:
+
+1. **`U53.B2` cannot be escaped.** `frontlight.md` §9.1, 2026-08-23: `B2` is an interior pad of a
+   0.4 mm-pitch DSBGA-12, every path out crosses a 0.16 mm pad-to-pad wall, and no purchasable via
+   fits the 4-pad void. The `LM3630A`'s open-drain fault output is physically unreachable, so the
+   signal was deleted and `PB12` went back to the pool. The netlist confirms it:
+   `U53.B2` is `unconnected-(U53-~{INTN}-PadB2)`.
+2. **`PB7` is `EXTI7`, and `PC7` (`KEY_PREV#`) already holds `EXTI7`.** Even with an escape route,
+   `PB7` could not have raised the interrupt without an EXTI reshuffle — §9's table.
+
+**What `FL_INT#` would have been, for the record:** the `LM3630A`'s open-drain `INT`/fault output.
+It asserts on LED open-circuit, LED short and over-temperature, so firmware can shut the boost down
+and report a fault instead of leaving a 28.5 V converter driving an open string. Losing it means
+those faults are only visible by polling the driver's status register over I²C — which is fine,
+because `FL_EN` is under MCU control and the frontlight is never on unattended.
+
+**`PB7` did not stay spare for long.** The same day it took `USB1_FAULT#`, the open-drain fault
+output of the USB host port's `TPS2553` (`io-expansion.md` §7.2) — so the pin the frontlight redesign
+freed went straight back out to the feature that replaced it.
+
+**What changed.** `tools/patch_retire_fl_pwm2.py` removed the two local labels, the hierarchical
+label and their wire stubs from `mcu.kicad_sch`, the label, stub and `mcu` sheet pin from the root,
+and added a no-connect flag on `PB7` — spare pins here carry no wire and no label (`PB12` is drawn
+the same way), and a bare pin is an ERC error. `U20.61` now reads `unconnected-(U20-PB7-Pad61)`.
+ERC is back to **43 violations, the pre-`J6` baseline count**, with `isolated_pin_label` gone.

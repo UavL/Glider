@@ -2,8 +2,9 @@
 
 Status: **drawn, verified against the gateware, reviewed 2026-08-15 — §15.** One change came out of
 the review: `J3` is deleted. Companion to `battery.md`, `power.md`, `mcu.md` and `epd-port.md`.
-Last updated 2026-08-29 (§7 restates what UG393 does and does not sanction about the 22 µF bulk;
-§11.5 records the `power_mon` shunts in the path).
+Last updated 2026-08-30 (§7 restates what UG393 does and does not sanction about the 22 µF bulk;
+§11.5 records the `power_mon` shunts in the path; §4.2.1 withdraws the QE-bit step and names the
+file the bitgen settings live in).
 
 **The binding constraint on these three sheets is not R1's schematic — it is Caster's
 `constraint.ucf`.** The pinout is fixed by the gateware, and fixed harder than that by the silicon:
@@ -246,6 +247,46 @@ note 4 asks for pull-ups to `VCCO_2` instead, so the tie became `R412`/`R413`, 1
 about the board's behaviour changes today**: in x1 the pull-ups hold `WP#`/`HOLD#` high exactly as
 the hard tie did.
 
+### 4.2.1 Where the settings live, and the QE step that does not apply — 2026-08-30
+
+**The file is `Caster/rtl/spartan6/par/ise_bitgen.txt`**, consumed verbatim by `ise_flow.sh:34`:
+
+```
+bitgen -intstyle ise -f ise_bitgen.txt top.ncd
+```
+
+It currently reads `-g ConfigRate:2` and `-g SPI_buswidth:1` — the slowest pair available, and the
+row that makes self-boot *worse* than R1 in §4.2's table. Caster is a submodule, so changing it is a
+commit inside `Caster/` plus a pointer bump here, then a rebuild of all four variants on the ISE VM.
+
+**UG380 Figure 2-13 note 3 does not apply to `W25Q128JVSIQ`.** The note says "The SPI device needs to
+be programmed with a specific register setting, which is done in iMPACT software, to enable x4
+output" — that setting is the flash's Quad Enable bit, and §8.2.9 of
+`datasheets/FPGA/256_W25Q128JV.pdf` confirms QE "must be set to 1 before the device will accept the
+Fast Read Quad Output Instruction." But the ordering
+code decodes `W25Q128JV` · `S` 8-pin SOIC 208-mil · `I` industrial · **`Q` = "Green Package … with
+QE = 1 (fixed) in Status register-2"**, and note 5 of the same table adds "/HOLD function is disabled
+to support Standard, Dual and Quad I/O **without user setting**." The `M` suffix is the one that
+ships `QE = 0 (programmable)` and would need the iMPACT step.
+
+So **x4 is a one-line bitgen change**, not a bitgen change plus a flash-provisioning step. `Q` over
+`M` is also the only correct choice for a self-booting FPGA: with `M` no host exists to set QE before
+the FPGA tries to boot.
+
+Three consequences worth recording:
+
+- **x4 still boots x1 first.** UG380 p.47: "The FPGA still initially boots in x1 mode and then
+  switches to x2 or x4 mode." Auto-detection loads a header in x1, then `IPROG` reconfigures and the
+  bulk transfer runs as **Fast-Read Quad Output (`6Bh`)** with eight dummy clocks after the 24-bit
+  address. §4.2's 42 ms is the bulk figure; the x1 header pass is on top.
+- **The SoM cannot write the flash in quad.** `NOR_IO2`/`NOR_IO3` reach only `U41` and `R412`/`R413`
+  — they are not on `J27`. The SoM sees `FPGA_SCLK`/`MOSI`/`MISO`/`NOR_CS#` only, so SoM-side
+  bitstream writes are **x1, always**. That is a deliberate limit, not an oversight: it costs update
+  time, never boot time.
+- **There is no hardware write protect.** With QE=1 fixed, `/WP` is permanently `IO2` and `/HOLD`
+  permanently `IO3`. Protecting the bitstream against a runaway SoM has to use the `BP[2:0]`
+  block-protect bits in Status Register-1, in software. The pins are not available either way.
+
 ### 4.3 Clock and debug
 
 `X1` is a 33.33 MHz oscillator, `R409` a 33 Ω series termination, reaching `M9` and `K11`.
@@ -294,6 +335,22 @@ it (`R33` 124 k → 150 k, giving `0.600 × (1 + 150/100) = 1.500 V`). Three ind
   `LVCMOS15`** — which has no 1.35 V form at all.
 - DS162 Table 7 gives `SSTL15` a VCCO range of **1.425 / 1.5 / 1.575 V**. 1.35 V is outside it.
 - `SSTL135` appears **zero** times in DS162 or UG381, so relabelling the UCF was not an option.
+
+**The corollary, which is what settles the question when it is asked again: R1 is the one running
+out of spec.** It uses *this same* `constraint.ucf` — 12 `SSTL15_II`, 6 `DIFF_SSTL15_II`, 1
+`LVCMOS15`, no `SSTL135` — at `+1V35_DCDC`, i.e. **5.3 % below DS162's 1.425 V minimum**, with VREF
+at 0.675 V against a 0.69 V minimum. It works on Zephray's board. That is evidence, not a
+specification, and R2 is a battery device that will see a wider temperature range than a desk
+monitor. So "DDR3L runs at 1.35 V" is true and is not the binding constraint: the DRAM is explicitly
+"backward compatible to VDD = VDDQ = 1.5 V ±0.075 V", while the FPGA's bank-3 `VCCO` has no 1.35 V
+form at all. **Reaffirmed by the hardware owner 2026-08-30** after re-examining it, on top of the
+2026-08-15 review (§15.1).
+
+Two things that were true when the decision was made and are more true now: the power case for
+1.35 V evaporated on 2026-08-14 (`power.md` §9 — `IDD6` is 10.5 mW at 1.5 V against 10.8–16.2 mW at
+1.35 V, and the SoM's 128.6 mW suspend dwarfs both), and §11.1's 0.05 % MCB timing margin means an
+under-volted bank is spending the one budget this bus does not have. If it ever needs revisiting,
+the change is a single resistor — `R33` 150 k → 124 k — and nothing in layout moves.
 
 The DRAM is happy either way: the datasheet's own words are "Backward compatible to VDD = VDDQ =
 1.5 V ±0.075 V". Cost is about 1.9 mW of extra standby draw, computed in `power.md` §9.
@@ -598,13 +655,15 @@ Neither of these blocks the schematic, and both are why the fork exists.
    stays a complete test vehicle for everything R2 does. R2 needs its own UCF regardless — the
    config pins and the `N12`/`P12` `PULLUP`s differ from R1, and ISE's UCF has no preprocessor.
 
-And three bitgen changes that the config NOR needs to be worth having (§4.2):
+And three bitgen changes that the config NOR needs to be worth having (§4.2; the file they live
+in is named in §4.2.1):
 
 3. **`-g ConfigRate: 2 → 22`.** At 2 MHz self-boot takes 1.9 s, five times worse than R1.
 4. **`-g Binary: no → yes`**, so there is a flash image to program.
-5. **`-g spi_buswidth: 1 → 4`** plus the flash's QE bit (UG380 Fig 2-13 note 3), when x4 is wanted.
-   Also give `N12`/`P12` an explicit `PULLUP` constraint so `-g UnusedPin:PullDown` does not fight
-   `R412`/`R413` after configuration.
+5. **`-g spi_buswidth: 1 → 4`**, when x4 is wanted. ~~plus the flash's QE bit (UG380 Fig 2-13
+   note 3)~~ — **there is no QE step for the part we fitted; see §4.2.1.** Also give `N12`/`P12` an
+   explicit `PULLUP` constraint so `-g UnusedPin:PullDown` does not fight `R412`/`R413` after
+   configuration.
 
 And one that is wanted eventually but is explicitly **not** for the first board:
 

@@ -248,6 +248,10 @@ first programming must be followed by a power cycle or `OBL_LAUNCH` to reload op
 part keeps re-entering the bootloader; and the `BOOT0` pin still earns its keep for *recovery*,
 where flash is not blank and `EMPTY` is clear.
 
+**D-3 ✅ CLOSED 2026-08-30 — `USB1` fitted as a host-only Type-C port.** `J28` + `U56` `TPS2553`
+current-limited switch + `U57` ESD + 56 kΩ Rp on both CC lines, on `io_expansion`. Full design and
+the `+5V` budget consequence in `io-expansion.md` §7. Original entry below.
+
 **D-3 ⏳ — `USB1`, a second USB-C port.** Unused, four pins, already on the connector (B-3). The
 owner's position, 2026-08-20: *"I think two USB-C ports is a good thing and should be pursued if
 possible."* **Recommendation: do it.** The analysis, so the decision is made on numbers.

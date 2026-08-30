@@ -3505,7 +3505,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "footprints:HC-FPC-05-09-8RLTAG"
+		(property "Footprint" "r2:HC-FPC-05-09-8RLTAG_Mirrored"
 			(at 200.66 121.92 0)
 			(hide yes)
 			(show_name no)
