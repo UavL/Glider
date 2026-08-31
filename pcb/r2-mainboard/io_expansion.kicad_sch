@@ -6866,4 +6866,30 @@
 			)
 		)
 	)
+	(wire
+		(pts
+			(xy 115.57 68.58) (xy 127 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "00b652bd-b37a-45b9-a9aa-238fed05a79d")
+	)
+	(junction
+		(at 115.57 68.58)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "be5887c9-d5c3-4af3-a396-23fd98a0e16c")
+	)
+	(label "+3V3_TOUCH"
+		(at 127 68.58 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "8989fc47-24c2-4a1e-ac9b-43154adfbc36")
+	)
 )

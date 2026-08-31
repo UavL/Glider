@@ -204,7 +204,7 @@
 			)
 		)
 		(symbol "WSON_Flash_1_0"
-			(pin power_out line
+			(pin power_in line
 				(at 33.02 -2.54 90)
 				(length 2.54)
 				(name "GND"
@@ -222,7 +222,7 @@
 					)
 				)
 			)
-			(pin power_out line
+			(pin passive line
 				(at 35.56 -2.54 90)
 				(length 2.54)
 				(name "EP"
