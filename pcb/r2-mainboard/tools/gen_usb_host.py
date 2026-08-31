@@ -6,12 +6,12 @@ USB1.  Closes NOTES-R2-review-round-2.md D-3.
 
 Design, all of it from datasheets in ../datasheets/:
 
-  J28  TYPE-C-31-M-12 (C165948) -- same receptacle as J1, no new BOM line.
+  J1402  TYPE-C-31-M-12 (C165948) -- same receptacle as J1, no new BOM line.
   R52/R53  56k Rp from CC1/CC2 to +5V.  A Type-C source advertising Default USB
        Power (500 mA).  Rp goes to +5V and not to the switched output so the port
        advertises before VBUS; with nothing plugged in CC floats, so it leaks
        nothing.
-  U56  TPS2553DBVR (C55266), SOT-23-6, EN active high -- driven straight from the
+  U1402  TPS2553DBVR (C55266), SOT-23-6, EN active high -- driven straight from the
        SoM's X_USB1_DRVVBUS.  Chosen over a plain load switch because the +5V rail
        is shared with the SoM: tIOS = 2 us to a short (datasheet 7.5) is what stops
        a bad stick browning out the module.
@@ -20,9 +20,9 @@ Design, all of it from datasheets in ../datasheets/:
        moves from 1.3 A to 1.865 A worst case; see the note added there.
   R55  100k pull-up on the open-drain FAULT, reported to the MCU on PB7 -- the pin
        freed when FL_PWM2 was retired (mcu.md 16.1).
-  U57  USBLC6-2SC6 (C7519), same ESD part and same wiring style as U3 on battery.
-  C519 100nF at IN (datasheet pin table: "0.1 uF or greater ... as close as
-       possible"); C520 22uF + C521 100nF on the switched output.
+  U1403  USBLC6-2SC6 (C7519), same ESD part and same wiring style as U3 on battery.
+  C1402 100nF at IN (datasheet pin table: "0.1 uF or greater ... as close as
+       possible"); C1403 22uF + C1404 100nF on the switched output.
 
 Idempotent: refuses to run twice.
 """
@@ -264,14 +264,14 @@ def build_iox() -> str:
     FP_R = "Resistor_SMD:R_0402_1005Metric"
     FP_C = "Capacitor_SMD:C_0402_1005Metric"
 
-    # ---- U56, the current-limited switch -------------------------------
-    e.append(symbol("r2:TPS2553DBV", "U56", "TPS2553DBVR", 228.6, 76.2, 0,
-                    ["1", "2", "3", "4", "5", "6"], "U56",
+    # ---- U1402, the current-limited switch -------------------------------
+    e.append(symbol("r2:TPS2553DBV", "U1402", "TPS2553DBVR", 228.6, 76.2, 0,
+                    ["1", "2", "3", "4", "5", "6"], "U1402",
                     (("Footprint", "Package_TO_SOT_SMD:SOT-23-6"),) + C_PROPS(
                         "TPS2553DBVR", "C55266", "Texas Instruments")))
     e.append(power("+5V_DCDC", 215.9, 66.04, 0, "p5v_in"))
     e.append(wire(215.9, 66.04, 215.9, 71.12, "w_in_v"))
-    e.append(symbol(C, "C519", "100nF/50V", 208.28, 74.93, 0, ["1", "2"], "C519",
+    e.append(symbol(C, "C1402", "100nF/50V", 208.28, 74.93, 0, ["1", "2"], "C1402",
                     (("Footprint", FP_C),)))
     e.append(wire(208.28, 71.12, 215.9, 71.12, "w_c519"))
     e.append(power("GND", 208.28, 78.74, 0, "g_c519"))
@@ -282,7 +282,7 @@ def build_iox() -> str:
 
     # FAULT: open drain, pulled to +3V3, reported to the MCU on PB7
     e.append(wire(215.9, 81.28, 203.2, 81.28, "w_flt1"))
-    e.append(symbol(R, "R523", "100k", 203.2, 74.93, 0, ["1", "2"], "R523", (("Footprint", FP_R),)))
+    e.append(symbol(R, "R1403", "100k", 203.2, 74.93, 0, ["1", "2"], "R1403", (("Footprint", FP_R),)))
     e.append(power("+3V3", 203.2, 71.12, 0, "p3v3_flt"))
     e.append(wire(203.2, 78.74, 203.2, 81.28, "w_flt2"))
     e.append(label("USB1_FAULT#", 195.58, 81.28, 180, "hl_flt", hier=True, shape="output"))
@@ -290,24 +290,24 @@ def build_iox() -> str:
     e.append(junction(203.2, 81.28, "j_flt"))
 
     # ILIM -> 49.9k -> GND  => IOS 475 / 520 / 565 mA
-    e.append(symbol(R, "R522", "49.9k/1%", 241.3, 85.09, 0, ["1", "2"], "R522", (("Footprint", FP_R),)))
+    e.append(symbol(R, "R1402", "49.9k/1%", 241.3, 85.09, 0, ["1", "2"], "R1402", (("Footprint", FP_R),)))
     e.append(power("GND", 241.3, 88.9, 0, "g_r522"))
 
     # the switched output rail
     e.append(wire(241.3, 71.12, 261.62, 71.12, "w_out"))
-    e.append(symbol(C, "C520", "22uF/10V", 248.92, 74.93, 0, ["1", "2"], "C520",
+    e.append(symbol(C, "C1403", "22uF/10V", 248.92, 74.93, 0, ["1", "2"], "C1403",
                     (("Footprint", "Capacitor_SMD:C_0805_2012Metric"),)))
     e.append(power("GND", 248.92, 78.74, 0, "g_c520"))
     e.append(junction(248.92, 71.12, "j_c520"))
-    e.append(symbol(C, "C521", "100nF/50V", 256.54, 74.93, 0, ["1", "2"], "C521",
+    e.append(symbol(C, "C1404", "100nF/50V", 256.54, 74.93, 0, ["1", "2"], "C1404",
                     (("Footprint", FP_C),)))
     e.append(power("GND", 256.54, 78.74, 0, "g_c521"))
     e.append(junction(256.54, 71.12, "j_c521"))
     e.append(label("USB1_VBUS", 261.62, 71.12, 0, "l_vbus_out"))
 
-    # ---- U57, ESD, wired like U3 on battery ----------------------------
-    e.append(symbol("r2:USBLC6-2SC6", "U57", "USBLC6-2SC6", 271.78, 96.52, 0,
-                    ["1", "2", "3", "4", "5", "6"], "U57",
+    # ---- U1403, ESD, wired like U3 on battery ----------------------------
+    e.append(symbol("r2:USBLC6-2SC6", "U1403", "USBLC6-2SC6", 271.78, 96.52, 0,
+                    ["1", "2", "3", "4", "5", "6"], "U1403",
                     (("Footprint", "Package_TO_SOT_SMD:SOT-23-6"),) + C_PROPS(
                         "USBLC6-2SC6", "C7519", "STMicroelectronics")))
     for (px, py, nm, sd, rot) in ((266.7, 96.52, "USB1_DM", "esd_dm_l", 180),
@@ -321,22 +321,22 @@ def build_iox() -> str:
     e.append(wire(271.78, 91.44, 271.78, 88.9, "w_u57v"))
     e.append(label("USB1_VBUS", 271.78, 88.9, 90, "l_u57v"))
 
-    # ---- J28, the receptacle -------------------------------------------
-    e.append(symbol("Connector:USB_C_Receptacle_USB2.0_16P", "J28", "USB-C 16P",
+    # ---- J1402, the receptacle -------------------------------------------
+    e.append(symbol("Connector:USB_C_Receptacle_USB2.0_16P", "J1402", "USB-C 16P",
                     308.61, 88.9, 0,
                     ["A1", "A4", "A5", "A6", "A7", "A8", "A9", "A12",
-                     "B1", "B4", "B5", "B6", "B7", "B8", "B9", "B12", "SH"], "J28",
+                     "B1", "B4", "B5", "B6", "B7", "B8", "B9", "B12", "SH"], "J1402",
                     (("Footprint", "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"),)
                     + C_PROPS("TYPE-C-31-M-12", "C165948", "HRO")))
     e.append(wire(323.85, 73.66, 330.2, 73.66, "w_j28v"))
     e.append(label("USB1_VBUS", 330.2, 73.66, 0, "l_j28v"))
     # CC1/CC2: 56k Rp to the 5 V rail -- a source advertising Default USB Power
     e.append(wire(323.85, 78.74, 330.2, 78.74, "w_cc1"))
-    e.append(symbol(R, "R520", "56k", 330.2, 74.93, 0, ["1", "2"], "R520", (("Footprint", FP_R),)))
+    e.append(symbol(R, "R1400", "56k", 330.2, 74.93, 0, ["1", "2"], "R1400", (("Footprint", FP_R),)))
     e.append(power("+5V_DCDC", 330.2, 71.12, 0, "p_cc1"))
     e.append(wire(323.85, 81.28, 340.36, 81.28, "w_cc2a"))
     e.append(wire(340.36, 81.28, 340.36, 78.74, "w_cc2b"))
-    e.append(symbol(R, "R521", "56k", 340.36, 74.93, 0, ["1", "2"], "R521", (("Footprint", FP_R),)))
+    e.append(symbol(R, "R1401", "56k", 340.36, 74.93, 0, ["1", "2"], "R1401", (("Footprint", FP_R),)))
     e.append(power("+5V_DCDC", 340.36, 71.12, 0, "p_cc2"))
     # the two D+ and the two D- contacts, tied as J1 does
     for (ya, yb, nm, sd) in ((86.36, 88.9, "USB1_DM", "dm"), (91.44, 93.98, "USB1_DP", "dp")):
@@ -391,7 +391,7 @@ def patch_iox():
     tail_at = t.rfind("\n)")
     t = t[:tail_at + 1] + build_iox() + t[tail_at + 1:]
     IOX.write_text(t, encoding="utf-8")
-    print("io_expansion.kicad_sch: USB1 host port added (J28, U56, U57, R520-R523, C519-C521)")
+    print("io_expansion.kicad_sch: USB1 host port added (J1402, U1402, U1403, R1400-R1403, C1402-C1404)")
 
 
 SOM_PINS = {"USB1_DM": 64.77, "USB1_DP": 67.31, "USB1_VBUS": 69.85, "USB1_DRVVBUS": 72.39}

@@ -33,7 +33,7 @@ LCSC, 2026-08-31, at the quantities LCSC shows — i.e. these are **ceilings**, 
 | `STM32G0B1RET6` | `U20` | $6.24 |
 | `BQ25892RTWR` | `U1` | $3.06 |
 | `W25Q128JVSIQ` | `U42` | $2.45 |
-| `TYPE-C-31-M-12` | `J1`, `J28` | $0.19 × 2 |
+| `TYPE-C-31-M-12` | `J1`, `J1402` | $0.19 × 2 |
 
 The board carries **331 placements**: 141 C, 114 R, 28 U, 12 D, 12 J, 10 L, 6 Q, 3 SW, 2 X, plus a
 fuse, a ferrite and the crystal.

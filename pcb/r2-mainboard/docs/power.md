@@ -496,7 +496,7 @@ from three places in `L-1038e.A5`, and it is **1.0 A** — below the estimate, n
 | SoM, Suspend-to-RAM ‡ | 25.7 | same |
 | EPD HV chain, R1 measured active ‡ | 14.4 | `NOTES-STATUS.md`, 71.8 mW on the `EPD HV` channel |
 | microSD | **0** | it runs from the SoM's own `SoC_VDDSHV5_SDIO`, not from this sheet — `som.md` §4 |
-| **USB1 host port**, added 2026-08-30 | **565** | `U56` `TPS2553` at `RILIM` = 49.9 kΩ; datasheet `IOS` max over −40…125 °C. `io-expansion.md` §7.3 |
+| **USB1 host port**, added 2026-08-30 | **565** | `U1402` `TPS2553` at `RILIM` = 49.9 kΩ; datasheet `IOS` max over −40…125 °C. `io-expansion.md` §7.3 |
 
 Worst realistic case is the SoM's 1.0 A design bound **plus** an EPD refresh, which do coincide: the
 page is being rendered while the panel is driven. Taking the EPD chain's peak at a generous ~10×

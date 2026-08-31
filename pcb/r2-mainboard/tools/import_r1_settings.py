@@ -96,7 +96,7 @@ DIFF_PAIRS = [
 # board's placed footprints (tools/pad_gaps.py logic, run 2026-08-21):
 #
 #     U1  BQ25792 QFN-24     0.125 mm   <- tightest on the board
-#     U7/U8/U54/U55, U14/U15 0.150 mm
+#     U7/U8/U1400/U1401, U14/U15 0.150 mm
 #     U53 YFQ0012 DSBGA-12   0.160 mm
 #     J26/J27 BTH-060        0.195 mm
 #     J1  USB-C              0.200 mm

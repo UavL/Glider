@@ -24,7 +24,7 @@ cannot be taken after fabrication.
 | `Y20` — "doesn't the doc say 8 MHz?" | `mcu.md` §11.3. **`Y20` is the LSE; the 8 MHz belongs to the HSE**, which is not fitted. Table 42 (HSE, 4/8/48 MHz) vs Table 43 (LSE, 32.768 kHz), Figure 20 vs Figure 21. `PF0`/`PF1` are free for `MCU_EN_5V`/`MCU_EN_3V3` precisely *because* no HSE is fitted. |
 | `FB20` — "where in the doc does it call for this?" | `mcu.md` §10.2 and §11.2, and the answer is **it does not**. The doc says so in as many words: "`FB20` is not a datasheet requirement, and the review was right to ask." It is R1's `FB3` carried across to the one pin still eligible. §5.2 gives the two reasons it stays; §10.2 gives the DCR constraint that makes it safe. |
 | Battery connector is too tall | `battery.md` §9.2. JST-PH was **already rejected** for exactly this reason. `J2` is now a Molex Pico-Lock 504050-0391 (1.5 mm pitch, right-angle, 2.00 mm mated height), **and** `J25` is three bare copper solder pads on the same three nets (`+VBAT`, `CHG_TS`, `GND`) for soldering the cell directly. Both options are already on the board — this is a stuffing choice, not a redesign. |
-| Touch controller wiring | `io-expansion.md` §4. The sheet was drawn **against the GT911**. It lists `GDEY075T7-T01` / GT911 / 6-pin FPC with pinout 1 `GND`, 2 `VCC`, 3 `RESET`, 4 `INT`, 5 `SDA`, 6 `SCL`, and `J22` carries exactly those six signals. Enabling touch is a **populate**, not a redesign — see D-1. |
+| Touch controller wiring | `io-expansion.md` §4. The sheet was drawn **against the GT911**. It lists `GDEY075T7-T01` / GT911 / 6-pin FPC with pinout 1 `GND`, 2 `VCC`, 3 `RESET`, 4 `INT`, 5 `SDA`, 6 `SCL`, and `J1400` carries exactly those six signals. Enabling touch is a **populate**, not a redesign — see D-1. |
 | Layout guidelines, all chips | They are written, one "Layout guidelines" section per sheet doc. They surface at Stage D, before placement. `epd-port.md` §11 is the fullest example. |
 | Part numbers for the BOM | **Done 2026-08-19**, commit `77469bb`. MPN + Manufacturer are in the schematic symbol properties, which is what a fab reads. 60 of 99 BOM lines; see `NOTES-R2-plan.md` for the five that were deliberately left out. |
 
@@ -143,17 +143,17 @@ of the height. Already reasoned through; no change.
 
 **B★-3 ⚠ — The touch connector is 2×14, and that is fine, because the GT9110 is not on the panel.**
 This is the important one. The listing gives *Touch IC GT9110H, Touch Connector 2×14 pin*, which
-looks incompatible with `J22`'s 6 pins. It is not. `EN-DEJA-TC103.pdf` §4.4.2 explains the
+looks incompatible with `J1400`'s 6 pins. It is not. `EN-DEJA-TC103.pdf` §4.4.2 explains the
 topology: *"since the touchscreen uses an external GT9110 touch board"*, and that board presents
 **`TOUCH_SDA`, `TOUCH_SCL`, `TOUCH_INT`, `TOUCH_RST`** — four signals plus power and ground.
 
 So the chain is: **panel ITO sensor → 2×14 FFC → external GT9110 touch board → 6-signal I²C →
-`J22` on R2.** The 2×14 connector never touches the mainboard; it is between the sensor and its
+`J1400` on R2.** The 2×14 connector never touches the mainboard; it is between the sensor and its
 own controller board. `io-expansion.md` §4's six-signal guess is **right**.
 
 Two things still to confirm, and they are questions for the vendor, not design work:
 - Does the GT9110 touch board ship with the panel, or is it a separate order?
-- What is *its* output connector — pin count, pitch and **pin order**? `J22`'s order is
+- What is *its* output connector — pin count, pitch and **pin order**? `J1400`'s order is
   1 `GND`, 2 `VCC`, 3 `RESET`, 4 `INT`, 5 `SDA`, 6 `SCL`. A different order is a reroute, not a
   redesign, but it has to be known before layout.
 
@@ -211,11 +211,11 @@ this item.**
 
 ## D. Owner decisions — ⏳ means it cannot be taken after fabrication
 
-**D-1 ⏳ — Populate touch?** **Largely resolved by B★-3** — `J22`'s six signals are the right
+**D-1 ⏳ — Populate touch?** **Largely resolved by B★-3** — `J1400`'s six signals are the right
 interface, because the GT9110H sits on its own board, not on the panel flex. What remains is a
 *sourcing* question, not a design one: get the GT9110 touch board's output connector pinout from
-the vendor and check the pin **order** against `J22` before layout. The decision itself is simply
-whether to populate `J22`/`U54` — and since "enter via touchscreen" (B-2) depends on it, the answer
+the vendor and check the pin **order** against `J1400` before layout. The decision itself is simply
+whether to populate `J1400`/`U1400` — and since "enter via touchscreen" (B-2) depends on it, the answer
 is presumably yes.
 
 **D-2 ✅ — Two SoM GPIO to `MCU_NRST` and `BOOT0`. APPROVED and specified 2026-08-19.**
@@ -248,8 +248,8 @@ first programming must be followed by a power cycle or `OBL_LAUNCH` to reload op
 part keeps re-entering the bootloader; and the `BOOT0` pin still earns its keep for *recovery*,
 where flash is not blank and `EMPTY` is clear.
 
-**D-3 ✅ CLOSED 2026-08-30 — `USB1` fitted as a host-only Type-C port.** `J28` + `U56` `TPS2553`
-current-limited switch + `U57` ESD + 56 kΩ Rp on both CC lines, on `io_expansion`. Full design and
+**D-3 ✅ CLOSED 2026-08-30 — `USB1` fitted as a host-only Type-C port.** `J1402` + `U1402` `TPS2553`
+current-limited switch + `U1403` ESD + 56 kΩ Rp on both CC lines, on `io_expansion`. Full design and
 the `+5V` budget consequence in `io-expansion.md` §7. Original entry below.
 
 **D-3 ⏳ — `USB1`, a second USB-C port.** Unused, four pins, already on the connector (B-3). The
@@ -366,7 +366,7 @@ interface is just the flex cable that is bent under the display and that's about
 the PCB, so the connector can be fit accordingly."* The block on the sketch was never a board — it
 is a **landing zone**, which is a more useful thing to have.
 
-So `J6` is fixed in **position and orientation**, not just enclosure-fixed. `J22`/`J23` (touch, pen)
+So `J6` is fixed in **position and orientation**, not just enclosure-fixed. `J1400`/`J1401` (touch, pen)
 are the same — the owner confirms touch is also a folded flex. A horizontal FPC connector facing the
 wrong way puts a 180° loop in a 0.5 mm flex, which is a reliability problem rather than a routing
 one, so orientation is worth deciding before placement rather than during. `layout.md` §1.2.

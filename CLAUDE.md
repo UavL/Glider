@@ -28,6 +28,14 @@ on, so no firmware change can fix it. Read in this order:
   existing hardware. `NOTES-power-analysis.md` is the 1500-line chronological record behind it
   and is partly superseded; consult it only for depth on a section `NOTES-STATUS.md` points to.
 
+**Reference designators follow the sheet's page number** (owner's scheme, rollout in progress):
+classifier + page + two-digit part, numbered from `00`. `battery` is page 2 so it has `U200`,
+`J201`; `power` is page 3 (`U300`–`U304`); `fpga_config` is page 9 (`U902`); `io_expansion` is
+page 14, so it takes **four digits** — `U1400`, `J1402`, `C1404`. Pages 2–9 give three digits,
+pages 10–14 give four. Converted so far: `battery`, `power`, `fpga_config`, `io_expansion`.
+Everything else still carries R1's flat legacy numbering, and `tools/check_pcb.py` /
+`check_ucf.py` still assert on those old names — expect false failures as the rollout spreads.
+
 Ground rules for this work, from the hardware owner and not negotiable: **the assistant cannot
 flash, measure or observe the hardware** — never claim a behaviour was confirmed on it; **this is
 the only dev kit**, so nothing may risk bricking it; **do not modify anything outside this repo**;

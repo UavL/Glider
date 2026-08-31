@@ -32,7 +32,7 @@ page — then re-run it and confirm the file is unchanged.
 | `TPS62A02DRL` | buck | `gen_r2_symbols.py` | `datasheets/Power/tps62a01.pdf` | `power.md` §3 |
 | `TPS63802DLA` | buck-boost | `gen_r2_symbols.py` | `datasheets/Power/tps63802.pdf` | `power.md` §3 |
 | `TPS7A0233DBV` | LDO | `gen_r2_symbols.py` | `datasheets/Power/tps7a02.pdf` | `power.md` |
-| `USBLC6-2SC6` | USB ESD | `gen_r2_symbols.py` | ST datasheet | used on `U3`, `U57` |
+| `USBLC6-2SC6` | USB ESD | `gen_r2_symbols.py` | ST datasheet | used on `U3`, `U1403` |
 | `LM3630A` | frontlight driver | `gen_frontlight.py` | `datasheets/Frontlight/lm3630a.pdf` | `frontlight.md` |
 | `BOM_ITEM` | placeholder for bought items with no pins (`X2`, `MK20`) | `gen_som.py` | — | `som.md` §10 |
 | `BTH-060_AB` | SoM connector, module columns A+B | `gen_som_symbol.py` | `som_pinout.json` ← PHYTEC `L-1038e.A5` Tables 7–10 | `som.md` §10–11 |

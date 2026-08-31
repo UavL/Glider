@@ -110,12 +110,12 @@ Taken from the exported netlist rather than from prose, so this is what the sche
 | --- | --- |
 | `+3V3_AON` | housekeeping MCU `U20` · buttons `SW21`/`SW22` with 100 k pull-ups `R42`/`R43` · status LED `D20` · always-on I²C pull-ups and the charger/gauge open-drain status lines (`R3`–`R7`, `R19`) · three `INA3221` rail monitors `U21`/`U22`/`U27` · **the SoM's RTC backup on `X2` pin B2** · `J20` SWD/JTAG header (DNP) |
 | `+5V` | SoM `VIN` via `+5V_SOM` · the EPD HV chain via `U6` (`MT9700`) |
-| `+3V3` | FPGA I/O banks `U41` · config NOR `U42` · 33.33 MHz oscillator `X2` · panel logic through `J6` · `Q7` (VCOM gate drive) · touch/pen load switches `U54`/`U55` (**DNP**) |
+| `+3V3` | FPGA I/O banks `U41` · config NOR `U42` · 33.33 MHz oscillator `X2` · panel logic through `J6` · `Q7` (VCOM gate drive) · touch/pen load switches `U1400`/`U1401` (**DNP**) |
 | `+1V2_FPGA` | `U41` `VCCINT` — **sole load** |
 | `+1V5` | DDR3L `U52` · FPGA bank 3 `VCCO` |
 | `+VSYS_FL` | `L33` + `U53` `LM3630A` → two LED strings |
 | `+3V3_SDIO` | microSD `J21` — **sourced by `X2` pin B1, not by this board** |
-| `+3V3_TOUCH` / `+3V3_PEN` | `J22` / `J23` FPCs — both DNP on board 1 |
+| `+3V3_TOUCH` / `+3V3_PEN` | `J1400` / `J1401` FPCs — both DNP on board 1 |
 
 Three things this made visible that the per-sheet docs do not state together:
 

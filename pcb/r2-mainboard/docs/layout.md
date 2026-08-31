@@ -111,7 +111,7 @@ carrying into placement:
   arrives from one direction only; a horizontal FPC connector facing the wrong way adds a 180° loop
   in a 0.5 mm flex, which is a reliability problem, not a routing one.
 
-**`J22`/`J23`, touch and pen, are the same story.** The owner: *"touch is also a flexible connector
+**`J1400`/`J1401`, touch and pen, are the same story.** The owner: *"touch is also a flexible connector
 that is folded under."* So they join `J6` and `J24` in the enclosure-fixed group and want the same
 treatment — landing zone first, orientation second, routing last. `io-expansion.md` §4's open item
 is unaffected: it is about the *pin order* on the `GT9110H`'s tail, which is still a vendor
@@ -126,7 +126,7 @@ missing is a number for the bench to confirm, not a circuit.
 **Three placement facts that arrived with the panel**, none of them blocking:
 
 - **A new connector, `J24`** — the 8-pin frontlight FPC (`frontlight.md` §6.2). It joins `J6`,
-  `J22` and `J23` in the enclosure-fixed group, because all four tails emerge from the panel.
+  `J1400` and `J1401` in the enclosure-fixed group, because all four tails emerge from the panel.
   That corner is now four connectors plus a DSBGA boost.
 - **`frontlight`'s layout rules changed completely.** `power.md` §11.2 no longer applies to that
   sheet — different part, different topology, and asynchronous, so the diode is in the hot loop.
@@ -293,7 +293,7 @@ existed and it is wrong. Measured on the placed board (different-net pad pairs, 
 | Part | Tightest different-net pad gap |
 | --- | --- |
 | `U1` BQ25792 QFN-24 | **0.125 mm** |
-| `U7`/`U8`/`U54`/`U55`, `U14`/`U15` | 0.150 mm |
+| `U7`/`U8`/`U1400`/`U1401`, `U14`/`U15` | 0.150 mm |
 | `U53` YFQ0012 DSBGA-12 | 0.160 mm |
 | `J26`/`J27` BTH-060 | 0.195 mm |
 | `J1` USB-C | 0.200 mm |
@@ -357,7 +357,7 @@ arranges around them. **Lock each one once placed** (select → `L`), so a later
 | | What | Why it is fixed |
 | --- | --- | --- |
 | 1 | **`J6`**, the panel connector | the folded flex lands there (§1.2); its *orientation* matters as much as its position |
-| 2 | **`J22`/`J23`/`J24`** — touch, pen, frontlight | same corner, same reason; all three tails emerge from the panel |
+| 2 | **`J1400`/`J1401`/`J24`** — touch, pen, frontlight | same corner, same reason; all three tails emerge from the panel |
 | 3 | **`J1`** USB-C, and `USB1` if fitted | case opening |
 | 4 | **`X2` + `J26` + `J27`**, the SoM | top right, on the face **away from the panel** (§1.1). Place `X2` first, then the two receptacles against it, then run `tools/check_pcb_connectors.py` |
 | 5 | **`U41` + `U52`**, FPGA and DRAM, together | the DDR3 group wants to be short; place them as a pair before anything competes for the space |
@@ -672,7 +672,7 @@ success, and KiCad reports nothing. The tell is an ERC violation you had already
    666.67 Mb/s this design runs. §11.1's "666 MT/s is a lot of margin" is true of the DRAM only.
 8. ~~**D-7, the separate panel-connector PCB**~~ — **CLOSED 2026-08-20: there is no second board.**
    The sketch's "TTL Interface" block is where the panel's flex lands after folding under the
-   display. `J6` gains a fixed position and, more importantly, a fixed **orientation**; `J22`/`J23`
+   display. `J6` gains a fixed position and, more importantly, a fixed **orientation**; `J1400`/`J1401`
    are the same. §1.2.
 9. **`J24`, the frontlight tail, is drawn but its current is undefined** — the display docs do not
    specify the frontlight, so the per-string current is a bench measurement (`frontlight.md` §6.2,

@@ -48,15 +48,15 @@ DS = "https://www.diodes.com/assets/Datasheets/AP22913.pdf"
 
 # (ref, rail, enable, x, y) for the two load switches
 SWITCHES = [
-    ("U54", "+3V3_TOUCH", "MCU_EN_TOUCH", 66.04, 66.04),
-    ("U55", "+3V3_PEN", "MCU_EN_PEN", 66.04, 111.76),
+    ("U1400", "+3V3_TOUCH", "MCU_EN_TOUCH", 66.04, 66.04),
+    ("U1401", "+3V3_PEN", "MCU_EN_PEN", 66.04, 111.76),
 ]
 # (ref, x, y, [(pin, net)]) -- the order is provisional, docs/io-expansion.md §5
 CONNECTORS = [
-    ("J22", "touch", 175.26, 62.23, [
+    ("J1400", "touch", 175.26, 62.23, [
         ("1", "+3V3_TOUCH"), ("2", "GND"), ("3", "SCL_AON"),
         ("4", "SDA_AON"), ("5", "TOUCH_INT#"), ("6", "TOUCH_RST#")]),
-    ("J23", "pen", 175.26, 107.95, [
+    ("J1401", "pen", 175.26, 107.95, [
         ("1", "+3V3_PEN"), ("2", "GND"), ("3", "PEN_TXD"),
         ("4", "PEN_RXD"), ("5", "PEN_INT#"), ("6", "GND")]),
 ]

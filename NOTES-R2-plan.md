@@ -259,7 +259,7 @@ The plan-level summary:
   22 kΩ → 20.5 kΩ. → `docs/epd-port.md` §10
 
 **Still vendor-blocked:** the frontlight's LED current per channel (bounds the margin, not the
-design) and ~~the touch tail pinout~~ — **decided 2026-08-31**: I²C on `J22`, hand-wired to the
+design) and ~~the touch tail pinout~~ — **decided 2026-08-31**: I²C on `J1400`, hand-wired to the
 vendor board's test points for the prototype; a custom panel at US$750 / 1 k units is the production
 answer. `io-expansion.md` §5.2.
 `panel.md` §7.

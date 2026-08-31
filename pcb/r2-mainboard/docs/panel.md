@@ -167,7 +167,7 @@ comparison.
 | --- | --- |
 | `frontlight` | **Redesigned, hold lifted.** A bonded film's tail is bare `LED1±`/`LED2±`, so the board needs a constant-current driver — `LM3630A` from `+VSYS_FL`, 2 channels, 256 exponential dimming steps. `+5V2_FL` and `U53`'s `TPS61022` are deleted. **Costs one new 8-pin FPC connector**, which the board does not have and the adapter cannot supply. `frontlight.md` |
 | `epd_power` | **`VGH` must reach 27–29 V** ‡ and the R1 chain tops out at ~26.87 V (`fw/User/power.c:286`). Fixed by **`R225` 22 kΩ → 20.5 kΩ**, one resistor on a frozen sheet; the DAC's gain is untouched, so firmware needs one constant changed. Full derivation and the tolerance corners in `epd-port.md` §10 |
-| `io_expansion` | `J22`'s six signals are still right — the datasheet ‡ confirms the module presents **I²C at 3.3 V with SDA/SCL pull-ups already on the module**, so our pull-ups should become DNP. The **pad order** now needs `GT9110H`'s tail pinout, not `FT5436`'s. `io-expansion.md` §5.1 |
+| `io_expansion` | `J1400`'s six signals are still right — the datasheet ‡ confirms the module presents **I²C at 3.3 V with SDA/SCL pull-ups already on the module**, so our pull-ups should become DNP. The **pad order** now needs `GT9110H`'s tail pinout, not `FT5436`'s. `io-expansion.md` §5.1 |
 | `epd` | ~~`J6` is 50-pin and covers 16-bit via `pcb/40p-adapter-ab` … **No change to this frozen sheet.**~~ **Superseded 2026-08-30.** The owner's folded-flex decision (`layout.md` §1.2) removed the adapter, so `J6` is now a **40-pin `XF2M-4015-1A`** wired straight to the panel tail. `+5V2_FL` (with `C147`) and the three `FL_*` pins are deleted rather than left unused. `epd-port.md` §9.5 |
 | `power_mon` | **No change.** Keeping the frontlight on `+VSYS_FL` leaves the `U22` ch3 shunt exactly where WP2 put it. `frontlight.md` §4.1 |
 | `mcu` | **`FL_PWM2` is freed** and returns to the spare pool; cool/warm balance goes over I²C. ~~`FL_INT#` wants one pin in exchange.~~ **Done 2026-08-30** — `PB7` retired, and `FL_INT#` was itself withdrawn on 2026-08-23. `mcu.md` §16.1 |
@@ -231,7 +231,7 @@ and it is 1-bit B/W at 124 DPI. `README.md:179` lists 7.5" under "screens with c
 is the tell.
 
 Its one useful contribution is in `io-expansion.md` §5.1: a real 6-pin `GT911` touch FPC pinout,
-which is evidence toward the `J22` pad order even though the panel itself is unusable here.
+which is evidence toward the `J1400` pad order even though the panel itself is unusable here.
 
 **E Ink shopkits `VD1400-GOE`, 7" 960×640** — evaluated 2026-08-16, rejected. The listing says
 *"All-in-one IC include Drive、TCON、PMIC and Temp Sensor"*: **the timing controller is inside the

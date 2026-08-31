@@ -64,8 +64,8 @@ specifically was deliberate — they are the two with a capability the others la
 
 | | |
 | --- | --- |
-| `+3V3` → `+3V3_TOUCH` | `U54` `TPS22914BYFPR`, enable `MCU_EN_TOUCH` |
-| `+3V3` → `+3V3_PEN` | `U55` `TPS22914BYFPR`, enable `MCU_EN_PEN` |
+| `+3V3` → `+3V3_TOUCH` | `U1400` `TPS22914BYFPR`, enable `MCU_EN_TOUCH` |
+| `+3V3` → `+3V3_PEN` | `U1401` `TPS22914BYFPR`, enable `MCU_EN_PEN` |
 
 Same part, symbol and footprint as `U7`/`U8` on `epd_power` (`Power_Management:AP22914CN4`,
 `Package_BGA:WLP-4_0.83x0.83mm_P0.4mm`) — no new line item, and active-high `EN` keeps the
@@ -83,7 +83,7 @@ Each switch gets a 1 µF output capacitor, DNP with the rest.
 **The FPC pin order is provisional.** Both connectors are `HC-FPC-05-09-6RLTAG` (6-pin, 0.5 mm,
 already in `pcb_common`), wired in the order that is most common for these two interfaces:
 
-| Pin | `J22` touch | `J23` pen |
+| Pin | `J1400` touch | `J1401` pen |
 | --- | --- | --- |
 | 1 | `+3V3_TOUCH` | `+3V3_PEN` |
 | 2 | `GND` | `GND` |
@@ -92,7 +92,7 @@ already in `pcb_common`), wired in the order that is most common for these two i
 | 5 | `TOUCH_INT#` | `PEN_INT#` |
 | 6 | `TOUCH_RST#` | `GND` |
 
-**~~This is a guess~~ — investigated 2026-08-19. `J22`'s six signals are still the right choice,
+**~~This is a guess~~ — investigated 2026-08-19. `J1400`'s six signals are still the right choice,
 but there is an adapter to design and it is not optional.**
 
 The `GDEP103TC2-FT11` listing gives *Touch IC `GT9110H`, Touch Connector 2×14 pin*. That 2×14 is
@@ -114,7 +114,7 @@ means a small adapter that Good Display explicitly does not sell.
 
 ### Which interface R2 should take
 
-| | I²C into `J22` (as drawn) | USB into the free `USB1` |
+| | I²C into `J1400` (as drawn) | USB into the free `USB1` |
 | --- | --- | --- |
 | Board cost | 6-pin FPC, already there | one more connector, plus routing a USB pair |
 | Driver | mainline `goodix` | generic USB HID multitouch — near-zero effort |
@@ -127,7 +127,7 @@ The adapter is a small flex or a 2-connector interposer, and it has to be design
 because the vendor does not sell one.
 
 **What is still needed from the vendor:** the GT9110 touch board's own connector pinout and pitch,
-and its I²C test-point mapping. `J22`'s order is 1 `GND`, 2 `VCC`, 3 `RESET`, 4 `INT`, 5 `SDA`,
+and its I²C test-point mapping. `J1400`'s order is 1 `GND`, 2 `VCC`, 3 `RESET`, 4 `INT`, 5 `SDA`,
 6 `SCL` — the adapter absorbs any difference, so this does not block the mainboard, but it does
 block the adapter.
 
@@ -142,7 +142,7 @@ group would need a respin, which is exactly what the provision was meant to avoi
 ### 5.1 Evidence gathered 2026-08-16 — the signal set is right, the order is still open
 
 Two real touch modules were examined while evaluating panels, and **both need exactly the six
-signals `J22` carries** — `VCC`, `GND`, `SCL`, `SDA`, `INT`, `RST`. Nothing needs a seventh pin.
+signals `J1400` carries** — `VCC`, `GND`, `SCL`, `SDA`, `INT`, `RST`. Nothing needs a seventh pin.
 That is the half of §5 that was actually load-bearing, and it holds.
 
 | Module | Touch IC | Connector | Pin order |
@@ -158,7 +158,7 @@ Two things changed and they pull in opposite directions.
 **The signal set is now confirmed, not merely likely.** `GDEP103TC2-FT11.pdf`'s specification table
 (in the mechanical drawing's title block, p.2) gives: *IC type `GT9110H`*, *optional interfaces
 `IIC`*, *structure `3.3V`*, and — *"does the motherboard SDA/SCL come with a pull-up resistor:
-**YES**"*. So the module presents plain I²C at 3.3 V and **carries its own bus pull-ups**. `J22`'s
+**YES**"*. So the module presents plain I²C at 3.3 V and **carries its own bus pull-ups**. `J1400`'s
 six signals are right.
 
 **One consequence for this sheet:** our pull-ups on the touch side would be in parallel with the
@@ -166,7 +166,7 @@ module's. They are already DNP with everything else here, so nothing needs chang
 whoever populates touch must **leave them unfitted** rather than assume they are needed.
 
 **The pin order is still open**, and `panel.md` §3's "2×14" for this module is the *sensor-to-IC*
-connection, not the host interface — it is not evidence about `J22`. The specific document to ask
+connection, not the host interface — it is not evidence about `J1400`. The specific document to ask
 Good Display for is the **`GT9110H` touch tail pinout and connector type**. Note `GT9110H` is Goodix,
 so the `GT911` datasheet in `datasheets/e-ink_display/` is a *sibling* part: useful for the register
 interface, not authoritative for this module's tail.
@@ -200,10 +200,10 @@ a supply-chain one, and no amount of layout work gets past it.
 
 **What it opens, and it is worth writing down.** The production answer is now *priced*:
 **US$750 tooling, MOQ 1 000/lot**, for a custom-moulded panel with the interface and touch IC of our
-choosing. That is less than one respin. If Glider ever reaches that volume, R2's `J22` is already the
+choosing. That is less than one respin. If Glider ever reaches that volume, R2's `J1400` is already the
 right connector for it and the mainboard needs no change beyond the pad order.
 
-**The decision for board 1: option C — I²C on `J22`, hand-wired to the vendor board's test points.**
+**The decision for board 1: option C — I²C on `J1400`, hand-wired to the vendor board's test points.**
 Good Display's own `EN-DEJA-TC103.pdf` §4.4.2 says the board "already provides IIC test points for
 connection" and that the adapter "can be designed independently". Owner, 2026-08-31: *"for the
 prototype I would solder I2C myself."*
@@ -220,13 +220,13 @@ cannot. The hardware supports it and nothing forces it:
 | To have it | To disable it |
 | --- | --- |
 | arm `EXTI9` on `PD9` (`TOUCH_INT#`, `U20.41`) and hold `MCU_EN_TOUCH` (`PC6`) high through STOP | leave `EXTI9` unarmed — the line is simply not a wake source |
-| — | or drop `MCU_EN_TOUCH`, so `U54` cuts `+3V3_TOUCH` and the controller is unpowered: no interrupt to have, and the leakage goes too |
+| — | or drop `MCU_EN_TOUCH`, so `U1400` cuts `+3V3_TOUCH` and the controller is unpowered: no interrupt to have, and the leakage goes too |
 | — | or put the `GT9110` to sleep over I²C and leave the rail up |
 
 The middle row is the one that saves power, and it is also the default a first build should ship
 with: `NOTES-R2-plan.md`'s wake path lists button *and* touch, so this is a knob, not a redesign.
 
-**`J22`'s pad order stops mattering.** The adapter is hand-made, so it can be wired to whatever the
+**`J1400`'s pad order stops mattering.** The adapter is hand-made, so it can be wired to whatever the
 pads turn out to be — the one situation where a provisional pin order costs nothing. Owner,
 2026-08-31.
 
@@ -236,7 +236,7 @@ Read off the board by the owner, 2026-08-31. The exposed test points are:
 
 **`SDA`, `SCL`, `VDD`, `GND`, `DBG`, `INT`, `DP`** — and that is all of them.
 
-| `J22` | Net | Vendor pad | |
+| `J1400` | Net | Vendor pad | |
 | ---: | --- | --- | --- |
 | 1 | `+3V3_TOUCH` | `VDD` | ✓ |
 | 2 | `GND` | `GND` | ✓ |
@@ -248,10 +248,10 @@ Read off the board by the owner, 2026-08-31. The exposed test points are:
 `DP` is the USB `D+` single-ended test point (`J3` pin 3) and is no use to us; `DBG` is
 undocumented. Three consequences, none of them blocking:
 
-1. **`TOUCH_RST#` (`PC3`, `U20.16`) has nowhere to land.** Leave `J22.6` wired anyway — it costs
+1. **`TOUCH_RST#` (`PC3`, `U20.16`) has nowhere to land.** Leave `J1400.6` wired anyway — it costs
    nothing, and a custom panel (§5.2) would use it. Just do not populate that wire in the adapter.
 2. **Reset becomes a power cycle**, and the board already supports it: `MCU_EN_TOUCH` (`PC6`) gates
-   `+3V3_TOUCH` through `U54`, so firmware recovers a hung controller by dropping the rail. That is
+   `+3V3_TOUCH` through `U1400`, so firmware recovers a hung controller by dropping the rail. That is
    also the disable-touch-to-wake path in §5.2, so it is a mechanism we want anyway.
 3. ⚠ **The I²C address is not ours to choose.** Goodix `GT911`/`GT9110` latch their address from the
    `INT` level during reset — `0x5D` or `0x14`. Without `RST` we cannot run that sequence, so the
@@ -289,7 +289,7 @@ Shapes are from this sheet's point of view: the interrupts leave it, the enables
 1. **The FPC pin order** — §5. Still the last open decision in Stage C, and now a pure vendor
    question rather than a design one.
 2. ~~**No touch controller is chosen**~~ — **CLOSED**: the panel is chosen, so touch is `GT9110H`,
-   I²C at 3.3 V, with pull-ups on the module (§5.2). **The digitizer is still unchosen**, and `J23`
+   I²C at 3.3 V, with pull-ups on the module (§5.2). **The digitizer is still unchosen**, and `J1401`
    stays provisional with it.
 3. **Our touch-side pull-ups must stay unfitted** when touch is populated — the module has its own
    (§5.2).
@@ -314,14 +314,14 @@ second, source-only port needs none of that, and it does not touch the charge pa
 
 | Ref | Part | LCSC | Why |
 | --- | --- | --- | --- |
-| `J28` | `TYPE-C-31-M-12` | `C165948` | the same receptacle as `J1` — no new BOM line |
-| `U56` | **`TPS2553DBVR`** SOT-23-6 | `C55266` | adjustable current limit, `EN` **active high** |
-| `U57` | `USBLC6-2SC6` | `C7519` | same ESD part and same wiring as `U3` on `battery` |
-| `R520`, `R521` | 56 kΩ | — | Rp on `CC1`/`CC2`: a source advertising *Default USB Power* |
-| `R522` | 49.9 kΩ 1 % | — | `ILIM` |
-| `R523` | 100 kΩ | — | pull-up on the open-drain `FAULT` |
-| `C519` | 100 nF | — | at `IN`; the datasheet's pin table asks for ≥0.1 µF "as close as possible" |
-| `C520`, `C521` | 22 µF, 100 nF | — | on the switched output |
+| `J1402` | `TYPE-C-31-M-12` | `C165948` | the same receptacle as `J1` — no new BOM line |
+| `U1402` | **`TPS2553DBVR`** SOT-23-6 | `C55266` | adjustable current limit, `EN` **active high** |
+| `U1403` | `USBLC6-2SC6` | `C7519` | same ESD part and same wiring as `U3` on `battery` |
+| `R1400`, `R1401` | 56 kΩ | — | Rp on `CC1`/`CC2`: a source advertising *Default USB Power* |
+| `R1402` | 49.9 kΩ 1 % | — | `ILIM` |
+| `R1403` | 100 kΩ | — | pull-up on the open-drain `FAULT` |
+| `C1402` | 100 nF | — | at `IN`; the datasheet's pin table asks for ≥0.1 µF "as close as possible" |
+| `C1403`, `C1404` | 22 µF, 100 nF | — | on the switched output |
 
 **Why a current-limited switch and not a plain load switch.** `+5V_DCDC` is shared with the SoM. A
 stick that shorts VBUS, or one with a large inrush, would otherwise brown the module out — a hard
@@ -329,7 +329,7 @@ reset of the whole device. `tps2553.pdf` §7.5 gives `tIOS` = **2 µs** response
 what makes that impossible. The board's existing `TPS22965`/`TPS22914` load switches have no current
 limit and would not do.
 
-**`R522` = 49.9 kΩ.** Straight off the datasheet's `IOS` row, not a formula:
+**`R1402` = 49.9 kΩ.** Straight off the datasheet's `IOS` row, not a formula:
 **475 / 520 / 565 mA** over −40 °C ≤ TJ ≤ 125 °C. That is the USB 2.0 host budget, and it is what
 the 56 kΩ Rp advertises, so the electrical limit and the Type-C advertisement agree.
 
@@ -347,10 +347,10 @@ that USB current is not separately measured; `USB1_FAULT#` is the signal that so
 
 | Net | From | To |
 | --- | --- | --- |
-| `USB1_DRVVBUS` | SoM `J26.B42` (`X_USB1_DRVVBUS`) | `U56.EN` — the SoM's own VBUS gate, active high |
-| `USB1_VBUS` | `U56.OUT` | `J28` VBUS, `U57`, and SoM `J26.B41` so the controller senses its own output |
-| `USB1_DM` / `USB1_DP` | SoM `J26.B39`/`B40` | `U57` then `J28`'s two D− and two D+ contacts |
-| `USB1_FAULT#` | `U56.FAULT`, open drain + `R523` | MCU `PB7` (`U20.61`) |
+| `USB1_DRVVBUS` | SoM `J26.B42` (`X_USB1_DRVVBUS`) | `U1402.EN` — the SoM's own VBUS gate, active high |
+| `USB1_VBUS` | `U1402.OUT` | `J1402` VBUS, `U1403`, and SoM `J26.B41` so the controller senses its own output |
+| `USB1_DM` / `USB1_DP` | SoM `J26.B39`/`B40` | `U1403` then `J1402`'s two D− and two D+ contacts |
+| `USB1_FAULT#` | `U1402.FAULT`, open drain + `R1403` | MCU `PB7` (`U20.61`) |
 
 `PB7` is the pin freed when `FL_PWM2` was retired the same day (`mcu.md` §16.1). It went straight
 back out again, which is the best possible outcome for a spare.

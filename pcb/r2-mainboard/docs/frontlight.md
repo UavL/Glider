@@ -173,7 +173,7 @@ All parts are chosen and the sheet is captured against this table.
 | `C514` | 4.7 µF / 10 V | 0603 | | input bypass. ‡ pin C3 asks for **2.2 µF or greater**; 4.7 µF derates into that band at 4 V |
 | `C515` | **2.2 µF / 50 V** | 0805 | | output. ‡ specifies **1 µF**, and that is 1 µF *effective* — a 2.2 µF/50 V part derates to about that under 28.5 V of DC bias |
 | `C516` | 100 nF / 16 V | 0402 | | local HF bypass at `IN` |
-| `J24` | — | **`HC-FPC-05-09-8RLTAG`**, 8-pin 0.5 mm | `C5213749` | §7.2. The 8-pin sibling of the `C5213748` on `J22`/`J23`, **footprint already in `pcb_common`**. 500 mA / 50 V per contact against 28.5 mA at 28.5 V. 49 k in stock |
+| `J24` | — | **`HC-FPC-05-09-8RLTAG`**, 8-pin 0.5 mm | `C5213749` | §7.2. The 8-pin sibling of the `C5213748` on `J1400`/`J1401`, **footprint already in `pcb_common`**. 500 mA / 50 V per contact against 28.5 mA at 28.5 V. 49 k in stock |
 | `R507` | 100 kΩ | 0402 | | `HWEN` pull-down: keeps the driver off until the MCU asserts `FL_EN`, as all four `MCU_EN_*` rails do |
 | `R508` | ~~10 kΩ~~ **`dnp` + `on_board no`** | — | | was the `INTN` pull-up to `+3V3`. **`INTN` is unconnected — §9.1.** Still `in_bom yes`; clear that before the JLCPCB BOM |
 | ~~`R509`~~ | ~~0 Ω to `IN`~~ | — | | **deleted 2026-08-23 — §9.1.** `SEL` (`C2`) now ties straight to `IN` (`C3`), its own neighbour |
@@ -273,7 +273,7 @@ supply it: `pcb/40p-adapter-ab/adapter.kicad_sch` contains exactly two parts, `J
 — a bare passthrough with no frontlight path.
 
 **Chosen: `HC-FPC-05-09-8RLTAG`, LCSC `C5213749`** — the 8-pin sibling of the `C5213748` on
-`J22`/`J23`, 49 k in stock at $0.093, right-angle SMD, rated 500 mA / 50 V per contact against our
+`J1400`/`J1401`, 49 k in stock at $0.093, right-angle SMD, rated 500 mA / 50 V per contact against our
 28.5 mA at 28.5 V. It cost no library work: **`HC-FPC-05-09-8RLTAG.kicad_mod` was already in
 `pcb_common/footprints.pretty`.**
 
@@ -341,7 +341,7 @@ and this one is asynchronous, so the diode is in the hot loop.
 - **`OVP` is a sense pin on a 28.5 V node.** Route it as a quiet trace to the output capacitor's
   positive terminal, not tapped off the `SW` side of the diode.
 - **This sheet's corner is the crowded one.** `J6` is enclosure-fixed, `io-expansion.md` §7 puts
-  `J22`/`J23` there too because the touch and pen tails emerge from the panel, and `J24` joins them.
+  `J1400`/`J1401` there too because the touch and pen tails emerge from the panel, and `J24` joins them.
   The DSBGA is 1.94 × 1.42 mm and the solution size TI quotes is 32 mm² — that smallness is a
   layout asset here, not a vanity number.
 - **DSBGA-12 is 0.4 mm pitch.** Already inside this board's assembly envelope — four
