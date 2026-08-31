@@ -21,8 +21,8 @@ cannot be taken after fabrication.
 
 | Question | Where it is answered |
 | --- | --- |
-| `Y20` — "doesn't the doc say 8 MHz?" | `mcu.md` §11.3. **`Y20` is the LSE; the 8 MHz belongs to the HSE**, which is not fitted. Table 42 (HSE, 4/8/48 MHz) vs Table 43 (LSE, 32.768 kHz), Figure 20 vs Figure 21. `PF0`/`PF1` are free for `MCU_EN_5V`/`MCU_EN_3V3` precisely *because* no HSE is fitted. |
-| `FB20` — "where in the doc does it call for this?" | `mcu.md` §10.2 and §11.2, and the answer is **it does not**. The doc says so in as many words: "`FB20` is not a datasheet requirement, and the review was right to ask." It is R1's `FB3` carried across to the one pin still eligible. §5.2 gives the two reasons it stays; §10.2 gives the DCR constraint that makes it safe. |
+| `Y400` — "doesn't the doc say 8 MHz?" | `mcu.md` §11.3. **`Y400` is the LSE; the 8 MHz belongs to the HSE**, which is not fitted. Table 42 (HSE, 4/8/48 MHz) vs Table 43 (LSE, 32.768 kHz), Figure 20 vs Figure 21. `PF0`/`PF1` are free for `MCU_EN_5V`/`MCU_EN_3V3` precisely *because* no HSE is fitted. |
+| `FB400` — "where in the doc does it call for this?" | `mcu.md` §10.2 and §11.2, and the answer is **it does not**. The doc says so in as many words: "`FB400` is not a datasheet requirement, and the review was right to ask." It is R1's `FB3` carried across to the one pin still eligible. §5.2 gives the two reasons it stays; §10.2 gives the DCR constraint that makes it safe. |
 | Battery connector is too tall | `battery.md` §9.2. JST-PH was **already rejected** for exactly this reason. `J2` is now a Molex Pico-Lock 504050-0391 (1.5 mm pitch, right-angle, 2.00 mm mated height), **and** `J25` is three bare copper solder pads on the same three nets (`+VBAT`, `CHG_TS`, `GND`) for soldering the cell directly. Both options are already on the board — this is a stuffing choice, not a redesign. |
 | Touch controller wiring | `io-expansion.md` §4. The sheet was drawn **against the GT911**. It lists `GDEY075T7-T01` / GT911 / 6-pin FPC with pinout 1 `GND`, 2 `VCC`, 3 `RESET`, 4 `INT`, 5 `SDA`, 6 `SCL`, and `J1400` carries exactly those six signals. Enabling touch is a **populate**, not a redesign — see D-1. |
 | Layout guidelines, all chips | They are written, one "Layout guidelines" section per sheet doc. They surface at Stage D, before placement. `epd-port.md` §11 is the fullest example. |
@@ -31,14 +31,14 @@ cannot be taken after fabrication.
 ## B. Answered here
 
 **B-1 — "Will the buttons wake everything with the MCU unpowered?"**
-`SW21`/`SW22` will not; `SW20` will. This is visible in the power tree: `SW21`/`SW22` sit on
-`+3V3_AON` behind 100 k pull-ups `R42`/`R43` and go to MCU GPIO, so they need the MCU alive.
-`SW20` does not touch an MCU rail at all — it goes straight to the charger's `QON` pin, which is
+`SW401`/`SW402` will not; `SW400` will. This is visible in the power tree: `SW401`/`SW402` sit on
+`+3V3_AON` behind 100 k pull-ups `R402`/`R403` and go to MCU GPIO, so they need the MCU alive.
+`SW400` does not touch an MCU rail at all — it goes straight to the charger's `QON` pin, which is
 why it can bring the board out of ship mode when nothing else is powered. That asymmetry is
 deliberate (`mcu.md` §2.2) and it is the reason the always-on rail can be as small as it is.
 
 **B-2 — "Only two buttons for the final product, prev and next."**
-That is already what the board has for paging. `SW21`/`SW22` *are* prev/next; `SW20` is the power
+That is already what the board has for paging. `SW401`/`SW402` *are* prev/next; `SW400` is the power
 button and is not one of the two. So no change is needed — but see D-1, because "enter is done with
 the touchscreen" only holds if touch is populated.
 
@@ -72,9 +72,9 @@ Yes, six, and they have been accumulating:
 
 | # | Change | Sheet | Status |
 | --- | --- | --- | --- |
-| 1 | `R225` 22 kΩ → **20.5 kΩ**, LCSC `C57105` — the one value the `GDEP103TC2` forces | `epd_power` | **DONE 2026-08-19** |
+| 1 | `R1117` 22 kΩ → **20.5 kΩ**, LCSC `C57105` — the one value the `GDEP103TC2` forces | `epd_power` | **DONE 2026-08-19** |
 | 2 | Five sense-divider caps → `C1523` (`0402B102K500NT`, 1 nF 50 V X7R, JLC Basic) | `power_mon` | **DONE** |
-| 2b | `R88`/`R224` → `C54920667`, 14 units in stock was not orderable | `epd_power` | **DONE** |
+| 2b | `R1107`/`R1116` → `C54920667`, 14 units in stock was not orderable | `epd_power` | **DONE** |
 | 3 | `+5V2_FL` orphan — `C147` set **DNP**, footprint kept | `epd` | **DONE**, see below |
 | 4 | Ten duplicate `#PWR` references | `battery` | **DONE** — renumbered to `#PWR1112`–`#PWR1121` |
 | 5 | `J3` deletion | `epd` | **already done 2026-08-15**, `epd-port.md` §9.3 |
@@ -99,7 +99,7 @@ unless whoever prepares it honours the DNP flag**, so check that before ordering
 assuming the part is gone.
 
 **B-6 — "Why did `J3` exist on the original Caster design?"**
-It is the 16-pin half of Caster's two-connector panel interface. The 50-pin `J6` covers 8- and
+It is the 16-pin half of Caster's two-connector panel interface. The 50-pin `J1000` covers 8- and
 16-bit parallel panels; `J3` adds four LVDS pairs plus a clock for MiniLVDS panels and 32/64-bit
 modes — the very large or very fast panels Caster was also meant to drive. A 6″–8″ reader panel is
 8- or 16-bit, so `J3` would never be populated here. The stronger argument for deleting it:
@@ -117,7 +117,7 @@ belongs to so the RGB666 mapping is checkable by eye. Fair criticism though — 
 with the colour mapping in a table would read better. Cosmetic, no electrical effect; queued as C-6.
 
 **B-9 — "I don't see the physical connectors the SoM sits on."**
-Correct — there is one symbol, `X2`, and it represents **both** Samtec `BTH-060-01-L-D-A-K-TR`
+Correct — there is one symbol, `X500`, and it represents **both** Samtec `BTH-060-01-L-D-A-K-TR`
 receptacles as a single 240-pin part. That is why its reference is `X`, not `U`. The two physical
 connectors appear at layout time, through the footprint — which is the one footprint still missing
 (D-4).
@@ -132,7 +132,7 @@ The owner found the `GDEP103TC2-FT11` listing on buy-lcd.com and the shipped TCO
 operating voltage 27 V. `frontlight.md` §2 had "18 LEDs, 2 × 9 series" from the product page but
 hedged: *"9 LEDs in series is inferred … it could equally be 8 series at 3.4 V."* **Strike the
 hedge.** 2 × 9 is confirmed, the `LM3630A`'s 10-series limit keeps one LED of headroom, and the
-8-pin front-light connector is `J24` — which is why four of its eight pins are `NC`
+8-pin front-light connector is `J1300` — which is why four of its eight pins are `NC`
 (`frontlight.md` §2: `LED1+`, `LED1−`, NC, NC, `LED2+`, `LED2−`, NC, NC). That answers the
 "why are half the pins unused" question in `Analysis_Frontlight.md` outright.
 
@@ -181,7 +181,7 @@ answers, and the first triage did not account for that.
 | ~~C-1~~ | ~~Every `TPS62A02` / `TPS63802` / `TPS22965` / `TPS61022` component-value question~~ | `Analysis_power.md` | **CLOSED 2026-08-20 — it was already done.** Every question in that file has a `power.md` §10.x answer with the datasheet section quoted and the arithmetic shown; see the mapping below. This entry was the "biggest single block of work" in the queue and it was an artefact of the first triage not checking the sheet doc, exactly as the scope note at the top warns. |
 | C-2 | Charger questions: `CHG_PSEL` polarity, `TS` behaviour with a non-103AT NTC or none, `CHG_PG` pin 3 on the '892 vs the '890, I²C pull-up placement and which rail, `R_ILIM`/`K_ILIM` arithmetic, what `BATFET` and ship mode are | `Analyse_battery.md` | `battery.md` covers some; the pin-mismatch sweep between BQ25890/2/5/6 is genuinely new and matters for the second-source field. |
 | C-3 | `MAX17048`: `CELL` pin not connected, and whether hardware `QSTRT` is wanted | `Analyse_battery.md` | `CELL` unconnected is flagged by the analyzer too (`U2.CELL` single-pin net). Check against the datasheet before assuming it is correct. |
-| C-4 | Frontlight: `FL_INT#` appears unconnected; `IN` cap 4.7 µF + 100 nF vs the datasheet's "2.2 µF or greater"; `COUT` 2.2 µF vs the layout example's 1 µF; why half of `J24`'s pins are unused | `Analysis_Frontlight.md` | `FL_INT#` needs checking against the netlist first — `mcu.md` §5 reserved a GPIO with EXTI for it. |
+| C-4 | Frontlight: `FL_INT#` appears unconnected; `IN` cap 4.7 µF + 100 nF vs the datasheet's "2.2 µF or greater"; `COUT` 2.2 µF vs the layout example's 1 µF; why half of `J1300`'s pins are unused | `Analysis_Frontlight.md` | `FL_INT#` needs checking against the netlist first — `mcu.md` §5 reserved a GPIO with EXTI for it. |
 | C-5 | `C42` — "isn't this capacitor one too many?" | `Analysis_mcu.md` | Check against ST Figure 15's per-pin decoupling table. |
 | C-6 | `DPI_xy` label scheme, and the `X_VOUT0_SYNC` prose fix | `Analysis_dpi_and_som.md` | Cosmetic. Do it with the `Specter` → `Reflow` rename. |
 | C-7 | How to flash and reconfigure the MCU | `Analysis_mcu.md` | Partly written — `mcu.md` §5.7. The honest answer is bound up with D-2. |
@@ -195,14 +195,14 @@ hand-wave — each quotes the datasheet section and shows the arithmetic:
 | --- | --- | --- |
 | `TPS62A02` `EN` — pulled high by `MCU_EN_FPGA_CORE`, low via the resistor? | `power.md` §10.1 | yes, exactly right — correct as drawn |
 | "Write down all layout guidelines, not just for this chip" | §10.2 → §11 | done, one section per converter |
-| `R29` vs the typical application's 200 kΩ | §10.3 | you were reading the 1.8 V circuit — correct as drawn |
-| `R32`: `VIN` differs for the `VIN` pin and the `PG` pin | §10.4 | yes, and the datasheet says so — correct as drawn |
+| `R309` vs the typical application's 200 kΩ | §10.3 | you were reading the 1.8 V circuit — correct as drawn |
+| `R312`: `VIN` differs for the `VIN` pin and the `PG` pin | §10.4 | yes, and the datasheet says so — correct as drawn |
 | `TPS63802` `AGND` and `GND` tied together | §10.5 | **must** be connected; TI deleted the advice to separate them |
-| `R3` 470 kΩ where TI draws 100 kΩ | §10.6 | correct as drawn — 0.26 mW of standby, with the `VOL`/leakage/RC margins worked |
+| `R202` 470 kΩ where TI draws 100 kΩ | §10.6 | correct as drawn — 0.26 mW of standby, with the `VOL`/leakage/RC margins worked |
 | Why `TPS22965` in tandem with `TPS61022` | §10.7 | **it should not be. `U11` deleted** — this question changed the sheet |
 | Does `+VSYS` need an input flag | §10.8 | it has one, on `battery.kicad_sch` |
-| `TPS61022` `C1` absent, and `C2` 2×22 µF vs the typical 3× | §10.9 | `C1` is `C25`; two output caps are right at our current |
-| `VBIAS` = `+VSYS`, the `+VSYS` voltage, the 10:1 `CIN`:`CL` ratio, `C_IN` 22 µF + 100 nF vs 1 µF | §10.10 | 1 µF is a **MIN** column, not a sufficiency claim; `CIN` is the whole node (~42.5 µF), not `C22` |
+| `TPS61022` `C200` absent, and `C201` 2×22 µF vs the typical 3× | §10.9 | `C200` is `C303`; two output caps are right at our current |
+| `VBIAS` = `+VSYS`, the `+VSYS` voltage, the 10:1 `CIN`:`CL` ratio, `C_IN` 22 µF + 100 nF vs 1 µF | §10.10 | 1 µF is a **MIN** column, not a sufficiency claim; `CIN` is the whole node (~42.5 µF), not `C302` |
 | Part numbers and the BOM | §10.11–§10.13 | plan written; **executed 2026-08-19**, commit `77469bb` |
 
 Two of those answers were substantive rather than confirmatory — §10.7 deleted a part, and §10.11
@@ -228,17 +228,17 @@ Two things came out of specifying it that were not obvious from "just add two GP
 
 - **`NRST` needs an N-FET, not a wire.** The MCU gates the SoM's own supply, so "SoM off, MCU
   alive" is the normal standby state; a direct tie risks an unpowered A59 clamping `MCU_NRST` low
-  and holding the MCU in reset forever. An `AO3400A` (already on the BOM as `Q6`) plus a 100 kΩ
+  and holding the MCU in reset forever. An `AO3400A` (already on the BOM as `Q1102`) plus a 100 kΩ
   gate pull-down makes it one-way and fail-safe.
-- **`BOOT0` is fine as a 1 kΩ series link** — `R40`'s pull-down already defines the safe state, and
+- **`BOOT0` is fine as a 1 kΩ series link** — `R400`'s pull-down already defines the safe state, and
   the 1 kΩ doubles as the contention limit against an ST-LINK on the shared `SWCLK` pin.
 
 **Still to confirm, and it decides the factory story:** whether a blank STM32G0 runs its ROM
 bootloader regardless of `BOOT0`. If yes, a virgin board needs only an SD card. If no, each board
 needs one SWD touch to clear `nBOOT_SEL` first. AN2606 / RM0444, not in the repo.
 
-**DRAWN 2026-08-19**, `tools/patch_som_mcu_recovery.py`: `Q9` `AO3400A`, `R510` 100 kΩ gate
-pull-down and `R511` 1 kΩ series on `mcu`; A59/A60 no-connects dropped on `som`; two sheet pins on
+**DRAWN 2026-08-19**, `tools/patch_som_mcu_recovery.py`: `Q400` `AO3400A`, `R406` 100 kΩ gate
+pull-down and `R407` 1 kΩ series on `mcu`; A59/A60 no-connects dropped on `som`; two sheet pins on
 each root box. 518 nets before and after, only the intended membership changes. **WP8 closed.**
 
 **And the empty-check question is answered from source.** RM0444 Rev 5 §3.3.1 (p.67): the `EMPTY`
@@ -257,13 +257,13 @@ owner's position, 2026-08-20: *"I think two USB-C ports is a good thing and shou
 possible."* **Recommendation: do it.** The analysis, so the decision is made on numbers.
 
 **It cannot be retrofitted and it is the cheap half of a port.** `X_USB1_DP`/`DM`/`VBUS`/`DRVVBUS`
-are on `X2` today at zero cost; everything else is ordinary parts. What a Type-C *host* port needs,
+are on `X500` today at zero cost; everything else is ordinary parts. What a Type-C *host* port needs,
 and what R2 already has:
 
 | Need | Part | Status |
 | --- | --- | --- |
 | Receptacle | `C165948` `TYPE-C-31-M-12` | **already the BOM line for `J1`** — second unit, no new line |
-| ESD on `D±` | `USBLC6-2SC6` `C7519` | **already the BOM line for `U3`** |
+| ESD on `D±` | `USBLC6-2SC6` `C7519` | **already the BOM line for `U202`** |
 | VBUS switch, current-limited | `SY6280AAC` `C55136`, SOT-23-5, adjustable limit, auto-restart, 233 k stock, $0.097 — or `TPS2051BDBVR` `C24593` for a fixed 500 mA at $0.194 | **new**, 1 line |
 | Source advertisement | 2 × **56 kΩ** `Rp`, one per `CC` pin, to the switched 5 V | new, 2 passives |
 | VBUS bulk + bypass | 10 µF + 100 nF | new, 2 passives |
@@ -280,13 +280,13 @@ advertisement for a bus-powered dongle. One resistor per `CC` pin, never bridged
 
 **The one number that needs watching is the boost's inductor, not the boost.** `power.md` §8.1
 budgets `+5V_DCDC` at 1.3 A worst realistic (SoM design bound 1.0 A + an EPD refresh) against a
-1.5 A design point, and `L10`'s `Isat` is 4.8 A against a 3.10 A peak — 55 % of margin. A port
+1.5 A design point, and `L300`'s `Isat` is 4.8 A against a 3.10 A peak — 55 % of margin. A port
 current-limited at 500 mA takes the worst case to 1.8 A and the peak to ≈ 4.0 A, leaving **≈ 20 %**.
 That is still margin, and the coincidence it assumes — a 500 mA sink *and* an EPD refresh *and* the
 SoM at its design bound, simultaneously — is not a realistic reading state. A keyboard/mouse dongle
 is 25–100 mA, not 500. **500 mA is the limit the port advertises, not the load it carries.** If that
 20 % is judged too thin, the answer is not to drop the port: it is either to set `SY6280`'s
-adjustable limit lower (a resistor) or to re-run `power.md` §3.2 for a higher-`Isat` `L10`.
+adjustable limit lower (a resistor) or to re-run `power.md` §3.2 for a higher-`Isat` `L300`.
 
 **What it actually costs is board edge and a case opening, and the sketch says there is room.** The
 receptacle is 8.94 mm wide; the SoM takes 32 mm of a ~90 mm top edge (`layout.md` §1.2), leaving
@@ -305,14 +305,14 @@ receptacle is 8.94 mm wide; the SoM takes 32 mm of a ~90 mm top edge (`layout.md
 **The alternative that does not need `USB1` was checked and is worse.** `J1` could in principle be
 dual-role: `CHG_OTG` is already declared and wired to `PB3`, and the `BQ25892` boosts `VBUS` in OTG
 mode. But it needs *more* parts than `USB1`, not fewer — a DRP `CC` controller to swap `Rd` for
-`Rp`, plus `C2` on `PMID` raised from its 8.2 µF no-OTG value (`battery.md` §312) — and it makes
+`Rp`, plus `C201` on `PMID` raised from its 8.2 µF no-OTG value (`battery.md` §312) — and it makes
 hosting and charging mutually exclusive, which is exactly when someone wants both.
 
 **The asymmetry is the argument.** Fitting the port and never using it costs $0.60 and a connector.
 Not fitting it and later wanting a keyboard costs a respin. *(Raised in `Analyse_battery.md`, an
 earlier round, not WP6–8 — but still open and still has a fabrication deadline.)*
 
-**D-4 ✅ — The `X2` footprint. BUILT and then RESTRUCTURED, 2026-08-20.**
+**D-4 ✅ — The `X500` footprint. BUILT and then RESTRUCTURED, 2026-08-20.**
 
 Built first as one 240-pad footprint from PHYTEC's own DXF, which is vector and numeric where
 `L-1038e.A5` Figure 7 is a raster picture. It agreed with a Figure-7-derived first attempt to 8 µm
@@ -341,7 +341,7 @@ ports, on the face pointing **away from the panel**. `layout.md` §1.1, with the
 sketch in §1.2. The USB 2.0 high-speed pair is why that position is right and not merely a
 preference; the panel sitting directly over the board is why that side is.
 
-**D-6 ✅ — `U41` speed grade. ANSWERED by the owner 2026-08-20: `-2`.** And on investigation it
+**D-6 ✅ — `U700` speed grade. ANSWERED by the owner 2026-08-20: `-2`.** And on investigation it
 was never really a choice — full write-up in `fpga.md` §1.1:
 
 - **LCSC has no `-3` in FTG256 at all.** Every FTG256 option is `-2` (`C39313`, 2 058 in stock,
@@ -366,7 +366,7 @@ interface is just the flex cable that is bent under the display and that's about
 the PCB, so the connector can be fit accordingly."* The block on the sketch was never a board — it
 is a **landing zone**, which is a more useful thing to have.
 
-So `J6` is fixed in **position and orientation**, not just enclosure-fixed. `J1400`/`J1401` (touch, pen)
+So `J1000` is fixed in **position and orientation**, not just enclosure-fixed. `J1400`/`J1401` (touch, pen)
 are the same — the owner confirms touch is also a folded flex. A horizontal FPC connector facing the
 wrong way puts a 180° loop in a 0.5 mm flex, which is a reliability problem rather than a routing
 one, so orientation is worth deciding before placement rather than during. `layout.md` §1.2.
@@ -379,9 +379,9 @@ panel arrives is the fallback, as you say.
 
 ---
 
-## Sourcing fix: `R88` / `R224`, the 390 kΩ
+## Sourcing fix: `R1107` / `R1116`, the 390 kΩ
 
-`C25782` (`0402WGF3903TCE`) has **14 units** at LCSC and the board needs two per unit. `R224` is not
+`C25782` (`0402WGF3903TCE`) has **14 units** at LCSC and the board needs two per unit. `R1116` is not
 a part that can be substituted loosely — `epd-port.md` §10.2 puts it in the `VGH` feedback divider,
 `VGH = 1.2 × (1 + 390/18.033)`, so it must stay 390 kΩ ±1 % in 0402.
 

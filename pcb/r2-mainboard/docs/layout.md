@@ -14,9 +14,9 @@ written while each datasheet was open rather than reconstructed now:
 | `mcu` | `mcu.md` §11 | the 32.768 kHz crystal is the most layout-sensitive circuit on that sheet |
 | `epd`, `epd_power`, `power_mon` | `epd-port.md` §11 | ⚠ **two ICs have a `GND` pin that is not ground** |
 | `fpga_io`, `fpga_ddr`, `fpga_config` | `fpga.md` §11 | 666 MT/s against a 1066 part — the margin is the useful fact |
-| `som`, `dpi_in` | `som.md` §8 | MMC1 length-match 12.7 mm; `DPI_R6`/`R7` carry no components |
+| `som`, `dpi_in` | `som.md` §8 | MMC1 length-match 12.7 mm; `DPI_R6`/`R206` carry no components |
 
-**Read `epd-port.md` §11.1 before placing anything on the HV chain.** `U9` and `U26` are inverting
+**Read `epd-port.md` §11.1 before placing anything on the HV chain.** `U1103` and `U1106` are inverting
 buck-boosts: their `GND` pins sit on `-VGL` (−20 V) and `-VN` (−15 V), verified from the exported
 netlist. Each needs a local copper island with the plane cut away beneath it, and connecting either
 to the ground plane destroys the part. It is the only thing on this board that a competent person
@@ -47,7 +47,7 @@ where I would place the USB ports."* Everything else on that sketch is recorded 
 
 **Position: top right, adjacent to the USB connectors.** This is the right call for a reason the
 sketch does not say out loud, and it is worth writing down because it constrains everything after
-it: the `X2` escape carries `USB_DP`/`DM` as a 90 Ω pair (§4), and USB 2.0 high-speed is the one
+it: the `X500` escape carries `USB_DP`/`DM` as a 90 Ω pair (§4), and USB 2.0 high-speed is the one
 signal group on this board that is genuinely intolerant of a long, stubby, via-laden route. Putting
 the module next to the socket makes that pair short and straight. Nothing else on the module's
 escape has that property — DPI is 22 slow single-ended lines, MMC1 is length-matched but short, and
@@ -77,7 +77,7 @@ this section claimed.
 side, and `USB1` (`NOTES-R2-review-round-2.md` D-3) would join it.
 
 **One thing the position costs, and it is not free.** Top-right is also where the panel's own tails
-want to be (§1.2), and `epd-port.md` §11 needs the HV chain near `J6`. Those two groups now compete
+want to be (§1.2), and `epd-port.md` §11 needs the HV chain near `J1000`. Those two groups now compete
 for the same corner. The resolution is in `Project_description.md`'s favour: the SoM's USB pair is
 the timing-critical one, the HV chain is DC, so **the HV chain moves and the SoM does not**.
 
@@ -90,7 +90,7 @@ Read off the owner's hand sketch of 2026-08-20. Dimensions are approximate where
 | Enclosure | ≈ **220 × 180 mm** | panel module is 216.7 × 174.4 mm ‡ — so the case is the panel plus ~3 mm of bezel each way. Consistent. |
 | Mainboard | ≈ **90 × 70 mm**, *"the same as R1 but can be made bigger"* | R1 is 90 × 80 mm. So R2 is R1's footprint or slightly smaller, with room to grow. |
 | Cell | **90 × 60 mm**, beside the board | matches `PL706090` exactly (60 × 90 × 7.0 mm, `battery.md` §8.1) ✓ |
-| Power switch | right-hand edge, marked `ON` / `OFF` | this is `SW20` (`mcu.md` §5.5). An edge slider, not the recessed pinhole the doc left open. |
+| Power switch | right-hand edge, marked `ON` / `OFF` | this is `SW400` (`mcu.md` §5.5). An edge slider, not the recessed pinhole the doc left open. |
 | Touch | its own small board | consistent with `io-expansion.md` §4 — the `GT9110H` is on its own PCB, not on the panel flex. |
 | *"TTL Interface"* | a block ≈ **40 × 37 mm** | **not a board** — see below |
 
@@ -100,24 +100,24 @@ about where it lands on the PCB, so the connector can be fit accordingly."* **Th
 "no separate board"**, and it turns the block from an architectural question into the most useful
 kind of layout constraint: a fixed landing zone.
 
-So `J6` is **enclosure-fixed, and now positionally fixed too**. It is not free to move to wherever
+So `J1000` is **enclosure-fixed, and now positionally fixed too**. It is not free to move to wherever
 routing prefers; it goes where the folded tail arrives, facing the fold. Two consequences worth
 carrying into placement:
 
-- The **HV chain has to follow `J6`** (`epd-port.md` §11), and §1.1 already said the HV chain is
+- The **HV chain has to follow `J1000`** (`epd-port.md` §11), and §1.1 already said the HV chain is
   what moves when it competes with the SoM. That is now settled in both directions: the SoM is
-  fixed at top-right by USB, `J6` is fixed by the flex, and the HV chain fits around both.
+  fixed at top-right by USB, `J1000` is fixed by the flex, and the HV chain fits around both.
 - The connector's **orientation matters as much as its position.** A tail folded under the panel
   arrives from one direction only; a horizontal FPC connector facing the wrong way adds a 180° loop
   in a 0.5 mm flex, which is a reliability problem, not a routing one.
 
 **`J1400`/`J1401`, touch and pen, are the same story.** The owner: *"touch is also a flexible connector
-that is folded under."* So they join `J6` and `J24` in the enclosure-fixed group and want the same
+that is folded under."* So they join `J1000` and `J1300` in the enclosure-fixed group and want the same
 treatment — landing zone first, orientation second, routing last. `io-expansion.md` §4's open item
 is unaffected: it is about the *pin order* on the `GT9110H`'s tail, which is still a vendor
 question, not about where the connector sits.
 
-**`J24`, the frontlight, is the one that is still undrawn.** The owner: *"the frontlight I still
+**`J1300`, the frontlight, is the one that is still undrawn.** The owner: *"the frontlight I still
 haven't drawn because the schematics in the display docs don't define it."* That is consistent with
 `frontlight.md` §6.2 — the tail is `LED1±`/`LED2±`, bare anodes and cathodes, and the vendor has not
 given the per-string current. The 8-pin FPC is on the board and the `LM3630A` drives it; what is
@@ -125,19 +125,19 @@ missing is a number for the bench to confirm, not a circuit.
 
 **Three placement facts that arrived with the panel**, none of them blocking:
 
-- **A new connector, `J24`** — the 8-pin frontlight FPC (`frontlight.md` §6.2). It joins `J6`,
+- **A new connector, `J1300`** — the 8-pin frontlight FPC (`frontlight.md` §6.2). It joins `J1000`,
   `J1400` and `J1401` in the enclosure-fixed group, because all four tails emerge from the panel.
   That corner is now four connectors plus a DSBGA boost.
 - **`frontlight`'s layout rules changed completely.** `power.md` §11.2 no longer applies to that
   sheet — different part, different topology, and asynchronous, so the diode is in the hot loop.
   `frontlight.md` §9 is the replacement.
-- **`epd_power` gains one changed resistor**, `R225` (`epd-port.md` §10). No geometry consequence.
+- **`epd_power` gains one changed resistor**, `R1117` (`epd-port.md` §10). No geometry consequence.
 
 **Not blocking, and worth saying so:** the layer count. R1 runs *this same* DDR3-666 and Spartan-6
 on **4 layers** (`F.Cu / In1.Cu / In2.Cu / B.Cu`, 0.127 prepreg / 0.6 core / 0.127 prepreg, ~1.0 mm),
 and it works. R2 adds the SoM, but the module carries its own DDR4 and eMMC internally; what
-crosses `X2` is DPI at ~101 MP/s, USB 2.0, SPI, UART and MMC1. **Recommendation: 4 layers, R1's
-stackup**, and only revisit if the `X2` escape proves tight — which is unlikely, because 115 of the
+crosses `X500` is DPI at ~101 MP/s, USB 2.0, SPI, UART and MMC1. **Recommendation: 4 layers, R1's
+stackup**, and only revisit if the `X500` escape proves tight — which is unlikely, because 115 of the
 240 pins are no-connects and need no escape at all (§4).
 
 ## 2. Where the design stands
@@ -166,7 +166,7 @@ central exposed pad and its pads are deliberately asymmetric.
 | Pins | Size | Centre x | Function |
 | --- | --- | ---: | --- |
 | 1–5 | 0.60 × 0.25 | −0.90 | `EN`, `MODE`, `AGND`, `FB`, `PG` — signals |
-| 6, 7, 9, 10 | 0.90 × 0.25 | +0.75 | `VOUT`, `L2`, `L1`, `VIN` — power |
+| 6, 7, 9, 10 | 0.90 × 0.25 | +0.75 | `VOUT`, `L2`, `L200`, `VIN` — power |
 | **8** | **1.30** × 0.25 | +0.55 | **`GND`** — the switching return, hence the widest |
 
 Pitch 0.5 mm, 2.0 mm span, body 2 × 3 mm. **Two independent checks passed**: every pad's outer
@@ -183,9 +183,9 @@ narrow and power-ground widest. The generator asserts both.
 
 | Footprint | Ref | Pads | Origin, in the module frame |
 | --- | --- | --- | --- |
-| `r2:BTH-060-01-L-D-A-K_AB` | `J26` | 120 (`A1`–`A60`, `B1`–`B60`) + 2 NPTH | (4.800, 23.900) |
-| `r2:BTH-060-01-L-D-A-K_CD` | `J27` | 120 (`C1`–`C60`, `D1`–`D60`) + 2 NPTH | (27.200, 19.100) |
-| `r2:PCM-071_Module` | `X2` | **none** — outline and 2× M2.5 only | module centre |
+| `r2:BTH-060-01-L-D-A-K_AB` | `J501` | 120 (`A1`–`A60`, `B1`–`B60`) + 2 NPTH | (4.800, 23.900) |
+| `r2:BTH-060-01-L-D-A-K_CD` | `J502` | 120 (`C200`–`C1000`, `D1100`–`D60`) + 2 NPTH | (27.200, 19.100) |
+| `r2:PCM-071_Module` | `X500` | **none** — outline and 2× M2.5 only | module centre |
 
 Pads keep the **module's** names, not Samtec's `1`–`120`, so a pad reads straight against
 `L-1038e.A5` Tables 7–10 while routing.
@@ -194,7 +194,7 @@ Pads keep the **module's** names, not Samtec's `1`–`120`, so a pad reads strai
 | --- | --- |
 | module outline | **32.000 × 43.000 mm**, `BOARD_OUTLINE`, exact |
 | connector centrelines | x = **4.800** and **27.200** — 22.400 apart, symmetric about 16.000 |
-| stagger | `J27` sits **4.800 mm** lower than `J26` |
+| stagger | `J502` sits **4.800 mm** lower than `J501` |
 | pitch / span | **0.500** / **29.500**, exact |
 | rows, left to right | **B A** then **D C**; pin 1 at the bottom |
 | M2.5 mounting holes | (2.800, 2.800) and (29.200, 40.200); ⌀2.600 drill, ⌀4.000 plating |
@@ -204,14 +204,14 @@ Both outer rows land **0.990 mm** inside the module's edges, with 0.0 µm of ske
 since it falls out of the DXF rather than being imposed.
 
 ⚠ **`tools/check_pcb_connectors.py` must pass before every fab order.** Nothing in KiCad ties the
-three footprints together, so it asserts `J26` = `X2` + (−11.200, −2.400), `J27` = `X2` +
+three footprints together, so it asserts `J501` = `X500` + (−11.200, −2.400), `J502` = `X500` +
 (+11.200, +2.400), same side, same rotation, 122 pads on each receptacle and 2 on the module. It
 exits non-zero, so it can gate a release script.
 
 **Two things layout has to know:**
 
 1. **The courtyards cover the connectors, not the module.** The module stands 5 mm off the board, so
-   low parts may live underneath — and `X2` has no courtyard at all. ⚠ **DRC will not police
+   low parts may live underneath — and `X500` has no courtyard at all. ⚠ **DRC will not police
    component height under the SoM.** The 32 × 43 outline is on `F.Fab` and `User.Drawings` with silk
    corner ticks, and *"nothing tall under the module"* is a manual check. Measure against the
    assembled stack, not the 5 mm number.
@@ -220,11 +220,11 @@ exits non-zero, so it can gate a release script.
    Trusting them would have put both connectors 0.62 mm out.
 
 **Sourcing:** 2 × `BTH-060-01-L-D-A-K-TR`, LCSC `C3646540`, **60 in stock on 2026-08-20** — 30
-boards, the tightest line on the BOM. Plus `MK20`, PHYTEC's M2.5 kit.
+boards, the tightest line on the BOM. Plus `MK500`, PHYTEC's M2.5 kit.
 
 ## 4. Escape and net classes
 
-115 of the SoM's 240 pins are no-connects, so the `X2` escape is far smaller than the pin count
+115 of the SoM's 240 pins are no-connects, so the `X500` escape is far smaller than the pin count
 suggests: about **40 signals plus 3 `VIN` and 45 grounds**. The grounds are what the escape is
 really made of, and they are all one net, so they can via straight down.
 
@@ -233,8 +233,8 @@ Proposed net classes, derived from the per-sheet guidelines rather than invented
 | Class | Nets | Why it is its own class |
 | --- | --- | --- |
 | `DDR3` | 48 bank-3 nets | length-matched per byte lane; `fpga.md` §11.1 |
-| `DDR3_CLK` | `DRAM_CKP`/`CKN` | differential, `R100` 100 Ω at the DRAM end |
-| `DPI` | the 22 `DPI_*` | ~101 MP/s, over continuous ground; `DPI_R6`/`R7` carry **no** components |
+| `DDR3_CLK` | `DRAM_CKP`/`CKN` | differential, `R800` 100 Ω at the DRAM end |
+| `DPI` | the 22 `DPI_*` | ~101 MP/s, over continuous ground; `DPI_R6`/`R206` carry **no** components |
 | `USB` | `USB_DP`/`DM` | 90 Ω differential |
 | `MMC1` | the 8 microSD nets | length-match within 12.7 mm; `som.md` §8 |
 | `HV` | `+VP`, `+VGH`, `-VCOM`, `-VGL`, `-VN` | not plane nets; clearance, not width |
@@ -293,9 +293,9 @@ existed and it is wrong. Measured on the placed board (different-net pad pairs, 
 | Part | Tightest different-net pad gap |
 | --- | --- |
 | `U1` BQ25792 QFN-24 | **0.125 mm** |
-| `U7`/`U8`/`U1400`/`U1401`, `U14`/`U15` | 0.150 mm |
-| `U53` YFQ0012 DSBGA-12 | 0.160 mm |
-| `J26`/`J27` BTH-060 | 0.195 mm |
+| `U1101`/`U1102`/`U1400`/`U1401`, `U14`/`U15` | 0.150 mm |
+| `U1300` YFQ0012 DSBGA-12 | 0.160 mm |
+| `J501`/`J502` BTH-060 | 0.195 mm |
 | `J1` USB-C | 0.200 mm |
 
 KiCad checks class clearance **between pads inside one footprint**, so a 0.2 mm default would flag
@@ -356,14 +356,14 @@ arranges around them. **Lock each one once placed** (select → `L`), so a later
 
 | | What | Why it is fixed |
 | --- | --- | --- |
-| 1 | **`J6`**, the panel connector | the folded flex lands there (§1.2); its *orientation* matters as much as its position |
-| 2 | **`J1400`/`J1401`/`J24`** — touch, pen, frontlight | same corner, same reason; all three tails emerge from the panel |
+| 1 | **`J1000`**, the panel connector | the folded flex lands there (§1.2); its *orientation* matters as much as its position |
+| 2 | **`J1400`/`J1401`/`J1300`** — touch, pen, frontlight | same corner, same reason; all three tails emerge from the panel |
 | 3 | **`J1`** USB-C, and `USB1` if fitted | case opening |
-| 4 | **`X2` + `J26` + `J27`**, the SoM | top right, on the face **away from the panel** (§1.1). Place `X2` first, then the two receptacles against it, then run `tools/check_pcb_connectors.py` |
-| 5 | **`U41` + `U52`**, FPGA and DRAM, together | the DDR3 group wants to be short; place them as a pair before anything competes for the space |
+| 4 | **`X500` + `J501` + `J502`**, the SoM | top right, on the face **away from the panel** (§1.1). Place `X500` first, then the two receptacles against it, then run `tools/check_pcb_connectors.py` |
+| 5 | **`U700` + `U800`**, FPGA and DRAM, together | the DDR3 group wants to be short; place them as a pair before anything competes for the space |
 | 6 | **The four converters** on `power` | each with its input-capacitor loop closed before anything else is placed near it |
-| 7 | **The HV chain** on `epd_power`, near `J6` | with §7's two islands laid out deliberately |
-| 8 | **`U20`**, its crystal, and the buttons | the crystal is placed *against* its constraint, not into the space that is left |
+| 7 | **The HV chain** on `epd_power`, near `J1000` | with §7's two islands laid out deliberately |
+| 8 | **`U400`**, its crystal, and the buttons | the crystal is placed *against* its constraint, not into the space that is left |
 | 9 | Everything else | |
 
 ### 6.4 Route in this order
@@ -375,8 +375,8 @@ everyday routing.
 
 1. **DDR3** — `DDR3_CLK` first as a proper differential pair, then each byte lane. It has no margin
    at the FPGA (§8), and it is the group that dictates where everything else can go.
-2. **`USB_DP`/`DM`** — 90 Ω differential, `J1` → `U3` → `J26`. Short is the whole point (§1.1).
-3. **`DPI`** — 22 signals, `J26`/`J27` → FPGA bank 1, over continuous ground.
+2. **`USB_DP`/`DM`** — 90 Ω differential, `J1` → `U202` → `J501`. Short is the whole point (§1.1).
+3. **`DPI`** — 22 signals, `J501`/`J502` → FPGA bank 1, over continuous ground.
 4. **The switching loops** — by hand, deliberately, per §7. Never autoroute these.
 5. **`MMC1`**, then everything else.
 6. **Pour `In1.Cu` (GND) last**, and check what it did under the HV islands (§7.1).
@@ -386,14 +386,14 @@ everyday routing.
 Everything in the per-sheet docs matters. These five are the ones where the failure is *permanent*,
 *silent in every file*, and *not caught by DRC*. Read them before placing anything.
 
-### 7.1 `U9` and `U26` have a `GND` pin that is not ground
+### 7.1 `U1103` and `U1106` have a `GND` pin that is not ground
 
 `epd-port.md` §11.1, and it is the single most dangerous item in this project.
 
 | Part | Pin 2, labelled `GND` | Actually sits at |
 | --- | --- | --- |
-| `U9` `LGS5145` | `-VGL` | **≈ −20 V** |
-| `U26` `LGS5145` | `-VN` | **≈ −15 V** |
+| `U1103` `LGS5145` | `-VGL` | **≈ −20 V** |
+| `U1106` `LGS5145` | `-VN` | **≈ −15 V** |
 
 Both are inverting buck-boosts, so the IC's ground reference *is* its negative output. Each needs
 its **own local copper island**, with the plane **cut away beneath it** — not merely avoided on the
@@ -418,7 +418,7 @@ look exactly like address lines to a net-class rule; matching them drags the rea
 
 ### 7.3 The crystal is the easiest thing here to break with copper
 
-`mcu.md` §11.3. `Y20` is a 250–630 nA oscillator. `Y20`, `C46`, `C47` hard against pins 4/5, same
+`mcu.md` §11.3. `Y400` is a 250–630 nA oscillator. `Y400`, `C405`, `C406` hard against pins 4/5, same
 layer, **no vias in `OSC32_IN`/`OSC32_OUT`**, a ground guard ring around the whole circuit and solid
 ground beneath. Nothing switching crosses or runs beside it on **any** layer — specifically not
 `MCU_SWCLK`, the I²C pair, `FL_PWM1/2`, or anything from `power`. The symptom is an RTC that gains
@@ -435,7 +435,7 @@ Two riders worth having in front of you:
 
 - **`U12` `TPS61022`: the critical loop is the *output* loop**, not the input — FET → rectifier →
   output caps → back to the FET's ground (`power.md` §11.2 item 1).
-- **`U13` `TPS63802` has *two* switching nodes**, `L1` and `L2`. Both are aggressors
+- **`U13` `TPS63802` has *two* switching nodes**, `L200` and `L2`. Both are aggressors
   (`power.md` §11.3).
 
 ### 7.5 The 20 mΩ shunts need Kelvin connections
@@ -455,7 +455,7 @@ status list when something changes.
 a failure and it carries each rule's source, so a complaint tells you which doc to read. It checks:
 
 1. every schematic part is on the board, and nothing extra;
-2. `X2`/`J26`/`J27` hold PHYTEC's geometry (delegates to `check_pcb_connectors.py`);
+2. `X500`/`J501`/`J502` hold PHYTEC's geometry (delegates to `check_pcb_connectors.py`);
 3. **33 proximity rules** taken from the per-sheet guidelines — the decoupling and hot-loop
    distances, which are the ones that quietly drift during placement;
 4. no copper zone on `-VGL`, `-VN`, `+DRAM_VREF` or `+3V3_VREF`;
@@ -479,8 +479,8 @@ datasheet open:
 | `mcu` | `mcu.md` §11 | the 32.768 kHz crystal |
 | `epd`, `epd_power`, `power_mon` | `epd-port.md` §11 | ⚠ **two ICs have a `GND` pin that is not ground** |
 | `fpga_*` | `fpga.md` §11 | no margin at the controller; `M5` (`ZIO`) gets **no copper** |
-| `som`, `dpi_in` | `som.md` §8, §10.4 | MMC1 within 12.7 mm; `DPI_R6`/`R7` carry no components |
-| `frontlight` | `frontlight.md` §9 | it belongs next to `J24`, not next to `U12` |
+| `som`, `dpi_in` | `som.md` §8, §10.4 | MMC1 within 12.7 mm; `DPI_R6`/`R206` carry no components |
+| `frontlight` | `frontlight.md` §9 | it belongs next to `J1300`, not next to `U12` |
 | `io_expansion` | `io-expansion.md` §7 | enclosure-fixed, and the load switches follow their connectors |
 
 ## 9. ⚠ If the PCB editor says 305 footprints are missing
@@ -544,17 +544,17 @@ machine that clones the repo. Re-runnable, backs the board up, refuses to run wh
 
 **1 — a real model exists, but the path was somebody else's machine.** `pcb_common` keeps its 66
 STEP files *next to* the footprints rather than in a `.3dshapes` directory, which is why a search
-for 3D directories finds nothing. Several are referenced absolutely: `J24`'s pointed at
+for 3D directories finds nothing. Several are referenced absolutely: `J1300`'s pointed at
 `/Users/wenting/Documents/projects/Enchanter/…`. Copied into `3dmodels/` and re-pointed — **these
 are the real parts**:
 
 | Ref | Model |
 | --- | --- |
 | `J1` | `HRO_TYPE-C-31-M-12.step` — the actual USB-C receptacle. In `pcb_common` its filename has a **double space**, which is the sort of thing that breaks quietly on another filesystem; renamed on the way in |
-| `J24` | `FPC-SMD_8P-P0.50_HC-FPC-05-09-8RLTAG.step` |
-| `J21` | `HY-TF1007B.STEP` — the microSD socket |
-| `J6` | `FPC-SMD_50P-P0.50_FPC-05F-50PH20.step` — the panel connector |
-| `X2`, `J26`, `J27` | PHYTEC's and Samtec's own downloads |
+| `J1300` | `FPC-SMD_8P-P0.50_HC-FPC-05-09-8RLTAG.step` |
+| `J500` | `HY-TF1007B.STEP` — the microSD socket |
+| `J1000` | `FPC-SMD_50P-P0.50_FPC-05F-50PH20.step` — the panel connector |
+| `X500`, `J501`, `J502` | PHYTEC's and Samtec's own downloads |
 
 **2 — no model exists anywhere, so a dimensional stand-in.** `footprints:Xilinx_FTG256` is a
 `pcb_common` custom footprint whose model lived on the Modos author's KiCad 6 install — hence
@@ -563,12 +563,12 @@ are the real parts**:
 
 | Ref | Stand-in matches | Does not match |
 | --- | --- | --- |
-| **`U41`** Spartan-6 | `BGA-256_17.0x17.0mm_Layout16x16_P1.0mm` — **the FTG256's exact geometry** | generic BGA, no marking |
+| **`U700`** Spartan-6 | `BGA-256_17.0x17.0mm_Layout16x16_P1.0mm` — **the FTG256's exact geometry** | generic BGA, no marking |
 | `U1` charger | 4 × 4 mm, 24 pins, 0.5 mm | exposed pad 2.7 vs 2.6 mm |
 | `U2` gauge | 2 × 2 mm, 8 pins, 0.5 mm | exposed pad 0.6 vs 0.8 mm |
 | `U12` boost | 2 × 2 mm, 0.5 mm | 8 pins drawn where the part has 7 |
-| `U21`×3 `INA3221` | 4 × 4 mm, 16 pins, 0.65 mm | exposed pad 2.7 vs 2.1 mm |
-| `SW20` | 4.2 × 3.2 mm, same actuator class | different maker — **check actuator height against the enclosure rather than trusting this** |
+| `U1200`×3 `INA3221` | 4 × 4 mm, 16 pins, 0.65 mm | exposed pad 2.7 vs 2.1 mm |
+| `SW400` | 4.2 × 3.2 mm, same actuator class | different maker — **check actuator height against the enclosure rather than trusting this** |
 | `U13` buck-boost | 2 × 3 mm, 10 pins, 0.5 mm | VSON-HR has no exposed pad |
 
 ⚠ **A stand-in is for clearance and collision, not for identity.** The body outline and height are
@@ -580,14 +580,14 @@ every time the tool runs:
 
 | Ref | Why | Where a real one would come from |
 | --- | --- | --- |
-| `X1` | KiCad ships no `ASE-4Pin` model | Abracon |
-| `L1` | no `NR-30xx` model anywhere | Taiyo Yuden publish STEP |
+| `X900` | KiCad ships no `ASE-4Pin` model | Abracon |
+| `L200` | no `NR-30xx` model anywhere | Taiyo Yuden publish STEP |
 | `J2` | only 1.25 mm PicoBlade exists, a *different* connector — and this one sits at the board edge, where a wrong body would mislead the enclosure check | Molex publish STEP for 504050 |
-| `U53` | 1.9 mm DSBGA, nothing dimensionally close | cosmetic at this size |
+| `U1300` | 1.9 mm DSBGA, nothing dimensionally close | cosmetic at this size |
 | `J25` | bare copper solder pads | **correctly has none** |
 
 **One thing worth knowing about KiCad here:** a footprint edited in the library does **not**
-propagate to a board that already has it placed. `X2` kept the model-less copy it was imported with
+propagate to a board that already has it placed. `X500` kept the model-less copy it was imported with
 long after the generator started emitting one. `add_3d_models.py` refreshes every `r2:` footprint's
 model from its library file for exactly that reason — so if a model looks stale, run it again.
 
@@ -648,6 +648,65 @@ had been prompted to reload it; the two files patched later did not.
 KiCad — and reload afterwards.** The failure is silent in both directions: the patch script reports
 success, and KiCad reports nothing. The tell is an ERC violation you had already fixed coming back.
 
+### 9.5 ⚠ Never substitute a designator by bare string — ball names look identical
+
+`tools/renumber_by_page.py` converts every sheet to the owner's page-based designator scheme.
+Its first two runs **corrupted the netlist**, both times the same way, and the failure is silent:
+a blanket "replace the quoted string `C1`" also rewrites strings that are not designators at all.
+
+Two families collide with the designator grammar:
+
+| Family | Examples | Where they live |
+|---|---|---|
+| FPGA ball names (`XC6SLX16-FTG256`) | `C1 C2 C7 D1 D2 D4 D5 D7 F1 G7 J1 J2 L1 L6 N11 P3 R1 R2 R4 R7 T1` | `(pin "…")` on `U700`, and every `.ucf` ball |
+| BTH-060 pin names | `A1`–`A60`, `B1`–`B60`, `C1`–`C60`, `D1`–`D60` | `J501`/`J502`, and the pin→net maps in `gen_som.py` / `gen_dpi_in.py` |
+
+Run 1 rewrote ball names inside the schematics: 21 collisions, ERC unchanged at 14/32, but **40
+named nets came back with a different pin multiset** — the board had been rewired without a
+single error message. Run 2 rewrote the pin→net *maps in the generators*: `BOOTMODE_PINS =
+{"D2": 16, "D4": 17}` became `{"D1101": 16, "D1103": 17}`, and `("9", "L1", …)` — pin 9 of the
+LM3630A, whose **name** is `L1` — became `L200`.
+
+Two rules, both now enforced by the tool:
+
+1. **In a schematic or board, substitute only at the two positions that actually store an
+   instance's designator** — `(property "Reference" "X"` and `(reference "X")`. Nothing else.
+2. **In Python and Markdown, exclude any name that is also a pin name anywhere in the design.**
+   The tool builds that set from every `(name "…")` in the sheets plus the four BTH columns, and
+   prints what it held back. `check_pcb.py` is the one file that takes the unrestricted map, and
+   only because it quotes no pad names — verify that assumption before relying on it.
+
+**Only the three checkers get updated; the sheet writers do not.** `tools/` splits cleanly into
+three scripts that *read* the design (`check_pcb.py`, `check_pcb_connectors.py`, `check_ucf.py`)
+and forty-odd `gen_*`/`patch_*`/`port_r1.py` that *wrote* a sheet once and have not been re-runnable
+since it was hand-edited in Eeschema. The checkers must track the current names. The writers are a
+historical record: rewriting them would claim `gen_power.py` emitted `R1216` when it emitted `R207`,
+and `port_r1.py` is worse still — its dict **keys are R1 designators** (`{"R7": "R207"}`) that were
+never renumbered, and half its values are computed (`f"C{n + 200}"`), so a literal substitution
+corrupts the keys and only half-updates the values. Leave them at the names they actually produced.
+
+**A rename map recovered by diffing needs an invariant.** Reconstructing old→new by matching symbol
+UUIDs between `git show HEAD:<sheet>` and the working tree produced 297 pairs, five of which were
+false — `R207 -> R1216`, `R311 -> R700` and three more, each pointing at a real but *different* part
+on another sheet. They are caught by one cheap assertion: **a genuine rename's old name must no
+longer exist anywhere in the design.** `R207` was still on `battery`, so the pair is bogus. Assert
+that, and assert every target does exist, before letting a recovered map touch a file.
+
+**How to prove a renumber was clean.** ERC counts are not sufficient — run 1 left them identical.
+Compare the *netlist* before and after:
+
+```
+nets: 519 -> 519
+named nets present in both whose pin multiset changed: 0 []
+total pin connections: 1563 -> 1563
+```
+
+Then run `tools/check_ucf.py`, which resolves 113 gateware constraints to board nets **by ball
+name** and is therefore the sharpest detector of exactly this corruption: 99 matched / 0 failures
+means the FPGA's ball→net map survived. And do not use `git stash` to obtain the "before" state —
+see [`NOTES-R2-plan.md`] and the DRC-baseline note; the working tree carries the owner's
+uncommitted layout work. Read the old file with `git show HEAD:<path>` instead.
+
 ## 10. Open
 
 1. ~~**Board outline, SoM position, cell size**~~ — **all answered.** Panel and cell have
@@ -672,8 +731,8 @@ success, and KiCad reports nothing. The tell is an ERC violation you had already
    666.67 Mb/s this design runs. §11.1's "666 MT/s is a lot of margin" is true of the DRAM only.
 8. ~~**D-7, the separate panel-connector PCB**~~ — **CLOSED 2026-08-20: there is no second board.**
    The sketch's "TTL Interface" block is where the panel's flex lands after folding under the
-   display. `J6` gains a fixed position and, more importantly, a fixed **orientation**; `J1400`/`J1401`
+   display. `J1000` gains a fixed position and, more importantly, a fixed **orientation**; `J1400`/`J1401`
    are the same. §1.2.
-9. **`J24`, the frontlight tail, is drawn but its current is undefined** — the display docs do not
+9. **`J1300`, the frontlight tail, is drawn but its current is undefined** — the display docs do not
    specify the frontlight, so the per-string current is a bench measurement (`frontlight.md` §6.2,
    D-8). Not a layout blocker; the connector and the `LM3630A` are placed either way.

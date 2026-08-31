@@ -23,13 +23,13 @@ Interface" — which covers only the 40-pin EPD tail — did not find it. Read a
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | | `LED1+` | `LED1−` | NC | NC | `LED2+` | `LED2−` | NC | NC |
 
-**`J24` uses the mirrored land pattern** `r2:HC-FPC-05-09-8RLTAG_Mirrored` — the tail's pin 1 sits
+**`J1300` uses the mirrored land pattern** `r2:HC-FPC-05-09-8RLTAG_Mirrored` — the tail's pin 1 sits
 at the *top* as folded, and the stock footprint put pin 1 at the bottom. The schematic is untouched;
-`epd-port.md` §9.6 has the reasoning and the same story for `J6`.
+`epd-port.md` §9.6 has the reasoning and the same story for `J1000`.
 
 **Confirmed against the received part, 2026-08-30.** The frontlight FFC that shipped with the panel
 is marked `HL1030DT241-V0` and silkscreened `1.LED1+`, `2.LED1−`, `5.LED2+`, `6.LED2−` — the drawing
-is right and `J24` is wired correctly. Pitch measured 0.5 mm (~4 mm across 8 contacts), which is what
+is right and `J1300` is wired correctly. Pitch measured 0.5 mm (~4 mm across 8 contacts), which is what
 `HC-FPC-05-09-8RLTAG` takes, and that part has **double-sided contacts**, so the tail's pads-up
 orientation costs nothing.
 
@@ -56,7 +56,7 @@ From the mechanical drawing's "Pre-light specification" note and §2 of the data
 and V_OUT in the 27–29 V band as designed. The design was insensitive to which anyway — but the
 number is now settled and the arithmetic below stands unchanged.
 
-The 8-pin front-light connector is `J24`, and this also answers why four of its eight pins are
+The 8-pin front-light connector is `J1300`, and this also answers why four of its eight pins are
 `NC`: the panel's own tail is `LED1+`, `LED1−`, NC, NC, `LED2+`, `LED2−`, NC, NC (§1).
 
 ## 2. The premise that was wrong, kept for the record
@@ -64,13 +64,13 @@ The 8-pin front-light connector is `J24`, and this also answers why four of its 
 §2 of the previous revision of this document read: *"There is no LED driver on this board, and there
 was none on R1 — the panel's tail regulates the current."*
 
-**That is true of R1 and false here.** R1 drove `J6` into a panel *adapter* board. This panel's
+**That is true of R1 and false here.** R1 drove `J1000` into a panel *adapter* board. This panel's
 frontlight tail is `LED1±`/`LED2±` — bare anodes and cathodes with nothing regulating them. So the
 board needs a real constant-current driver, and a voltage rail of any value would be wrong: LED
 brightness would then track forward-voltage spread and temperature, and a few per cent of extra
 rail voltage becomes a proportionally larger current error.
 
-`+5V2_FL` and its 4.99 V `TPS61022` (`U53`) are therefore **deleted**, not re-tuned. §7 lists what
+`+5V2_FL` and its 4.99 V `TPS61022` (`U1300`) are therefore **deleted**, not re-tuned. §7 lists what
 that touches.
 
 ## 3. Part choice — and the converter that looked obvious and is not
@@ -152,14 +152,14 @@ Considered and rejected: `+5V_DCDC`. Two reasons it lost, both quantified:
 
 - **It loads a rail with no margin to spare.** At full brightness the frontlight is
   2 × 28.5 mA × 28.5 V ≈ 1.62 W, or **≈ 382 mA at 5 V**. `power.md` §8.1's worst realistic case is
-  already 1.3 A, and `L10` was sized for 1.5 A — so this would take it to ≈ 1.68 A and trip §8.1's
+  already 1.3 A, and `L300` was sized for 1.5 A — so this would take it to ≈ 1.68 A and trip §8.1's
   own explicit re-run trigger.
 - **§3.1's duty argument does not apply to this part** (§3.2), so the reason for leaving the cell
   disappeared with the `LGS6302`.
 
 Cost of staying on the cell, stated because it is real: the worst-case inductor peak is at the
 **flat cell**, not at full charge, so the margin below is set by 3.0 V rather than 5.0 V (§4.3).
-`+VSYS_FL` and its `U22` ch3 shunt on `power_mon` stay exactly as drawn — **no `power_mon` change**.
+`+VSYS_FL` and its `U1201` ch3 shunt on `power_mon` stay exactly as drawn — **no `power_mon` change**.
 
 ### 4.2 Parts
 
@@ -167,16 +167,16 @@ All parts are chosen and the sheet is captured against this table.
 
 | Ref | Value | Part | LCSC | Why |
 | --- | --- | --- | --- | --- |
-| `U53` | — | **`LM3630ATMX`**, DSBGA-12 | `C2678552` (0 stock) | §3.2. Replaces the `TPS61022RWUR` at the same reference. DigiKey `296-46302-1-ND` for board 1 |
-| `L33` | **10 µH** | **`FNR4030S100MT`**, 4×4×3 mm | `C167879` | §4.3. `I_sat` **2.4 A** against a 771 mA peak, DCR 130 mΩ (53 mW at the worst corner), 187 k in stock. Same Changjiang family as `L5`, so the footprint was already in KiCad |
-| `D34` | — | **`1N5819WS`**, SOD-323 | `C488405` | 40 V Schottky, **already on the BOM** as `D2`/`D15` on `epd_power`. 40 V against a 32 V OVP setting is 25 % margin |
-| `C514` | 4.7 µF / 10 V | 0603 | | input bypass. ‡ pin C3 asks for **2.2 µF or greater**; 4.7 µF derates into that band at 4 V |
-| `C515` | **2.2 µF / 50 V** | 0805 | | output. ‡ specifies **1 µF**, and that is 1 µF *effective* — a 2.2 µF/50 V part derates to about that under 28.5 V of DC bias |
-| `C516` | 100 nF / 16 V | 0402 | | local HF bypass at `IN` |
-| `J24` | — | **`HC-FPC-05-09-8RLTAG`**, 8-pin 0.5 mm | `C5213749` | §7.2. The 8-pin sibling of the `C5213748` on `J1400`/`J1401`, **footprint already in `pcb_common`**. 500 mA / 50 V per contact against 28.5 mA at 28.5 V. 49 k in stock |
-| `R507` | 100 kΩ | 0402 | | `HWEN` pull-down: keeps the driver off until the MCU asserts `FL_EN`, as all four `MCU_EN_*` rails do |
-| `R508` | ~~10 kΩ~~ **`dnp` + `on_board no`** | — | | was the `INTN` pull-up to `+3V3`. **`INTN` is unconnected — §9.1.** Still `in_bom yes`; clear that before the JLCPCB BOM |
-| ~~`R509`~~ | ~~0 Ω to `IN`~~ | — | | **deleted 2026-08-23 — §9.1.** `SEL` (`C2`) now ties straight to `IN` (`C3`), its own neighbour |
+| `U1300` | — | **`LM3630ATMX`**, DSBGA-12 | `C2678552` (0 stock) | §3.2. Replaces the `TPS61022RWUR` at the same reference. DigiKey `296-46302-1-ND` for board 1 |
+| `L1300` | **10 µH** | **`FNR4030S100MT`**, 4×4×3 mm | `C167879` | §4.3. `I_sat` **2.4 A** against a 771 mA peak, DCR 130 mΩ (53 mW at the worst corner), 187 k in stock. Same Changjiang family as `L1100`, so the footprint was already in KiCad |
+| `D1300` | — | **`1N5819WS`**, SOD-323 | `C488405` | 40 V Schottky, **already on the BOM** as `D1101`/`D1106` on `epd_power`. 40 V against a 32 V OVP setting is 25 % margin |
+| `C1300` | 4.7 µF / 10 V | 0603 | | input bypass. ‡ pin C3 asks for **2.2 µF or greater**; 4.7 µF derates into that band at 4 V |
+| `C1301` | **2.2 µF / 50 V** | 0805 | | output. ‡ specifies **1 µF**, and that is 1 µF *effective* — a 2.2 µF/50 V part derates to about that under 28.5 V of DC bias |
+| `C1302` | 100 nF / 16 V | 0402 | | local HF bypass at `IN` |
+| `J1300` | — | **`HC-FPC-05-09-8RLTAG`**, 8-pin 0.5 mm | `C5213749` | §7.2. The 8-pin sibling of the `C5213748` on `J1400`/`J1401`, **footprint already in `pcb_common`**. 500 mA / 50 V per contact against 28.5 mA at 28.5 V. 49 k in stock |
+| `R1300` | 100 kΩ | 0402 | | `HWEN` pull-down: keeps the driver off until the MCU asserts `FL_EN`, as all four `MCU_EN_*` rails do |
+| `R1301` | ~~10 kΩ~~ **`dnp` + `on_board no`** | — | | was the `INTN` pull-up to `+3V3`. **`INTN` is unconnected — §9.1.** Still `in_bom yes`; clear that before the JLCPCB BOM |
+| ~~`R509`~~ | ~~0 Ω to `IN`~~ | — | | **deleted 2026-08-23 — §9.1.** `SEL` (`C201`) now ties straight to `IN` (`C202`), its own neighbour |
 
 Deleted from the sheet as captured: `R505` (732 k), `R506` (100 k) — the `TPS61022` feedback
 divider. `+5V2_FL` disappears as a net.
@@ -196,7 +196,7 @@ I_pk = (I_LED/η) × (V_OUT/V_IN) + ΔI_L      ΔI_L = V_IN(V_OUT−V_IN) / (2·
 | 500 kHz / 22 µH | 759 mA | 663 mA | 618 mA | 32 %, but a physically larger inductor |
 
 **1 MHz / 10 µH.** 500 kHz at the same inductance leaves 10 % at the flat cell, which is not a
-margin; matching 1 MHz's margin at 500 kHz costs a 22 µH part, and area next to `J6` is the scarcest
+margin; matching 1 MHz's margin at 500 kHz costs a 22 µH part, and area next to `J1000` is the scarcest
 thing on this board (§9). The `BOOST_OCP` register can raise the limit if bring-up says otherwise.
 
 Note the shape of the worst case: **flat cell *and* both channels at maximum brightness.** If the
@@ -244,7 +244,7 @@ This is the one thing on this sheet that would have been found at bring-up rathe
 | `SDA_AON` | bidirectional | the always-on bus |
 | ~~`FL_INT#`~~ | — | **withdrawn 2026-08-23 — §9.1.** `B2` cannot be escaped; `PB12` returns to the spare pool |
 
-`+VSYS_FL` in, `GND`, and `+3V3` for `R508` cross as global power nets. **`+5V2_FL` is gone.**
+`+VSYS_FL` in, `GND`, and `+3V3` for `R1301` cross as global power nets. **`+5V2_FL` is gone.**
 
 Three of these are new on this sheet, so the **`frontlight` sheet symbol on `r2.kicad_sch` gains
 hierarchical pins** — a root-sheet edit, surgical, no geometry moved.
@@ -312,19 +312,19 @@ Read out of the exported netlist, not asserted:
 - **ERC**: 338 total, 305 of them `footprint_link_issues` (the owner's global tables). Of the
   remaining 33, one is the `label_dangling` for `FL_INT#` and the rest are the pre-existing set.
 - **Rendered to PNG and read — four times.** The first three rounds were electrically identical and
-  visually wrong: `C514`/`C516`'s values printed on top of each other, `D34`'s reference rendered
+  visually wrong: `C1300`/`C1302`'s values printed on top of each other, `D1300`'s reference rendered
   **mirrored** (KiCad prints a 180°-placed symbol's text inverted; `schgen.place()` gained a
   `prop_angle` override), and the whole right-hand region collided. None of that is visible in a
   netlist, which is the point of the rule.
 
 **Still owed:** `battery.md` §10.4's rise-time budget sized the 2.2 kΩ pull-ups for ~90 pF over six
-devices on the always-on bus. `U53` is the seventh, and touch will be the eighth. Re-check before
+devices on the always-on bus. `U1300` is the seventh, and touch will be the eighth. Re-check before
 fab rather than at bring-up.
 
 > ⚠ **This run predates §9.1 (2026-08-23).** The three net rows above are the state as captured on
 > 2026-08-17 and are kept as the record. After §9.1: `R509` is gone, so `Net-(U53-SEL)` disappears
 > and `U53.C2` joins `+VSYS_FL` (which loses `R509.1` and gains `U53.C2`, still 7 nodes); and
-> `FL_INT#` is gone, so `U53.B2` and `R508` are no-connects and `U20.32` is a spare again.
+> `FL_INT#` is gone, so `U53.B2` and `R1301` are no-connects and `U20.32` is a spare again.
 > **Re-run the netlist check after the schematic edits.**
 
 ## 9. Layout guidelines — for Stage D
@@ -332,16 +332,16 @@ fab rather than at bring-up.
 `power.md` §11.2's `TPS61022` section **no longer applies** — different part, different topology,
 and this one is asynchronous, so the diode is in the hot loop.
 
-- **It belongs next to `J24`, not next to `U12`.** The output is 28.5 V into a two-wire-per-channel
+- **It belongs next to `J1300`, not next to `U12`.** The output is 28.5 V into a two-wire-per-channel
   tail; the input is a plane net. Keep `V_OUT` short, let `+VSYS_FL` be long.
-- **`SW`→`D34`→`C515` is the loop that matters** and it is a 28.5 V, 1 MHz edge. `lm3630a.pdf` pin
+- **`SW`→`D1300`→`C1301` is the loop that matters** and it is a 28.5 V, 1 MHz edge. `lm3630a.pdf` pin
   A3 ‡: *"Connect the inductor and diode as close as possible to SW to reduce inductance and
   capacitive coupling to nearby traces."* Diode adjacent to the pin, output capacitor's ground
   returning to `GND` at the part.
 - **`OVP` is a sense pin on a 28.5 V node.** Route it as a quiet trace to the output capacitor's
   positive terminal, not tapped off the `SW` side of the diode.
-- **This sheet's corner is the crowded one.** `J6` is enclosure-fixed, `io-expansion.md` §7 puts
-  `J1400`/`J1401` there too because the touch and pen tails emerge from the panel, and `J24` joins them.
+- **This sheet's corner is the crowded one.** `J1000` is enclosure-fixed, `io-expansion.md` §7 puts
+  `J1400`/`J1401` there too because the touch and pen tails emerge from the panel, and `J1300` joins them.
   The DSBGA is 1.94 × 1.42 mm and the solution size TI quotes is 32 mm² — that smallness is a
   layout asset here, not a vanity number.
 - **DSBGA-12 is 0.4 mm pitch.** Already inside this board's assembly envelope — four
@@ -351,9 +351,9 @@ and this one is asynchronous, so the diode is in the hot loop.
 - `SCL_AON`/`SDA_AON` reach here from the always-on bus. With `io_expansion`, this is now the second
   long leg; see §8.
 
-### 9.1 ⚠ `B2` and `C2` have no escape route — resolved 2026-08-23
+### 9.1 ⚠ `B2` and `C201` have no escape route — resolved 2026-08-23
 
-Found in Stage D while routing `U53`. **The two interior pads of the DSBGA cannot be escaped on
+Found in Stage D while routing `U1300`. **The two interior pads of the DSBGA cannot be escaped on
 `F.Cu` at any manufacturable width or clearance.** This is geometry, not a rule setting.
 
 `tools/gen_yfq0012.py` emits 3 columns x 4 rows, 0.4 mm pitch, **circular pads of 0.24 mm**. So:
@@ -375,9 +375,9 @@ fits inside a 0.4 mm-pitch array; that is what via-in-pad exists for, and §9 ru
 
 Both pads are resolved without it:
 
-- **`C2` = `SEL` -- tie it to its neighbour.** §5 requires `SEL` at `IN`, and **`C3` *is* `IN`**
-  (`+VSYS_FL`). `C2` and `C3` are orthogonally adjacent, so a plain 0.4 mm trace between them needs
-  no escape: at 0.2 mm wide it clears `B2`/`B3`/`D2`/`D3` by 0.18 mm. **`R509` is deleted.** All it
+- **`C201` = `SEL` -- tie it to its neighbour.** §5 requires `SEL` at `IN`, and **`C202` *is* `IN`**
+  (`+VSYS_FL`). `C201` and `C202` are orthogonally adjacent, so a plain 0.4 mm trace between them needs
+  no escape: at 0.2 mm wide it clears `B2`/`B3`/`D1101`/`D1102` by 0.18 mm. **`R509` is deleted.** All it
   bought was the stuffing option to strap `SEL` to `GND` for 0x36 -- the `MAX17048`'s fixed address,
   i.e. the exact collision §5 exists to prevent. The option could never have been exercised.
   It is also the better strap: no stub beside the `SW` node.
@@ -385,7 +385,7 @@ Both pads are resolved without it:
   adjacency trick exists, and the only alternative was resin-filled-and-capped via-in-pad -- a
   board-wide process change, cost and lead time, for one optional signal. The same information is
   I2C-readable: **Interrupt Status `0x09`** and **Fault Status `0x0B`** (`lm3630a.pdf` Tables 13 and
-  15), on a bus the MCU already polls for the gauge and the three `INA3221`s. **`R508` is set
+  15), on a bus the MCU already polls for the gauge and the three `INA3221`s. **`R1301` is set
   `dnp yes` + `on_board no`** — it leaves the netlist and the PCB entirely — and **`PB12` returns to
   `mcu.md` §3.2's spare pool**, undoing the `patch_exti_swap.py` assignment of 2026-08-20.
 
@@ -395,7 +395,7 @@ latch in `0x0B` until read, so nothing is missed -- only the latency is. Not mea
 ## 10. Open
 
 1. **⚠ LED current per channel is unknown.** Not in the datasheet, in any section or title block.
-   **The vendor question.** It sets the full-scale current register and `L33`'s saturation rating.
+   **The vendor question.** It sets the full-scale current register and `L1300`'s saturation rating.
    §4.3 shows the design holds from 15 mA to the driver's 28.5 mA ceiling — so this bounds the
    *margin*, not the *design*. If the answer is above 28.5 mA per channel the part changes to §3.3's
    fallback and this sheet is redrawn; nothing else on the board moves.
@@ -414,6 +414,6 @@ latch in `0x0B` until read, so nothing is missed -- only the latency is. Not mea
    deliberately for capabilities the others lack. `FL_PWM2` is freed by this design and is the
    natural donor — it is already routed to the right corner of the board.
 4. **9-series is inferred**, not read from a datasheet (§1). Harmless (§1), but it is not a ‡ fact.
-5. **Nothing here has been measured.** Every number is datasheet arithmetic. `power_mon`'s `U22`
+5. **Nothing here has been measured.** Every number is datasheet arithmetic. `power_mon`'s `U1201`
    ch3 shunt exists precisely to close this out on first silicon, and `NOTES-STATUS.md` still has
    no frontlight row because R1 never drove `FL_EN`.

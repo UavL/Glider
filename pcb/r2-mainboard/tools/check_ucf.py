@@ -45,7 +45,7 @@ UCF = REPO / "Caster/rtl/spartan6/constraint.ucf"
 SYMS = PROJ.parent / "pcb_common/symbols.kicad_sym"
 KICAD_CLI = pathlib.Path.home() / "Apps/kicad-10.0.4/usr/bin/kicad-cli"
 
-FPGA_REF = "U41"
+FPGA_REF = "U700"
 SYMBOL = "XC6SLX-FTG256"
 
 # Which sheet holds which unit of the symbol, for reporting what is not drawn.

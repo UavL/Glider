@@ -12,12 +12,12 @@ placement is untouched since import. **`docs/session-prompt-layout.md` is the me
 a fresh session** to pick this up — keep its status list current.
 
 Earlier: the owner placed the SoM top-right beside the USB ports on the face away from the panel,
-settled the `U41` speed grade at `-2`, and confirmed the panel connector does *not* get its own PCB — the sketch's "TTL Interface"
-block is where the folded flex lands, which fixes `J6`'s position and orientation. The `PCM-071`
+settled the `U700` speed grade at `-2`, and confirmed the panel connector does *not* get its own PCB — the sketch's "TTL Interface"
+block is where the folded flex lands, which fixes `J1000`'s position and orientation. The `PCM-071`
 footprint was built and then rebuilt on PHYTEC's own DXF; it was the last footprint gap.
 
 **The SoM is now modelled as what it physically is** (2026-08-20): two `BTH-060` receptacles,
-`J26` and `J27`, carrying every net between them, with `X2` reduced to the module's outline and
+`J501` and `J502`, carrying every net between them, with `X500` reduced to the module's outline and
 mounting holes. `docs/som.md` §10. So the board can actually be assembled — the receptacles have a
 BOM line and a position-file row, which the earlier single-symbol arrangement could not give them.
 
@@ -244,7 +244,7 @@ The plan-level summary:
 1. **One panel, and it is also the frontlight-and-touch testbed** — it is a complete `-FT` module:
    27 V bonded frontlight (2 channels, cool + warm), bonded `GT9110H` touch. At 40 Hz it clears
    every limit including dithering, and its native 33.33 MHz / 85 Hz timing is `clk_epdc` exactly.
-2. **Caster builds 16-bit** — the tail is `D0`–`D15` — and the resolution is 1872×1400, 4 unused
+2. **Caster builds 16-bit** — the tail is `D0`–`D1106` — and the resolution is 1872×1400, 4 unused
    lines out of 1404 (0.45 mm at the 112 µm pitch).
 3. **Short-final-burst handling in `memif.v` comes later** (`docs/fpga.md` §12 item 6), once a panel
    is on the bench.
@@ -255,7 +255,7 @@ The plan-level summary:
   board needs a constant-current driver: `LM3630A`, 2 × 9 series from `+VSYS_FL`, 256 exponential
   dimming steps, and a **new 8-pin FPC connector**. `+5V2_FL` and its `TPS61022` are deleted.
   → `docs/frontlight.md`
-- **`epd_power`'s `VGH`** must reach 27–29 V against a ~26.87 V ceiling. **One resistor**, `R225`
+- **`epd_power`'s `VGH`** must reach 27–29 V against a ~26.87 V ceiling. **One resistor**, `R1117`
   22 kΩ → 20.5 kΩ. → `docs/epd-port.md` §10
 
 **Still vendor-blocked:** the frontlight's LED current per channel (bounds the margin, not the
@@ -374,7 +374,7 @@ where the module's 128.6 mW might be reduced. Forward it when it turns up.
 >    in power-down?** Your report's resume log re-initialises both `am65-cpsw-nuss` interfaces.
 >    Our product uses no Ethernet at all, and at 128.6 mW the module is now the largest consumer in
 >    our reading state, so this is the first place we would look for headroom.
-> 3. **Which `X1` pin is BTN1 on the phyBOARD-Lyra**, and which WKUP-domain GPIOs reach the
+> 3. **Which `X900` pin is BTN1 on the phyBOARD-Lyra**, and which WKUP-domain GPIOs reach the
 >    connector? Your report proves a GPIO edge can wake Deep Sleep; we need to know which pin to
 >    route it to.
 > 4. Any timeline for **MCU-Only mode** support in the BSP, since the M4 demo firmware currently
@@ -429,9 +429,9 @@ patched surgically; the `tools/gen_*.py` generators are not re-run over it.
 | WP2 | `power` | yes | **yes — round 1 done** | `manual-analysis/Analysis_power.md` → answered in `docs/power.md` §10. **The `TPS22965` load switch is deleted** — the boost already has true output disconnect; layout guidelines written (§11) |
 | WP3 | `mcu` | yes | **yes — round 1 done** | `manual-analysis/Analysis_mcu.md` → answered in `docs/mcu.md` §10. `C42` deleted (Figure 15 asks for no `VBAT` cap); page buttons → `EVQPLHA15` for **500 k cycles** instead of 100 k; layout guidelines written (§11). Opened a real gap: **the MCU has no field-update or brick-recovery path** (§5.7) |
 | WP4 | `epd`, `epd_power`, `power_mon` | yes — ported from R1 | **yes — round 1 done, accepted as a 1:1 port** | `manual-analysis/Analysis_epd_files.md` → answered in `docs/epd-port.md` §9. `epd`/`epd_power` provably net-identical to R1; `power_mon` differs in 4 intended groups. **No schematic change.** Two items opened: keep the panel adapter board for now (the panel model is still deferred), and `J3` (16p) is probably droppable once the panel is chosen — **`J3` deleted 2026-08-15 in the WP5 review**, `docs/fpga.md` §15.2 |
-| WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | **yes** | **yes — round 1 done 2026-08-15, four of five decisions accepted as drawn, one change made** | `docs/fpga.md`. All three drawn plus the **root sheet wired**. Verified against the gateware by `tools/check_ucf.py`: 113 constrained balls, **0 failures**. Corrected two documented errors (the FPGA is an **XC6SLX16**, not LX9; R1 fits a **1 Gb** DRAM, not 4 Gb). Bank 3 moved 1.35 V → **1.5 V** (`LVCMOS15`/`SSTL15` have no 1.35 V form), which reached back into `power`, `power_mon` and `fpga_config`. `fpga_config` gains the SPI NOR, master-SPI strap, and **IO2/IO3 wired to `N12`/`P12`** so x4 boot stays a software change. Found three signal groups the board wires that Caster does not implement — which settled `J3` (§2.1). Review: `manual-analysis/Analysis_fpga.md` → answered in `docs/fpga.md` §15. **`J3` and its ten dead nets deleted** (`tools/patch_drop_j3.py`); 1.5 V, `DRAM_ADDR13/14`, `C509` accepted as drawn; the FPD-Link deletion's open question closed — R1's microHDMI path is untouched, so no build variant is needed |
-| WP6 | `frontlight`, `io_expansion` | **yes** | — | **`frontlight` was redrawn from scratch 2026-08-17** and is no longer a rail at all. The chosen panel's frontlight is *bonded*, so its tail is `LED1±`/`LED2±` — bare anodes and cathodes — and it needs constant **current**. `U53` is now an **`LM3630A`** driving two independently dimmed strings from `+VSYS_FL`, with a new 8-pin FPC `J24` for the tail; the `TPS61022`, its divider and the `+5V2_FL` net are gone. **`R509` straps `SEL` to `IN`**: grounded, the driver answers at I²C 0x36, which is where the `MAX17048` fuel gauge is fixed — that would have taken down the always-on bus. `docs/frontlight.md`. `io_expansion`: touch + pen FPCs and their gated rails, **all DNP**; the seven MCU pins are claimed and routed. `docs/io-expansion.md` — **§5 is still the last open decision in Stage C**, now a pure vendor question: the `GT9110H` tail pinout. (The microSD went to `som` in WP8, not here.) |
-| WP7 | `dpi_in` | **yes** | — | the 22-signal link. **Unblocked 2026-08-14** — `L-1038e.A5` Table 31 has the full `X1` DPI pin map. First job on this sheet is the `BOOTMODE` question above, not the wiring |
+| WP5 | `fpga_ddr`, `fpga_io`, `fpga_config` | **yes** | **yes — round 1 done 2026-08-15, four of five decisions accepted as drawn, one change made** | `docs/fpga.md`. All three drawn plus the **root sheet wired**. Verified against the gateware by `tools/check_ucf.py`: 113 constrained balls, **0 failures**. Corrected two documented errors (the FPGA is an **XC6SLX16**, not LX9; R1 fits a **1 Gb** DRAM, not 4 Gb). Bank 3 moved 1.35 V → **1.5 V** (`LVCMOS15`/`SSTL15` have no 1.35 V form), which reached back into `power`, `power_mon` and `fpga_config`. `fpga_config` gains the SPI NOR, master-SPI strap, and **IO2/IO3 wired to `N12`/`P12`** so x4 boot stays a software change. Found three signal groups the board wires that Caster does not implement — which settled `J3` (§2.1). Review: `manual-analysis/Analysis_fpga.md` → answered in `docs/fpga.md` §15. **`J3` and its ten dead nets deleted** (`tools/patch_drop_j3.py`); 1.5 V, `DRAM_ADDR13/14`, `C833` accepted as drawn; the FPD-Link deletion's open question closed — R1's microHDMI path is untouched, so no build variant is needed |
+| WP6 | `frontlight`, `io_expansion` | **yes** | — | **`frontlight` was redrawn from scratch 2026-08-17** and is no longer a rail at all. The chosen panel's frontlight is *bonded*, so its tail is `LED1±`/`LED2±` — bare anodes and cathodes — and it needs constant **current**. `U1300` is now an **`LM3630A`** driving two independently dimmed strings from `+VSYS_FL`, with a new 8-pin FPC `J1300` for the tail; the `TPS61022`, its divider and the `+5V2_FL` net are gone. **`R509` straps `SEL` to `IN`**: grounded, the driver answers at I²C 0x36, which is where the `MAX17048` fuel gauge is fixed — that would have taken down the always-on bus. `docs/frontlight.md`. `io_expansion`: touch + pen FPCs and their gated rails, **all DNP**; the seven MCU pins are claimed and routed. `docs/io-expansion.md` — **§5 is still the last open decision in Stage C**, now a pure vendor question: the `GT9110H` tail pinout. (The microSD went to `som` in WP8, not here.) |
+| WP7 | `dpi_in` | **yes** | — | the 22-signal link. **Unblocked 2026-08-14** — `L-1038e.A5` Table 31 has the full `X900` DPI pin map. First job on this sheet is the `BOOTMODE` question above, not the wiring |
 | WP8 | `som` | **yes** | — | **held last.** A **2 × `BTH-060-01-L-D-A-K-TR`** footprint (240 pins, 0.5 mm), not a `PCL-071` landing pattern — constraint 1, revised 2026-08-13. No PCB cut-out any more. **Unblocked 2026-08-14** by the same manual: `VIN` on A1/A2/A3, `VBAT` on B2, full pinout in Tables 7–10 |
 
 **Root sheet is wired** as of WP5 (2026-08-13). `tools/wire_root.py` stubs each of
@@ -446,7 +446,7 @@ against a table of expected-dangling names, so anything dangling and *not* in
 that table is reported as a finding. `docs/fpga.md` §8.
 
 Wiring it exposed a direction error the split nets had been hiding: `FPGA_CLK33`
-was declared `input` on both `fpga_io` and `fpga_config`, though `X1` is on
+was declared `input` on both `fpga_io` and `fpga_config`, though `X900` is on
 `fpga_config` and the net leaves it. Two `input`s meeting is the one interface
 shape combination on this board that is never legitimate.
 
@@ -566,7 +566,7 @@ retains ~2.5× margin.
 | ~~PHYTEC will not sell 1–2 units, or `PCL-071` is priced out of reach~~ | ~~same~~ | **Realised, 2026-08-13.** €281 each with a reel-only MOQ of 5 = ~€1 405 for one prototype. Answered by moving to `PCM-071` (constraint 1) |
 | ~~JLCPCB refuses the consigned module or its custom footprint~~ | ~~forces PCBWay, or hand assembly~~ | **Gone with the `PCM-071` switch** — nothing is consigned, and the mating connector is ordinary LCSC stock |
 | ~~A soldered-down module cannot be swapped if the board is wrong~~ | ~~one bad board = one dead module~~ | **Gone with the `PCM-071` switch** — the module unplugs |
-| ~~`PCM-071`'s DPI pin numbers are unknown~~ | ~~blocks WP7 and WP8~~ | **CLOSED 2026-08-14** — the owner added `datasheets/L-1038e.A5_phyCORE-AM62x_HW Manual.pdf`, whose title page reads "SOM Prod. No.: PCM-071". Table 31 has the full `X1` DPI map; both sheets are drawn. *This row simply went stale — Facts §3.1 has said "WP7 and WP8 are unblocked" since that day* |
+| ~~`PCM-071`'s DPI pin numbers are unknown~~ | ~~blocks WP7 and WP8~~ | **CLOSED 2026-08-14** — the owner added `datasheets/L-1038e.A5_phyCORE-AM62x_HW Manual.pdf`, whose title page reads "SOM Prod. No.: PCM-071". Table 31 has the full `X900` DPI map; both sheets are drawn. *This row simply went stale — Facts §3.1 has said "WP7 and WP8 are unblocked" since that day* |
 | ~~`PCM-071` price and MOQ never quoted~~ | ~~could reopen the whole decision~~ | **CLOSED 2026-08-18 — €250.00 @ 1–9 pcs, MOQ 1.** It did not reopen the decision; it reinforced it. Lead time is still unstated |
 | Estimated FPGA idle power wrong | battery life misses target | Stage B datasheets; the three INA3221s make it measurable on board 1 |
 | EMR digitizer unavailable for this panel | pen support drops | deferred out of R2 scope |

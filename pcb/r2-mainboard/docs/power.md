@@ -103,7 +103,7 @@ through a diode, only through the channel — which is why it is synchronous-onl
 the old text cited, describes pass-through while the device is **enabled** and `VIN` exceeds the
 setpoint. It says nothing about the disabled state; citing it for the disabled state was the mistake.
 
-So `MCU_EN_5V` now drives `U12.EN` directly, with `R20` 100 kΩ as its pull-down, and the boost runs
+So `MCU_EN_5V` now drives `U12.EN` directly, with `R300` 100 kΩ as its pull-down, and the boost runs
 from `+VSYS` directly. `VSYS_SW` no longer exists. What the deletion cost and did not cost:
 
 | | |
@@ -116,7 +116,7 @@ from `+VSYS` directly. `VSYS_SW` no longer exists. What the deletion cost and di
 | not lost | shutdown leakage: `U11` was ≤ 2 µA ‡, `U12` alone is 0.25 µA typ / 3.5 µA max ‡ §6.5 |
 
 The one thing worth watching on a bench: with nothing pulling `+5V_DCDC` down, the rail decays
-through the SoM's and the EPD chain's input leakage rather than being discharged. `C26`+`C27` are
+through the SoM's and the EPD chain's input leakage rather than being discharged. `C304`+`C305` are
 44 µF nominal, so the decay is fast if that leakage is tens of µA and slow if it is nanoamps.
 **Needs a hardware test.** If it turns out slow enough to matter, the fix is one resistor to `GND`,
 not a load switch.
@@ -129,10 +129,10 @@ not a load switch.
 
 | Rail | VFB | R_top | R_bot | Result | Source |
 | --- | --- | --- | --- | --- | --- |
-| `+5V_DCDC` | 0.600 V | `R21` 732 k | `R22` 100 k | 0.600 × (1 + 7.32) = **4.992 V** | `tps61022.pdf` §6.5, §8.2.2.1 |
-| `+3V3_DCDC` | 0.500 V | `R24` 511 k | `R25` 91 k | 0.500 × (1 + 5.615) = **3.308 V** | `tps63802.pdf` Table 10-5 — TI's own row for 3.3 V |
-| `+1V2_DCDC` | 0.600 V | `R29` 100 k | `R30` 100 k | 0.600 × 2 = **1.200 V** | `tps62a01.pdf` §8.2.2.1 |
-| `+1V5_DCDC` | 0.600 V | `R33` 150 k | `R34` 100 k | 0.600 × (1 + 1.50) = **1.500 V** | as above |
+| `+5V_DCDC` | 0.600 V | `R301` 732 k | `R302` 100 k | 0.600 × (1 + 7.32) = **4.992 V** | `tps61022.pdf` §6.5, §8.2.2.1 |
+| `+3V3_DCDC` | 0.500 V | `R304` 511 k | `R305` 91 k | 0.500 × (1 + 5.615) = **3.308 V** | `tps63802.pdf` Table 10-5 — TI's own row for 3.3 V |
+| `+1V2_DCDC` | 0.600 V | `R309` 100 k | `R310` 100 k | 0.600 × 2 = **1.200 V** | `tps62a01.pdf` §8.2.2.1 |
+| `+1V5_DCDC` | 0.600 V | `R313` 150 k | `R314` 100 k | 0.600 × (1 + 1.50) = **1.500 V** | as above |
 
 All E96, all 1 %, all stocked at LCSC in 0402 (checked 2026-08-06).
 
@@ -163,10 +163,10 @@ Ratings re-read off the LCSC catalogue 2026-08-11, because the schematic's `Valu
 
 | Ref | Rail | Value | Part | LCSC | Size | Isat | Irms | Rdc |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `L10` | `+5V_DCDC` | 1 µH | `DFE322512F-1R0M` | `C3224227` | 1210 | 4.8 A | 3.8 A | 32 mΩ |
-| `L11` | `+3V3_DCDC` | 0.47 µH | `DFE252012F-R47M` | `C703140` | 1008 | 7.4 A | 4.9 A | 23 mΩ |
-| `L12` | `+1V2_DCDC` | 1 µH | `DFE322512F-1R0M` | `C3224227` | 1210 | 4.8 A | 3.8 A | 32 mΩ |
-| `L13` | `+1V5_DCDC` | 1 µH | `DFE322512F-1R0M` | `C3224227` | 1210 | 4.8 A | 3.8 A | 32 mΩ |
+| `L300` | `+5V_DCDC` | 1 µH | `DFE322512F-1R0M` | `C3224227` | 1210 | 4.8 A | 3.8 A | 32 mΩ |
+| `L301` | `+3V3_DCDC` | 0.47 µH | `DFE252012F-R47M` | `C703140` | 1008 | 7.4 A | 4.9 A | 23 mΩ |
+| `L302` | `+1V2_DCDC` | 1 µH | `DFE322512F-1R0M` | `C3224227` | 1210 | 4.8 A | 3.8 A | 32 mΩ |
+| `L303` | `+1V5_DCDC` | 1 µH | `DFE322512F-1R0M` | `C3224227` | 1210 | 4.8 A | 3.8 A | 32 mΩ |
 
 Values: 1 µH for the boost (`tps61022.pdf` Fig. 8-1), 0.47 µH for the buck-boost
 (`tps63802.pdf` Table 10-1), 1 µH for both bucks (`tps62a01.pdf` Table 8-3, row `1.2 ≤ VOUT < 1.8`).
@@ -201,15 +201,15 @@ line item.
 
 | Ref | Value | Where | Source |
 | --- | --- | --- | --- |
-| `C20`, `C21` | 1 µF/16 V | `U10` in, out | `tps7a02.pdf` §6.3 Recommended Operating Conditions: `CIN` 1 µF nom, `COUT` 1 µF nom (1 µF min, 22 µF max, ≥ 0.5 µF effective for stability) |
-| `C22` | 22 µF/10 V | `+VSYS` bulk | not a datasheet requirement; bulk at the rail entry, and the boost draws ~2.8 A pulses at 1 MHz off this plane |
-| `C25` | 22 µF/10 V | `U12` in | `tps61022.pdf` §8.2.2.5 — "a 10-µF input capacitor is sufficient for most applications, larger values may be used"; Fig. 8-1 draws 10 µF |
-| `C26`, `C27` | 22 µF/10 V | `U12` out | §8.2.2.3 asks for 10–50 µF **effective**; 2 × 22 µF derates into that band at 5 V |
-| `C28` | 100 pF/50 V **DNP** | `U12` feedforward | §8.2.2.4: `C3` = 1/(2π·fFFZ·R1) = 1/(2π · 2 kHz · 732 k) = 109 pF, and the 2 kHz zero is only wanted above 40 µF effective — see §10.9 |
-| `C29` | 10 µF/10 V | `U13` in | `tps63802.pdf` §10.2.2.4 |
-| `C30` | 22 µF/10 V | `U13` out | §10.2.2.3, single 22 µF for VOUT ≤ 3.6 V |
-| `C31`, `C33` | 4.7 µF/10 V | `U14`, `U15` in | `tps62a01.pdf` §8.2.2.3 and Table 8-2 |
-| `C32`, `C34` | 22 µF/10 V | `U14`, `U15` out | Table 8-3, the `++` recommended combination; 10 V per Table 8-2 (§10.12) |
+| `C300`, `C301` | 1 µF/16 V | `U10` in, out | `tps7a02.pdf` §6.3 Recommended Operating Conditions: `CIN` 1 µF nom, `COUT` 1 µF nom (1 µF min, 22 µF max, ≥ 0.5 µF effective for stability) |
+| `C302` | 22 µF/10 V | `+VSYS` bulk | not a datasheet requirement; bulk at the rail entry, and the boost draws ~2.8 A pulses at 1 MHz off this plane |
+| `C303` | 22 µF/10 V | `U12` in | `tps61022.pdf` §8.2.2.5 — "a 10-µF input capacitor is sufficient for most applications, larger values may be used"; Fig. 8-1 draws 10 µF |
+| `C304`, `C305` | 22 µF/10 V | `U12` out | §8.2.2.3 asks for 10–50 µF **effective**; 2 × 22 µF derates into that band at 5 V |
+| `C306` | 100 pF/50 V **DNP** | `U12` feedforward | §8.2.2.4: `C202` = 1/(2π·fFFZ·R1) = 1/(2π · 2 kHz · 732 k) = 109 pF, and the 2 kHz zero is only wanted above 40 µF effective — see §10.9 |
+| `C307` | 10 µF/10 V | `U13` in | `tps63802.pdf` §10.2.2.4 |
+| `C308` | 22 µF/10 V | `U13` out | §10.2.2.3, single 22 µF for VOUT ≤ 3.6 V |
+| `C309`, `C311` | 4.7 µF/10 V | `U14`, `U15` in | `tps62a01.pdf` §8.2.2.3 and Table 8-2 |
+| `C310`, `C312` | 22 µF/10 V | `U14`, `U15` out | Table 8-3, the `++` recommended combination; 10 V per Table 8-2 (§10.12) |
 
 `C23` and `C24` were `U11`'s `CT` and `VBIAS` parts and are deleted with it (§2.2). The reference
 numbers are not reused.
@@ -232,8 +232,8 @@ So the worst case the cell must supply on a 5 V enable is ~2.4 A for a few hundr
 wanted — so a dip while the cell is nearly flat is the one case to watch — and the other three
 converters have their own UVLOs well below (`TPS63802` 1.25 V ‡, `TPS62A02` 2.3 V ‡).
 
-`C22` + `C25` = 44 µF nominal on `+VSYS` at the boost input is what holds that dip down, which is why
-`C22` is kept even though it no longer belongs to a load switch. **Needs a hardware test:** enable
+`C302` + `C303` = 44 µF nominal on `+VSYS` at the boost input is what holds that dip down, which is why
+`C302` is kept even though it no longer belongs to a load switch. **Needs a hardware test:** enable
 the 5 V rail with the cell at 3.3 V and scope `+VSYS`. If the dip is a problem the answer is more
 input bulk, or firmware enabling the rail before the panel rails rather than after.
 
@@ -241,13 +241,13 @@ input bulk, or firmware enabling the rail before the panel rails rather than aft
 
 | Net | Direction | Drives | Default with the MCU unpowered | Guaranteed-on / guaranteed-off |
 | --- | --- | --- | --- | --- |
-| `MCU_EN_5V` | in | `U12.EN` | **low** — `R20` 100 k pull-down | ≥ 1.2 V / ≤ 0.35 V ‡ `tps61022.pdf` §6.5 |
-| `MCU_EN_3V3` | in | `U13.EN` | **low** — `R26` 100 k pull-down | ≥ 1.2 V / ≤ 0.4 V ‡ `tps63802.pdf` §8.5 |
-| `MCU_EN_FPGA_CORE` | in | `U14.EN` | **low** — `R31` 100 k pull-down | ≥ 1.2 V / ≤ 0.4 V ‡ `tps62a01.pdf` §6.5 |
-| `MCU_EN_DDR` | in | `U15.EN` | **low** — `R35` 100 k pull-down | as above |
-| `PG_3V3` | out | `U13.PG` | open-drain, `R28` 470 k to `+3V3_AON` | |
-| `PG_1V2` | out | `U14.PG` | open-drain, `R32` 470 k to `+3V3_AON` | |
-| `PG_1V5` | out | `U15.PG` | open-drain, `R36` 470 k to `+3V3_AON` | |
+| `MCU_EN_5V` | in | `U12.EN` | **low** — `R300` 100 k pull-down | ≥ 1.2 V / ≤ 0.35 V ‡ `tps61022.pdf` §6.5 |
+| `MCU_EN_3V3` | in | `U13.EN` | **low** — `R306` 100 k pull-down | ≥ 1.2 V / ≤ 0.4 V ‡ `tps63802.pdf` §8.5 |
+| `MCU_EN_FPGA_CORE` | in | `U14.EN` | **low** — `R311` 100 k pull-down | ≥ 1.2 V / ≤ 0.4 V ‡ `tps62a01.pdf` §6.5 |
+| `MCU_EN_DDR` | in | `U15.EN` | **low** — `R315` 100 k pull-down | as above |
+| `PG_3V3` | out | `U13.PG` | open-drain, `R308` 470 k to `+3V3_AON` | |
+| `PG_1V2` | out | `U14.PG` | open-drain, `R312` 470 k to `+3V3_AON` | |
+| `PG_1V5` | out | `U15.PG` | open-drain, `R316` 470 k to `+3V3_AON` | |
 
 Every one of those four `EN` pins carries an explicit "do not leave floating" instruction in its
 datasheet, and a pull-down satisfies it in the safe direction. The rails come up **only** because
@@ -259,8 +259,8 @@ pull-down has to sink only the pin's own leakage: 100 nA max ‡ × 100 kΩ = **
 Three details worth stating:
 
 - **Pull-ups are 470 kΩ, not the 100 kΩ TI draws.** A power-good pin is low whenever its rail is off,
-  which in standby is all of them. TI's own figures use 100 kΩ (`tps63802.pdf` Fig. 10-1 `R3`,
-  `tps62a01.pdf` Fig. 8-2 `R4` at 499 kΩ), which here would burn 3 × 33 µA = 0.33 mW — about 3 % of
+  which in standby is all of them. TI's own figures use 100 kΩ (`tps63802.pdf` Fig. 10-1 `R202`,
+  `tps62a01.pdf` Fig. 8-2 `R203` at 499 kΩ), which here would burn 3 × 33 µA = 0.33 mW — about 3 % of
   the ~10 mW standby target, for nothing. At 470 k it is 3 × 7 µA = 0.07 mW. The honest size of the
   win is 0.26 mW; the reason to take it is that it costs no margin at either end. See §10.6 for the
   `VOL` and rise-time arithmetic.
@@ -274,7 +274,7 @@ Three details worth stating:
   one. The 5 V rail's health is read from its `INA3221` bus-voltage channel on `power_mon` instead,
   which is a measurement the board already has to make.
 
-**`MODE` pins are tied low through a 0 Ω link** (`R23` on `U12`, `R27` on `U13`), selecting automatic
+**`MODE` pins are tied low through a 0 Ω link** (`R303` on `U12`, `R307` on `U13`), selecting automatic
 power-save mode on both. This is a hardwired pin, which is the thing R1 got wrong — the difference
 is that it is hardwired to the *low-power* state, and no operating mode of this board wants forced
 PWM on a rail that spends its life at light load. The 0 Ω link rather than a direct tie leaves a
@@ -344,7 +344,7 @@ declared `SOM_RESET#` as an open-drain GPIO on `PA15` since WP3. Hold it low acr
 | --- | --- | --- |
 | 1 | `SOM_RESET#` asserted low (open-drain, so it sinks; no injection into an unpowered pin) | — |
 | 2 | `MCU_EN_5V` high → `+5V_SOM`. SoM PMIC sequences. `+3V3` still **off**, so every FPGA pin facing the SoM is unpowered and drives nothing | **PHYTEC §5.4** |
-| 3 | Wait for `X_PGOOD` (`X2` C54, open-drain, 100 kΩ pullup on the SOM) | **PHYTEC §5.4** |
+| 3 | Wait for `X_PGOOD` (`X500` C54, open-drain, 100 kΩ pullup on the SOM) | **PHYTEC §5.4** |
 | 4 | `MCU_EN_3V3` high, wait `PG_3V3` → FPGA `VCCO` up | — |
 | 5 | Release `SOM_RESET#`. The SOM's own 10 kΩ × 100 nF ≈ 1 ms RC delays the actual release, then `BOOTMODE_8/9` are sampled with `+3V3` already stable | **BOOTMODE** |
 
@@ -362,7 +362,7 @@ time.
 
 **This adds one signal to the design, and it is not drawn yet.** `X_PGOOD` must reach the MCU:
 
-> **`PG_SOM`** — `X2` C54 → a spare MCU GPIO. `PC8` is the suggestion (a plain GPIO; the four
+> **`PG_SOM`** — `X500` C54 → a spare MCU GPIO. `PC8` is the suggestion (a plain GPIO; the four
 > ADC-capable spares are worth keeping for analogue). The pin is open-drain with its pull-up on the
 > SOM's own 3.3 V, so when the SoM is unpowered the net floats — **enable the MCU's internal
 > pull-down** so "no SoM" reads as "not good" rather than as noise. A pull-down is the safe
@@ -438,7 +438,7 @@ Three things to settle before layout:
    apertures into copper — creating the short it was trying to prevent. §11.2 item 5 amended to
    match.
 3. **Both inductor footprints are placeholders.** KiCad has no land pattern for either Murata DFE
-   series, so `L10`/`L12`/`L13` currently carry `Inductor_SMD:L_1210_3225Metric` and `L11` carries
+   series, so `L300`/`L302`/`L303` currently carry `Inductor_SMD:L_1210_3225Metric` and `L301` carries
    `Inductor_SMD:L_1008_2520Metric`. Those are the right body sizes — 3.2 × 2.5 mm and
    2.5 × 2.0 mm — but a generic chip land is not a molded-inductor land. Check both against
    Murata's recommended pattern and copy corrected versions into `r2.pretty`. Two pads each; low
@@ -483,7 +483,7 @@ boost's 2.3 A **(est.)** input current, which was ~85 mW at full load.
 
 ### 8.1 The `+5V_DCDC` load budget — checked 2026-08-15, and it holds
 
-§3.2 sized `L10` against `IOUT` = 1.5 A **(est.)** and left an explicit trigger: *"if the SoM's
+§3.2 sized `L300` against `IOUT` = 1.5 A **(est.)** and left an explicit trigger: *"if the SoM's
 `VIN` current comes back from PHYTEC materially above 1.5 A, re-run this block."* It has come back,
 from three places in `L-1038e.A5`, and it is **1.0 A** — below the estimate, not above.
 
@@ -542,7 +542,7 @@ that four bucks could not be turned off at all. The result here is that they can
   where a buck-boost takes longest to reach regulation. Opened by WP5 (§5); it belongs to this sheet
   because the converters are here.
 - ~~**Bank 3's voltage is under review and may move `+1V35_DCDC`.**~~ **Closed 2026-08-12: the rail
-  is now 1.500 V and the net is `+1V5_DCDC`.** `R33` 124 k → 150 k; see §3.1's margin check.
+  is now 1.500 V and the net is `+1V5_DCDC`.** `R313` 124 k → 150 k; see §3.1's margin check.
   Decided by the hardware owner once `ds162.pdf` and `mt41k64m16.pdf` were both in hand.
 - ~~**The 1.5 V decision costs ~1.9 mW of standby.**~~ **Revised 2026-08-14 — it probably costs
   nothing, and may save.** That estimate compared `mt41k64m16.pdf`'s `IDD6` at 1.35 V (8 mA Rev. G
@@ -570,11 +570,11 @@ that four bucks could not be turned off at all. The result here is that they can
   noted here because this is where the number lives — but it is no longer the biggest one.
 - ~~**This doc still owes a "Layout guidelines" section.**~~ **Written — §11.**
 - ~~**`U10`'s output must be renamed to `+3V3_AON_DCDC`.**~~ **Done by the reviewer** in the
-  2026-08-11 save: `#PWR205` now reads `+3V3_AON_DCDC`, so `power_mon`'s `U22` ch2 shunt (`R208`) has
+  2026-08-11 save: `#PWR205` now reads `+3V3_AON_DCDC`, so `power_mon`'s `U1201` ch2 shunt (`R1217`) has
   a real upstream net and `+3V3_AON` is the load side. Verified in the exported netlist.
 - ~~**`battery.kicad_sch`'s `+3V3_AON` `PWR_FLAG` is an ERC error, delete it.**~~ **Withdrawn — keep
   it.** That ask was correct only while `U10.OUT` sat on `+3V3_AON`. Now that `U10` drives
-  `+3V3_AON_DCDC`, the only thing feeding `+3V3_AON` is `R208`, a passive shunt, so the flag is the
+  `+3V3_AON_DCDC`, the only thing feeding `+3V3_AON` is `R1217`, a passive shunt, so the flag is the
   net's *sole* ERC driver. Deleting it would turn one `pin_to_pin` warning into a
   `power_pin_not_driven` error on every `+3V3_AON` load — the STM32G0's `VDD`/`VBAT` and three
   `INA3221` `VS`/`VPU` pins. `#FLG04` at (360.68, 205.74) stays. The `pin_to_pin` violation is gone
@@ -606,15 +606,15 @@ Source: `../manual-analysis/Analysis_power.md`. ‡ = read out of `../datasheets
 
 Also read back in this round: your edits to the sheet. You renamed `#PWR205` to `+3V3_AON_DCDC`
 (standing ask #2 — done, §9), rearranged the `+1V2` block, and pasted TI's Table 8-2 rows into the
-`Description` fields of `C31`, `C32` and `L12`. The netlist is otherwise unchanged from what was
+`Description` fields of `C309`, `C310` and `L302`. The netlist is otherwise unchanged from what was
 captured; nothing was broken by the rearrangement, and ERC reports zero violations on `/power/`.
 
 ### 10.1 `TPS62A02` `EN` — yes, exactly right. **Correct as drawn.**
 
-Your description is the circuit. `MCU_EN_FPGA_CORE` goes to `U14.EN` and to `R31` 100 kΩ to `GND`,
+Your description is the circuit. `MCU_EN_FPGA_CORE` goes to `U14.EN` and to `R311` 100 kΩ to `GND`,
 with nothing else in the path — confirmed in the netlist, `/power/MCU_EN_FPGA_CORE` = `R31.1` +
 `U14.4(EN)` and nothing more. When the MCU drives the pin high the pin sits at the full `+3V3_AON`,
-3.3 V; when the MCU drives it low, or is in reset with its GPIOs high-impedance, `R31` holds `EN` at
+3.3 V; when the MCU drives it low, or is in reset with its GPIOs high-impedance, `R311` holds `EN` at
 ground and the rail is off. "Off is the state the board powers up in" rests entirely on that resistor.
 
 The numbers that make it safe, from ‡ §6.5 and ‡ §7.4.1:
@@ -627,7 +627,7 @@ The numbers that make it safe, from ‡ §6.5 and ‡ §7.4.1:
 | absolute maximum on `VIN`, `EN`, `PG` | −0.3 to **6.5 V** |
 | ‡ pin table | "Logic high enables … **Do not leave the pin floating.**" |
 
-3.3 V is 2.75× the guaranteed-on threshold and half the absolute maximum. Held low, `R31` has to sink
+3.3 V is 2.75× the guaranteed-on threshold and half the absolute maximum. Held low, `R311` has to sink
 only 100 nA, so `EN` sits at 100 nA × 100 kΩ = **10 mV** — a factor of 40 below the 0.4 V guaranteed-off
 level. 100 kΩ is comfortable; it could be 1 MΩ and still work, and the reason not to go higher is
 noise pickup on a long trace, not leakage.
@@ -644,9 +644,9 @@ regulator, every rule traced to its datasheet's own layout section, plus the boa
 only make sense across the whole sheet. Nothing in it is actionable until Stage D, and
 `glider-r2-layout-reminder` in my memory says to raise it again when we get there.
 
-### 10.3 `R29` and TI's 200 kΩ — **you were reading the 1.8 V circuit. Correct as drawn.**
+### 10.3 `R309` and TI's 200 kΩ — **you were reading the 1.8 V circuit. Correct as drawn.**
 
-TI's Figures 8-1/8-2/8-3 all draw `R1` = 200 kΩ, `R2` = 100 kΩ ‡ — and all three are labelled
+TI's Figures 8-1/8-2/8-3 all draw `R200` = 200 kΩ, `R201` = 100 kΩ ‡ — and all three are labelled
 **`VOUT` = 1.8 V**. The equation is ‡ §8.2.2.1 eq. 2:
 
 ```
@@ -657,12 +657,12 @@ R1 = R2 × (VOUT / VFB − 1),  VFB = 0.6 V
 1.50 V: R1 = 100 k × (1.50/0.6 − 1) = 100 k × 1.50 = 150 k  -> exactly 1.500 V, R33
 ```
 
-So 200 kΩ is right for 1.8 V and wrong for 1.2 V; `R29` = 100 kΩ is the same equation at our voltage.
-`R30` = 100 kΩ is at the datasheet's ceiling — ‡ §8.2.2.1: "`R2` must not be higher than 100 kΩ to
+So 200 kΩ is right for 1.8 V and wrong for 1.2 V; `R309` = 100 kΩ is the same equation at our voltage.
+`R310` = 100 kΩ is at the datasheet's ceiling — ‡ §8.2.2.1: "`R201` must not be higher than 100 kΩ to
 provide acceptable noise sensitivity" — so the divider is as high-impedance as TI allows, which is
 what we want for standby.
 
-### 10.4 `R32` pulling `PG` to a different rail than `VIN` — **yes, and the datasheet says so. Correct as drawn.**
+### 10.4 `R312` pulling `PG` to a different rail than `VIN` — **yes, and the datasheet says so. Correct as drawn.**
 
 ‡ §7.4.2: "The `PG` pin is an open-drain output that requires a pullup resistor to **any voltage up to
 the recommended input voltage level**." The recommended `VIN` range is 2.5–5.5 V ‡ §6.3, so a 3.3 V
@@ -674,7 +674,7 @@ pull-up to `VIN`, so there is nothing for the two rails to fight over.
 ‡ §7.4.2 continues: "`PG` is low when the device is turned off due to `EN`, UVLO, or thermal shutdown.
 **`VIN` must remain present for the `PG` pin to stay low.**" So the guarantee "rail off ⇒ `PG` reads
 low" is conditional on `U14`'s own `VIN` being alive. If `+VSYS` were absent while `+3V3_AON` was
-present, `PG_1V2` would float high through `R32` and firmware would read "rail good" on a dead rail.
+present, `PG_1V2` would float high through `R312` and firmware would read "rail good" on a dead rail.
 
 That combination cannot occur here: `+3V3_AON` is generated *from* `+VSYS` by `U10`, so `+3V3_AON`
 present implies `+VSYS` present. The dependency runs the safe way round. It is worth recording
@@ -698,10 +698,10 @@ copper with the power-ground return on its way there — join them at the IC. Th
 not a netlist rule, and it is written up in §11.3. Splitting them into two nets with a stitching link
 would be *worse* than what is drawn, and it is what TI removed.
 
-### 10.6 `R28`/`R32`/`R36` at 470 kΩ where TI draws 100 kΩ — **correct as drawn, but the win is smaller than the old text claimed.**
+### 10.6 `R308`/`R312`/`R316` at 470 kΩ where TI draws 100 kΩ — **correct as drawn, but the win is smaller than the old text claimed.**
 
-You found TI's `R3` = 100 kΩ in ‡ `tps63802.pdf` Figure 10-1 — which is also the figure our whole
-3.3 V divider comes from (`R1` 511 k, `R2` 91 k, `C1` 10 µF, `C2` 22 µF, `L1` 0.47 µH: every one of
+You found TI's `R202` = 100 kΩ in ‡ `tps63802.pdf` Figure 10-1 — which is also the figure our whole
+3.3 V divider comes from (`R200` 511 k, `R201` 91 k, `C200` 10 µF, `C201` 22 µF, `L200` 0.47 µH: every one of
 those is what the sheet carries). So the question is fair: why deviate on the one component?
 
 Standby current. A `PG` pin is low whenever its rail is off, so in standby all three pull-ups are
@@ -727,7 +727,7 @@ dramatic. The reason to take it is that it costs nothing at either end:
   itself 10 µs ‡, and firmware polls `PG` on millisecond waits, so the RC is invisible.
 
 The one thing 470 kΩ does cost is noise immunity on a high-impedance node, which is why §11.6 says to
-keep the three `PG` traces away from the `SW` and `L1`/`L2` nodes.
+keep the three `PG` traces away from the `SW` and `L200`/`L2` nodes.
 
 ### 10.7 "Explain why the `TPS22965` is used in tandem with the `TPS61022`." — **it should not be. `U11` deleted.**
 
@@ -744,8 +744,8 @@ pass-through is what the part does when it is **enabled** and `VIN` is above the
 
 So `U11` was buying a disconnect the boost already has, at the price of 16 mΩ in series with ~2.3 A
 (≈ 85 mW at full load), 30–50 µA of `VBIAS` quiescent while reading, three parts, and a
-non-uniform enable pattern. It is gone. `MCU_EN_5V` now drives `U12.EN` directly with `R20` as its
-pull-down, `C22` and `C25` both stay on `+VSYS` as boost input bulk, and `VSYS_SW` no longer exists.
+non-uniform enable pattern. It is gone. `MCU_EN_5V` now drives `U12.EN` directly with `R300` as its
+pull-down, `C302` and `C303` both stay on `+VSYS` as boost input bulk, and `VSYS_SW` no longer exists.
 
 Two things `U11` did that are genuinely lost, both now open items in §9: the 225 Ω quick-output
 discharge on its output ‡ §9.3.2, and the `CT`-programmed 800 µs inrush ramp (§3.4 works out what
@@ -774,21 +774,21 @@ for a different reason: those rails are the far side of an inductor, so no pin o
 either. The other two rails need none because `U12.3(VOUT)` and `U13.6(VOUT)` are typed `power_out`.
 The on-sheet note under "ERC power flags" says exactly this.
 
-### 10.9 `TPS61022` capacitors — `C1` is `C25`, and two output caps are right at our current. **Correct as drawn.**
+### 10.9 `TPS61022` capacitors — `C200` is `C303`, and two output caps are right at our current. **Correct as drawn.**
 
-**`C1`.** Yes — your reading is right. TI's Figure 8-1 `C1` is the boost's input capacitor and on our
-sheet that is `C25`, 22 µF sitting at `U12`'s `VIN`. TI draws 10 µF there; ‡ §8.2.2.5 says "while a
+**`C200`.** Yes — your reading is right. TI's Figure 8-1 `C200` is the boost's input capacitor and on our
+sheet that is `C303`, 22 µF sitting at `U12`'s `VIN`. TI draws 10 µF there; ‡ §8.2.2.5 says "while a
 10-µF input capacitor is sufficient for most applications, **larger values may be used to reduce
 input current ripple without limitations**", so 22 µF is above the requirement, not a substitute for
 something missing. (The old §3.3 cited "Fig. 8-2" for this; Figure 8-2 is the feedforward variant, and
-the citation is now §8.2.2.5. Since `U11` went, `C22`'s 22 µF is on the same net, so the boost sees
+the citation is now §8.2.2.5. Since `U11` went, `C302`'s 22 µF is on the same net, so the boost sees
 44 µF nominal — §3.4 explains why that matters more now than it did.)
 
 ‡ §8.2.2.5 also carries a warning worth keeping in mind at layout: a ceramic-only input fed "through
 long wires" can ring at `VIN` on a load step. Ours is fed from a plane a few millimetres away, so this
 does not apply — but it is one more reason `+VSYS` must be a plane and not a trace (§11.6).
 
-**`C2` — three 22 µF in TI's figure, two here.** TI's Figure 8-1 is a **5 V at 3 A** design ‡
+**`C201` — three 22 µF in TI's figure, two here.** TI's Figure 8-1 is a **5 V at 3 A** design ‡
 Table 8-1. Ours is 1.5 A **(est.)**. What the datasheet actually requires is a band, not a count —
 ‡ §8.2.2.3: "TI recommends using the X5R or X7R ceramic output capacitor in the range of **10 µF to
 50 µF effective capacitance**. … If the output capacitor is below the range, the boost regulator can
@@ -810,9 +810,9 @@ there is nothing wrong with it, it just buys ripple we do not need and 2 mm² we
 
 **And the third cap has a knock-on.** ‡ §8.2.2.4: "For large output capacitance more than 40 µF
 application, TI recommends a feedforward capacitor to set the zero frequency to 2 kHz." At ~24 µF
-effective we are below that threshold, which is why `C28` is **DNP**. Its value is not a guess: if the
-loop ever needs it, ‡ eq. 10 gives `C3` = 1/(2π · 2 kHz · 732 kΩ) = **109 pF**, and the pad carries
-100 pF. Fit a third output cap and you cross 40 µF, and then `C28` should be fitted too.
+effective we are below that threshold, which is why `C306` is **DNP**. Its value is not a guess: if the
+loop ever needs it, ‡ eq. 10 gives `C202` = 1/(2π · 2 kHz · 732 kΩ) = **109 pF**, and the pad carries
+100 pF. Fit a third output cap and you cross 40 µF, and then `C306` should be fitted too.
 
 **If PHYTEC comes back with a `VIN` current well above 1.5 A**, re-run both this and §3.2 — the
 capacitor count and the inductor's saturation margin move together.
@@ -845,7 +845,7 @@ maximum on the sheet: 6.5 V on `TPS7A02` ‡ §6.1, 7.0 V on `TPS61022` ‡ §6.
 ‡ §6.1, 6.0 V on `TPS63802` ‡ §8.1.
 
 **The 10:1 `CIN`:`CL` ratio.** You read it correctly and it is worth recording what it was for,
-because the old §3.3 cited it as the reason `C22` was 22 µF and that was a muddle. ‡ §10.1.2 gives
+because the old §3.3 cited it as the reason `C302` was 22 µF and that was a muddle. ‡ §10.1.2 gives
 1 µF as a **minimum** ("`CIN` … 1 µF" in the Recommended Operating Conditions table is a MIN column,
 not a sufficiency claim), and then two separate recommendations:
 
@@ -858,9 +858,9 @@ not a sufficiency claim), and then two separate recommendations:
   1 (such as 1 to 1) could cause slightly more `VIN` dip upon turn-on … This can be mitigated by
   increasing the capacitance on the `CT` pin for a longer rise time."
 
-Had `U11` stayed: `CIN` is everything on the `+VSYS` node, not just `C22` — `C20` 1 µF + `C22` 22 µF +
-`C24` 0.1 µF + `C29` 10 µF + `C31` 4.7 µF + `C33` 4.7 µF ≈ 42.5 µF on this sheet alone, plus `C4`/`C5`
-on the battery sheet — against `CL` = `C25` 22 µF. So `CIN` > `CL` was satisfied about 2:1 at node
+Had `U11` stayed: `CIN` is everything on the `+VSYS` node, not just `C302` — `C300` 1 µF + `C302` 22 µF +
+`C24` 0.1 µF + `C307` 10 µF + `C309` 4.7 µF + `C311` 4.7 µF ≈ 42.5 µF on this sheet alone, plus `C203`/`C204`
+on the battery sheet — against `CL` = `C303` 22 µF. So `CIN` > `CL` was satisfied about 2:1 at node
 level, and the dip was handled by `C23`'s 800 µs ramp rather than by brute capacitance, exactly as
 §10.1.3 suggests. Nothing was wrong; the citation was just attached to the wrong component.
 
@@ -870,7 +870,7 @@ was good practice rather than a requirement. Both parts are deleted with `U11`.
 
 ### 10.11 Inductor ratings — **you were right to look. `Value` fields changed.**
 
-Not one of your questions, but it came out of the `Description` you pasted onto `L12`. All four
+Not one of your questions, but it came out of the `Description` you pasted onto `L302`. All four
 inductors carried `Value` strings ending "/6A", and no inductor on this sheet is rated for 6 A.
 Re-queried on LCSC 2026-08-11:
 
@@ -882,7 +882,7 @@ Re-queried on LCSC 2026-08-11:
 Both are JLCPCB *extended* parts, not basic — one setup fee each, and a reason to keep three of the
 four the same line item.
 
-Applied: `L10`/`L12`/`L13` → **`1uH/3.8A`**, `L11` → **`0.47uH/4.9A`** — Irms, the continuous rating,
+Applied: `L300`/`L302`/`L303` → **`1uH/3.8A`**, `L301` → **`0.47uH/4.9A`** — Irms, the continuous rating,
 which is the conservative one to put on a schematic. The full figures went into the `Description`
 fields.
 
@@ -891,36 +891,36 @@ minimum valley current limit, so the inductor does not saturate before the IC's 
 Isat is 4.8 A, so it saturates first. §3.2 now says so and explains why it is tolerable (metal
 composite, −30 % soft knee) rather than quietly acceptable.
 
-### 10.12 `C31`/`C32`/`L12` — the `Description`s you pasted are TI's demo BOM, not ours. **Changed.**
+### 10.12 `C309`/`C310`/`L302` — the `Description`s you pasted are TI's demo BOM, not ours. **Changed.**
 
 The three strings you added are ‡ Table 8-2 verbatim, which is a good place to have looked. Two
 things follow from that, in opposite directions.
 
-**`C32`'s row proved a value wrong, in our favour.** Your `Description` says "22 µF … **10 V** …
+**`C310`'s row proved a value wrong, in our favour.** Your `Description` says "22 µF … **10 V** …
 GRM21BZ71A226KE15L" while the `Value` field said `22uF/6.3V`. TI's Table 8-2 specifies 10 V. 6.3 V
 would work at a 1.2 V output, but there is no reason to deviate from the datasheet's own part for a
-capacitor that costs the same. Applied: **`C32` and `C34` → `22uF/10V`.**
+capacitor that costs the same. Applied: **`C310` and `C312` → `22uF/10V`.**
 
 **But the MPNs themselves should not stay in the schematic.** I searched LCSC for both Murata
 capacitor part numbers on 2026-08-11: **neither `GRM21BR71A475KA73L` nor `GRM21BZ71A226KE15L` is
 stocked.** They are TI's evaluation-board choices, so a BOM pass would either fail to match them or
-silently substitute. `L12`'s row is worse than merely unstocked — it names *two* parts,
+silently substitute. `L302`'s row is worse than merely unstocked — it names *two* parts,
 `DFE252012F-1R0M (1A)` and `XGL3520-102MEC (2A)`, because TI lists one for the 1 A `TPS62A01` and one
 for the 2 A `TPS62A02`; neither is the `DFE322512F-1R0M` this board actually fits.
 
 Applied, so the schematic says what we fit:
 
-- `C31`, `C33` → "4.7 µF 10 V X7R 0805 — TPS62A02 input cap, tps62a01.pdf Table 8-2"
-- `C32`, `C34` → "22 µF 10 V X7R/X5R 0805 — TPS62A02 output cap, tps62a01.pdf Table 8-3"
-- `L10`, `L12`, `L13` → the `DFE322512F-1R0M` line with its ratings and LCSC code
-- `L11` → the `DFE252012F-R47M` line with its ratings and LCSC code
+- `C309`, `C311` → "4.7 µF 10 V X7R 0805 — TPS62A02 input cap, tps62a01.pdf Table 8-2"
+- `C310`, `C312` → "22 µF 10 V X7R/X5R 0805 — TPS62A02 output cap, tps62a01.pdf Table 8-3"
+- `L300`, `L302`, `L303` → the `DFE322512F-1R0M` line with its ratings and LCSC code
+- `L301` → the `DFE252012F-R47M` line with its ratings and LCSC code
 
 The inductors keep their MPN because that choice *is* made and the part *is* stocked. The capacitors
 get an electrical description instead, because the specific part is a sourcing decision that has not
 been made yet — which is §10.13.
 
 One detail to check when it is: TI's table calls `GRM21BZ71A226KE15L` **X7R**, but Murata's `Z7`
-characteristic code is not `R7`. A 22 µF 0805 in true X7R barely exists; the high-capacitance parts in
+characteristic code is not `R206`. A 22 µF 0805 in true X7R barely exists; the high-capacitance parts in
 that case size are X5R or X7T. ‡ §8.2.2.3 accepts "X7R or X5R", so this is not a problem — but do not
 carry TI's "X7R" label onto a part you have not checked the dielectric of.
 
@@ -993,19 +993,19 @@ The boost is the part to place first: it runs at 1 MHz ‡ with up to 3.4 A of p
 1. **The critical loop is not the input loop.** ‡ §10.1: "The most critical current path for all
    boost converters is from the switching FET, through the rectifier FET, then the output capacitors,
    and back to ground of the switching FET. This high current path contains nanosecond rise and fall
-   time and must be kept as short as possible." So `C26`/`C27` → `U12.3(VOUT)` and `U12.1(GND)` is
+   time and must be kept as short as possible." So `C304`/`C305` → `U12.3(VOUT)` and `U12.1(GND)` is
    the loop to minimise, ahead of everything else. Put both output caps on the top layer, immediately
    at the pins, with ground stitched straight down.
 2. **`SW` is the aggressor.** ‡ §10.1: "Minimize the length and area of all traces connected to the
-   `SW` pin, and always use a ground plane under the switching regulator." `L10` sits directly
+   `SW` pin, and always use a ground plane under the switching regulator." `L300` sits directly
    against `U12.2(SW)`; nothing sensitive on any layer beneath it. On this sheet `SW` is the node
-   between `L10` and `U12` — note the rail is the far side of `L10`, so it is a *short* net by
-   construction if `L10` is placed tight.
-3. **`C25` at `VIN` and `GND` both**, per §11.1. `C22` is the bulk further back on the `+VSYS` plane
-   and can be placed for convenience; `C25` cannot.
-4. **`FB` is a 732 k/100 k divider**, i.e. a ~5 µA, high-impedance node. Route `R21`/`R22` and the
-   `Net-(U12-FB)` trace short and away from `SW` and from `L10`'s body. `C28`'s DNP pad sits across
-   `R21`; keep it adjacent so fitting it later does not need a long stub.
+   between `L300` and `U12` — note the rail is the far side of `L300`, so it is a *short* net by
+   construction if `L300` is placed tight.
+3. **`C303` at `VIN` and `GND` both**, per §11.1. `C302` is the bulk further back on the `+VSYS` plane
+   and can be placed for convenience; `C303` cannot.
+4. **`FB` is a 732 k/100 k divider**, i.e. a ~5 µA, high-impedance node. Route `R301`/`R302` and the
+   `Net-(U12-FB)` trace short and away from `SW` and from `L300`'s body. `C306`'s DNP pad sits across
+   `R301`; keep it adjacent so fitting it later does not need a long stub.
 5. **The thermal pad must be connected.** ‡ Table 5-1 makes `GND` (pin 1) the thermal path. The
    footprint is fine as it stands — §7 item 2 used to claim otherwise and is withdrawn — so this is
    purely a layout instruction: pin 1 is the heat path as well as the return, so give it copper on
@@ -1017,22 +1017,22 @@ The boost is the part to place first: it runs at 1 MHz ‡ with up to 3.4 A of p
 
 ### 11.3 `U13` `TPS63802` — the buck-boost, and it has **two** switching nodes
 
-A buck-boost has an inductor with both ends switched. `L1` (pin 9) and `L2` (pin 7) are *both*
+A buck-boost has an inductor with both ends switched. `L200` (pin 9) and `L2` (pin 7) are *both*
 aggressors, which is the one way this part differs from everything else here.
 
-1. **Keep `L11` between the two pins, as short as physically possible**, and treat both nodes as
+1. **Keep `L301` between the two pins, as short as physically possible**, and treat both nodes as
    `SW`. ‡ §12.1 item 4: "The sense trace connected to `FB` is signal trace. Keep these traces away
-   from `L1` and `L2` nodes."
+   from `L200` and `L2` nodes."
 2. **Grounds: one plane, joined at the IC.** ‡ §12.1 item 2, quoted in full in §10.5: a common node
    for power ground and a different one for control ground, "connect these ground nodes at any place
    close to one of the ground pins of the IC". Concretely: `U13.8(GND)` is the power return and takes
-   `C29`'s and `C30`'s grounds directly; `U13.3(AGND)` is the control return and takes `R25`
-   (the divider bottom) and `R27` (`MODE`); the two meet at the IC, not out on the plane. **Do not**
+   `C307`'s and `C308`'s grounds directly; `U13.3(AGND)` is the control return and takes `R305`
+   (the divider bottom) and `R307` (`MODE`); the two meet at the IC, not out on the plane. **Do not**
    split them into separate nets or bridge them through a via on another layer — TI deleted that
    advice in Rev C (§10.5).
 3. **`FB` at 511 k/91 k** is the highest-impedance sense node on the sheet at 5.5 µA. Short, quiet,
-   ground-referenced, nowhere near `L1`/`L2`.
-4. **`C29` (10 µF in) and `C30` (22 µF out)** both at the pins per §11.1.
+   ground-referenced, nowhere near `L200`/`L2`.
+4. **`C307` (10 µF in) and `C308` (22 µF out)** both at the pins per §11.1.
 5. The footprint does not exist yet (§7 item 1) and VSON-HR has no exposed pad, so unlike the boost
    there is no thermal-pad question — but there is also no thermal pad to help, so give the `VIN` and
    `VOUT` copper some width.
@@ -1042,13 +1042,13 @@ aggressors, which is the one way this part differs from everything else here.
 Small package, 2.4 MHz ‡, and low current in our application (~140 mA and ~75 mA, §3.2), so these are
 the easy ones. ‡ §8.4.1, all four bullets:
 
-1. Input cap (`C31`/`C33`), output cap (`C32`/`C34`) and inductor (`L12`/`L13`) as close to the IC as
+1. Input cap (`C309`/`C311`), output cap (`C310`/`C312`) and inductor (`L302`/`L303`) as close to the IC as
    possible; short, direct, wide power traces.
 2. "Connect the low side of the input and output capacitors properly to the `GND` pin to avoid a
    ground potential shift" — SOT-563 has a single `GND` pin and no pad, so this is the whole ground
    strategy for these parts. Both capacitor grounds meet at pin 1.
 3. "The sense traces connected to `FB` is a signal trace. … Keep these traces away from `SW` nodes."
-   `R29`/`R30` and `R33`/`R34` are 100 k/100 k, so `FB` is a 6 µA node sitting a couple of millimetres
+   `R309`/`R310` and `R313`/`R314` are 100 k/100 k, so `FB` is a 6 µA node sitting a couple of millimetres
    from a 2.4 MHz edge. This is the rule most likely to be violated by accident when the divider is
    tucked in beside the inductor.
 4. "Use a common ground. `GND` layers can be used for shielding." ‡ Figure 8-24 shows the intended
@@ -1061,9 +1061,9 @@ the easy ones. ‡ §8.4.1, all four bullets:
 
 The quietest part on the sheet and the only one that is never switched off, which changes what
 matters about it: not noise, but that its 25 nA quiescent current is a *measured* budget line
-(`power_mon` `U22` ch2 watches it through `R208`).
+(`power_mon` `U1201` ch2 watches it through `R1217`).
 
-1. `C20` and `C21` at the pins ‡ §8.4.1.
+1. `C300` and `C301` at the pins ‡ §8.4.1.
 2. ‡ §8.4.1 also says "use copper planes for device connections to optimize thermal performance" and
    "place thermal vias around the device" — both are about the DQN package. We use **DBV
    (SOT-23-5)**, which has no thermal pad, so the "no via directly beneath the thermal pad" warning
@@ -1071,7 +1071,7 @@ matters about it: not noise, but that its 25 nA quiescent current is a *measured
 3. `EN` is tied to `IN` at the part (netlist: both on `+VSYS`) — keep that a local tie so the LDO
    cannot be accidentally gated by a plane cut.
 4. **Its output is `+3V3_AON_DCDC`, which then goes off-sheet to a shunt and comes back as
-   `+3V3_AON`.** At layout that means the LDO output does *not* fan out here; it goes to `R208` on
+   `+3V3_AON`.** At layout that means the LDO output does *not* fan out here; it goes to `R1217` on
    the `power_mon` block and the fan-out happens on the far side. Getting that backwards would
    short the shunt out.
 
@@ -1081,14 +1081,14 @@ matters about it: not noise, but that its 25 nA quiescent current is a *measured
    end; from this end the reason is that four converters and up to ~2.8 A of boost input current share
    it. A trace would put all four converters' ripple onto each other.
 2. **The boost's input current is the largest thing on this sheet.** ~2.8 A DC at `VIN` = 3.0 V
-   (§3.2), pulsed at 1 MHz. Its path from the `+VSYS` plane through `C22`/`C25` to `U12` is a power
+   (§3.2), pulsed at 1 MHz. Its path from the `+VSYS` plane through `C302`/`C303` to `U12` is a power
    path and wants real copper, not a 0.25 mm trace.
 3. **Keep the three `PG` nets away from the switching nodes.** They are 470 kΩ pull-ups (§10.6), so
    they are the highest-impedance signals here, and they run to the MCU. `PG_1V2` and `PG_1V5` in
-   particular leave their converters right past `L12`/`L13`.
-4. **`MCU_EN_5V` now runs the length of the 5 V block** (a consequence of deleting `U11` — `R20`
+   particular leave their converters right past `L302`/`L303`.
+4. **`MCU_EN_5V` now runs the length of the 5 V block** (a consequence of deleting `U11` — `R300`
    stayed where it was and the net reaches across to `U12.EN`). On the schematic that is fine; at
-   layout, do not let that trace become the long antenna next to `SW`. Better: place `R20` next to
+   layout, do not let that trace become the long antenna next to `SW`. Better: place `R300` next to
    `U12` in the layout regardless of where the symbol sits on the sheet.
 5. **Four `MCU_EN_*` and three `PG_*` all go to the STM32G0.** They will want to leave this block as
    a bundle towards the MCU, so plan the block's orientation with the MCU's position in mind rather
@@ -1104,7 +1104,7 @@ matters about it: not noise, but that its 25 nA quiescent current is a *measured
 
 Reference designators on this sheet start at 10 (`U`, `L`) and 20 (`R`, `C`), and its `#PWRnnn`
 symbols at 200. KiCad requires references to be unique across the whole design, not per sheet, and
-`battery.kicad_sch` already owns `U1`–`U3`, `C1`–`C8`, `R1`–`R19` and `L1`. Each new sheet should
+`battery.kicad_sch` already owns `U1`–`U202`, `C200`–`C207`, `R200`–`R215` and `L200`. Each new sheet should
 take its own block the same way rather than relying on a global re-annotate, which would renumber
 the sheets that are already reviewed.
 
@@ -1134,7 +1134,7 @@ Re-run 2026-08-11 against the reviewed sheet, with `~/Apps/kicad-10.0.4/usr/bin/
   Because the nine `four_way_junction` warnings are filed against the root, I resolved each one's
   item UUIDs against the sheet files: **seven are on `epd_power`, one on `power_mon`, and one is on
   this sheet** — at (259.08, 86.36), where `U12.4(FB)`,
-  `R21`, `R22` and the DNP `C28` all meet on `Net-(U12-FB)`. It is a legibility warning about a node
+  `R301`, `R302` and the DNP `C306` all meet on `Net-(U12-FB)`. It is a legibility warning about a node
   that genuinely has four members, it predates this review, and it is left alone; splitting it into
   two three-way junctions would be cosmetic. So: nothing on `/power/` that KiCad files as an error or
   as a real defect, and one style warning that is correct.
@@ -1165,7 +1165,7 @@ Re-run 2026-08-11 against the reviewed sheet, with `~/Apps/kicad-10.0.4/usr/bin/
 - **The sheet was rendered and looked at.** `kicad-cli sch export pdf` → page 3 → `pdftoppm` at
   400 dpi, then inspected: the rewired 5 V block has no overlapping symbols, no stranded label and no
   text collision, the `+VSYS` rail is continuous through the space `U11` used to occupy, and the
-  `MCU_EN_5V` run reaches `U12.EN` cleanly past `R23`. The `+1V2` block as you rearranged it also
+  `MCU_EN_5V` run reaches `U12.EN` cleanly past `R303`. The `+1V2` block as you rearranged it also
   checks out.
 - **Divider arithmetic in §3.1** recomputed from the E96 values actually in the file.
 - **Inductor ratings** re-queried from LCSC, §10.11.

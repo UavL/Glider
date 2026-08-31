@@ -76,15 +76,15 @@ component the board does not carry.
 
 | Position | Value | State | Effect |
 | --- | --- | --- | --- |
-| `R38` | 10 kΩ, `CHG_PSEL` → `REGN` | **fitted** | `PSEL` high — USB SDP, 500 mA power-on default ‡ |
-| `R11` | 0 Ω, `CHG_PSEL` → GND | **DNP** | `PSEL` low — adapter, 3.25 A power-on default ‡ |
+| `R217` | 10 kΩ, `CHG_PSEL` → `REGN` | **fitted** | `PSEL` high — USB SDP, 500 mA power-on default ‡ |
+| `R210` | 0 Ω, `CHG_PSEL` → GND | **DNP** | `PSEL` low — adapter, 3.25 A power-on default ‡ |
 
 Exactly one of the two must be stuffed: `PSEL` is a plain digital input with no internal pull ‡
 (only `/QON` has one, 200 kΩ ‡). They are mutually exclusive — fitting both shorts `REGN` to ground
 through 10 kΩ and pins `PSEL` at ~0 V. The sheet says so next to them. §10.1 has the reasoning for
 high, and for pulling up to `REGN` rather than `+3V3_AON`.
 
-Pin 3's `R3`, 10 kΩ to `+3V3_AON` on net `CHG_PG#`, is the `BQ25892`'s ordinary `PG` pull-up, not an
+Pin 3's `R202`, 10 kΩ to `+3V3_AON` on net `CHG_PG#`, is the `BQ25892`'s ordinary `PG` pull-up, not an
 option position. Pin 24 is `NC` on this part, but the sheet still carries a `CHG_DSEL` label on it —
 a leftover of the withdrawn drop-in, and the reason the netlist shows a one-node net. Harmless;
 worth deleting on the next surgical pass over the sheet.
@@ -95,13 +95,13 @@ worth deleting on the next surgical pass over the sheet.
 | --- | --- | --- | --- |
 | `U1` | `BQ25892RTWR` | `C165480` | charger, power path, I²C, boost, ship mode. WQFN-24 4×4, EP to GND |
 | `U2` | `MAX17048G+T10` | `C2682616` | fuel gauge, TDFN-8 2×2, ~3 µA, no sense resistor |
-| `U3` | `USBLC6-2SC6` | `C7519` | ESD on `USBD+`/`USBD−` + `VBUS` clamp, SOT-23-6 |
+| `U202` | `USBLC6-2SC6` | `C7519` | ESD on `USBD+`/`USBD−` + `VBUS` clamp, SOT-23-6 |
 | `J1` | USB-C receptacle, 16-pin USB 2.0 | `C165948` (`TYPE-C-31-M-12`) | **pinout to be verified against the connector drawing before capture** |
 | `J2` | **`Molex 504050-0391`** Pico-Lock 1.5 mm, 3-circuit, right-angle SMT | none — Newark `98AC8179` | cell connector. 3.5 A/contact, 2.00 mm mated, positive lock. `BAT+`, `NTC`, `BAT−`. **§9.2** |
 | `J25` | **solder pads**, 3× 2.0×3.0 mm on 3.5 mm pitch | — | bare copper, no part to fit. Same three nets as `J2`. `tools/gen_solderpads.py`, **§9.2** |
-| `L1` | 1 µH, ≥3 A sat, low DCR | verify | ‡ typical app, 1.5 MHz switcher |
-| `F1` | fuse / PTC on `VBUS` | verify | |
-| `D7` | green LED, 0603 | verify | charge indicator, ~1.2 mA — §10.7 |
+| `L200` | 1 µH, ≥3 A sat, low DCR | verify | ‡ typical app, 1.5 MHz switcher |
+| `F200` | fuse / PTC on `VBUS` | verify | |
+| `D200` | green LED, 0603 | verify | charge indicator, ~1.2 mA — §10.7 |
 | passives | see §4 | | |
 
 Open: `MAX17048` pin assignment. **analog.com, Mouser, Farnell and the LCSC CDN all time out or
@@ -209,15 +209,15 @@ Three parts are not in §2 because reading the finished netlist showed they were
 
 | Ref | Value | Why |
 | --- | --- | --- |
-| `R17` | 100 k pull-down on `CHG_CE#` | ‡ pin 9: "CE pin must be pulled High or Low." Nothing else defines it before the MCU boots, and pulling it **low** enables charging — the behaviour needed to recover from a flat cell |
-| `R18` | 100 k pull-down on `CHG_OTG` | boost mode must not be able to come up on its own while the MCU is unpowered |
-| `R19` | 10 k pull-up on `GAUGE_ALRT#` | `ALRT` is open-drain ‡ and had no pull-up |
+| `R213` | 100 k pull-down on `CHG_CE#` | ‡ pin 9: "CE pin must be pulled High or Low." Nothing else defines it before the MCU boots, and pulling it **low** enables charging — the behaviour needed to recover from a flat cell |
+| `R214` | 100 k pull-down on `CHG_OTG` | boost mode must not be able to come up on its own while the MCU is unpowered |
+| `R215` | 10 k pull-up on `GAUGE_ALRT#` | `ALRT` is open-drain ‡ and had no pull-up |
 
 `CHG_QON#` deliberately has no external pull-up: ‡ pin 12 states the pin contains an internal
 pull-up, and adding a second one would fight the button and the MCU's open-drain drive.
 
-Added at review 1 (§10): `R38` 10 kΩ `CHG_PSEL`→`REGN`, and `D7`/`R37` re-drawn
-as a standalone indicator branch. `R11` became DNP; `R6`/`R7` became 2.2 kΩ.
+Added at review 1 (§10): `R217` 10 kΩ `CHG_PSEL`→`REGN`, and `D200`/`R216` re-drawn
+as a standalone indicator branch. `R210` became DNP; `R205`/`R206` became 2.2 kΩ.
 The edits were applied by `tools/patch_battery_review1.py`, which documents each
 one and refuses to run twice — the `.kicad_sch` remains the source of truth.
 
@@ -228,9 +228,9 @@ one and refuses to run twice — the `.kicad_sch` remains the source of truth.
   by the MCU and the power button. No electrical or structural errors.
 - Netlist exported with `kicad-cli sch export netlist` and read back node by node. Confirmed:
   the SW node carries `U1.19`, `U1.20`, `L1.1` and the bootstrap cap; `+VSYS` carries `U1.15`,
-  `U1.16`, `L1.2` and both output caps; `+VBAT` carries `U1.13`, `U1.14`, `J2.1`, `C7` and the
-  gauge's `VDD`; `CHG_TS` carries `U1.11`, the `R9`/`R10` midpoint and the pack NTC; both USB-C
-  `D+` pins and both `D-` pins are tied and pass through `U3`; all three of `U1`'s `PGND`/EP pins
+  `U1.16`, `L1.2` and both output caps; `+VBAT` carries `U1.13`, `U1.14`, `J2.1`, `C206` and the
+  gauge's `VDD`; `CHG_TS` carries `U1.11`, the `R208`/`R209` midpoint and the pack NTC; both USB-C
+  `D+` pins and both `D-` pins are tied and pass through `U202`; all three of `U1`'s `PGND`/EP pins
   and both of `U2`'s ground pins reach `GND`.
 - Footprint names checked against the KiCad 10 libraries — all resolve.
 
@@ -259,7 +259,7 @@ datasheet — the pack has no datasheet — so **none of it is marked ‡.**
 | Cycle life | 600 cycles |
 
 **Settled — `J2` is 3-pin, and the NTC network is the one to fit.** The pack has a thermistor, so
-§10.2's `R9` = 5.23 kΩ / `R10` = 30.1 kΩ network is correct and the no-NTC fallback
+§10.2's `R208` = 5.23 kΩ / `R209` = 30.1 kΩ network is correct and the no-NTC fallback
 (7.68 kΩ / 10 kΩ) stays unfitted. That closes both halves of the old §9.2.
 
 **Settled — the cell is one of the two large mechanical objects, and now has dimensions.**
@@ -319,7 +319,7 @@ and carry the gap as a production-BOM risk.
 
 **⚠ Raised — the NTC's type is unspecified.** §10.2 needs R(0 °C) and R(60 °C); it wants a
 10 kΩ / β 3435 (`103AT-2`). The listing does not say. **Vendor question** (`panel.md` §7) — and note
-§10.2's ratio 5.2276 is fixed by the charger's own thresholds, so any answer resolves `R9`/`R10` in
+§10.2's ratio 5.2276 is fixed by the charger's own thresholds, so any answer resolves `R208`/`R209` in
 one step. Until then the values stand as the `103AT` case, which is the likeliest.
 
 **Not a problem, stated because the listing makes it sound like one.** The vendor text says *"if your
@@ -331,14 +331,14 @@ the pack's PCM stays a backstop rather than the working limit.
 3. **Exposed-pad dimensions** — `WQFN-24-1EP_4x4mm_P0.5mm_EP2.6x2.6mm` and
    `TDFN-8-1EP_2x2mm_P0.5mm_EP0.8x1.2mm` were chosen as the closest library matches; both EPs need
    checking against the package drawings.
-4. **`C2` on `PMID`** is 8.2 µF, which is the no-OTG figure ‡. If `CHG_OTG` is ever used, it must
+4. **`C201` on `PMID`** is 8.2 µF, which is the no-OTG figure ‡. If `CHG_OTG` is ever used, it must
    rise to 40 µF (2.4 A) or 60 µF (3.1 A).
 5. ~~**Cell connector**~~ — **CLOSED 2026-08-17, §9.2.** `J2` is a Molex Pico-Lock 504050-0391 and
    `J25` adds solder pads. What remains is **mechanical, not electrical**: the pack has to be
    re-terminated, and the NTC type is still unknown.
 6. **The Pico-Lock's ratings are distributor-sourced, not datasheet-verified** — §9.2 †.
-7. **`D7` part number** — a green 0603 LED, no LCSC code chosen yet. Vf between
-   1.9 V (red) and 2.2 V (green) both give a sane current through `R37`, so the
+7. **`D200` part number** — a green 0603 LED, no LCSC code chosen yet. Vf between
+   1.9 V (red) and 2.2 V (green) both give a sane current through `R216`, so the
    choice is free.
 
 ---
@@ -360,8 +360,8 @@ Source: `../manual-analysis/Analyse_battery.md`. Everything below marked ‡ is 
 | Low | Adapter | **3.25 A** |
 
 `PSEL` only sets the *power-on default* — step 3 of the power-up sequence ‡,
-before firmware exists. The `R8` = 260 Ω `ILIM` resistor still caps the real
-limit at `KILIM`/`R8` = 355/260 ≈ **1.37 A typ** — 1.23–1.5 A over the 320–390
+before firmware exists. The `R207` = 260 Ω `ILIM` resistor still caps the real
+limit at `KILIM`/`R207` = 355/260 ≈ **1.37 A typ** — 1.23–1.5 A over the 320–390
 A·Ω `KILIM` spread ‡ — so `PSEL` low would have meant "help yourself to ~1.4 A
 from whatever you were plugged into", with `VINDPM` foldback as the only brake.
 On a laptop port that is out of spec. High is the compliant default, and the MCU
@@ -375,7 +375,7 @@ names it as the pull-up rail for `STAT`/`PG` ‡. It is 4.8 V typ at `VBUS` = 5 
 and 6 V at 9 V ‡, against a 7 V absolute maximum on `PSEL` ‡ and a 1.3 V `VIH` ‡.
 `REGN`'s LDO limits at 50 mA ‡; a 10 kΩ strap draws 0.6 mA.
 
-Applied: **`R38` 10 kΩ from `CHG_PSEL` to `REGN`, fitted; `R11` 0 Ω to GND
+Applied: **`R217` 10 kΩ from `CHG_PSEL` to `REGN`, fitted; `R210` 0 Ω to GND
 marked DNP.**
 
 ### 10.1.1 ICO does not rescue this on its own — firmware has to act
@@ -398,7 +398,7 @@ does one of two things over I²C:
   algorithm find the source's maximum power point.
 
 Either way the ceiling stays the lower of `IINLIM`/`IDPM_LIM` and the `ILIM` pin
-‡ — ~1.37 A typ from `R8`, above.
+‡ — ~1.37 A typ from `R207`, above.
 
 **This is a firmware requirement, not a schematic change.** Nothing on the sheet
 moves; but a board with no charger driver, or one that stops at reading status
@@ -414,7 +414,7 @@ Out-of-range `TS` suspends charging, full stop ‡. So the divider is mandatory
 hardware, not an option.
 
 **No NTC in the pack:** no extra parts — it is the *same two positions* with
-different values. Fit `R9` = 7.68 kΩ, `R10` = 10 kΩ. That parks `TS` at 56.6 % of
+different values. Fit `R208` = 7.68 kΩ, `R209` = 10 kΩ. That parks `TS` at 56.6 % of
 `REGN`, mid-way between `V(T3)` 44.75 % and `V(T2)` 68.25 % ‡, so the charger
 sees a permanently room-temperature cell. Thermal protection is gone; this is a
 bring-up configuration, not a shipping one. The note is already on the sheet.
@@ -430,8 +430,8 @@ R9   = 1.9091 · x₅
 
 The ratio 5.2276 is fixed by the charger's own thresholds and never changes; only
 `R₀` = R_NTC(0 °C) and `R₅` = R_NTC(60 °C) come from the thermistor. For the
-`103AT` those are 27.28 kΩ and 3.021 kΩ, which is how we got `R9` = 5.23 kΩ /
-`R10` = 30.1 kΩ — the same pair TI prints in its own typical application ‡.
+`103AT` those are 27.28 kΩ and 3.021 kΩ, which is how we got `R208` = 5.23 kΩ /
+`R209` = 30.1 kΩ — the same pair TI prints in its own typical application ‡.
 
 Practical consequence for the cell hunt: **prefer a pack with a 10 kΩ / β 3435
 NTC** (that is what `103AT-2` is). Anything else means recomputing two resistors.
@@ -449,7 +449,7 @@ NTC** (that is what `103AT-2` is). Anything else means recomputing two resistors
 **Pins 1 and 4–23 are identical across all four ‡** — I re-read the table pin by
 pin for this review, not just the summary. `U1`'s symbol is drawn for the
 `BQ25892`, which is the part we are fitting, so `PG` on pin 3 is right, pulled up
-by `R3` 10 kΩ to `+3V3_AON`.
+by `R202` 10 kΩ to `+3V3_AON`.
 
 This review answer originally continued "`R14`, `R15` and `R16` are the pads that
 convert the board to the `BQ25890`/`95` pinout; all three are DNP." **That was
@@ -469,8 +469,8 @@ gauge, the three `INA3221`s, the MCU) has to stay reachable while the rest of
 the board is off, and a pull-up on a switchable rail would let the powered-down
 devices' I/O clamps drag the bus down.
 
-**They are placed here and nowhere else.** I checked the exported netlist: `R6`
-and `R7` are the only pull-ups on `SDA_AON`/`SCL_AON` anywhere in the project —
+**They are placed here and nowhere else.** I checked the exported netlist: `R205`
+and `R206` are the only pull-ups on `SDA_AON`/`SCL_AON` anywhere in the project —
 `mcu.kicad_sch` and `power_mon.kicad_sch` have none. That is the correct
 arrangement; a bus gets **one** pair of pull-ups, sized for the whole bus.
 Physically they should sit near one end of the run, conventionally at the master.
@@ -487,7 +487,7 @@ call it 90 pF. I²C's rise-time limit is `t_r = 0.8473·R·C`:
 
 2.2 kΩ costs nothing in the always-on budget — an idle I²C bus sits high and
 draws zero; the 1.5 mA only flows while a device holds a line low during a
-transfer. Applied: **`R6`, `R7` → 2.2 kΩ.**
+transfer. Applied: **`R205`, `R206` → 2.2 kΩ.**
 
 ### 10.5 `ILIM` and `K_ILIM`
 
@@ -510,11 +510,11 @@ Two things follow that are worth having in your head:
 
 - The real limit is `min(ILIM resistor, IINLIM register)` ‡, so the resistor is a
   hardware ceiling the firmware cannot exceed — that is why it is set at all.
-- **`R8` is also a current monitor.** Below 0.8 V the `ILIM` pin voltage is
+- **`R207` is also a current monitor.** Below 0.8 V the `ILIM` pin voltage is
   proportional to input current: `IIN = (K_ILIM · V_ILIM) / (R_ILIM · 0.8)` ‡.
   Free input-current telemetry, if we ever want it on an ADC.
 
-`R8` = 130 Ω raises the ceiling to 3 A if a known-good 3 A source is used. One
+`R207` = 130 Ω raises the ceiling to 3 A if a known-good 3 A source is used. One
 resistor.
 
 ### 10.6 `BATFET`, ship mode, `QON`
@@ -546,7 +546,7 @@ battery-only mode), which is why there is deliberately no external one — see �
 
 ### 10.7 The charge LED. **Reworked — it had a real problem.**
 
-You put `D7` **in series between the pull-up `R4` and `STAT`**, so the LED sat in
+You put `D200` **in series between the pull-up `R203` and `STAT`**, so the LED sat in
 the middle of the same node the MCU reads on `CHG_STAT#`. Two consequences:
 
 1. **The MCU's logic high goes marginal.** When `STAT` is open (not charging),
@@ -560,21 +560,21 @@ the middle of the same node the MCU reads on `CHG_STAT#`. Two consequences:
 
 Both come from one branch doing two jobs. Applied fix — **split it**:
 
-- `R4` 10 kΩ goes back to being a plain pull-up, `+3V3_AON` → `CHG_STAT#`, the
+- `R203` 10 kΩ goes back to being a plain pull-up, `+3V3_AON` → `CHG_STAT#`, the
   same shape as its five neighbours. The MCU now sees a clean 3.3 V high.
-- The indicator becomes its own branch: `+3V3_AON` → `R37` **1 kΩ** → `D7` →
+- The indicator becomes its own branch: `+3V3_AON` → `R216` **1 kΩ** → `D200` →
   `CHG_STAT#`, drawn as a separate block with its own caption.
 
 Current check: (3.3 − 2.1) / 1 kΩ ≈ **1.2 mA** for a green LED, 1.4 mA for a red
 one — bright enough for an indicator on an e-reader and far under the **6 mA**
-absolute maximum sink on `STAT` ‡. Adding `R4`'s 0.33 mA, `STAT` sinks ~1.7 mA.
+absolute maximum sink on `STAT` ‡. Adding `R203`'s 0.33 mA, `STAT` sinks ~1.7 mA.
 
 Behaviour you get: lit while charging, off when charge completes or is disabled,
 **blinking at 1 Hz on a fault** ‡ — the blink is free and worth knowing about,
 because a slowly flashing LED means "look at the registers", not "charging". No
 standby cost: `STAT` is only low while charging, and charging implies plugged in.
 
-`D7` and `R37` had no footprints; they now have `LED_SMD:LED_0603_1608Metric`
+`D200` and `R216` had no footprints; they now have `LED_SMD:LED_0603_1608Metric`
 and `Resistor_SMD:R_0402_1005Metric`.
 
 ### 10.8 `MAX17048` — `CELL` and `QSTRT`
@@ -672,7 +672,7 @@ the whole Stage A decision. It is not worth it for this.
 
 ---
 
-### 10.14 `C6` — why 0805, and why it is now 0603 / 16 V. **Changed 2026-08-21.**
+### 10.14 `C205` — why 0805, and why it is now 0603 / 16 V. **Changed 2026-08-21.**
 
 **The question was "can this be smaller".** It can, and the smaller part is the better
 part — but not for the reason §6 used to give.
@@ -681,7 +681,7 @@ part — but not for the reason §6 used to give.
 Internally, REGN is connected to the cathode of the boot-strap diode. Connect a 4.7 µF
 (10 V rating) ceramic capacitor from REGN to analog GND. The capacitor should be placed
 close to the IC."* So it is the **gate-drive rail** — it sources the low-side gate charge
-and refills `C3`, the 47 nF bootstrap cap, through the diode, every cycle at **1.5 MHz** ‡.
+and refills `C202`, the 47 nF bootstrap cap, through the diode, every cycle at **1.5 MHz** ‡.
 
 **The bias is 4.8 V, not 5.** ‡ spec table: `V(REGN)` = 4.7 V min / 4.8 V typ at
 `V(VBUS)` = 5 V, `I(REGN)` = 20 mA. (The 4.8/5/5.5 V row is the `V(VBUS)` = 9 V case.)
@@ -738,19 +738,19 @@ is `power.md` §10.11: 22 µF 10 V X7R 0805 at 5 V bias, ~−45 %. **Check the c
 Samsung's MLCC tool at the BOM pass.** If certainty is worth more than basic-part status,
 `C69335` (25 V) is the conservative pick and is a drop-in.
 
-**Do not generalise this to the sheet's other capacitors.** `C4`/`C5` (`SYS`), `C7`
-(`BAT`) and `C2` (`PMID`) carry switching ripple current, where 0805 is earning its place
-on ripple rating and not only on value — and `C2` still has the open OTG question in §6
+**Do not generalise this to the sheet's other capacitors.** `C203`/`C204` (`SYS`), `C206`
+(`BAT`) and `C201` (`PMID`) carry switching ripple current, where 0805 is earning its place
+on ripple rating and not only on value — and `C201` still has the open OTG question in §6
 (8.2 µF now, 40 µF if OTG is ever used).
 
 **Applied by `tools/patch_c6_0603.py`**, which patches `battery.kicad_sch` *and*
 `r2.kicad_pcb` (the footprint body, and the routed `REGN` track, whose endpoint moved
-with pad 1 from x = 61.05 to x = 61.225) and refuses to run twice. `C6` also gained the
-`check_pcb.py` proximity rule it never had — 5.0 mm to `U1`, the same limit as `C1`/`C2`/
-`C3`; it currently sits at 4.15 mm and passes.
+with pad 1 from x = 61.05 to x = 61.225) and refuses to run twice. `C205` also gained the
+`check_pcb.py` proximity rule it never had — 5.0 mm to `U1`, the same limit as `C200`/`C201`/
+`C202`; it currently sits at 4.15 mm and passes.
 
-**Verification.** ERC unchanged (32 violations, none of them `C6`'s). Netlist export
-confirms `C6` pin 1 on `/battery/REGN`, pin 2 on `GND`, footprint `C_0603_1608Metric`,
+**Verification.** ERC unchanged (32 violations, none of them `C205`'s). Netlist export
+confirms `C205` pin 1 on `/battery/REGN`, pin 2 on `GND`, footprint `C_0603_1608Metric`,
 value `4.7uF/16V`. Sheet and board both rendered to PNG and inspected. Board geometry
 checked numerically: pads at x = 61.225 / 62.775, 0.9 × 0.95 mm, courtyard 2.96 × 1.46 mm,
 `REGN` track landing exactly on the new pad-1 centre.
@@ -781,39 +781,39 @@ different things physically:
 
 - **`PGND` (pins 17, 18) + the exposed pad** — the switching return. It carries
   the full 1.5 MHz chopped inductor current. This is the loud one.
-- **The `VBUS`/`PMID` input capacitor return** (`C1`, `C2`) — the input hot loop.
-  `C1`'s ground must land on `PGND` essentially at the pin ‡ ("place it as close
+- **The `VBUS`/`PMID` input capacitor return** (`C200`, `C201`) — the input hot loop.
+  `C200`'s ground must land on `PGND` essentially at the pin ‡ ("place it as close
   as possible to IC").
-- **The quiet returns**: `REGN` (`C6`), the `TS` divider bottom (`R10`), `ILIM`
-  (`R8`), and the `MAX17048`'s `GND`/`CTG`. `TS` and `ILIM` are analogue nodes
+- **The quiet returns**: `REGN` (`C205`), the `TS` divider bottom (`R209`), `ILIM`
+  (`R207`), and the `MAX17048`'s `GND`/`CTG`. `TS` and `ILIM` are analogue nodes
   regulated to a few hundred millivolts — a few tens of millivolts of ground
   bounce from the switcher is a real error on them.
 
 The rule: **single ground plane, but star the quiet returns into the pad, not
-through it.** Route `R8`, `R10` and `C6`'s grounds to a point on the plane that
+through it.** Route `R207`, `R209` and `C205`'s grounds to a point on the plane that
 the inductor's return current does not cross. Do not let the `PGND` copper be
 the path from the fuel gauge to the plane.
 
 ### 11.2 The rest, in order of how much it matters
 
-1. **Minimise the `PMID`→`SW`→`PGND` hot loop.** `C2` (8.2 µF) sits across
+1. **Minimise the `PMID`→`SW`→`PGND` hot loop.** `C201` (8.2 µF) sits across
    `PMID` and `PGND`; that loop's area sets the radiated noise and the `SW` node
    ringing. Tight, on the top layer, ground directly beneath.
 2. **The exposed pad is the electrical and thermal ground.** Stitch it with a
    via array — the footprint chosen (`…EP2.6x2.6mm`) needs thermal vias added.
    Soldering it is not the same as connecting it.
-3. **`SW` is the aggressor.** Keep the copper just big enough for `L1`, no
+3. **`SW` is the aggressor.** Keep the copper just big enough for `L200`, no
    bigger — it is a 16 V, 1.5 MHz edge and a capacitive antenna. Nothing
    sensitive underneath, on any layer.
-4. **`BTST`/`C3`** is a small high-dV/dt loop referenced to `SW`. Keep `C3`
+4. **`BTST`/`C202`** is a small high-dV/dt loop referenced to `SW`. Keep `C202`
    adjacent to the pins.
 5. **Kelvin the sense nodes.** `ILIM` and `TS` are high-impedance dividers;
    route them as short quiet traces with ground reference, away from `SW`.
 6. **USB-C `D±` as a 90 Ω differential pair**, length-matched, straight through
-   `U3` (`USBLC6-2SC6`) with the stubs to the ESD part minimal. `U3` goes at the
+   `U202` (`USBLC6-2SC6`) with the stubs to the ESD part minimal. `U202` goes at the
    connector, not at the SoM — ESD is stopped where it enters.
 7. **`CC1`/`CC2`**: 5.1 kΩ to ground each, separately, never bridged. Currently
-   `R1`/`R2` with no ESD part — see §6.
+   `R200`/`R201` with no ESD part — see §6.
 8. **Cell wiring is a current path too.** `+VBAT` from `J2` to `U1` pins 13/14
    carries the full charge and discharge current; give it real copper, and keep
    the fuel gauge's `VDD`/`CELL` tap at the connector end so it measures the

@@ -28,13 +28,25 @@ on, so no firmware change can fix it. Read in this order:
   existing hardware. `NOTES-power-analysis.md` is the 1500-line chronological record behind it
   and is partly superseded; consult it only for depth on a section `NOTES-STATUS.md` points to.
 
-**Reference designators follow the sheet's page number** (owner's scheme, rollout in progress):
-classifier + page + two-digit part, numbered from `00`. `battery` is page 2 so it has `U200`,
-`J201`; `power` is page 3 (`U300`–`U304`); `fpga_config` is page 9 (`U902`); `io_expansion` is
-page 14, so it takes **four digits** — `U1400`, `J1402`, `C1404`. Pages 2–9 give three digits,
-pages 10–14 give four. Converted so far: `battery`, `power`, `fpga_config`, `io_expansion`.
-Everything else still carries R1's flat legacy numbering, and `tools/check_pcb.py` /
-`check_ucf.py` still assert on those old names — expect false failures as the rollout spreads.
+**Reference designators follow the sheet's page number** (owner's scheme, rolled out across
+all 13 sheets on 2026-08-31): classifier + page + two-digit part, numbered from `00`. Pages 2–9
+give three digits, pages 10–14 give four:
+
+| 2 battery | 3 power | 4 mcu | 5 som | 6 dpi_in | 7 fpga_io | 8 fpga_ddr | 9 fpga_config |
+|---|---|---|---|---|---|---|---|
+| `U200` | `U300` | `U400` | `J501` | `U600` | `U700` | `C821` | `U902` |
+
+| 10 epd | 11 epd_power | 12 power_mon | 13 frontlight | 14 io_expansion |
+|---|---|---|---|---|
+| `J1000` | `C1105` | `R1200` | `U1300` | `U1400` |
+
+A part shared by several sheets takes its **lowest** page, so the FPGA is `U700` (pages 7–9) and
+the two SoM connectors are `J501`/`J502` (pages 5–6). `tools/renumber_by_page.py` performed the
+conversion; `tools/check_pcb.py`, `check_pcb_connectors.py` and `check_ucf.py` assert on the new
+names. The `gen_*`/`patch_*`/`port_r1.py` scripts deliberately keep the **old** names — they each
+wrote a sheet once and are a historical record, not re-runnable code. **Two classes of string look exactly like a designator and must never be
+rewritten**: FPGA ball names (`C1`, `D2`, `N11`, `T1`…) and BTH-060 pin names (`A1`–`D60`).
+Substituting them silently rewires the board — see `docs/layout.md` §9.5.
 
 Ground rules for this work, from the hardware owner and not negotiable: **the assistant cannot
 flash, measure or observe the hardware** — never claim a behaviour was confirmed on it; **this is

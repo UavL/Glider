@@ -6,7 +6,7 @@ hierarchy has no dangling interfaces left.** Not yet reviewed by the owner. Comp
 
 The module is a **`PCM-071`** — the connectorised phyCORE-AM62x, chosen over the solder-down
 `PCL-071` on 2026-08-13 for cost, MOQ and the ability to unplug it. Its 240 pins arrive on **one
-logical connector `X2`**, in four columns `A`–`D`, across **two Samtec `BTH-060-01-L-D-A-K-TR`**
+logical connector `X500`**, in four columns `A`–`D`, across **two Samtec `BTH-060-01-L-D-A-K-TR`**
 board-side parts (module side: `BSH-060-01-L-D-A-TR`).
 
 **The binding document is `datasheets/L-1038e.A5_phyCORE-AM62x_HW Manual.pdf`.** As with the FPGA,
@@ -51,7 +51,7 @@ Suspend-to-RAM figure that now dominates the reading budget.
 `L-1038e.A5` Table 31 gives the pin map. `DATA0`–`DATA15` are on columns **A and B**;
 `DATA16`/`DATA17` are on column **D**, and they are not video pins by default:
 
-| Caster | AM62x | `X2` | SOM signal |
+| Caster | AM62x | `X500` | SOM signal |
 | --- | --- | --- | --- |
 | `DPI_R7` | `VOUT0_DATA17` | **D4** | `X_GPMC0_AD9/BOOTMODE_9` — 100 kΩ **pullup** on SOM |
 | `DPI_R6` | `VOUT0_DATA16` | **D2** | `X_GPMC0_AD8/BOOTMODE_8` — 100 kΩ **pullup** on SOM |
@@ -77,7 +77,7 @@ domain at 1.8 V and then nothing would work.
 
 ## 3. Power
 
-| Rail | `X2` | Direction | Figure | Source |
+| Rail | `X500` | Direction | Figure | Source |
 | --- | --- | --- | --- | --- |
 | `VIN` | **A1, A2, A3** | in | 5 V ±5 % recommended (Table 4 allows 4.5–5.5), **1 A** | §5.1, Table 12 |
 | `VBAT` | **B2** | in | 1.2–5.5 V, **40 nA** for the RTC | Table 4, Table 12 |
@@ -86,7 +86,7 @@ domain at 1.8 V and then nothing would work.
 
 "Connect **all** available 5 V input pins" and "all ground pins to ground" (§4.6) — all three `VIN`
 and all 45 grounds, no exceptions. The `+5V` budget is checked in `power.md` §8.1 and holds: 1.0 A
-for the module plus an EPD refresh is ≈ 1.3 A against the 1.5 A `L10` was sized for.
+for the module plus an EPD refresh is ≈ 1.3 A against the 1.5 A `L300` was sized for.
 
 **`VBAT` is an open decision, deliberately left to review.** 40 nA is nothing, but it is the RTC's
 keep-alive when everything else is off, and there are three options: tie it to `+3V3_AON` (the RTC
@@ -117,11 +117,11 @@ is load-bearing rather than cautionary.
 
 ### 4.1 The circuit
 
-`J21` = `MICRO_SD(TFC-WPAPR-08)`, footprint `footprints:TFC-WPAPR-08` — **already in
+`J500` = `MICRO_SD(TFC-WPAPR-08)`, footprint `footprints:TFC-WPAPR-08` — **already in
 `pcb_common`, and the same socket R1 fits as `J7`.** No new symbol, no new footprint, no new
 supplier.
 
-| Socket | Net | `X2` | Notes |
+| Socket | Net | `X500` | Notes |
 | --- | --- | --- | --- |
 | `CLK/SCLK` | `SD_CLK` | **D26** | 49.9 kΩ pulldown on SOM |
 | `CMD/DI` | `SD_CMD` | **D25** | |
@@ -175,7 +175,7 @@ All of these are on voltage domain **`VDDSHV0`** (jumper `J1`, default 3.3 V) un
 `SPI0_*`, `UART0_*`, `I2C*`, `PORZ_OUT`, `RESET_REQZ`, `RESETSTATZ`, `MMC1_SDCD` are named in
 Table 6's `VDDSHV0` row.
 
-| R2 net | `X2` | SOM signal | Purpose |
+| R2 net | `X500` | SOM signal | Purpose |
 | --- | --- | --- | --- |
 | `FPGA_SCLK` | D40 | `X_SPI0_CLK` | CSR SPI, SoM is master (`mcu.md` §2.1) |
 | `FPGA_MOSI` | D41 | `X_SPI0_D0` | |
@@ -188,8 +188,8 @@ Table 6's `VDDSHV0` row.
 | `PG_SOM` | C54 | `X_PGOOD` | **new, `power.md` §5.1** — open-drain out; gates `+3V3` |
 | `SOM_IRQ#` | **A57** | `X_MCU_MCAN0_TX` = `MCU_GPIO0_13` | MCU → SoM attention |
 | `SOM_WAKE#` | **A58** | `X_MCU_MCAN0_RX` = `MCU_GPIO0_14` | MCU → SoM wake from Deep Sleep |
-| `SOM_MCU_NRST` | **A59** | `X_MCU_MCAN1_TX` | SoM → MCU reset, through `Q9` on `mcu`. `mcu.md` §5.8 |
-| `SOM_MCU_BOOT0` | **A60** | `X_MCU_MCAN1_RX` | SoM → MCU boot select, through `R511` 1 kΩ. `mcu.md` §5.8 |
+| `SOM_MCU_NRST` | **A59** | `X_MCU_MCAN1_TX` | SoM → MCU reset, through `Q400` on `mcu`. `mcu.md` §5.8 |
+| `SOM_MCU_BOOT0` | **A60** | `X_MCU_MCAN1_RX` | SoM → MCU boot select, through `R407` 1 kΩ. `mcu.md` §5.8 |
 | `USB_DP` / `USB_DM` | A39 / A38 | `X_USB0_DP` / `X_USB0_DM` | from `J1` on `battery` |
 
 ### 5.1 How `SOM_WAKE#` and `SOM_IRQ#` were chosen
@@ -197,9 +197,9 @@ Table 6's `VDDSHV0` row.
 **PHYTEC's manual never uses the word "wake".** It is not in the document, so the pin could not be
 looked up there; the answer came from TI's AM62x datasheet (`SPRSP58C`) instead.
 
-`som_pinout.json` gives every `X2` pin's AM62x ball. Cross-referencing those against the
+`som_pinout.json` gives every `X500` pin's AM62x ball. Cross-referencing those against the
 datasheet's pin-multiplexing table — which signal each ball presents in mux mode 7 — shows that
-**exactly 22 `X2` pins reach an `MCU_GPIO0_*`**, i.e. a GPIO in the **MCU always-on domain**, the
+**exactly 22 `X500` pins reach an `MCU_GPIO0_*`**, i.e. a GPIO in the **MCU always-on domain**, the
 domain that stays powered through DeepSleep. The other ~170 signal pins are MAIN-domain and could
 not wake the module whatever firmware did.
 
@@ -225,9 +225,9 @@ faster kill path — worth a test pad, not a net — and the reason we do not ne
 collapse.
 
 **BOOTMODE override pads are worth considering and are not drawn.** `BOOTMODE_10`–`15` are
-`VOUT0_DATA18`–`DATA23` (`X2` D5, D6, D7, D8, D10, D11), which 18-bit mode does not use, so
+`VOUT0_DATA18`–`DATA23` (`X500` D5, D6, D7, D8, D10, D11), which 18-bit mode does not use, so
 unpopulated 1 kΩ/10 kΩ strap pads there would let bring-up change the *backup* boot mode — to UART
-or USB device mode — without going anywhere near `DPI_R6`/`R7`. PHYTEC suggest a DIP switch for
+or USB device mode — without going anywhere near `DPI_R6`/`R206`. PHYTEC suggest a DIP switch for
 this (§6.3); a DIP switch on `BOOTMODE_8/9` would violate §2's rule, but on 10–15 it is safe.
 
 ## 6. Sheet split
@@ -276,7 +276,7 @@ correctness rests on**, and pin numbers carry no footnotes.
 
 - **MMC1**: length-match within **12 700 µm** (Table 16). Generous; will not constrain placement.
 - **USB0**: Table 29 gives the USB layout characteristics — read before routing `J1` to A38/A39.
-- **DPI**: 22 signals from `X2` columns A/B/D to FPGA bank 1. `DPI_PCLK` is the only one with a
+- **DPI**: 22 signals from `X500` columns A/B/D to FPGA bank 1. `DPI_PCLK` is the only one with a
   frequency constraint (165 MHz in the UCF, ~101 MP/s actual at 1448×1072@60). Keep it over a
   continuous reference plane and away from the EPD source bus.
 - **`DPI_R6`/`DPI_R7` carry no components at all** (§2). Worth a note on the sheet so a later
@@ -296,7 +296,7 @@ correctness rests on**, and pin numbers carry no footnotes.
 4. **Whether `SoC_VDDSHV5_SDIO` stays energised in Suspend-to-RAM** (§4.1) — needs a hardware test.
 5. ~~**`PG_SOM` is owed to `mcu.kicad_sch`**~~ **Done — `tools/patch_mcu_pg_som.py` claims
    `PC8`.** ⚠ **Firmware must now *disable* the internal pull-down** — it fights the module's
-   100 kΩ pull-up and reads 0.94 V against a 2.31 V threshold, so bring-up would hang. `R512`
+   100 kΩ pull-up and reads 0.94 V against a 2.31 V threshold, so bring-up would hang. `R408`
    1 MΩ on `mcu` does the biasing instead; `mcu.md` §5.9.
 6. **`check_pinout.py` does not exist yet.** `parse_som_pinout.py` is its data source and is done.
 7. ~~**The `PCM-071` has never been priced**~~ **Priced 2026-08-18 — €250.00 @ 1–9 pcs**,
@@ -312,18 +312,18 @@ correctness rests on**, and pin numbers carry no footnotes.
 ## 10. Two connectors, one module — how the schematic is partitioned
 
 **Restructured 2026-08-20, at the owner's decision.** Earlier revisions modelled the SoM as a single
-240-pin `X2` symbol on a single footprint carrying both land patterns. That is now gone. The board
+240-pin `X500` symbol on a single footprint carrying both land patterns. That is now gone. The board
 has two connectors, so the schematic has two symbols:
 
 | Ref | Symbol | Footprint | Carries | On the BOM | In the CPL |
 | --- | --- | --- | --- | --- | --- |
-| `J26` | `r2:BTH-060_AB` | `r2:BTH-060-01-L-D-A-K_AB` | module columns **A + B**, 120 pins | `C3646540` | **yes** |
-| `J27` | `r2:BTH-060_CD` | `r2:BTH-060-01-L-D-A-K_CD` | module columns **C + D**, 120 pins | `C3646540` | **yes** |
-| `X2` | `r2:BOM_ITEM` | `r2:PCM-071_Module` | outline + 2× M2.5, **no pads, no nets** | `PCM-071` | no — `exclude_from_pos_files` |
-| `MK20` | `r2:BOM_ITEM` | none, `on_board no` | the M2.5 hardware | the kit | no |
+| `J501` | `r2:BTH-060_AB` | `r2:BTH-060-01-L-D-A-K_AB` | module columns **A + B**, 120 pins | `C3646540` | **yes** |
+| `J502` | `r2:BTH-060_CD` | `r2:BTH-060-01-L-D-A-K_CD` | module columns **C + D**, 120 pins | `C3646540` | **yes** |
+| `X500` | `r2:BOM_ITEM` | `r2:PCM-071_Module` | outline + 2× M2.5, **no pads, no nets** | `PCM-071` | no — `exclude_from_pos_files` |
+| `MK500` | `r2:BOM_ITEM` | none, `on_board no` | the M2.5 hardware | the kit | no |
 
 **The board now arrives with both receptacles soldered and the module plugs in.** That was the
-original problem: a position file has one row per reference, so a single `X2` could only ever place
+original problem: a position file has one row per reference, so a single `X500` could only ever place
 one part where two belong, on a designator matching no LCSC part — which JLCPCB rejects. A board
 ordered that way came back with 240 bare pads.
 
@@ -355,7 +355,7 @@ catches a 2 mm nudge, a mirrored placement and a swapped footprint.
 
 The single fact that made this safe to do at all:
 
-> Pin **numbers stay `A1`–`A60` / `B1`–`B60` / `C1`–`C60` / `D1`–`D60`**, exactly as `L-1038e.A5`
+> Pin **numbers stay `A1`–`A60` / `B1`–`B60` / `C200`–`C1000` / `D1100`–`D60`**, exactly as `L-1038e.A5`
 > Tables 7–10 print them — *not* Samtec's `1`–`120` alternating numbering. The footprints name
 > their pads the same way.
 
@@ -369,12 +369,12 @@ connectors — a column-shaped unit could not put video on `dpi_in` and the rest
 
 | | POWER | VIDEO | CTRL | NC | total |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `J26` (A + B) | 30 | 20 | 12 | 58 | **120** |
-| `J27` (C + D) | 20 | 2 | 41 | 57 | **120** |
+| `J501` (A + B) | 30 | 20 | 12 | 58 | **120** |
+| `J502` (C + D) | 20 | 2 | 41 | 57 | **120** |
 
-`J27`'s video unit is two pins — `D2`/`D4`, the GPMC pins Table 31 reveals as `VOUT0_DATA16/17`. A
-two-pin box on `dpi_in` looks odd and is honest. Only `J26` carries supplies (`VIN`×3, `VBAT`,
-`SoC_VDDSHV5_SDIO`), which is why the two power boxes look so unalike; `J27`'s is 20 grounds.
+`J502`'s video unit is two pins — `D1101`/`D1103`, the GPMC pins Table 31 reveals as `VOUT0_DATA16/17`. A
+two-pin box on `dpi_in` looks odd and is honest. Only `J501` carries supplies (`VIN`×3, `VBAT`,
+`SoC_VDDSHV5_SDIO`), which is why the two power boxes look so unalike; `J502`'s is 20 grounds.
 
 `som` holds six unit boxes now instead of three, `dpi_in` two instead of one. The root hierarchy is
 unchanged.
@@ -401,7 +401,7 @@ Two things fixed along the way that had nothing to do with the restructure:
 
 ⚠ **Still to confirm with JLCPCB before the first order:** the CPL rotation convention for these
 connectors. Their pick-and-place does not share KiCad's for every part and their own guidance
-singles connectors out. Check `J26`/`J27`'s angle against Samtec's pin-1 marking before uploading.
+singles connectors out. Check `J501`/`J502`'s angle against Samtec's pin-1 marking before uploading.
 (The no-pad-designator question that the previous arrangement raised is moot — both receptacles now
 have real pads under their own references.)
 
@@ -442,7 +442,7 @@ on, and says connectors *vary* — check the part.
 
 **What this footprint asserts.** At rotation 0, viewed from the top of the board:
 
-- pin 1 (`A1`/`B1`, `C1`/`D1`) is at the **bottom**, marked on `F.SilkS` by a bracket under each
+- pin 1 (`A1`/`B1`, `C200`/`D1100`) is at the **bottom**, marked on `F.SilkS` by a bracket under each
   row and the text `B1 A1` / `D1 C1`;
 - the **near row is on the left** — `B` then `A`, `D` then `C`, which is `L-1038e.A5` Figure 6;
 - the alignment hole sits 1.054 mm inboard of the left row, which is an asymmetry you can see, so
@@ -451,7 +451,7 @@ on, and says connectors *vary* — check the part.
 **How to check it, in order of usefulness:**
 
 1. **JLCPCB's order preview is the real check, and it is free.** After uploading gerbers, BOM and
-   CPL, their flow renders every part on the board before you confirm. Look at `J26`/`J27`: does the
+   CPL, their flow renders every part on the board before you confirm. Look at `J501`/`J502`: does the
    part's pin-1 end sit where the silkscreen says? A 90° error is obvious — the connector will lie
    across the pads instead of along them.
 2. **Cross-check the tape drawing.** `jlcpcb.com/parts/componentSearch?searchTxt=C3646540`, then the
@@ -542,7 +542,7 @@ web the alternative would need is below JLCPCB's 0.1 mm minimum and would be dro
 anyway — silently, which is worse.
 
 KiCad's DRC does not know that, and raised `solder_mask_bridge` on **every adjacent pair**: 200
-errors from `J26` and `J27` alone, 82 % of the board's total, which is enough noise to bury a real
+errors from `J501` and `J502` alone, 82 % of the board's total, which is enough noise to bury a real
 violation for the whole of layout. Both footprints now carry `(attr smd allow_soldermask_bridges)`,
 which is exactly the attribute KiCad provides for a footprint whose apertures merge by design.
 Board total went 244 → 44.
@@ -552,6 +552,6 @@ KiCad 5/6 file.
 
 **Two places, not one.** As with the 3D models (`layout.md` §9.1), editing the library footprint does
 **not** propagate to an instance already placed on the board. `tools/gen_som_footprint.py` and both
-`r2.pretty/*.kicad_mod` carry the attribute for anything placed in future; `J26` and `J27` on
+`r2.pretty/*.kicad_mod` carry the attribute for anything placed in future; `J501` and `J502` on
 `r2.kicad_pcb` were patched separately. If DRC ever shows `lib_footprint_mismatch` on one of them,
 that is the two copies having drifted apart again.

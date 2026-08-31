@@ -17,12 +17,12 @@ and each takes a different route:
 
 | # | Device | Refdes | Sheet | Holds | Where its image comes from |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **AM62x SoM** | `X2` | `som` (p. 2) | Linux, on 32 GB eMMC | eMMC primary, **microSD fallback** — module default straps |
-| 2 | **FPGA** `XC6SLX16` | `U41` | `fpga_io` (p. 6) | Caster gateware — **volatile**, reloaded every power-up | config NOR `U42` |
-| 3 | **Config NOR** `W25Q128JVSIQ` | `U42` | `fpga_config` (p. 11) | the FPGA bitstream, 16 MB | JTAG `J20`, **or the SoM writes it in-system** |
-| 4 | **MCU** `STM32G0B1` | `U20` | `mcu` (p. 10) | housekeeping firmware | **SWD via `J20` only** ← the gap, §6.2 |
+| 1 | **AM62x SoM** | `X500` | `som` (p. 2) | Linux, on 32 GB eMMC | eMMC primary, **microSD fallback** — module default straps |
+| 2 | **FPGA** `XC6SLX16` | `U700` | `fpga_io` (p. 6) | Caster gateware — **volatile**, reloaded every power-up | config NOR `U42` |
+| 3 | **Config NOR** `W25Q128JVSIQ` | `U42` | `fpga_config` (p. 11) | the FPGA bitstream, 16 MB | JTAG `J400`, **or the SoM writes it in-system** |
+| 4 | **MCU** `STM32G0B1` | `U400` | `mcu` (p. 10) | housekeeping firmware | **SWD via `J400` only** ← the gap, §6.2 |
 
-The SoM is `X2`, not `U`-anything — it is a *connector* reference because the part is a plug-in
+The SoM is `X500`, not `U`-anything — it is a *connector* reference because the part is a plug-in
 module on two `BTH-060` receptacles, and it lives on **page 2**, not page 5 (page 5 is `power`).
 
 ## 2. Block map — every link and what it carries
@@ -68,15 +68,15 @@ module on two `BTH-060` receptacles, and it lives on **page 2**, not page 5 (pag
 
 | Link | From → To | Width | Carries | Doc |
 | --- | --- | --- | --- | --- |
-| **DPI** | `X2` → `U41` | 22 | 18-bit RGB666 + `PCLK`/`DE`/`HSYNC`/`VSYNC`, 40–50 Hz | `som.md` §2 |
-| **CSR SPI** | `X2` → `U41` | 4 + `NOR_CS` | Caster register/command bus — *the SoM drives it, not the MCU* | `fpga.md` §4.1 |
-| **UART** | `X2` ↔ `U20` | 2 | console and control between Linux and housekeeping | `mcu.md` §3.2 |
-| **EPD bus** | `U41` → `J6` | 16 + timing | pixel data to the panel | `epd-port.md` |
-| **DDR3** | `U41` ↔ `U52` | x16 | EPDC framebuffer + per-pixel waveform state | `fpga.md` §5.1 |
-| **Config** | `U42` → `U41` | 4 (x1 today, x4 wired) | the bitstream, on every power-up | §4 below |
-| **I²C always-on** | `U20` ↔ charger, gauge, `U53` | 2 | `SCL_AON`/`SDA_AON`, alive whenever the cell is | `mcu.md` §5.3 |
-| **MCU control** | `U20` → everything | ~20 | rail enables, `FPGA_PROG#`/`DONE`/`SUSP`, `SOM_WAKE#`/`RESET#`/`IRQ#` | `mcu.md` §3 |
-| **USB 2.0** | `J1` → `X2` | 2 | sideloading books; D+/D− go to the SoM, not the charger | `battery.md` §1 |
+| **DPI** | `X500` → `U700` | 22 | 18-bit RGB666 + `PCLK`/`DE`/`HSYNC`/`VSYNC`, 40–50 Hz | `som.md` §2 |
+| **CSR SPI** | `X500` → `U700` | 4 + `NOR_CS` | Caster register/command bus — *the SoM drives it, not the MCU* | `fpga.md` §4.1 |
+| **UART** | `X500` ↔ `U400` | 2 | console and control between Linux and housekeeping | `mcu.md` §3.2 |
+| **EPD bus** | `U700` → `J1000` | 16 + timing | pixel data to the panel | `epd-port.md` |
+| **DDR3** | `U700` ↔ `U800` | x16 | EPDC framebuffer + per-pixel waveform state | `fpga.md` §5.1 |
+| **Config** | `U42` → `U700` | 4 (x1 today, x4 wired) | the bitstream, on every power-up | §4 below |
+| **I²C always-on** | `U400` ↔ charger, gauge, `U1300` | 2 | `SCL_AON`/`SDA_AON`, alive whenever the cell is | `mcu.md` §5.3 |
+| **MCU control** | `U400` → everything | ~20 | rail enables, `FPGA_PROG#`/`DONE`/`SUSP`, `SOM_WAKE#`/`RESET#`/`IRQ#` | `mcu.md` §3 |
+| **USB 2.0** | `J1` → `X500` | 2 | sideloading books; D+/D− go to the SoM, not the charger | `battery.md` §1 |
 
 ## 3. The power tree, and who owns each rail
 
@@ -108,13 +108,13 @@ Taken from the exported netlist rather than from prose, so this is what the sche
 
 | Rail | Blocks on it |
 | --- | --- |
-| `+3V3_AON` | housekeeping MCU `U20` · buttons `SW21`/`SW22` with 100 k pull-ups `R42`/`R43` · status LED `D20` · always-on I²C pull-ups and the charger/gauge open-drain status lines (`R3`–`R7`, `R19`) · three `INA3221` rail monitors `U21`/`U22`/`U27` · **the SoM's RTC backup on `X2` pin B2** · `J20` SWD/JTAG header (DNP) |
-| `+5V` | SoM `VIN` via `+5V_SOM` · the EPD HV chain via `U6` (`MT9700`) |
-| `+3V3` | FPGA I/O banks `U41` · config NOR `U42` · 33.33 MHz oscillator `X2` · panel logic through `J6` · `Q7` (VCOM gate drive) · touch/pen load switches `U1400`/`U1401` (**DNP**) |
-| `+1V2_FPGA` | `U41` `VCCINT` — **sole load** |
-| `+1V5` | DDR3L `U52` · FPGA bank 3 `VCCO` |
-| `+VSYS_FL` | `L33` + `U53` `LM3630A` → two LED strings |
-| `+3V3_SDIO` | microSD `J21` — **sourced by `X2` pin B1, not by this board** |
+| `+3V3_AON` | housekeeping MCU `U400` · buttons `SW401`/`SW402` with 100 k pull-ups `R402`/`R403` · status LED `D400` · always-on I²C pull-ups and the charger/gauge open-drain status lines (`R202`–`R206`, `R215`) · three `INA3221` rail monitors `U1200`/`U1201`/`U1202` · **the SoM's RTC backup on `X500` pin B2** · `J400` SWD/JTAG header (DNP) |
+| `+5V` | SoM `VIN` via `+5V_SOM` · the EPD HV chain via `U1100` (`MT9700`) |
+| `+3V3` | FPGA I/O banks `U700` · config NOR `U42` · 33.33 MHz oscillator `X500` · panel logic through `J1000` · `Q1103` (VCOM gate drive) · touch/pen load switches `U1400`/`U1401` (**DNP**) |
+| `+1V2_FPGA` | `U700` `VCCINT` — **sole load** |
+| `+1V5` | DDR3L `U800` · FPGA bank 3 `VCCO` |
+| `+VSYS_FL` | `L1300` + `U1300` `LM3630A` → two LED strings |
+| `+3V3_SDIO` | microSD `J500` — **sourced by `X500` pin B1, not by this board** |
 | `+3V3_TOUCH` / `+3V3_PEN` | `J1400` / `J1401` FPCs — both DNP on board 1 |
 
 Three things this made visible that the per-sheet docs do not state together:
@@ -123,26 +123,26 @@ Three things this made visible that the per-sheet docs do not state together:
    `MCU_EN_FPGA_CORE` buys the most for the least risk.
 2. **The 5 V rail splits into six named branches before doing any work** — `+5V_SOM`, `+5V_EPD`,
    `+5V_EG`, `+5V_ES`, `+5V_VGH`, `+5V_VSH` — each with its own shunt or load switch, and the EPD
-   chain is gated **twice**: `EPD_PWR_EN` through `U6` for the whole chain, then `EPD_POS_EN`
-   through `U7`/`U8` for the source rails alone.
-3. **The power button never touches an MCU rail.** `SW20` goes straight to the charger's `QON`
+   chain is gated **twice**: `EPD_PWR_EN` through `U1100` for the whole chain, then `EPD_POS_EN`
+   through `U1101`/`U1102` for the source rails alone.
+3. **The power button never touches an MCU rail.** `SW400` goes straight to the charger's `QON`
    pin (`/CHG_QON#`), so the board can be woken from a state where nothing but the charger is
    alive. `mcu.md` §2.2 designed this deliberately; it is worth restating because it is the reason
    the always-on rail can be as small as it is.
 
 ### 3.2 The EPD high-voltage chain, one level down
 
-`+5V_DCDC` → `U6` `MT9700` load switch (`EPD_PWR_EN`) → `+5V_EPD`, then:
+`+5V_DCDC` → `U1100` `MT9700` load switch (`EPD_PWR_EN`) → `+5V_EPD`, then:
 
 | Output | Generated by | Input branch |
 | --- | --- | --- |
-| `+VGH` | `U24` `LGS6302B5` boost + `L5` | `+5V_VGH`, switched by `U8` (`EPD_POS_EN`) |
-| `-VGL` | `U9` `LGS5145` inverting converter | `+5V_EG` |
-| `+VP` (VPOS) | `U23` `LGS6302B5` boost + `L30` | `+5V_VSH`, switched by `U7` (`EPD_POS_EN`) |
-| `-VN` (VNEG) | `U26` `LGS5145` inverting converter | `+5V_ES` |
-| `-VCOM` | `U31` `LM321` buffer + `Q6` | `+5V_EPD` |
+| `+VGH` | `U1105` `LGS6302B5` boost + `L1100` | `+5V_VGH`, switched by `U1102` (`EPD_POS_EN`) |
+| `-VGL` | `U1103` `LGS5145` inverting converter | `+5V_EG` |
+| `+VP` (VPOS) | `U1104` `LGS6302B5` boost + `L1102` | `+5V_VSH`, switched by `U1101` (`EPD_POS_EN`) |
+| `-VN` (VNEG) | `U1106` `LGS5145` inverting converter | `+5V_ES` |
+| `-VCOM` | `U1107` `LM321` buffer + `Q1102` | `+5V_EPD` |
 
-All five land on `J6` and go to the panel. The MCU measures `VGH`/`VGL`/`VP`/`VN`/`VCOM` on its
+All five land on `J1000` and go to the panel. The MCU measures `VGH`/`VGL`/`VP`/`VN`/`VCOM` on its
 ADC and trims `VGH` and `VCOM` through its two DAC outputs.
 
 **Who controls what, in one sentence each.** The **MCU** owns every rail enable and the entire EPD
@@ -183,12 +183,12 @@ the register bus (`fpga.md` §4.1):
 | `CCLK` | FPGA drives | CSR `SCK` ← SoM | **SoM drives** |
 | `DIN` | FPGA reads | CSR `MOSI` ← SoM | — |
 | `MOSI/CSI_B` | FPGA drives | CSR `MISO` → SoM | **SoM drives** |
-| `CSO_B` | FPGA drives | idle high | **SoM drives** via `R411` |
+| `CSO_B` | FPGA drives | idle high | **SoM drives** via `R905` |
 
 That third column is the one to remember: **hold the FPGA in reset and the SoM can rewrite the
 gateware flash over its own SPI port.** Field gateware updates need no JTAG, no programmer and no
 open case. It also carries a software rule with it — *the SoM must park those pins as inputs until
-`FPGA_DONE`*, or it fights the FPGA for `CCLK` during configuration. `R411` (100 Ω) bounds the
+`FPGA_DONE`*, or it fights the FPGA for `CCLK` during configuration. `R905` (100 Ω) bounds the
 fault current if firmware gets that wrong.
 
 ### 4.4 The bitgen settings are part of the deliverable
@@ -209,7 +209,7 @@ bitgen changes; they are gateware work, and they are not optional.
 ## 5. Can the FPGA use the SoM's 2 GB of DDR4?
 
 **No — and the reason is mechanical before it is architectural: those pins do not leave the
-module.** Checked, not assumed: `datasheets/som_pinout.json` is the parsed `X2` pinout, all 240
+module.** Checked, not assumed: `datasheets/som_pinout.json` is the parsed `X500` pinout, all 240
 pins. Searching it for `DDR`, `DQS`, `CKE`, `ODT`, `DQM` and `EMIF` returns **one** hit, and that
 one is `X_GPMC0_ADVn_ALE` — the substring "DDR" inside "**ADDR**ess". There is no memory bus on the
 connector to attach to.
@@ -226,7 +226,7 @@ That is the whole answer, but three other reasons would each be sufficient on th
    `clk_mem`. Sharing DRAM with Linux means arbitration jitter on exactly the path this whole
    design exists to keep deterministic.
 
-**What the FPGA uses instead:** `U52`, `MT41K64M16TW`, 1 Gb x16 DDR3L = **128 MiB**, private,
+**What the FPGA uses instead:** `U800`, `MT41K64M16TW`, 1 Gb x16 DDR3L = **128 MiB**, private,
 running 666 MT/s against a part rated for 1066 — margin deliberately left on the table so the
 layout is easy (`fpga.md` §5.1, §11.1).
 
@@ -239,7 +239,7 @@ frame and per-pixel waveform state that e-paper greyscale needs and that the SoM
 
 ### 6.1 What arrives from the fab
 
-JLCPCB or PCBWay ships an assembled board with **`U42` blank, `U20` blank, and no SoM fitted**.
+JLCPCB or PCBWay ships an assembled board with **`U42` blank, `U400` blank, and no SoM fitted**.
 Nothing on it can boot. The SoM plugs in afterwards and arrives from PHYTEC with their BSP demo
 image on its eMMC — *whether that is true of every unit is worth confirming with PHYTEC, and it is
 not something this design should depend on.*
@@ -253,7 +253,7 @@ Three of the four devices have a clean provisioning path:
 | SoM | boot from microSD → write eMMC | no |
 | Config NOR `U42` | **SoM writes it over SPI** with `PROG#` low (§4.3) | no |
 | FPGA | reloads itself from `U42` at every power-up | no |
-| **MCU `U20`** | **SWD via `J20` — pads only, header not fitted** | **yes, every unit** |
+| **MCU `U400`** | **SWD via `J400` — pads only, header not fitted** | **yes, every unit** |
 
 **As drawn, every board needs a physical SWD probe on an unfitted header to get its firmware.**
 That is a manual bench step per unit, and it is also the recovery path — a bad flash means opening
@@ -262,12 +262,12 @@ fabrication."*
 
 The MCU's own ROM bootloader can reprogram flash over **USART on `PA9`/`PA10`** — which *are*
 `MCU_TXD`/`MCU_RXD`, with the SoM already on the other end. **The data path exists; the control
-path does not.** `BOOT0` is `PA14` with a 10 kΩ pull-*down* (`R40`), and `MCU_NRST` reaches only
-`J20`. So the SoM can talk to the bootloader but cannot start it, because it can neither reset the
+path does not.** `BOOT0` is `PA14` with a 10 kΩ pull-*down* (`R400`), and `MCU_NRST` reaches only
+`J400`. So the SoM can talk to the bootloader but cannot start it, because it can neither reset the
 MCU nor pull `BOOT0` high.
 
 **Two SoM GPIO would close it** — one to `MCU_NRST`, one to `BOOT0` through a series resistor so it
-fights neither `R40` nor an attached debugger. The SoM has ~150 unused pins. This is a WP8 decision
+fights neither `R400` nor an attached debugger. The SoM has ~150 unused pins. This is a WP8 decision
 and Stage D has not started, so the cost today is two nets and two resistors.
 
 ### 6.3 What production would then look like
@@ -288,7 +288,7 @@ field updates later.
 
 ### 6.4 So: should the product ship with an SD card?
 
-**Ship the slot, not the rootfs.** `J21` is already on the board (`som.md` §4) and it should stay,
+**Ship the slot, not the rootfs.** `J500` is already on the board (`som.md` §4) and it should stay,
 but Linux should live on the eMMC:
 
 - The 32 GB eMMC is already bought and is faster and far more durable than a card — SD cards are
@@ -313,9 +313,9 @@ now make it.
 4. **Does `SoC_VDDSHV5_SDIO` survive Suspend-to-RAM** (§6.4) — a dev-kit measurement.
 5. **`+5V2_FL` is an orphaned net.** Its only nodes are `J6.7`, `J6.44` and `C147.1` — no source
    anywhere. It was the *old* panel's frontlight supply, taken out through the EPD connector; the
-   chosen panel's frontlight is bonded and driven from `J24`, so the net was deleted when
+   chosen panel's frontlight is bonded and driven from `J1300`, so the net was deleted when
    `frontlight` was redrawn but survives on `epd.kicad_sch`, which is frozen and was not touched.
    Nothing unsafe — two connector pins and a capacitor on a dead net — but `C147` is a BOM part
-   doing nothing, and those two `J6` pins should be confirmed no-connect on the
+   doing nothing, and those two `J1000` pins should be confirmed no-connect on the
    `GDEP103TC2-FT11` rather than something the panel expects. Like the `VGH` resistor
    (`epd-port.md` §10), the edit rides with the owner's review pass on that sheet.

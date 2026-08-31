@@ -5203,7 +5203,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "10c6fac0-cad9-4fab-9e55-3b477cbe0dac")
-		(property "Reference" "J27"
+		(property "Reference" "J502"
 			(at 99.06 53.34 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5654,7 +5654,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/2428c127-2c5d-44de-b80a-89c491ec60c4"
-					(reference "J27")
+					(reference "J502")
 					(unit 2)
 				)
 			)
@@ -5671,7 +5671,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "858bd170-f406-4e95-825d-60c244b7007d")
-		(property "Reference" "J26"
+		(property "Reference" "J501"
 			(at 99.06 99.06 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6122,7 +6122,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/2428c127-2c5d-44de-b80a-89c491ec60c4"
-					(reference "J26")
+					(reference "J501")
 					(unit 2)
 				)
 			)

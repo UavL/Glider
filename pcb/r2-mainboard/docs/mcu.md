@@ -3,7 +3,7 @@
 Status: **drawn; reviewed once, review-1 fixes applied.** The review answers are §10. Companion to
 `battery.md` and `power.md`. Every claim cites a datasheet in `../datasheets/` (with the table or
 page), the LCSC catalogue, or a file in this repo. Estimates are marked **(est.)**.
-Last updated 2026-08-30 (§11.3: `Y20` has no case ground — the guard-ring instruction is corrected;
+Last updated 2026-08-30 (§11.3: `Y400` has no case ground — the guard-ring instruction is corrected;
 `PB7` retired to the spare pool, see §16.1).
 
 `mcu.kicad_sch` has been saved in Eeschema, so **the sheet — not `gen_mcu.py` — is the source of
@@ -25,7 +25,7 @@ supply, sets VCOM, reads the charger and gauge, watches the buttons, and wakes t
 
 | Ref | Part | LCSC | Stock | Package |
 | --- | --- | --- | --- | --- |
-| `U20` | `STM32G0B1RCT6` | `C3034735` | 6 029 | LQFP-64 10×10, 0.5 mm |
+| `U400` | `STM32G0B1RCT6` | `C3034735` | 6 029 | LQFP-64 10×10, 0.5 mm |
 
 Cortex-M0+ at 64 MHz, 256 KB flash, 144 KB RAM, **60 GPIO**, 1.7–3.6 V ‡.
 
@@ -50,14 +50,14 @@ Supporting parts:
 
 | Ref | Part | LCSC | Role |
 | --- | --- | --- | --- |
-| `Y20` | `Q13FC13500004` (Epson FC-135) | `C32346` | 32.768 kHz **LSE**, **JLC Basic**, 438 k stock |
-| `FB20` | `BLM15AG121SN1D` | `C85812` | 120 Ω @ 100 MHz, **DCR 190 mΩ**, 550 mA; `VDD` → `VREF+` (§5.2) |
-| `SW20` | `TS-1187A-B-A-B` | `C318884` | power button, 1.6 N, 100 k cycles, **JLC Basic**, 1.68 M stock |
-| `SW21`, `SW22` | `EVQPLHA15` (Panasonic) | `C79172` | page buttons, 1.6 N, 1.5 mm, **500 k cycles** (§5.5) |
-| `D20` | `LTST-C191KGKT` | `C125098` | green status LED, 0603 |
-| `J20` | **2×6 1.27 mm SMD socket, not fitted** | — | MCU SWD **+ FPGA JTAG** (§5.6) |
+| `Y400` | `Q13FC13500004` (Epson FC-135) | `C32346` | 32.768 kHz **LSE**, **JLC Basic**, 438 k stock |
+| `FB400` | `BLM15AG121SN1D` | `C85812` | 120 Ω @ 100 MHz, **DCR 190 mΩ**, 550 mA; `VDD` → `VREF+` (§5.2) |
+| `SW400` | `TS-1187A-B-A-B` | `C318884` | power button, 1.6 N, 100 k cycles, **JLC Basic**, 1.68 M stock |
+| `SW401`, `SW402` | `EVQPLHA15` (Panasonic) | `C79172` | page buttons, 1.6 N, 1.5 mm, **500 k cycles** (§5.5) |
+| `D400` | `LTST-C191KGKT` | `C125098` | green status LED, 0603 |
+| `J400` | **2×6 1.27 mm SMD socket, not fitted** | — | MCU SWD **+ FPGA JTAG** (§5.6) |
 
-`FB20`'s DCR is listed because it is load-bearing, not incidental: Table 21 caps `VREF+` at
+`FB400`'s DCR is listed because it is load-bearing, not incidental: Table 21 caps `VREF+` at
 `min(VDD + 0.4, 4.0) V`, so a series element there must have almost no DC drop. See §5.2.
 
 ## 2. Two decisions that shape this sheet
@@ -110,13 +110,13 @@ So `CHG_QON#` idles **above** 3.3 V. Three consequences:
 - **The switch must reach `QON` galvanically.** In ship mode the BATFET is off, so with no USB
   attached `+VSYS` — and therefore `+3V3_AON`, and therefore the MCU — does not exist. Ship-mode
   exit is the only way back from a fully-off device, and it cannot depend on any powered part.
-  `SW20` therefore shorts `CHG_QON#` straight to `GND`, which is exactly TI's intended use and gives
+  `SW400` therefore shorts `CHG_QON#` straight to `GND`, which is exactly TI's intended use and gives
   a guaranteed `VIL`.
 - **The MCU only listens.** It has no reason to drive `QON`: ship mode is *entered* over I²C
   (`REG09`), *exited* only by the button, and a system reset is `NVIC_SystemReset()`. `PD6` is
-  therefore a plain input behind `R41` (1 kΩ), which is a fault-current limiter and an isolation
+  therefore a plain input behind `R401` (1 kΩ), which is a fault-current limiter and an isolation
   of the pin's capacitance — not a divider. The two sides are separate nets: **`CHG_QON#`** carries
-  the charger, `SW20` and `C50`; **`QON_SNS`** carries `R41` and `PD6`. Naming them apart keeps it
+  the charger, `SW400` and `C409`; **`QON_SNS`** carries `R401` and `PD6`. Naming them apart keeps it
   obvious in the netlist that nothing on the MCU side can pull the charger's pin.
 - **`PD6` sees up to 4.3 V, and that is legal but conditional.** `PD6` is an `FT` (5 V-tolerant)
   pin ‡ (Table 12, p.53); absolute maximum on `FT` pins is `VDD + 4.0 V` = 7.3 V ‡ (Table 21).
@@ -146,7 +146,7 @@ alternate functions from Tables 13–20; ADC and DAC channels from Table 12's "A
 | 12 | `PF2-NRST` | `MCU_NRST` | reset | Table 12 p.48 |
 | 13 | `PC0` | `MCU_EN_FPGA_CORE` | GPIO out | |
 | 14 | `PC1` | `MCU_EN_DDR` | GPIO out | |
-| 15 | `PC2` | `LED_STAT#` | GPIO out, sinks `D20` | |
+| 15 | `PC2` | `LED_STAT#` | GPIO out, sinks `D400` | |
 | 16 | `PC3` | `TOUCH_RST#` | GPIO out | `io-expansion.md`, §3.4 |
 | 25 | `PC4` | — | spare, `ADC_IN17` | |
 | 26 | `PC5` | — | spare, `ADC_IN18` | |
@@ -195,7 +195,7 @@ it is the reason `LED_STAT#` is on `PC2` and not on the otherwise-convenient `PC
 | 45 | `PA13` | `MCU_SWDIO` | `SWDIO` (AF0) | Table 13 |
 | 46 | `PA14` | `MCU_SWCLK` | `SWCLK` (AF0), = `BOOT0` | Table 12 p.53 |
 | 47 | `PA15` | `SOM_RESET#` | GPIO out, open-drain | §4 |
-| 27 | `PB0` | `EPD_PWR_EN_MCU` | GPIO out, via `R45` 1 k | `epd-port.md` §2 |
+| 27 | `PB0` | `EPD_PWR_EN_MCU` | GPIO out, via `R405` 1 k | `epd-port.md` §2 |
 | 28 | `PB1` | `EPD_POS_EN` | GPIO out | |
 | 29 | `PB2` | `VCOM_EN` | GPIO out | |
 | 57 | `PB3` | `CHG_OTG` | GPIO out | |
@@ -345,9 +345,9 @@ Straight from ST's own scheme ‡ (Figure 15, p.65):
 
 | Node | Parts | Source |
 | --- | --- | --- |
-| `VDD`/`VDDA` (pin 8) **and `VBAT` (pin 6)** | `C40` 4.7 µF + `C41` 100 nF | Figure 15 — "1 × 100 nF + 1 × 4.7 µF" |
-| `VREF+` (pin 7) | `FB20` from `VDD`, then `C43` 1 µF + `C44` 100 nF | Figure 15 — "100 nF + 1 µF" |
-| `NRST` (pin 12) | `C45` 100 nF | Table 59 |
+| `VDD`/`VDDA` (pin 8) **and `VBAT` (pin 6)** | `C400` 4.7 µF + `C401` 100 nF | Figure 15 — "1 × 100 nF + 1 × 4.7 µF" |
+| `VREF+` (pin 7) | `FB400` from `VDD`, then `C402` 1 µF + `C403` 100 nF | Figure 15 — "100 nF + 1 µF" |
+| `NRST` (pin 12) | `C404` 100 nF | Table 59 |
 
 Pin numbers are the **LQFP64 - GP** column of Table 12: `VBAT` 6, `VREF+` 7, `VDD/VDDA` 8,
 `VSS/VSSA` 9. All four are real pins on this package — worth stating because §3.7.1 warns that on
@@ -360,7 +360,7 @@ no capacitor on `VBAT` at all, and a third one there would decouple a node alrea
 
 STM32G0 merges `VDDA` into the `VDD` pin ‡ (§3.7.1: "`VDDA` voltage level is identical to `VDD`
 voltage as it is provided externally through `VDD/VDDA` pin"), so there is no separate analog supply
-to filter — `VREF+` is the only analog node that can be isolated, and `FB20` is what isolates it.
+to filter — `VREF+` is the only analog node that can be isolated, and `FB400` is what isolates it.
 
 ### 5.2 `VREF+` is tied to `VDD`, and the internal buffer stays off
 
@@ -372,10 +372,10 @@ reference comfortably and does not clear a 2.5 V one at all. WP4 ports `power_mo
 straight copy; changing the reference would force every divider to be rescaled to buy accuracy that
 the dividers' own 1 % resistors do not deliver anyway.
 
-So `VREF+` = `VDD` through `FB20`. **`VREFBUF` must stay disabled in firmware** — enabling it would
+So `VREF+` = `VDD` through `FB400`. **`VREFBUF` must stay disabled in firmware** — enabling it would
 drive the buffer's output into the rail through the ferrite.
 
-**`FB20` is not a datasheet requirement, and the review was right to ask.** Figure 15 shows `VREF+`
+**`FB400` is not a datasheet requirement, and the review was right to ask.** Figure 15 shows `VREF+`
 fed from the same supply with 100 nF + 1 µF and *no* series element. The bead is an engineering
 addition, carried over from ST's practice on families where `VDDA` is its own pin; on G0 it is not,
 so `VREF+` is the only place left where that idea can be applied. It stays for two reasons —
@@ -388,7 +388,7 @@ is only ever allowed 400 mV above `VDD`. `BLM15AG121SN1D` is **190 mΩ**, which 
 reference current is 0.19 mV — nothing. A plain resistor in the same position, or a bead chosen for
 impedance without checking DCR, would eat into a 400 mV budget. On power-down the 1.1 µF on `VREF+`
 discharges back through those 190 mΩ with a ~0.2 µs time constant, which is why the capacitors on
-the quiet side cannot strand charge above `VDD` either. **Any future substitution for `FB20` must be
+the quiet side cannot strand charge above `VDD` either. **Any future substitution for `FB400` must be
 checked for DCR, not just for impedance at 100 MHz.**
 
 ### 5.3 One I²C bus, not two
@@ -408,16 +408,16 @@ Pull-ups are the 10 kΩ pair already on `battery.kicad_sch` ‡ (`battery.md` §
 
 ### 5.4 Clock
 
-**LSE only.** `Y20` is a 32.768 kHz crystal for the RTC, which has to keep time across standby. The
+**LSE only.** `Y400` is a 32.768 kHz crystal for the RTC, which has to keep time across standby. The
 system clock is the internal `HSI16` with the PLL — ±1 % ‡, which is inside the tolerance of every
 peripheral on this sheet (I²C is a clocked bus; the UART to the SoM is well under the 2 % that
 asynchronous framing needs). **No HSE**, so `PF0`/`PF1` are free for `MCU_EN_5V`/`MCU_EN_3V3`.
 
-**`Y20` is the LSE, and the 8 MHz in the datasheet belongs to the HSE.** The two are different
+**`Y400` is the LSE, and the 8 MHz in the datasheet belongs to the HSE.** The two are different
 oscillators on different pins, and the review round mixed them up — understandably, because the
 datasheet's worked example is the HSE one:
 
-| | HSE — *not fitted* | LSE — `Y20` |
+| | HSE — *not fitted* | LSE — `Y400` |
 | --- | --- | --- |
 | frequency | 4 / **8** / 48 MHz min/typ/max ‡ (Table 42, p.83) | 32.768 kHz ‡ (Table 43, p.85) |
 | pins | `OSC_IN`/`OSC_OUT` = `PF0`/`PF1` | `OSC32_IN`/`OSC32_OUT` = `PC14`/`PC15`, pins 4/5 |
@@ -433,10 +433,10 @@ drive setting ‡ (Table 43) — the low setting is a fifth of the MCU's own 3.7
 the lowest drive the crystal will start on. And `tSU(LSE)` is **2 s** ‡, measured from software
 enable to stable oscillation. Firmware must not gate anything behind "RTC ready" on a fast path.
 
-Load capacitors are **`C46`/`C47`** (`C48`/`C49` are the button debounce caps — §5.5).
+Load capacitors are **`C405`/`C406`** (`C407`/`C408` are the button debounce caps — §5.5).
 `C_L = C1·C2/(C1+C2) + C_stray`; for a 12.5 pF crystal with ~3 pF of stray,
 `C1 = C2 = 2 × (12.5 − 3) = 19 pF` → **18 pF (E12)**, which is also what R1 fits on its 32.768 kHz
-(`pcb/mainboard/mcu.kicad_sch`, `C13`/`C28`). **`Y20`'s load capacitance is not verified** — the
+(`pcb/mainboard/mcu.kicad_sch`, `C13`/`C306`). **`Y400`'s load capacitance is not verified** — the
 Epson FC-135 ships in 12.5 pF, 9 pF and 7 pF variants and the LCSC listing does not say which
 `C32346` is. Table 43 names **AN2867** ("Oscillator design guide for ST microcontrollers") as the
 selection reference, and also gives `Gmcritmax` per drive setting, which is the number AN2867's
@@ -450,32 +450,32 @@ navigation count is already the two the hardware owner wants (§10.5):
 
 | Ref | Role | Net | Pull-up | Debounce | Part |
 | --- | --- | --- | --- | --- | --- |
-| `SW20` | **power** | `CHG_QON#` → `R41` → `QON_SNS` | internal to the charger, 200 kΩ ‡ | `C50` 100 nF → ~20 ms with that pull-up | `TS-1187A-B-A-B` |
-| `SW21` | page back | `KEY_PREV#` | `R42` 100 kΩ to `+3V3_AON` | `C48` 100 nF → ~10 ms | `EVQPLHA15` |
-| `SW22` | page forward | `KEY_NEXT#` | `R43` 100 kΩ to `+3V3_AON` | `C49` 100 nF → ~10 ms | `EVQPLHA15` |
+| `SW400` | **power** | `CHG_QON#` → `R401` → `QON_SNS` | internal to the charger, 200 kΩ ‡ | `C409` 100 nF → ~20 ms with that pull-up | `TS-1187A-B-A-B` |
+| `SW401` | page back | `KEY_PREV#` | `R402` 100 kΩ to `+3V3_AON` | `C407` 100 nF → ~10 ms | `EVQPLHA15` |
+| `SW402` | page forward | `KEY_NEXT#` | `R403` 100 kΩ to `+3V3_AON` | `C408` 100 nF → ~10 ms | `EVQPLHA15` |
 
 **Which switch wakes the device depends on which "off" it is in, and the two are not the same
 state.** This is the whole reason `CHG_QON#` gets singled out in §2.2:
 
-| State | `+3V3_AON` | `SW21`/`SW22` | `SW20` |
+| State | `+3V3_AON` | `SW401`/`SW402` | `SW400` |
 | --- | --- | --- | --- |
 | **standby** — the everyday off: MCU in Stop 1, rails gated | alive (3.7 µA) | **wake via `EXTI7`/`EXTI8`** | wakes via `EXTI6` |
-| **ship mode** — storage: `BATFET` off, `+VSYS` = 0 | **gone** | dead — `R42`/`R43` pull to a rail that does not exist | **the only switch that works** |
+| **ship mode** — storage: `BATFET` off, `+VSYS` = 0 | **gone** | dead — `R402`/`R403` pull to a rail that does not exist | **the only switch that works** |
 
-`SW20` works with the whole board unpowered because its pull-up is *inside the charger*, referenced
+`SW400` works with the whole board unpowered because its pull-up is *inside the charger*, referenced
 to `V(BAT)` and fed from the cell directly, and the switch is a galvanic short to ground. Per
 `bq25890.pdf` §9.2.10.2 there are exactly four ways out of ship mode, and two of them — clearing
 `BATFET_DIS` and setting `REG_RST` — need a live I²C host, which by definition does not exist in
-ship mode. That leaves **plug in a charger** or **hold `SW20`**. Deleting `SW20` would therefore make
+ship mode. That leaves **plug in a charger** or **hold `SW400`**. Deleting `SW400` would therefore make
 a cable the only way to revive a stored device, and would also give up the `tQON_RST` 12–18 s
 `BATFET` reset, which §9.2.10.3 notes only works while no input source is plugged in. **The hardware
-owner chose to keep `SW20` (2026-08-12);** whether it presents as an edge button or a recessed
+owner chose to keep `SW400` (2026-08-12);** whether it presents as an edge button or a recessed
 pinhole is an enclosure decision, not an electrical one.
 
-**Why `SW21`/`SW22` are not the same part as `SW20`.** They are the most-actuated components on the
+**Why `SW401`/`SW402` are not the same part as `SW400`.** They are the most-actuated components on the
 board. `TS-1187A` is rated 100 000 cycles; at a plausible ~200 page turns a day that is about 1.4
 years. `EVQPLHA15` has the same 1.6 N force and 1.5 mm travel — so the same feel — and is rated
-**500 000** cycles, about seven years on the same assumption, for $0.135 against $0.020. `SW20` stays
+**500 000** cycles, about seven years on the same assumption, for $0.135 against $0.020. `SW400` stays
 a `TS-1187A`: it is pressed rarely, and it is a JLC Basic part. Force and travel are what a datasheet
 can tell us; **whether the click is *satisfying* through a plastic key in a sealed case is dominated
 by keycap coupling and preload and cannot be read off any spec** — it needs samples on the bench
@@ -487,7 +487,7 @@ would cost 330 µA. Nobody holds a page-turn button for hours, but the same reas
 `PG` pull-ups in `power.md` §4 applies, and 100 kΩ against a CMOS input with ≤ ±70 nA of leakage ‡
 (Table 55) still gives a solid high.
 
-`R41` (1 kΩ) sits between `CHG_QON#` and `PD6` — see §2.2. `C50` also slows the edge the switch
+`R401` (1 kΩ) sits between `CHG_QON#` and `PD6` — see §2.2. `C409` also slows the edge the switch
 sees, which is harmless: exiting ship mode needs the line held low for 1.25 s ‡.
 
 **The buttons are on the MCU, not on SoM GPIO.** `Project_description.md` prefers buttons that
@@ -500,7 +500,7 @@ respin.
 low-power verification report (`datasheets/lowpowermode_phytec.pdf`) wakes the module from
 Suspend-to-RAM with a button, via `WAKEUPGPIO` and
 `ti-sci … wakeup source:0x80, pin:0x75, mode:0x0`. So the *mechanism* is demonstrated on this
-exact module, not merely documented. What the report does not say is **which `X1` pin** that
+exact module, not merely documented. What the report does not say is **which `X900` pin** that
 button reaches, and `L-1038e.A5` does not mark WKUP-capable pins as such in Tables 7–10. Until
 that is known there is still nothing to route a button to, so the buttons stay here. It is
 question 3 of the follow-up enquiry in `NOTES-R2-plan.md`; if the answer names usable pins, moving
@@ -510,11 +510,11 @@ them is a change to `som.kicad_sch` and this sheet, and it is worth making befor
 
 `PA14` is `SWCLK` **and** `BOOT0` ‡ (Table 12, p.53). On reset the pin already has an internal
 pull-down and is configured as a debug function ‡ (note 4), and the factory `nBOOT_SEL` option bit
-makes boot selection come from the option bytes rather than the pin. `R40` (10 kΩ to `GND`) is
+makes boot selection come from the option bytes rather than the pin. `R400` (10 kΩ to `GND`) is
 fitted anyway: it is invisible to a push-pull debugger and it guarantees "boot from main flash"
 even if `nBOOT_SEL` is ever cleared by accident. Recovery is then via SWD, which is always present.
 
-`J20` is a **2×6 1.27 mm SMD socket with pads only, not fitted**. It was a 1×5 2.54 mm SWD-only
+`J400` is a **2×6 1.27 mm SMD socket with pads only, not fitted**. It was a 1×5 2.54 mm SWD-only
 header until `tools/patch_mcu_debug_header.py`; it now carries **FPGA JTAG as well**, restoring what
 R1 had on `J5` (§14.8):
 
@@ -549,17 +549,17 @@ absence of an HSE does not rule USB out.
 
 | Path | Works today? | What it needs |
 | --- | --- | --- |
-| **SWD via `J20`** | **yes** — this is the bring-up and recovery path | ST-LINK, a header soldered on, the case open |
-| Factory USART bootloader from the SoM | ~~no~~ **yes, since §5.8** | `BOOT0` high at reset **and** a reset the SoM can drive — it now has both, on `X2` A60 and A59 |
+| **SWD via `J400`** | **yes** — this is the bring-up and recovery path | ST-LINK, a header soldered on, the case open |
+| Factory USART bootloader from the SoM | ~~no~~ **yes, since §5.8** | `BOOT0` high at reset **and** a reset the SoM can drive — it now has both, on `X500` A60 and A59 |
 | Firmware-hosted updater over the same UART | not written | firmware only, no hardware change |
 | USB DFU | **no** | `PA11`/`PA12` routed somewhere; the USB-C data pair is committed to the SoM |
 
 The gap is worth naming plainly, because it is cheap now and impossible later. `PA14` is `BOOT0` but
-carries `R40`, a 10 kΩ pull-**down**, and `MCU_NRST` goes only to `J20` — so **the SoM cannot reset
+carries `R400`, a 10 kΩ pull-**down**, and `MCU_NRST` goes only to `J400` — so **the SoM cannot reset
 the MCU or force it into the factory bootloader.** A firmware-hosted updater over the existing UART
 closes the *update* case with no hardware change, but not the *recovery* case: a bad flash then needs
 the case opened. Giving the SoM two GPIO — one to `MCU_NRST`, one to `BOOT0` through a series
-resistor so it does not fight `R40` or a connected debugger — would make the MCU reflashable and
+resistor so it does not fight `R400` or a connected debugger — would make the MCU reflashable and
 un-brickable from the SoM. That is a WP8 decision and it is in §9. Note also that using `BOOT0` at
 all means clearing `nBOOT_SEL`: §3.5 says the boot pin "can be enabled through the boot selector
 option bit", and §5.6 keeps it at the factory default, where the pin is ignored.
@@ -567,8 +567,8 @@ option bit", and §5.6 keeps it at the factory default, where the pin is ignored
 ### 5.8 The proposal — `A59` and `A60`, and one of them needs a FET
 
 > **APPLIED 2026-08-19** by `tools/patch_som_mcu_recovery.py`. Three parts added to `mcu`:
-> **`Q9`** `AO3400A` (`Transistor_FET:Q_NMOS_GSD`, SOT-23, `C347475`), **`R510`** 100 kΩ gate
-> pull-down, **`R511`** 1 kΩ series. Two no-connects dropped on `som` (A59, A60) and two sheet pins
+> **`Q400`** `AO3400A` (`Transistor_FET:Q_NMOS_GSD`, SOT-23, `C347475`), **`R406`** 100 kΩ gate
+> pull-down, **`R407`** 1 kΩ series. Two no-connects dropped on `som` (A59, A60) and two sheet pins
 > added to each box on the root. Verified: 518 nets before and after, the only membership changes
 > being `MCU_NRST` += `Q9.3`, `MCU_SWCLK` += `R511.2`, `GND` += `Q9.2`/`R510.2`, plus the two new
 > nets and the two `unconnected-` entries that went away. Rendered and checked by eye.
@@ -633,23 +633,23 @@ Use a small N-FET as a one-way switch:
 - SoM drives the gate high → FET on → `NRST` pulled to ground → **MCU in reset**. ✓
 - No DC path from `+3V3_AON` into the SoM's rail in either state. ✓
 
-`AO3400A` is already on this board as `Q6` (`C347475`, 1.3 M in stock), so this adds no BOM line —
-two parts, one of them a resistor. `C45` 100 nF stays where §11 puts it; the FET discharges it.
+`AO3400A` is already on this board as `Q1102` (`C347475`, 1.3 M in stock), so this adds no BOM line —
+two parts, one of them a resistor. `C404` 100 nF stays where §11 puts it; the FET discharges it.
 
 #### `SOM_MCU_BOOT0` is a direct connection through 1 kΩ
 
 No FET here, because the danger runs the other way: nothing on R2 drives `BOOT0` high, so an
-unpowered SoM pin can only help `R40` hold `PA14` low — which is the safe state.
+unpowered SoM pin can only help `R400` hold `PA14` low — which is the safe state.
 
-- `R40` 10 kΩ pull-down stays. SoM high-Z → `BOOT0` low → **normal boot**.
-- SoM drives 3.3 V through 1 kΩ into `R40`: `3.3 × 10/11` = **3.0 V** at `PA14`, comfortably over
+- `R400` 10 kΩ pull-down stays. SoM high-Z → `BOOT0` low → **normal boot**.
+- SoM drives 3.3 V through 1 kΩ into `R400`: `3.3 × 10/11` = **3.0 V** at `PA14`, comfortably over
   V_IH = 0.7 × V_DD = 2.31 V. ✓
 - The 1 kΩ is also the contention limit §5.7 asked for: `PA14` is `SWCLK` as well as `BOOT0`, so if
   an ST-LINK is driving it the debugger wins and the current is held to ~3.3 mA.
 
 #### The factory flow this buys, and the one thing it still depends on
 
-1. Board comes off the line with a **blank MCU** and an SD card in `J21`.
+1. Board comes off the line with a **blank MCU** and an SD card in `J500`.
 2. The SoM boots Linux from the card.
 3. Linux asserts `SOM_MCU_BOOT0`, pulses `SOM_MCU_NRST`.
 4. The MCU comes up in its ROM USART bootloader on `PA9`/`PA10` — which **are** `MCU_TXD`/`MCU_RXD`
@@ -673,7 +673,7 @@ assembly, which changes the factory story.
 Found in the review round of 2026-08-19. `patch_mcu_pg_som.py` told firmware to enable `PC8`'s
 internal pull-down so that "no SoM" would read as "not good". **That would have hung bring-up.**
 
-`X_PGOOD` (`X2` C54) is open-drain with a **100 kΩ pull-up on the module** (`L-1038e.A5` Table 13,
+`X_PGOOD` (`X500` C54) is open-drain with a **100 kΩ pull-up on the module** (`L-1038e.A5` Table 13,
 §5.4). The G0's internal pull-down is **25 / 40 / 55 kΩ** (`stm32g0b1.pdf` Table 55). Enabled
 together they form a divider, and it lands on the wrong side of the threshold:
 
@@ -688,7 +688,7 @@ so no firmware change rescues it.
 
 Leaving `PC8` passive fixes that but loses the case the pull-down was written for. The `PCM-071` is
 a plug-in module on two `BTH-060` receptacles, so it can be **absent**, not merely unpowered — and
-then there is no 100 kΩ either and the pin floats. **`R512` 1 MΩ to `GND` covers all three:**
+then there is no 100 kΩ either and the pin floats. **`R408` 1 MΩ to `GND` covers all three:**
 
 | Case | Node | Reads |
 | --- | --- | --- |
@@ -699,8 +699,8 @@ then there is no 100 kΩ either and the pin floats. **`R512` 1 MΩ to `GND` cove
 0.69 V of margin, and 3.3 µA of leakage that only flows while the module is powered *and* asserting
 good — with the SoM off there is nothing to draw from.
 
-**Applied 2026-08-19** by `tools/patch_pg_som_pulldown.py`. `R512` sits on free canvas and reaches
-`PG_SOM` by label, so the dense region around `U20` was not touched — but **layout must place it at
+**Applied 2026-08-19** by `tools/patch_pg_som_pulldown.py`. `R408` sits on free canvas and reaches
+`PG_SOM` by label, so the dense region around `U400` was not touched — but **layout must place it at
 pin 48**, §11. Verified: 518 nets before and after, the only changes being `PG_SOM` += `R512.1` and
 `GND` += `R512.2`.
 
@@ -713,13 +713,13 @@ All stock KiCad 10, all verified present in this KiCad install:
 
 | Ref | Footprint |
 | --- | --- |
-| `U20` | `Package_QFP:LQFP-64_10x10mm_P0.5mm` |
-| `Y20` | `Crystal:Crystal_SMD_3215-2Pin_3.2x1.5mm` |
-| `FB20` | `Inductor_SMD:L_0402_1005Metric` |
-| `D20` | `LED_SMD:LED_0603_1608Metric` |
-| `SW20` | `Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A` |
-| `SW21`, `SW22` | `Button_Switch_SMD:SW_SPST_Panasonic_EVQPL_3PL_5PL_PT_A15` |
-| `J20` | `Connector_PinSocket_1.27mm:PinSocket_2x06_P1.27mm_Vertical_SMD` |
+| `U400` | `Package_QFP:LQFP-64_10x10mm_P0.5mm` |
+| `Y400` | `Crystal:Crystal_SMD_3215-2Pin_3.2x1.5mm` |
+| `FB400` | `Inductor_SMD:L_0402_1005Metric` |
+| `D400` | `LED_SMD:LED_0603_1608Metric` |
+| `SW400` | `Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A` |
+| `SW401`, `SW402` | `Button_Switch_SMD:SW_SPST_Panasonic_EVQPL_3PL_5PL_PT_A15` |
+| `J400` | `Connector_PinSocket_1.27mm:PinSocket_2x06_P1.27mm_Vertical_SMD` |
 | `R4x`, `C4x` | `Resistor_SMD:R_0402_1005Metric`, `Capacitor_SMD:C_0402_1005Metric` |
 
 Nothing has to be authored for this sheet — unlike `power.md` §7, which still owes three.
@@ -738,10 +738,10 @@ cites Panasonic `ATK0000CE3.pdf`, which is not in `../datasheets/`. Confirm agai
 
 | | |
 | --- | --- |
-| `U20` in Stop 1, RTC on, 3 V ‡ | 3.7 µA |
-| `R42`, `R43` button pull-ups, buttons released | 0 |
-| `R41` / `PD6` leakage from `CHG_QON#` ‡ | ≤ 0.6 µA |
-| `D20` status LED, off | 0 |
+| `U400` in Stop 1, RTC on, 3 V ‡ | 3.7 µA |
+| `R402`, `R403` button pull-ups, buttons released | 0 |
+| `R401` / `PD6` leakage from `CHG_QON#` ‡ | ≤ 0.6 µA |
+| `D400` status LED, off | 0 |
 | **total, standby** | **~4.3 µA ≈ 14 µW** |
 
 Against `power.md` §8's ~24 µA of converter overhead and the ~10 mW standby target, the controller
@@ -776,33 +776,33 @@ error and the sheets are drawn months apart.
   was corrected on 2026-08-15: `L-1038e.A5` §5.4 makes it **mandatory** that nothing drives the
   SoM's I/O before the module is powered, so `+3V3` — which is `VCCO` for the FPGA bank facing the
   SoM — must come up *after* the module, gated on the module's `X_PGOOD`. That signal has to reach
-  the MCU. **`X2` C54 → a spare GPIO; `PC8` is the suggestion**, keeping the four ADC-capable
+  the MCU. **`X500` C54 → a spare GPIO; `PC8` is the suggestion**, keeping the four ADC-capable
   spares free. `X_PGOOD` is open-drain with its pull-up on the SOM's own 3.3 V, so the net floats
   when the SoM is unpowered — ~~enable the internal pull-down~~ **corrected 2026-08-19, see §5.9**:
   the internal pull-down is 25/40/55 kΩ against the module's 100 kΩ pull-up, which reads 0.94 V
-  and hangs bring-up. `R512` 1 MΩ external, internal pull-down **disabled**.
+  and hangs bring-up. `R408` 1 MΩ external, internal pull-down **disabled**.
   One net on `mcu.kicad_sch`, one on `som.kicad_sch`; both land when WP8 draws the SoM sheet.
 - **The spare count in §3.2 says 11 and the schematic has 10.** `PC10` was claimed for `FPGA_INIT`
   in WP5 and the sentence was not updated. Live spares, read out of the netlist: `PA11`, `PA12`,
   `PB12`, `PC3`, `PC4`, `PC5`, `PC6`, `PC8`, `PC9`, `PD9` — nine after `PG_SOM` takes one.
 - ~~⚠ **`FL_PWM2` is freed and `FL_INT#` is owed** …~~ **CLOSED 2026-08-30 — see §16.1.** Both
-  halves resolved: `FL_INT#` was withdrawn on 2026-08-23 (`frontlight.md` §9.1), and `J6` losing
+  halves resolved: `FL_INT#` was withdrawn on 2026-08-23 (`frontlight.md` §9.1), and `J1000` losing
   pin 42 removed `FL_PWM2`'s last node. `PB7` is a plain spare.
-- **`Y20`'s load capacitance is unverified.** Epson FC-135 exists in 12.5 pF, 9 pF and 7 pF;
-  **`C46` and `C47`** are 18 pF on the assumption of 12.5 pF and ~3 pF stray (§5.4). Confirm from the
+- **`Y400`'s load capacitance is unverified.** Epson FC-135 exists in 12.5 pF, 9 pF and 7 pF;
+  **`C405` and `C406`** are 18 pF on the assumption of 12.5 pF and ~3 pF stray (§5.4). Confirm from the
   Epson datasheet before layout, and check the crystal's drive-level rating against the G0's LSE
   drive setting — an overdriven watch crystal ages badly. Table 43 gives `Gmcritmax` per
   `LSEDRV[1:0]` setting, which is the figure **AN2867**'s margin check consumes; neither the Epson
   datasheet nor AN2867 is in `../datasheets/`. *(Corrected in review 1: this item previously named
-  `C48`/`C49`, which are the button debounce capacitors.)*
+  `C407`/`C408`, which are the button debounce capacitors.)*
 - **The page buttons' click quality is untested, and no datasheet settles it.** `EVQPLHA15` is
   specified at 1.6 N and 1.5 mm travel (§5.5), but feel through a keycap in a sealed case depends on
   coupling and preload. Order samples — including the 2.6 N `TS-1187A` variants, which share the
-  `SW20` land pattern — and decide on the bench. **Needs a hardware test; cannot be settled from
+  `SW400` land pattern — and decide on the bench. **Needs a hardware test; cannot be settled from
   here.**
-- **`SW21`/`SW22`'s footprint is checked dimensionally, not against the vendor drawing.** Panasonic
+- **`SW401`/`SW402`'s footprint is checked dimensionally, not against the vendor drawing.** Panasonic
   `ATK0000CE3.pdf` is not in `../datasheets/`; §6 records what *was* checked.
-- **The MCU has no field-update or brick-recovery path (§5.7).** SWD via `J20` is the only way in
+- **The MCU has no field-update or brick-recovery path (§5.7).** SWD via `J400` is the only way in
   today, and it needs the case open. The factory USART bootloader is already on the right pins
   (`PA9`/`PA10`), so the missing pieces are only a SoM-drivable `MCU_NRST` and `BOOT0`. Two GPIO,
   free now, impossible after fabrication. **WP8, and it should be decided with the SoM's pin budget
@@ -816,7 +816,7 @@ error and the sheets are drawn months apart.
 - ~~**Negative-rail measurement.**~~ **Answered in WP4** (`epd-port.md` §4.2): R1 divides between
   the negative rail and `+3V3_DCDC` rather than to ground. Carried over unchanged. One consequence
   for firmware: `VREF+` is `+3V3_AON` here but the divider references `+3V3_DCDC`, so `VN_MEA` and
-  `VGL_MEA` can only be interpreted together with the `+3V3` bus voltage read from `U21` ch3.
+  `VGL_MEA` can only be interpreted together with the `+3V3` bus voltage read from `U1200` ch3.
 - **`SOM_*` handshake.** Three signals are reserved (`WAKE#`, `IRQ#`, `RESET#`) plus the UART. What
   the SoM actually needs — and whether `SOM_RESET#` is even accessible on `PCL-071` — is WP8, and
   waits on PHYTEC.
@@ -870,8 +870,8 @@ exactly three groups:
 
 There is no coin cell here, so `VBAT` is not an independent supply: Table 12's LQFP64-GP column puts
 `VBAT` on pin 6 and `VDD/VDDA` on pin 8, and the netlist confirmed both sat on `+3V3_AON` together
-with `C40`, `C41`, `C42` and `FB20`. So `C42` was a third capacitor on a net that already carried
-Figure 15's specified pair, two pin-pitches from `C41`. It contributed nothing that `C41` was not
+with `C400`, `C401`, `C42` and `FB400`. So `C42` was a third capacitor on a net that already carried
+Figure 15's specified pair, two pin-pitches from `C401`. It contributed nothing that `C401` was not
 already contributing.
 
 **Changed:** `C42`, its `GND` symbol `#PWR305`, its stub wire and its rail junction are deleted. The
@@ -884,10 +884,10 @@ For the record, this is not a general rule. If `VBAT` ever gets its own source �
 supercap, which §3.7.6 explicitly contemplates — it becomes a separate supply pin and wants its own
 decoupling immediately.
 
-### 10.2 `FB20`: "Where in the doc does it call for this?" — **right: it doesn't. Kept anyway, and the doc now says so**
+### 10.2 `FB400`: "Where in the doc does it call for this?" — **right: it doesn't. Kept anyway, and the doc now says so**
 
 Nowhere. That was worth catching, because §5.1 introduced the whole block with "straight from ST's
-own scheme", which made `FB20` look like it had a citation. It does not. Figure 15 feeds `VREF+` from
+own scheme", which made `FB400` look like it had a citation. It does not. Figure 15 feeds `VREF+` from
 the same supply through 100 nF + 1 µF with **no series element**.
 
 Where it came from: ST's other families bring `VDDA` out as its own pin and their reference designs
@@ -898,7 +898,7 @@ that applying it is a choice.
 
 **Correct as drawn, on these grounds rather than the datasheet's:**
 
-- **Asymmetry.** `FB20` can be replaced by a 0 Ω jumper at any time after fabrication. A filtered
+- **Asymmetry.** `FB400` can be replaced by a 0 Ω jumper at any time after fabrication. A filtered
   `VREF+` cannot be created after fabrication. The same reasoning reserved `FL_PWM2` in §3.2.
 - **What it buys.** The ADC reads the EPD high-voltage rails through 11:1 dividers (§5.2), so one
   ADC LSB at 3.3 V is 0.8 mV at the pin but 8.8 mV at the divider input. Reference noise is
@@ -914,7 +914,7 @@ impedance, could eat that 400 mV budget. **That constraint is now written into �
 part's `Description` on the sheet**, because it is exactly the kind of thing a future substitution
 would silently break.
 
-### 10.3 `Y20`: "Doesn't the doc say 8 MHz resonator?" — **no; that is the HSE. Correct as drawn**
+### 10.3 `Y400`: "Doesn't the doc say 8 MHz resonator?" — **no; that is the HSE. Correct as drawn**
 
 The 8 MHz is real, and it is in the datasheet twice — but both times it describes the **HSE**, which
 this design does not fit:
@@ -924,7 +924,7 @@ this design does not fit:
 - **Figure 20 (p.84)** is captioned "Typical application with an **8 MHz** crystal" — ST's worked
   example for the HSE.
 
-`Y20` is the **LSE**: 32.768 kHz, specified in **Table 43 (p.85)**, drawn in **Figure 21**, and wired
+`Y400` is the **LSE**: 32.768 kHz, specified in **Table 43 (p.85)**, drawn in **Figure 21**, and wired
 to `OSC32_IN`/`OSC32_OUT` = `PC14`/`PC15` (pins 4 and 5) — different pins from the HSE's
 `OSC_IN`/`OSC_OUT` on `PF0`/`PF1`, which this sheet uses for `MCU_EN_5V`/`MCU_EN_3V3`. §5.4 said "LSE
 only. No HSE" but never put the two side by side, which is what let the confusion happen; it now
@@ -935,9 +935,9 @@ Two useful things came out of re-reading Table 43 and are now in §5.4: `IDD(LSE
 sheet's entire standby budget — and `tSU(LSE)` is **2 seconds** from software enable to stable
 oscillation.
 
-### 10.4 `D20`: "What is this LED for? Only for the prototype?" — **correct as drawn; keep it**
+### 10.4 `D400`: "What is this LED for? Only for the prototype?" — **correct as drawn; keep it**
 
-It is a status LED on `PC2` (`LED_STAT#`), sinking through `R44` 1 kΩ from `+3V3_AON`. Active low —
+It is a status LED on `PC2` (`LED_STAT#`), sinking through `R404` 1 kΩ from `+3V3_AON`. Active low —
 the MCU pulls the cathode side down — hence the `#`. Current is **≈1.3 mA (est.)**: `(3.3 − Vf)/1 kΩ`
 with a green Vf around 2.0 V at that current. *(Est. because `LTST-C191KGKT`'s datasheet is not in
 `../datasheets/`. It affects brightness only; nothing depends on the exact figure.)*
@@ -958,17 +958,17 @@ pads stay for bring-up.
 Three separate things here.
 
 **"For the final product I want only two buttons, prev and next, since enter will be done with
-touchscreen."** There is no enter button on this sheet. The three switches are **power** (`SW20`),
-**page back** (`SW21`) and **page forward** (`SW22`) — so the navigation count is already two, and
+touchscreen."** There is no enter button on this sheet. The three switches are **power** (`SW400`),
+**page back** (`SW401`) and **page forward** (`SW402`) — so the navigation count is already two, and
 the touchscreen is already doing what the note wanted it to do. Going to two *switches* would mean
 deleting the **power** button, which is a different proposition entirely, so it was raised rather
-than done. **The hardware owner chose to keep `SW20` (2026-08-12);** no schematic change.
+than done. **The hardware owner chose to keep `SW400` (2026-08-12);** no schematic change.
 
 Why it matters: `bq25890.pdf` §9.2.10.2 lists exactly four ways to leave ship mode — plug in an
 adapter, clear `BATFET_DIS`, set `REG_RST`, or hold `QON` low for `tSHIPMODE` (1.25–2.25 s per the
 timing table). The middle two need a live I²C host, and in ship mode `BATFET` is off, so `+VSYS` and
 therefore `+3V3_AON` and therefore the MCU do not exist. **The real exits are a cable or the button.**
-Deleting `SW20` would also give up the `tQON_RST` 12–18 s `BATFET` reset, and §9.2.10.3 notes that
+Deleting `SW400` would also give up the `tQON_RST` 12–18 s `BATFET` reset, and §9.2.10.3 notes that
 one only works while no input source is plugged in — so USB is not a substitute for it either.
 
 **"Will these buttons work with mcu unpowered to wake everything up, or why is this specifically
@@ -980,19 +980,19 @@ states:
 | `BATFET` | on | **off** |
 | `+VSYS`, `+3V3_AON` | up | **0 V** |
 | MCU | Stop 1, 3.7 µA, `EXTI` armed | **unpowered** |
-| `SW21`/`SW22` | **wake it** — `EXTI7`/`EXTI8` | dead: `R42`/`R43` pull up to a rail that is gone |
-| `SW20` | wakes it — `EXTI6` | **works** |
+| `SW401`/`SW402` | **wake it** — `EXTI7`/`EXTI8` | dead: `R402`/`R403` pull up to a rail that is gone |
+| `SW400` | wakes it — `EXTI6` | **works** |
 
 So: with the MCU merely *asleep*, prev/next wake everything, and that is the case the device is in
 almost all of the time. With the MCU *unpowered*, nothing on `+3V3_AON` can do anything — including
 the touchscreen. `CHG_QON#` is singled out because its pull-up is inside the charger, referenced to
-`V(BAT)` and fed from the cell directly, and `SW20` is a galvanic short to ground: it is the one
+`V(BAT)` and fed from the cell directly, and `SW400` is a galvanic short to ground: it is the one
 switch on the board that does not depend on any powered part. That is also why §2.2 forbids wiring it
 to a `+3V3_AON` pull-up.
 
 **"I don't know which switches to use since I would like a satisfying click."** Asking this turned up
-a real problem that has nothing to do with click: **`TS-1187A` is rated 100 000 cycles.** `SW21` and
-`SW22` are the most-actuated parts on the board, and at ~200 page turns a day 100 k is about **1.4
+a real problem that has nothing to do with click: **`TS-1187A` is rated 100 000 cycles.** `SW401` and
+`SW402` are the most-actuated parts on the board, and at ~200 page turns a day 100 k is about **1.4
 years**. Nothing in the review notes was aimed at this; it fell out of looking up the force spec.
 
 Queried on LCSC 2026-08-12:
@@ -1003,11 +1003,11 @@ Queried on LCSC 2026-08-12:
 | `TS-1187A-C-C-B` | `C318889` | **2.6 N** | 1.7 mm | 100 k | 5.1×5.1 | $0.0397 | same footprint |
 | `TS-1187A-C-E-B` | `C318887` | **2.6 N** | 2.5 mm | 100 k | 5.1×5.1 | $0.0402 | same footprint |
 | `TS-1187A-C-F-B` | `C571338` | **2.6 N** | 3.0 mm | 100 k | 5.1×5.1 | $0.0474 | same footprint |
-| **`EVQPLHA15`** *(now fitted on `SW21`/`SW22`)* | `C79172` | 1.6 N | 1.5 mm | **500 k** | 4.9×4.9 | $0.1348 | `SW_SPST_Panasonic_EVQPL_3PL_5PL_PT_A15` |
+| **`EVQPLHA15`** *(now fitted on `SW401`/`SW402`)* | `C79172` | 1.6 N | 1.5 mm | **500 k** | 4.9×4.9 | $0.1348 | `SW_SPST_Panasonic_EVQPL_3PL_5PL_PT_A15` |
 
-**Changed:** `SW21`/`SW22` → `EVQPLHA15`, footprint and `LCSC` field with it. Same force and travel,
+**Changed:** `SW401`/`SW402` → `EVQPLHA15`, footprint and `LCSC` field with it. Same force and travel,
 so the feel is unchanged; five times the cycle life, about seven years on the same assumption.
-`SW20` stays a `TS-1187A-B-A-B` — pressed rarely, and JLC Basic.
+`SW400` stays a `TS-1187A-B-A-B` — pressed rarely, and JLC Basic.
 
 On the click itself, the honest answer: **force and travel are all a datasheet gives, and they do not
 predict it.** What a finger feels through a keycap in a sealed case is dominated by how the cap
@@ -1042,7 +1042,7 @@ of 11 is right, and `PA11`/`PA12` are genuinely free. That last part matters in 
 
 ### 10.7 "How do I flash/program the MCU?" — **answered, and it exposed a gap**
 
-Today: **SWD**. `MCU_SWDIO`/`MCU_SWCLK` on `PA13`/`PA14` to `J20`, which is pads only and not fitted
+Today: **SWD**. `MCU_SWDIO`/`MCU_SWCLK` on `PA13`/`PA14` to `J400`, which is pads only and not fitted
 (§5.6) — solder a header on, use any ST-LINK, the `CN4` pin order means a stock Nucleo cable fits.
 That is the bring-up path and the recovery path, and it needs the case open.
 
@@ -1053,31 +1053,31 @@ on `PA4`–`PA7` or `PB12`–`PB15`; or **USB on `PA11`/`PA12`**. Two of those a
 the spares — with the G0B1's USB being crystal-less capable ‡ (§3.24), so the missing HSE does not
 rule it out.
 
-**The gap:** the data path exists, the control path does not. `BOOT0` is `PA14`, which carries `R40`
-as a 10 kΩ pull-*down*, and `MCU_NRST` goes only to `J20`. **The SoM can talk to the bootloader but
+**The gap:** the data path exists, the control path does not. `BOOT0` is `PA14`, which carries `R400`
+as a 10 kΩ pull-*down*, and `MCU_NRST` goes only to `J400`. **The SoM can talk to the bootloader but
 cannot start it, because it can neither reset the MCU nor pull `BOOT0` high.** A firmware-hosted
 updater over the existing UART closes the *update* case with no hardware change at all, but not the
 *recovery* case — a bad flash then needs the case opened. Two SoM GPIO, one to `MCU_NRST` and one to
-`BOOT0` through a series resistor so it fights neither `R40` nor a connected debugger, would close
+`BOOT0` through a series resistor so it fights neither `R400` nor a connected debugger, would close
 both. Free now, impossible after fabrication. Recorded in §9 as a WP8 decision, and §5.7 is the new
 section that lays it out.
 
 ### 10.8 Two errors of mine, found while answering
 
-- **§9 named `C48`/`C49` as the crystal load capacitors.** They are the button debounce capacitors;
-  the load capacitors are **`C46`/`C47`**. §5.4's arithmetic was right and named no reference at all,
+- **§9 named `C407`/`C408` as the crystal load capacitors.** They are the button debounce capacitors;
+  the load capacitors are **`C405`/`C406`**. §5.4's arithmetic was right and named no reference at all,
   which is how the two survived side by side. Both sections now name them explicitly.
-- **§5.1 presented the whole supply block as "straight from ST's own scheme".** `FB20` is not, and
+- **§5.1 presented the whole supply block as "straight from ST's own scheme".** `FB400` is not, and
   §10.2 is the correction. The claim was too broad, and it is the reason the review had to ask.
 
 ### 10.9 Not changed, and why
 
-- **`R44` stays 1 kΩ.** ≈1.3 mA is visible on a modern green 0603 and the pin's 15 mA sink limit ‡
+- **`R404` stays 1 kΩ.** ≈1.3 mA is visible on a modern green 0603 and the pin's 15 mA sink limit ‡
   (Table 22) is nowhere near.
-- **`R42`/`R43` stay 100 kΩ.** §5.5's reasoning is unaffected by the switch change; the new part is
+- **`R402`/`R403` stay 100 kΩ.** §5.5's reasoning is unaffected by the switch change; the new part is
   the same 50 mA / 12 V rating.
-- **`C48`/`C49`/`C50` stay 100 nF.** Debounce times are set by the pull-up, which did not change.
-- **The `QON_SNS` / `CHG_QON#` split stays** (§2.2), and with `SW20` retained the whole argument for
+- **`C407`/`C408`/`C409` stay 100 nF.** Debounce times are set by the pull-up, which did not change.
+- **The `QON_SNS` / `CHG_QON#` split stays** (§2.2), and with `SW400` retained the whole argument for
   it stands unchanged.
 
 ## 11. Layout guidelines — collected now, to be applied at Stage D
@@ -1092,37 +1092,37 @@ imperative: the supply pin pairs "must be decoupled with filtering ceramic capac
 above. These capacitors must be placed **as close as possible to, or below, the appropriate pins on
 the underside of the PCB**". Concretely, for this sheet:
 
-- `C41` (100 nF) at pin 8 `VDD/VDDA`, with `C40` (4.7 µF) behind it. Pin 6 `VBAT` shares the net and
+- `C401` (100 nF) at pin 8 `VDD/VDDA`, with `C400` (4.7 µF) behind it. Pin 6 `VBAT` shares the net and
   sits two pitches away, which is what makes one group sufficient (§10.1) — but it only holds if the
-  group really is at pin 8. If `C41` migrates during placement, `VBAT` loses its decoupling too.
-- `C44` (100 nF) then `C43` (1 µF) at pin 7 `VREF+`, on the far side of `FB20`.
+  group really is at pin 8. If `C401` migrates during placement, `VBAT` loses its decoupling too.
+- `C403` (100 nF) then `C402` (1 µF) at pin 7 `VREF+`, on the far side of `FB400`.
 - The ground return for all four goes to the plane directly under the part, not around it.
 
-### 11.2 `VREF+` and `FB20`
+### 11.2 `VREF+` and `FB400`
 
-`FB20` must sit between the `+3V3_AON` pour and pin 7, with `C43`/`C44` on the pin-7 side of it —
+`FB400` must sit between the `+3V3_AON` pour and pin 7, with `C402`/`C403` on the pin-7 side of it —
 a bead with its capacitors on the wrong side filters nothing. Keep the `VREF+` island small; it is a
 quiet high-impedance node and any copper on it is an antenna. Do not pour `+3V3_AON` over it.
 
 ### 11.3 The crystal — the most layout-sensitive circuit here
 
-`Y20` at 32.768 kHz is a high-impedance, sub-microamp oscillator (`IDD(LSE)` 250–630 nA, Table 43),
+`Y400` at 32.768 kHz is a high-impedance, sub-microamp oscillator (`IDD(LSE)` 250–630 nA, Table 43),
 which makes it the easiest thing on this sheet to break with copper:
 
-- `Y20`, `C46` and `C47` as close to pins 4/5 as the footprints allow, on the same layer, with the
+- `Y400`, `C405` and `C406` as close to pins 4/5 as the footprints allow, on the same layer, with the
   shortest possible traces. No vias in `OSC32_IN`/`OSC32_OUT`.
 - A **guard ring** tied to `GND` around the whole oscillator, with both load capacitors' returns
-  landing on it and a solid ground directly beneath. **`Y20` has no case ground to land** — the
+  landing on it and a solid ground directly beneath. **`Y400` has no case ground to land** — the
   footprint is `Crystal_SMD_3215-2Pin_3.2x1.5mm`, two pads and nothing else — so the ring's only
-  connections are `C46`/`C47` and its own stitching vias. The ring has to be *drawn*: `In1.Cu` is a
+  connections are `C405`/`C406` and its own stitching vias. The ring has to be *drawn*: `In1.Cu` is a
   board-wide `GND` zone, so "solid ground beneath" comes free, but there is no `F.Cu` pour anywhere
-  near `U20`, and `U20`'s nearest `VSS` (pin 9) is 2.0–2.5 mm away behind `VDD`/`VREF+`/`VBAT`, so it
+  near `U400`, and `U400`'s nearest `VSS` (pin 9) is 2.0–2.5 mm away behind `VDD`/`VREF+`/`VBAT`, so it
   is not the return to use.
 - Nothing switching may cross or run beside `OSC32_IN`/`OSC32_OUT` on any layer — specifically not
   `MCU_SWCLK`, the I²C pair, `FL_PWM1`/`FL_PWM2`, or anything from `power.kicad_sch`'s switching
   nodes. Crosstalk here shows up as an RTC that gains or loses time, which is a miserable bug to
   chase.
-- Keep the SWD header away from it: `J20` is a 2.54 mm header whose long stubs sit near `PA13`/`PA14`.
+- Keep the SWD header away from it: `J400` is a 2.54 mm header whose long stubs sit near `PA13`/`PA14`.
 - **AN2867 is the reference and is not in the repo.** Fetch it before this is committed (§9).
 
 ### 11.4 `QON` and the power button
@@ -1130,29 +1130,29 @@ which makes it the easiest thing on this sheet to break with copper:
 `CHG_QON#` is the one net on the sheet that is alive with everything else dead, and it idles at up to
 4.3 V (§2.2). Route it as a plain signal, but:
 
-- Keep `R41` **at the MCU end**, next to `PD6` — its job is to limit fault current into that pin, so
+- Keep `R401` **at the MCU end**, next to `PD6` — its job is to limit fault current into that pin, so
   the resistor must be between the pin and the rest of the world, not next to the switch.
-- `C50` belongs at `SW20`, where it can debounce the contact.
+- `C409` belongs at `SW400`, where it can debounce the contact.
 - Keep the net away from the EPD high-voltage nets on `epd_power`. A short from a 26 V rail into a
   4.3 V net that reaches an MCU pin is one of the few genuinely destructive faults available here.
 
 ### 11.5 Buttons and the LED
 
-- `SW21`/`SW22` are pressed by a finger through a case: give them mechanical support, keep the keep-out
+- `SW401`/`SW402` are pressed by a finger through a case: give them mechanical support, keep the keep-out
   clear on the solder side, and expect assembly force on the pads. `EVQPLHA15`'s two pads numbered
   `0` are mechanical anchors — land them, they are what takes that force.
-- Their debounce capacitors (`C48`/`C49`) go at the switch, not at the MCU.
-- `D20` needs its position decided with the enclosure, since a light pipe constrains it more than
-  electrons do. `R44` can sit anywhere.
+- Their debounce capacitors (`C407`/`C408`) go at the switch, not at the MCU.
+- `D400` needs its position decided with the enclosure, since a light pipe constrains it more than
+  electrons do. `R404` can sit anywhere.
 
 ### 11.6 The part itself
 
 - LQFP-64 at 0.5 mm pitch on a 10 × 10 mm body: no fine-pitch surprises, but 60 I/O leaving a small
-  part means the escape pattern decides the whole board's routing. Place `U20` before anything else
+  part means the escape pattern decides the whole board's routing. Place `U400` before anything else
   on this sheet.
-- `R512` (1 MΩ, `PG_SOM` bias) belongs at pin 48. It is drawn on free canvas and joined by label,
+- `R408` (1 MΩ, `PG_SOM` bias) belongs at pin 48. It is drawn on free canvas and joined by label,
   which is a schematic convenience only — a 1 MΩ node is high-impedance and wants a short track.
-- `MCU_NRST` wants `C45` close to pin 12, and the net kept short — it is an input with no internal
+- `MCU_NRST` wants `C404` close to pin 12, and the net kept short — it is an input with no internal
   glitch filter worth relying on.
 - The I²C pair `SCL_AON`/`SDA_AON` leaves for `battery` and `power_mon`; route them together, and
   remember the pull-ups are on `battery.kicad_sch` (§5.3), so the bus's electrical length spans two
@@ -1163,8 +1163,8 @@ which makes it the easiest thing on this sheet to break with copper:
 ## 12. Conventions
 
 Reference designators on this sheet start at 20 (`U`, `Y`, `SW`, `D`, `J`, `FB`) and 40 (`R`, `C`),
-and its `#PWRnnn` symbols at 300. `battery.kicad_sch` owns `U1`–`U3`/`C1`–`C8`/`R1`–`R19`/`L1` and
-`power.kicad_sch` owns `U10`–`U15`/`C20`–`C34`/`R20`–`R36`/`L10`–`L13`, so each sheet keeps its own
+and its `#PWRnnn` symbols at 300. `battery.kicad_sch` owns `U1`–`U202`/`C200`–`C207`/`R200`–`R215`/`L200` and
+`power.kicad_sch` owns `U10`–`U15`/`C300`–`C312`/`R300`–`R316`/`L300`–`L303`, so each sheet keeps its own
 block rather than relying on a global re-annotate that would renumber reviewed work.
 
 ## 13. Verification — what was actually run
@@ -1203,13 +1203,13 @@ block rather than relying on a global re-annotate that would renumber reviewed w
   net count unchanged at 228, no new `unconnected-*` nets. `+3V3_AON` retains `C40.1`, `C41.1`,
   `FB20.1`, `U20.6(VBAT)` and `U20.8(VDD)` — Figure 15's scheme exactly.
 - **Re-rendered to PNG and read at 150 and 400 dpi after patching.** The decoupling block is
-  continuous from `C40`/`C41` across to `FB20` with no stranded stub where `C42` was, the rail
+  continuous from `C400`/`C401` across to `FB400` with no stranded stub where `C42` was, the rail
   junctions at both remaining taps are intact, and the reworded note does not collide with anything.
 - **`tools/patch_mcu_review1.py` refuses to run twice** — it asserts on `C42` still being present and
   exits non-zero once the patch has been applied.
 - **`kicad-cli sch export netlist`, checked mechanically rather than by eye.** A script re-read the
   exported netlist and asserted that all **50** pin assignments in §3 land on the port they claim
-  (using the netlist's own `pinfunction` field), and that the set of unconnected `U20` pins is
+  (using the netlist's own `pinfunction` field), and that the set of unconnected `U400` pins is
   **exactly** the 11 in the reserve list — no more, no less. Both passed. Multi-pin nets were then
   read individually: `CHG_QON#` = `SW20.1, C50.1, R41.2`; `QON_SNS` = `R41.1, U20.56`;
   `KEY_PREV#` = `SW21.1, R42.2, C48.1, U20.39`; `OSC32_IN`/`OSC32_OUT` each = crystal, load cap,
@@ -1250,20 +1250,20 @@ the sheet, not from memory.
 | Flash | 128 KB internal **+ `W25Q32JV` QSPI NOR** | 256 KB internal, no external flash |
 | Pins connected | **94 of 100** — 6 spare | **49 of 60** — 11 spare |
 | Parts on the sheet | **41** | **24** |
-| HSE | `Y1` 24 MHz + `R20` damping + 2 load caps | **none** |
-| LSE | `Y2` 32.768 kHz | `Y20` 32.768 kHz |
-| Analog filter | `FB3` 120 Ω → `+3V3A` → `VDDA` **and** `VREF+` | `FB20` 120 Ω → `VREF+` only |
+| HSE | `Y1` 24 MHz + `R300` damping + 2 load caps | **none** |
+| LSE | `Y2` 32.768 kHz | `Y400` 32.768 kHz |
+| Analog filter | `FB3` 120 Ω → `+3V3A` → `VDDA` **and** `VREF+` | `FB400` 120 Ω → `VREF+` only |
 | Core regulator caps | 2 × `VCAP`, 4 × 4.7 µF | none — the G0 needs no external core cap |
 | Buttons | 3, switch to **`+3V3`**, active-high | 3, switch to **`GND`**, active-low |
-| `BOOT0` | **`KEY1` doubles as `BOOT0`** → USB DFU | `R40` 10 k pull-down, no DFU path |
-| Debug connector | `J5` 2×6 1.27 mm, **fitted**, FPGA JTAG *and* MCU SWD | `J20` 1×5 2.54 mm, **pads only**, SWD only |
+| `BOOT0` | **`KEY1` doubles as `BOOT0`** → USB DFU | `R400` 10 k pull-down, no DFU path |
+| Debug connector | `J5` 2×6 1.27 mm, **fitted**, FPGA JTAG *and* MCU SWD | `J400` 1×5 2.54 mm, **pads only**, SWD only |
 | Status LEDs | 2 (green + red), sourced | 1 (green), sunk |
 | microSD | `J7` on this sheet, 6 SDIO pins | moved to `io_expansion` (WP6) |
 | Sheet interface | 94 global labels, **0 hierarchical** | 0 global, **41 hierarchical** + 106 local |
 
 ### 14.2 The net-level diff
 
-Comparing named nets on `U3` against named nets on `U20`: **78 → 52**, of which **22 carried over
+Comparing named nets on `U202` against named nets on `U400`: **78 → 52**, of which **22 carried over
 unchanged, 56 were dropped, 30 are new.** That ratio is the whole story of R2's MCU in one line — two
 thirds of R1's MCU pin budget went to work R2 does not do here, and the replacement work is a
 different, smaller set.
@@ -1273,7 +1273,7 @@ different, smaller set.
 R1's H750 was the board's only processor, so it owned:
 
 - **Caster's CSR bus as SPI master** (`FPGA_CS`/`SCLK`/`MOSI`/`MISO`) plus configuration
-- **A 13-pin FMC parallel bus to the FPGA** (`FMC_D0`–`D7`, `A16`, `NE1`, `NOE`, `NWE`)
+- **A 13-pin FMC parallel bus to the FPGA** (`FMC_D0`–`D200`, `A16`, `NE1`, `NOE`, `NWE`)
 - **6 QSPI pins** to `U14`, the `W25Q32JV` holding the bitstream, fonts, LUTs and config
 - **6 SDIO pins** to the microSD `J7`
 - **7 pins of USB-C** — `USB_DP`/`DN`, `TYPEC_ORI`, `TCPC_INT`, `HPD_EN`, `DP_PDN`, `DP_HPD`
@@ -1309,7 +1309,7 @@ R1 really does run its PLL from the HSE — `fw/Core/Src/main.c:228` sets
 frequency tolerance.
 
 The wiring is textbook and worth recording because it is the thing R2 does *not* have: `Y1.1` →
-`OSC_IN` with `C6` 18 pF; `Y1.3` → **`R20`, a 1 kΩ series damping resistor** → `OSC_OUT` with `C10`
+`OSC_IN` with `C205` 18 pF; `Y1.3` → **`R300`, a 1 kΩ series damping resistor** → `OSC_OUT` with `C10`
 18 pF; `Y1.2`/`Y1.4` are the case ground.
 
 R2 has no USB on the MCU and no 480 MHz core, so `HSI16` + PLL is inside the tolerance of everything
@@ -1319,23 +1319,23 @@ on the sheet (§5.4). Two consequences worth naming:
   crystal directly paid for two of the four rail enables that R2 exists to add.
 - Neither board damps its 32.768 kHz LSE with a series resistor. On the G0 that is deliberate rather
   than inherited: `LSEDRV[1:0]` sets drive in firmware (§5.4), which is the modern replacement for
-  `R20`'s job on the HSE.
+  `R300`'s job on the HSE.
 
 And for the record, §10.3's confusion has a real basis: R1 *does* have a megahertz crystal on this
 exact sheet. It is just not the one R2 kept.
 
-### 14.6 `FB3` → `FB20`: the same part, with a justification that evaporated
+### 14.6 `FB3` → `FB400`: the same part, with a justification that evaporated
 
 This is the most interesting single difference, because it explains why review 1 was right (§10.2).
 
-In R1, `FB3` (120 Ω @ 100 MHz — the *same* value as `FB20`) generates a separate rail `+3V3A` from
-`+3V3`, and `+3V3A` carries `C47` 4.7 µF + `C48`/`C50` 100 nF and feeds **both `U3.21 (VDDA)` and
+In R1, `FB3` (120 Ω @ 100 MHz — the *same* value as `FB400`) generates a separate rail `+3V3A` from
+`+3V3`, and `+3V3A` carries `C406` 4.7 µF + `C407`/`C409` 100 nF and feeds **both `U3.21 (VDDA)` and
 `U3.20 (VREF+)`**. On the H750, `VDDA` is its own pin, so ST's own supply scheme *does* ask for that
 filter. The bead had a citation.
 
 The G0 merges `VDDA` into the `VDD` pin — §3.7.1: "`VDDA` voltage level is identical to `VDD` voltage
 as it is provided externally through `VDD/VDDA` pin". So there is no analog supply left to filter and
-only `VREF+` remains. **`FB20` is `FB3`, carried across and applied to the one pin still eligible** —
+only `VREF+` remains. **`FB400` is `FB3`, carried across and applied to the one pin still eligible** —
 which is exactly why no page of `stm32g0b1.pdf` asks for it, and why §5.1's "straight from ST's own
 scheme" was the wrong frame. It stays on the asymmetry argument in §10.2, with Table 21's
 `min(VDD + 0.4, 4.0) V` ceiling making DCR the binding specification rather than impedance.
@@ -1349,7 +1349,7 @@ R2's is 1 µF + 100 nF, which is precisely what Figure 15 draws for `VREF+` alon
 | --- | --- | --- |
 | Common terminal | `SW1`–`SW3` pin 2 → **`+3V3`** | all three → **`GND`** |
 | Sense | active-**high** | active-**low** (`KEY_PREV#`, `KEY_NEXT#`, `CHG_QON#`) |
-| External resistor | `R21` 10 kΩ pull-down on `KEY1` only; `KEY2`/`KEY3` use internal pulls | `R42`/`R43` 100 kΩ pull-ups; `CHG_QON#` uses the charger's internal 200 kΩ |
+| External resistor | `R301` 10 kΩ pull-down on `KEY1` only; `KEY2`/`KEY3` use internal pulls | `R402`/`R403` 100 kΩ pull-ups; `CHG_QON#` uses the charger's internal 200 kΩ |
 | Part | Panasonic `EVQPUL`/`EVQPUC`, 4.7 × 4.5 mm, 100 k cycles | `TS-1187A` (power) + Panasonic `EVQPLHA15`, 500 k cycles (pages) |
 
 The polarity flip is not taste. `CHG_QON#` **must** be a galvanic short to ground — that is TI's
@@ -1357,7 +1357,7 @@ intended use and the only arrangement that works with the whole board unpowered 
 one switch on the sheet has to be active-low, matching the other two costs nothing and avoids running
 two conventions side by side. R1 had no such constraint because it had no charger and no ship mode.
 
-`R21` existing on `KEY1` alone is explained by the next section: `KEY1` is also `BOOT0`, so it must
+`R301` existing on `KEY1` alone is explained by the next section: `KEY1` is also `BOOT0`, so it must
 read a defined level at reset, before any firmware has configured an internal pull.
 
 The part choice is a small loop closed: R1 used Panasonic tactiles, R2's first draft moved to
@@ -1378,15 +1378,15 @@ carrying FPGA JTAG (`FPGA_TCK`/`TDI`/`TDO`/`TMS`) **and** MCU SWD (`MCU_SWCLK`/`
 marked DNP.
 
 R2 has no USB DFU — the MCU's USB is unused and the USB-C data pair is committed to the SoM. When
-this section was written `BOOT0` was held low by `R40` and `MCU_NRST` reached only `J20`, so
+this section was written `BOOT0` was held low by `R400` and `MCU_NRST` reached only `J400`, so
 reflashing meant opening the case; that was recorded here as a real regression against R1.
 
 **~~That regression is closed.~~ §5.8, applied 2026-08-19.** The SoM now drives both halves of the
-control path — `SOM_MCU_NRST` (`X2` A59) through `Q9` to `MCU_NRST`, and `SOM_MCU_BOOT0` (A60)
-through `R511` to `PA14`/`BOOT0` — and the data path was always there, because `MCU_TXD`/`MCU_RXD`
+control path — `SOM_MCU_NRST` (`X500` A59) through `Q400` to `MCU_NRST`, and `SOM_MCU_BOOT0` (A60)
+through `R407` to `PA14`/`BOOT0` — and the data path was always there, because `MCU_TXD`/`MCU_RXD`
 *are* `PA9`/`PA10`, the ST ROM bootloader's first USART. So **the MCU is reflashable and
 un-brickable from the SoM with the case shut**: the ROM bootloader is mask ROM, so a bad write is
-always recoverable. `J20` remains the path for bring-up and for the case where the SoM itself is
+always recoverable. `J400` remains the path for bring-up and for the case where the SoM itself is
 dead. `fpga.md` §4.1 is the equivalent for the FPGA — the SoM writes `U42` while the MCU holds
 `FPGA_PROG#` low.
 
@@ -1412,11 +1412,11 @@ are ADC-capable. §9 argues some of them should get test pads for the same reaso
 ## 16.1 `PB7` retired to the spare pool — 2026-08-30
 
 **Why `FL_PWM2` existed at all.** R1 drove the frontlight *through the panel connector*: `FL_PWM1`,
-`FL_PWM2`, `FL_EN` and `+5V2_FL` all left the board on `J6`, because on R1 the LED driver lived on
+`FL_PWM2`, `FL_EN` and `+5V2_FL` all left the board on `J1000`, because on R1 the LED driver lived on
 the panel or adapter side, not on the mainboard. Two PWM channels meant two independently dimmed
 strings — cool and warm. R2 ported that arrangement pin-for-pin, and `PB7`/`TIM4_CH2` came with it.
 
-WP6's frontlight redesign (2026-08-17) moved the driver onto the board as `U53`, an `LM3630A`, which
+WP6's frontlight redesign (2026-08-17) moved the driver onto the board as `U1300`, an `LM3630A`, which
 sets each channel's current over I²C and takes a **single** hardware PWM input. From that day
 `FL_PWM2` drove nothing. It survived only as a stub to `J6.42`, which is why this file carried it as
 an open item rather than deleting it: `epd` was a frozen sheet.
@@ -1445,4 +1445,4 @@ freed went straight back out to the feature that replaced it.
 label and their wire stubs from `mcu.kicad_sch`, the label, stub and `mcu` sheet pin from the root,
 and added a no-connect flag on `PB7` — spare pins here carry no wire and no label (`PB12` is drawn
 the same way), and a bare pin is an ERC error. `U20.61` now reads `unconnected-(U20-PB7-Pad61)`.
-ERC is back to **43 violations, the pre-`J6` baseline count**, with `isolated_pin_label` gone.
+ERC is back to **43 violations, the pre-`J1000` baseline count**, with `isolated_pin_label` gone.

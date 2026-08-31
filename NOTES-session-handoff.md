@@ -30,10 +30,10 @@ Read in this order: **`CLAUDE.md`** → **`NOTES-R2-plan.md`** → **`pcb/r2-mai
    of the mechanical drawing on p.2**, not in the numbered I/O section. The sheet had been on hold
    since 2026-08-16 waiting for a document already on disk. Lesson in `frontlight.md` §0.
 3. **`frontlight` was redrawn from scratch and captured.** A bonded film's tail is `LED1±`/`LED2±` —
-   bare anodes and cathodes — so it needs constant **current**, not a rail. `U53` is an `LM3630A`
+   bare anodes and cathodes — so it needs constant **current**, not a rail. `U1300` is an `LM3630A`
    driving two independently dimmed strings; `+5V2_FL`, the `TPS61022` and its divider are gone; a
-   new 8-pin FPC `J24` carries the tail.
-4. **`epd_power`'s `VGH` needs one resistor changed** — `R225` 22 kΩ → 20.5 kΩ, derived and
+   new 8-pin FPC `J1300` carries the tail.
+4. **`epd_power`'s `VGH` needs one resistor changed** — `R1117` 22 kΩ → 20.5 kΩ, derived and
    tolerance-checked in `epd-port.md` §10. **Not applied**: that sheet is frozen and reviewed, so
    the edit should ride with the owner's review pass.
 5. **The cell is chosen** — `PL706090`, and it closed two open items in `battery.md` while raising
@@ -61,9 +61,9 @@ WP8 (`som`) are drawn but NOT reviewed.** `frontlight` is the newest and least e
 | # | Blocked on | Unblocks |
 | --- | --- | --- |
 | 1 | **Where the SoM sits, and on which side** — `layout.md` §1.2 | **Stage D placement. The only blocker.** |
-| 2 | **Frontlight LED current per channel**, and whether 28.5 mA is per-channel or combined | the full-scale register and `L33`'s margin — *not* the design, `frontlight.md` §10.1 |
+| 2 | **Frontlight LED current per channel**, and whether 28.5 mA is per-channel or combined | the full-scale register and `L1300`'s margin — *not* the design, `frontlight.md` §10.1 |
 | 3 | **`GT9110H` touch tail pinout** | `io-expansion.md` §5 — the last open Stage C decision |
-| 4 | **Cell NTC type** (R25, β) | `battery.md` §10.2's `R9`/`R10` |
+| 4 | **Cell NTC type** (R25, β) | `battery.md` §10.2's `R208`/`R209` |
 | ~~5~~ | ~~**Cell connector**~~ | **DECIDED 2026-08-18** (`7b73727`): `J2` → Molex Pico-Lock `504050-0391` (3.5 A, 2.00 mm mated), plus `J25`, three solder pads on the same nets. The pack still has to be re-terminated |
 | 6 | ~~**`PCM-071` price/MOQ**~~ **priced 2026-08-18: €250 @1–9, MOQ 1** — lead time still unstated. ~~**Its footprint** is the one unresolved footprint~~ — **done 2026-08-20**: three footprints, `r2:BTH-060-01-L-D-A-K_AB`/`_CD` for the two receptacles and `r2:PCM-071_Module` for the module's outline and M2.5 holes (`docs/som.md` §10, §11) | ordering |
 | 7 | **KiCad global library tables** (Preferences → Configure Paths) | the 305 `footprint_link_issues` |
@@ -110,7 +110,7 @@ ones**, and must be re-measured (`epd-port.md` §10.5).
   `render()`, so a sheet cannot be written without them. **Never bypass them.** The `frontlight`
   symbol's pin order was chosen specifically so no pull-down has to cross a signal.
 - **Rendering is not optional.** `frontlight` was electrically correct and visually wrong for three
-  rounds: overlapping value text, and `D34`'s reference printing **mirrored** because KiCad inverts
+  rounds: overlapping value text, and `D1300`'s reference printing **mirrored** because KiCad inverts
   a 180°-placed symbol's text. None of it shows in a netlist.
 - **Check the repo before asking a vendor.** The frontlight pinout was on disk for a day while the
   sheet sat on hold.

@@ -2468,7 +2468,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "21d2d0ee-d46c-424a-a825-6419ce4a0ef0")
-		(property "Reference" "L33"
+		(property "Reference" "L1300"
 			(at 130.81 53.34 270)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2565,7 +2565,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/5c8ce93f-26c8-4450-ba3a-dff03cacb9ae"
-					(reference "L33")
+					(reference "L1300")
 					(unit 1)
 				)
 			)
@@ -2582,7 +2582,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "321757b8-8ed4-49d2-ac44-3935eaef7bea")
-		(property "Reference" "R507"
+		(property "Reference" "R1300"
 			(at 129.54 97.79 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2646,7 +2646,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/5c8ce93f-26c8-4450-ba3a-dff03cacb9ae"
-					(reference "R507")
+					(reference "R1300")
 					(unit 1)
 				)
 			)
@@ -2663,7 +2663,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "3469842f-ae7e-49fc-ae61-3da70bbb1860")
-		(property "Reference" "U53"
+		(property "Reference" "U1300"
 			(at 139.7 100.33 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2801,7 +2801,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/5c8ce93f-26c8-4450-ba3a-dff03cacb9ae"
-					(reference "U53")
+					(reference "U1300")
 					(unit 1)
 				)
 			)
@@ -3126,7 +3126,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8dee7b77-36b7-4d29-8bb7-fe80d766bad2")
-		(property "Reference" "C516"
+		(property "Reference" "C1302"
 			(at 114.3 64.77 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3190,7 +3190,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/5c8ce93f-26c8-4450-ba3a-dff03cacb9ae"
-					(reference "C516")
+					(reference "C1302")
 					(unit 1)
 				)
 			)
@@ -3207,7 +3207,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a75cdd6f-63d1-41f1-bb6d-d8a7fbde58f0")
-		(property "Reference" "D34"
+		(property "Reference" "D1300"
 			(at 144.78 45.72 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3304,7 +3304,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/5c8ce93f-26c8-4450-ba3a-dff03cacb9ae"
-					(reference "D34")
+					(reference "D1300")
 					(unit 1)
 				)
 			)
@@ -3321,7 +3321,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "ac08ef0c-f2be-4cc8-8eb8-031f76f115c7")
-		(property "Reference" "C514"
+		(property "Reference" "C1300"
 			(at 99.06 64.77 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3385,7 +3385,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/5c8ce93f-26c8-4450-ba3a-dff03cacb9ae"
-					(reference "C514")
+					(reference "C1300")
 					(unit 1)
 				)
 			)
@@ -3402,7 +3402,7 @@
 		(in_pos_files yes)
 		(dnp yes)
 		(uuid "b4dcfd91-903b-427a-8077-9f5b85bbdbf1")
-		(property "Reference" "R508"
+		(property "Reference" "R1301"
 			(at 180.34 97.79 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3466,7 +3466,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/5c8ce93f-26c8-4450-ba3a-dff03cacb9ae"
-					(reference "R508")
+					(reference "R1301")
 					(unit 1)
 				)
 			)
@@ -3483,7 +3483,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "c6d53519-deee-40ef-9704-f37c0b2c9bb7")
-		(property "Reference" "J24"
+		(property "Reference" "J1300"
 			(at 203.2 109.22 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3598,7 +3598,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/5c8ce93f-26c8-4450-ba3a-dff03cacb9ae"
-					(reference "J24")
+					(reference "J1300")
 					(unit 1)
 				)
 			)
@@ -3615,7 +3615,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "d8ce3862-44dc-44d3-bea5-85805dd233a0")
-		(property "Reference" "C515"
+		(property "Reference" "C1301"
 			(at 177.8 64.77 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3679,7 +3679,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/5c8ce93f-26c8-4450-ba3a-dff03cacb9ae"
-					(reference "C515")
+					(reference "C1301")
 					(unit 1)
 				)
 			)

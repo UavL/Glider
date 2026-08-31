@@ -8353,7 +8353,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "077e22cd-5c9b-42cf-8f66-4c7a1ac9b4c8")
-		(property "Reference" "X2"
+		(property "Reference" "X500"
 			(at 241.3 228.6 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8442,7 +8442,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
-					(reference "X2")
+					(reference "X500")
 					(unit 1)
 				)
 			)
@@ -8860,7 +8860,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "2d459473-5b0b-47d2-8e18-0c723c279d6f")
-		(property "Reference" "J27"
+		(property "Reference" "J502"
 			(at 320.04 115.57 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9311,7 +9311,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
-					(reference "J27")
+					(reference "J502")
 					(unit 4)
 				)
 			)
@@ -9328,7 +9328,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "2d6f2734-68c4-4228-8e30-dce3b64afd42")
-		(property "Reference" "J26"
+		(property "Reference" "J501"
 			(at 320.04 19.05 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9779,7 +9779,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
-					(reference "J26")
+					(reference "J501")
 					(unit 4)
 				)
 			)
@@ -9796,7 +9796,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "44a66738-eabc-47f0-8ff5-4623a773ae5c")
-		(property "Reference" "J27"
+		(property "Reference" "J502"
 			(at 182.88 72.39 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10247,7 +10247,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
-					(reference "J27")
+					(reference "J502")
 					(unit 3)
 				)
 			)
@@ -10341,7 +10341,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "67bfb925-b5ed-4d67-85cc-3d9d74872490")
-		(property "Reference" "J26"
+		(property "Reference" "J501"
 			(at 182.88 30.48 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10792,7 +10792,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
-					(reference "J26")
+					(reference "J501")
 					(unit 3)
 				)
 			)
@@ -10971,7 +10971,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "7e008a27-9810-46c2-b908-194519d4a738")
-		(property "Reference" "MK20"
+		(property "Reference" "MK500"
 			(at 241.3 248.92 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11049,7 +11049,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
-					(reference "MK20")
+					(reference "MK500")
 					(unit 1)
 				)
 			)
@@ -11143,7 +11143,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8175d78f-48a3-4cde-8da6-742b3825cf01")
-		(property "Reference" "J21"
+		(property "Reference" "J500"
 			(at 124.46 205.74 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11240,7 +11240,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
-					(reference "J21")
+					(reference "J500")
 					(unit 1)
 				)
 			)
@@ -11419,7 +11419,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a1824983-f957-432d-b8c1-668febf2660e")
-		(property "Reference" "J27"
+		(property "Reference" "J502"
 			(at 45.72 113.03 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11870,7 +11870,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
-					(reference "J27")
+					(reference "J502")
 					(unit 1)
 				)
 			)
@@ -12507,7 +12507,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "fb77f254-2bf8-40bc-8120-f054b9b3e222")
-		(property "Reference" "J26"
+		(property "Reference" "J501"
 			(at 45.72 31.75 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12958,7 +12958,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/04dc5b7f-25a0-4938-affb-936b9470a54e"
-					(reference "J26")
+					(reference "J501")
 					(unit 1)
 				)
 			)

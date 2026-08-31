@@ -27,10 +27,10 @@ LCSC, 2026-08-31, at the quantities LCSC shows — i.e. these are **ceilings**, 
 
 | Part | Ref | Each |
 | --- | --- | ---: |
-| `BTH-060-01-L-D-A-K-TR` | `J26`, `J27` | **$6.49 × 2 = $12.98** |
-| `MT41K64M16TW` DDR3L | `U52` | $7.95 |
-| `XC6SLX16-2FTG256C` | `U41` | $7.79 |
-| `STM32G0B1RET6` | `U20` | $6.24 |
+| `BTH-060-01-L-D-A-K-TR` | `J501`, `J502` | **$6.49 × 2 = $12.98** |
+| `MT41K64M16TW` DDR3L | `U800` | $7.95 |
+| `XC6SLX16-2FTG256C` | `U700` | $7.79 |
+| `STM32G0B1RET6` | `U400` | $6.24 |
 | `BQ25892RTWR` | `U1` | $3.06 |
 | `W25Q128JVSIQ` | `U42` | $2.45 |
 | `TYPE-C-31-M-12` | `J1`, `J1402` | $0.19 × 2 |

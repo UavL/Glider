@@ -41,9 +41,9 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 PCB = HERE.parent / "r2.kicad_pcb"
 
-EXPECT = {"J26": (-11.200, -2.400), "J27": (+11.200, +2.400)}
+EXPECT = {"J501": (-11.200, -2.400), "J502": (+11.200, +2.400)}
 TOL = 0.001          # mm; these are generated numbers, not measured ones
-ANCHOR = "X2"
+ANCHOR = "X500"
 
 
 def footprints(text: str):

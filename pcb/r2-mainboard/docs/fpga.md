@@ -157,7 +157,7 @@ never on `J3`, and it stays wired at `U41.M16` because `mcu.kicad_sch` declares 
 
 ## 3. `fpga_io` — banks 0 and 1
 
-A straight port. 69 net groups identical to R1, four parts (`U41` units 1–2, `R311` 10 kΩ, `D308`
+A straight port. 69 net groups identical to R1, four parts (`U700` units 1–2, `R700` 10 kΩ, `D700`
 status LED). Three deliberate deletions:
 
 - **The 12-signal FMC bus to the MCU.** R1 wires `FMC_D[7:0]`, `FMC_A16`, `FMC_NE1`, `FMC_NOE`,
@@ -206,19 +206,19 @@ sheet was drawn:
 | NOR `CLK` | R11 `CCLK` | FPGA drives | CSR `SCK` in ← SoM | SoM drives |
 | NOR `DO`/IO1 | P10 `DIN` | FPGA reads | CSR `MOSI` in ← SoM | — |
 | NOR `DI`/IO0 | T10 `MOSI/CSI_B` | FPGA drives | CSR `MISO` out → SoM | SoM must drive |
-| NOR `CS#` | T3 `CSO_B` | FPGA drives | idle high | SoM drives via `R411` |
+| NOR `CS#` | T3 `CSO_B` | FPGA drives | idle high | SoM drives via `R905` |
 
 Two hazards, both handled on paper before copper:
 
 1. **Contention on `CCLK` during configuration.** The FPGA drives it; the SoM's SPI controller would
    too if enabled. **The SoM must park those pins as inputs until `FPGA_DONE`** — a software rule,
-   with `R411` (100 Ω) as the hardware backstop that bounds the fault current.
+   with `R905` (100 Ω) as the hardware backstop that bounds the fault current.
 2. **`NOR DI` has two drivers** (FPGA `T10` and the SoM's MOSI), arbitrated only by `PROG#`. The
    SoM's MOSI lands on an FPGA *output* ball, which is safe only while the FPGA is held in reset.
 
-`R410` (10 kΩ pull-up on `CSO_B`) was added on general grounds and turns out to be **required**:
+`R904` (10 kΩ pull-up on `CSO_B`) was added on general grounds and turns out to be **required**:
 UG380 note 9 under the Master SPI figure says "If HSWAPEN is left unconnected or tied High, a
-pull-up resistor is required for CSO_B", and `HSWAPEN` (`C4`) is unconnected here (§5.4).
+pull-up resistor is required for CSO_B", and `HSWAPEN` (`C203`) is unconnected here (§5.4).
 
 ### 4.2 Quad-SPI provision — owner's decision, 2026-08-13
 
@@ -243,7 +243,7 @@ rows: `MISO[2]` (`N12`) → flash `WP#/IO2`, `MISO[3]` (`P12`) → `HOLD#/IO3`. 
 and no-connect flagged; no `.ucf` names them because they are dedicated configuration pins.
 
 Flash pins 3 and 7 were tied hard to `+3V3`, which is right for x1 and wrong for x4 — Figure 2-13
-note 4 asks for pull-ups to `VCCO_2` instead, so the tie became `R412`/`R413`, 10 kΩ. **Nothing
+note 4 asks for pull-ups to `VCCO_2` instead, so the tie became `R906`/`R907`, 10 kΩ. **Nothing
 about the board's behaviour changes today**: in x1 the pull-ups hold `WP#`/`HOLD#` high exactly as
 the hard tie did.
 
@@ -279,8 +279,8 @@ Three consequences worth recording:
   switches to x2 or x4 mode." Auto-detection loads a header in x1, then `IPROG` reconfigures and the
   bulk transfer runs as **Fast-Read Quad Output (`6Bh`)** with eight dummy clocks after the 24-bit
   address. §4.2's 42 ms is the bulk figure; the x1 header pass is on top.
-- **The SoM cannot write the flash in quad.** `NOR_IO2`/`NOR_IO3` reach only `U41` and `R412`/`R413`
-  — they are not on `J27`. The SoM sees `FPGA_SCLK`/`MOSI`/`MISO`/`NOR_CS#` only, so SoM-side
+- **The SoM cannot write the flash in quad.** `NOR_IO2`/`NOR_IO3` reach only `U700` and `R906`/`R907`
+  — they are not on `J502`. The SoM sees `FPGA_SCLK`/`MOSI`/`MISO`/`NOR_CS#` only, so SoM-side
   bitstream writes are **x1, always**. That is a deliberate limit, not an oversight: it costs update
   time, never boot time.
 - **There is no hardware write protect.** With QE=1 fixed, `/WP` is permanently `IO2` and `/HOLD`
@@ -289,12 +289,12 @@ Three consequences worth recording:
 
 ### 4.3 Clock and debug
 
-`X1` is a 33.33 MHz oscillator, `R409` a 33 Ω series termination, reaching `M9` and `K11`.
+`X900` is a 33.33 MHz oscillator, `R903` a 33 Ω series termination, reaching `M9` and `K11`.
 `FPGA_CLK33` is exported from this sheet as an **output** — a direction error inherited from R1
 (`input` on both sheets) that only became visible once the root was wired, because two `input`s
 meeting is the one interface shape combination on this board that is never legitimate.
 
-`J20` is one pads-only 2×6 1.27 mm footprint carrying **both** MCU SWD and FPGA JTAG, drawn on
+`J400` is one pads-only 2×6 1.27 mm footprint carrying **both** MCU SWD and FPGA JTAG, drawn on
 `mcu.kicad_sch` because that sheet already exports the four JTAG nets. See `mcu.md` §10.
 
 `FPGA_INIT` reaches the MCU at `PC10`. With the FPGA self-booting, a corrupt image shows up only as
@@ -304,11 +304,11 @@ separates the two. R1 did not need this because the MCU fed the bitstream and kn
 ## 5. `fpga_ddr` — bank 3, the DRAM, and the core rails
 
 A port, with one added capacitor. All 49 local DDR nets are node-for-node identical to R1 after four
-reference renames (`U1`→`U41`, `U12`→`U52`, `R40`→`R340`, `R44`→`R344`).
+reference renames (`U1`→`U700`, `U12`→`U800`, `R400`→`R806`, `R404`→`R807`).
 
 ### 5.1 The memory, and how much of it there is
 
-`U52` is `MT41K64M16TW` — **1 Gb**, x16, DDR3L. The MIG is configured for `MT41J64M16` (`mig.prj`),
+`U800` is `MT41K64M16TW` — **1 Gb**, x16, DDR3L. The MIG is configured for `MT41J64M16` (`mig.prj`),
 the 1.5 V sibling of the same density, with `C3_MEM_ADDR_WIDTH = 13`, `C3_MEM_NUM_COL_BITS = 10`,
 3 bank bits and 16 DQ. 8 banks × 8192 rows × 1024 columns × 16 bits = 1 Gb = **128 MiB, fully
 addressable**. `C3_MEMCLK_PERIOD = 3000` ps → 333 MHz → **666 MT/s**, against a part rated for at
@@ -319,7 +319,7 @@ That was wrong, and it came from reading the *symbol* name rather than the Value
 is drawn to the 4 Gb ballout; the part fitted is the 1 Gb one, and
 `NOTES-R2-hardware-facts.md` had it right all along (`MT41K64M16TW-107`, LCSC `C2060943`).
 
-That mismatch has one visible consequence. **`DRAM_ADDR13`/`DRAM_ADDR14` reach `U52` balls `T3`/`T7`,
+That mismatch has one visible consequence. **`DRAM_ADDR13`/`DRAM_ADDR14` reach `U800` balls `T3`/`T7`,
 which the 1 Gb part does not bond** (Micron 1Gb_DDR3L Rev L Figure 7 p.18 shows `T3`, `T7` and `M7`
 as NC), and which `top.v:22` never drives (`output wire [12:0] DDR_A`). Both nets are inert at both
 ends. They stay routed: `T3`/`T7` are the density-expansion balls, so leaving them in makes a 2 Gb
@@ -329,7 +329,7 @@ the two unconstrained FPGA balls sit at a weak low into an unbonded ball, drawin
 ### 5.2 1.35 V → 1.5 V
 
 R1 runs this bank at 1.35 V. R2 runs it at **1.5 V**, and `power.kicad_sch`'s divider changed with
-it (`R33` 124 k → 150 k, giving `0.600 × (1 + 150/100) = 1.500 V`). Three independent reasons:
+it (`R313` 124 k → 150 k, giving `0.600 × (1 + 150/100) = 1.500 V`). Three independent reasons:
 
 - Every bank-3 net in the UCF is `SSTL15_II` or `DIFF_SSTL15_II`, and **`DDR_RESET_N` is
   `LVCMOS15`** — which has no 1.35 V form at all.
@@ -350,7 +350,7 @@ Two things that were true when the decision was made and are more true now: the 
 1.35 V evaporated on 2026-08-14 (`power.md` §9 — `IDD6` is 10.5 mW at 1.5 V against 10.8–16.2 mW at
 1.35 V, and the SoM's 128.6 mW suspend dwarfs both), and §11.1's 0.05 % MCB timing margin means an
 under-volted bank is spending the one budget this bus does not have. If it ever needs revisiting,
-the change is a single resistor — `R33` 150 k → 124 k — and nothing in layout moves.
+the change is a single resistor — `R313` 150 k → 124 k — and nothing in layout moves.
 
 The DRAM is happy either way: the datasheet's own words are "Backward compatible to VDD = VDDQ =
 1.5 V ±0.075 V". Cost is about 1.9 mW of extra standby draw, computed in `power.md` §9.
@@ -365,7 +365,7 @@ orderable parts, so this is the closest published proxy — same density, same o
 voltage we run at — **not** a spec for the fitted device. `docs/power.md` §9 carries the BOM
 question that follows (the MIG is configured for the `MT41J`; is it stocked?).
 
-`+DRAM_VREF` is `R104`/`R105`, 1 kΩ each, so it tracks at exactly half the rail: 0.750 V.
+`+DRAM_VREF` is `R804`/`R805`, 1 kΩ each, so it tracks at exactly half the rail: 0.750 V.
 
 ### 5.3 The three things UG388 requires, all of which R1 already did
 
@@ -373,22 +373,22 @@ question that follows (the MIG is configured for the `MT41J`; is it stocked?).
 name to compare against.
 
 - **`DDR_RZQ` (M4) needs one resistor to GND**, valued at twice the target impedance. The UCF asks
-  for `OUT_TERM = UNTUNED_50` / `IN_TERM = UNTUNED_SPLIT_50`, so 100 Ω. R1 fits `R340` 100 Ω 1 %.
+  for `OUT_TERM = UNTUNED_50` / `IN_TERM = UNTUNED_SPLIT_50`, so 100 Ω. R1 fits `R806` 100 Ω 1 %.
 - **`DDR_ZIO` (M5) must be left open.** It is the MCB's internal calibration probe, not a spare pin.
   R1 flags it no-connect and the checker asserts it.
 - **`DRAM_CSB` is tied low and reaches no FPGA ball.** UG388 p.43: "The active-Low Chip Select (CS#)
   pin of the target memory device should be connected to ground on the board. Because the MCB only
   supports connections to a single memory component, it does not provide a signal to control the CS#
-  input." There is no `DDR_CS_N` in the UCF and no such port in `top.v`. R1 goes through `R101`
+  input." There is no `DDR_CS_N` in the UCF and no such port in `top.v`. R1 goes through `R801`
   5.1 kΩ rather than a hard short, which is functionally the same into a CMOS input and leaves a
   rework point.
 
 UG388 p.43 also asks for **4.7 kΩ** pull-downs on `RESET` and `CKE` so both are low during memory
-initialisation. R1 fits **5.1 kΩ** on each (`R103`, `R344`). The difference is immaterial — the
+initialisation. R1 fits **5.1 kΩ** on each (`R803`, `R807`). The difference is immaterial — the
 requirement is "weak pull-down", not a value — and it is left as R1 has it rather than changed for
 the sake of matching a number.
 
-`R102` 240 Ω on `ZQ` is the DRAM's own calibration reference and comes from the Micron datasheet,
+`R802` 240 Ω on `ZQ` is the DRAM's own calibration reference and comes from the Micron datasheet,
 not from Xilinx. Do not confuse it with `RZQ`.
 
 ### 5.4 `HSWAPEN`, and why the VREF divider is safe
@@ -398,10 +398,10 @@ configuration, internal pull-ups to `VCCO` are enabled on every I/O **including 
 a resistor-divider VREF can be pulled up during configuration and the MCB can calibrate against a
 wrong reference.
 
-R2's VREF *is* a resistor divider. `HSWAPEN` (`C4`) is **unconnected**, inherited from R1, which is
+R2's VREF *is* a resistor divider. `HSWAPEN` (`C203`) is **unconnected**, inherited from R1, which is
 the safe state — the pin has an internal pull-up, so floating reads High and the internal pull-ups
 stay off. The hazard does not apply. It is recorded here because "unconnected" looks like an
-oversight and is in fact the correct answer, and because anyone who later ties `C4` low to save a
+oversight and is in fact the correct answer, and because anyone who later ties `C203` low to save a
 few microamps would break DDR calibration in a way that would take days to find.
 
 ### 5.5 The FPGA core rails
@@ -432,7 +432,7 @@ triples per rail:
 | VCCO bank 3 | 1 / 1 / 2 | 5×22 µF (110 µF), 1×4.7 µF, 8×470 nF, 7×100 nF | **meets or exceeds all three** |
 | VCCO banks 0/1/2 | 3 / 3 / 4 total | 6×22 µF (132 µF), 3×4.7 µF, 5×470 nF | 4.7/0.47 met; 132 µF where 300 µF is listed |
 
-**One change made: `C509`, a fifth 4.7 µF on `VCCINT`.** It is a 0402 and it costs nothing; the
+**One change made: `C833`, a fifth 4.7 µF on `VCCINT`.** It is a 0402 and it costs nothing; the
 alternative is to argue from a PDS impedance simulation nobody here has run.
 
 **Nothing else changed**, deliberately — but be precise about what licenses the 22 µF, because it is
@@ -459,7 +459,7 @@ choice predates all R2 work (`pcb/mainboard/` goes back to `r0p4` in this repo's
 
 Three things do support it, in descending order of strength: R1's board runs DDR3 at full rate;
 board-level bulk covers part of the shortfall (`+3V3` carries about 200 µF distributed, and each
-buck has a 22 µF/10 V 0805 at its own output — `C30`/`C32`/`C34`, with the caveat in §11.5); and
+buck has a 22 µF/10 V 0805 at its own output — `C308`/`C310`/`C312`, with the caveat in §11.5); and
 note 3's direction of travel is toward less bulk, not more. Making this rigorous means simulating the
 PDS impedance from 100 kHz to 500 MHz, which is what UG393 actually asks for and is out of scope
 here; it is a Stage-D item (§11.5), not a defect.
@@ -506,7 +506,7 @@ would work and is worse — it would push every name into every sheet's namespac
 6. **`ExtMasterCclk_en` is an unexplored option.** UG380 p.54: `USERCCLK` (ball `T8` — freed by the
    LVDS deletion) can supply the configuration clock instead of the internal oscillator, which
    would remove the ±50 % `FMCCKTOL` spread from the boot-time figures in §4.2. It needs one more
-   trace from `X1` and it is not needed to make the NOR worthwhile; noted so the option is not lost.
+   trace from `X900` and it is not needed to make the NOR worthwhile; noted so the option is not lost.
 
 ## 10. Verification — what was actually run
 
@@ -566,17 +566,17 @@ what the *geometry* tolerates, not slack to give away.
   net-class-based length-match rule, which would drag the real group's tolerance around for two
   dead traces. Route them short and direct, give them their own net class, and leave them out of
   the matched set (owner's decision to keep them, §15.3).
-- **`DRAM_CKP`/`CKN`** carry `R100`, 100 Ω differential termination, at the DRAM end. Route as a
+- **`DRAM_CKP`/`CKN`** carry `R800`, 100 Ω differential termination, at the DRAM end. Route as a
   proper differential pair with the two halves matched to each other before anything else.
 - Keep the whole bus over one continuous reference plane. A split under the DDR bus is the classic
   way to lose the margin the low data rate just handed you.
 
 ### 11.2 `RZQ`, `ZIO` and `ZQ` — three different things, one of which must not be routed
 
-- `R340` (100 Ω, `RZQ`, ball `M4`) close to the FPGA, short trace, direct via to ground.
+- `R806` (100 Ω, `RZQ`, ball `M4`) close to the FPGA, short trace, direct via to ground.
 - **Ball `M5` (`ZIO`) gets no copper beyond its pad.** It is an internal calibration probe. A
   helpful autorouter connecting it to anything breaks calibration.
-- `R102` (240 Ω, `ZQ`) close to the DRAM's `L8` ball, its own via to ground. This is the DRAM's
+- `R802` (240 Ω, `ZQ`) close to the DRAM's `L8` ball, its own via to ground. This is the DRAM's
   reference, not the FPGA's.
 
 ### 11.3 Bank 3 VREF
@@ -584,7 +584,7 @@ what the *geometry* tolerates, not slack to give away.
 `+DRAM_VREF` is a quiet, high-impedance node at 0.750 V feeding four balls (`U41.A3`, `U41.M3`,
 `U52.H1`, `U52.M8`). Treat it like the `VREF+` island on `mcu.md` §11.2:
 
-- `R104`/`R105` near the FPGA, `C144` (100 nF) at the divider node, `C88` (100 nF) bridging to
+- `R804`/`R805` near the FPGA, `C820` (100 nF) at the divider node, `C819` (100 nF) bridging to
   `+1V5` so VREF tracks the rail's noise rather than fighting it.
 - Route it as a short, fat, quiet trace to all four balls. Do not pour a plane on it and do not run
   it beside anything switching.
@@ -595,12 +595,12 @@ what the *geometry* tolerates, not slack to give away.
 
 ### 11.4 The 33.33 MHz oscillator and the config NOR
 
-- `X1` with `C507` at its supply pin; `R409` (33 Ω) at the **oscillator** end, not the FPGA end,
+- `X900` with `C918` at its supply pin; `R903` (33 Ω) at the **oscillator** end, not the FPGA end,
   which is where a series termination has to be to do anything.
 - The NOR at ConfigRate 22 and x4 is a ~33 MHz worst-case bus over six signals. Keep `U42` close to
   the FPGA's bank-2 balls and keep the six roughly equal; this is not a matched bus but it is no
   longer slow, either.
-- `R411` (100 Ω) in the SoM's `NOR_CS` path is a fault-current limiter, so it belongs near the
+- `R905` (100 Ω) in the SoM's `NOR_CS` path is a fault-current limiter, so it belongs near the
   contention point, not near the SoM.
 
 ### 11.5 Decoupling placement, and the one open PDS question
@@ -616,11 +616,11 @@ what the *geometry* tolerates, not slack to give away.
 - **The `power_mon` shunts are in the path, and that weakens one of §7's three supports.** UG393's
   "PCB Bulk Capacitors" paragraph (p.16) allows the regulator's own output capacitors to count
   toward the Table 2-1 bulk "provided there is no inductor, ferrite bead, choke, or other filter
-  between the FPGA and the bulk capacitors." There is something: `R60` (20 mΩ, 0805) sits between
-  `+1V2_DCDC` and `+1V2_FPGA`, `R56` between `+1V5_DCDC` and `+1V5`, `R61` between `+3V3_DCDC` and
+  between the FPGA and the bulk capacitors." There is something: `R1205` (20 mΩ, 0805) sits between
+  `+1V2_DCDC` and `+1V2_FPGA`, `R1204` between `+1V5_DCDC` and `+1V5`, `R1206` between `+3V3_DCDC` and
   `+3V3`. **(inferred, not from UG393)** A shunt is a resistor rather than a bead, and 20 mΩ is
   *inside* the 10–60 mΩ ESR band Xilinx specifies for the capacitors themselves, so it does not
-  isolate the way a filter element would — but `C30`/`C32`/`C34` are not straightforwardly parallel
+  isolate the way a filter element would — but `C308`/`C310`/`C312` are not straightforwardly parallel
   with the FPGA's own bulk either, and the layout should keep the buck → shunt → FPGA path short and
   wide. Do not treat the buck output capacitors as free bulk without saying this out loud.
 - The one genuinely open question is whether the 22 µF-in-quantity substitution for the listed
@@ -664,7 +664,7 @@ in is named in §4.2.1) — **all three applied by the owner 2026-08-31** in
 4. **`-g Binary: no → yes`**, so there is a flash image to program.
 5. **`-g spi_buswidth: 1 → 4`**, when x4 is wanted. ~~plus the flash's QE bit (UG380 Fig 2-13
    note 3)~~ — **there is no QE step for the part we fitted; see §4.2.1.** Also give `N12`/`P12` an
-   explicit `PULLUP` constraint so `-g UnusedPin:PullDown` does not fight `R412`/`R413` after
+   explicit `PULLUP` constraint so `-g UnusedPin:PullDown` does not fight `R906`/`R907` after
    configuration.
 
 And one that is wanted eventually but is explicitly **not** for the first board:
@@ -684,7 +684,7 @@ is affected by it.
 
 Same as the other sheets. Spare pins carry no-connect flags. Ported references keep their R1 number
 unless they collide, in which case U/L take +40 and C/R/D take +300; parts genuinely new in R2 take
-the next number in the 5xx block (`C508`, `C509`). `pcb/mainboard/` is **read-only** and is only
+the next number in the 5xx block (`C919`, `C833`). `pcb/mainboard/` is **read-only** and is only
 ever read. A sheet that has been saved in Eeschema is patched surgically, never regenerated —
 `port_r1.py` refuses to re-port a sheet in its `FROZEN` set without `--force`.
 
@@ -698,11 +698,11 @@ ever read. A sheet that has been saved in Eeschema is patched surgically, never 
 | Bank 3 VCCO | 1.35 V | **1.5 V** | `LVCMOS15` and `SSTL15` have no 1.35 V form (§5.2) |
 | NOR IO2/IO3 | — | wired to `N12`/`P12` | keeps x4 boot a software change (§4.2) |
 | FPGA unit 6 | on `power.kicad_sch` | on `fpga_ddr` | R2's power sheet has no FPGA |
-| VCCINT decoupling | 4×4.7 µF | 5×4.7 µF (`C509`) | UG393 Table 2-1 asks for five |
+| VCCINT decoupling | 4×4.7 µF | 5×4.7 µF (`C833`) | UG393 Table 2-1 asks for five |
 | FMC bus to MCU | 12 signals | deleted | no `.ucf` ever assigned it |
 | FPD-Link input | 14 signals | deleted | no PTN3460 in R2 |
-| Debug header | `J5` 2×6, fitted | `J20` 2×6, pads only | `mcu.md` §10 |
-| `INIT_B` | unconnected, no pull-up | `R414` 4.7 kΩ + MCU `PC10` | tells a CRC error from a silent NOR |
+| Debug header | `J5` 2×6, fitted | `J400` 2×6, pads only | `mcu.md` §10 |
+| `INIT_B` | unconnected, no pull-up | `R908` 4.7 kΩ + MCU `PC10` | tells a CRC error from a silent NOR |
 | `J3` 16-pin panel connector | fitted, 10 signals | **deleted** | no gateware for any of the ten (§2.1); owner's decision §15.2 |
 
 ## 15. Review 1 (2026-08-15) — the analysis note, answered
@@ -750,13 +750,13 @@ and, under "LVDS":
 The screen list bears that out with no exceptions: every `MiniLVDS` row is 8″ 1920×1440 or larger
 (`AC080KH1/2`, `AC118TC1`, the 25.3″ and 28″ families), and every 6″ 1448×1072 panel — the whole
 `ED060*`/`EC060*` family, which is what a reader uses — is `TTL`, 34 pins, adapter `34P-A`. So `J3`
-is the big-panel and colour-Gallery option. `J6` alone is the reader's connector, and it still has
+is the big-panel and colour-Gallery option. `J1000` alone is the reader's connector, and it still has
 five spare pins.
 
 **A fifth confirmation, found while writing this up.** None of the ten adapter boards in this
 repo — `34p-adapter-a/b`, `35p-adapter-a`, `39p-adapter-b/c`, `40p-adapter-ab`,
 `50p-adapter-b/c`, `mega_adapter`, `u133_adapter` — contains a 16-pin FPC part. Every one mates
-with the 50-pin `J6` alone. The connector was unused by the whole adapter ecosystem that
+with the 50-pin `J1000` alone. The connector was unused by the whole adapter ecosystem that
 shipped with R1. (Careful with the name: `35p-adapter-a` has a reference designator `J3` of its
 own, and it is that board's 35-pin *panel* connector, nothing to do with this one.)
 
@@ -764,7 +764,7 @@ own, and it is that board's 35-pin *panel* connector, nothing to do with this on
 Asked by the owner 2026-08-15. README's panel table splits **126 TTL / 11 MiniLVDS**, and the
 MiniLVDS set is short enough to list in full: 8.0″ `AC080KH1/KH2` and 11.8″ `AC118TC1`, all three
 **Gallery 3**, plus the 25.3″/28″ signage panels. So of tablet-sized panels, the *only* things
-behind `J3` are 8″ and 11.8″ Gallery 3. Everything else that is bigger, colour, or both is on `J6`:
+behind `J3` are 8″ and 11.8″ Gallery 3. Everything else that is bigger, colour, or both is on `J1000`:
 
 | Size | Panel | Technology | Panel pins |
 | --- | --- | --- | ---: |
@@ -796,7 +796,7 @@ the UCF, and 300 MP/s from DDR3-667 x16. Against demand at 60 Hz:
 | 13.3″ 2200×1650 | 232 | dithering off only |
 
 So the natural bigger-tablet target for this architecture is **13.3″ 1600×1200 colour at 60 Hz** —
-125 MP/s, comfortably inside every limit, on `J6`, with Caster's existing `k3` variant and a
+125 MP/s, comfortably inside every limit, on `J1000`, with Caster's existing `k3` variant and a
 `EC133UJ1` / `AC133UT1` / `EL133UR1` panel. That needs nothing from `J3`. (One number still to
 check when WP7 lands: whether the AM62x DSS can source the required `VOUT` pixel clock. It bounds
 this table from the SoM side and is not yet verified.)
@@ -832,7 +832,7 @@ Kept. It is worth being precise about "no problems", because there is one and it
 What it buys: a 2 Gb or 4 Gb part becomes a `mig.prj` change instead of a respin, which matters
 because the DRAM is the one part on this board with a live shortage attached to it.
 
-### 15.4 `C509`, the fifth 4.7 µF on `VCCINT` — accepted
+### 15.4 `C833`, the fifth 4.7 µF on `VCCINT` — accepted
 
 > "That is a good change you noticed. Its good to keep as the datasheet says."
 

@@ -3,7 +3,7 @@
 Status: **ported; reviewed once — accepted as a 1:1 port.** The review raised one question, about
 why the panel connector lives on a separate adapter board; it is answered in §9. Companion to
 `battery.md`, `power.md` and `mcu.md`.
-Last updated 2026-08-30: **§9.5 — `J6` is now a 40-pin `XF2M-4015-1A` wired straight to the panel.
+Last updated 2026-08-30: **§9.5 — `J1000` is now a 40-pin `XF2M-4015-1A` wired straight to the panel.
 The adapter is gone, and with it `+5V2_FL`, `C147` and the three `FL_*` pins. §9.6 — both panel
 connectors moved to `B.Cu` and both took a mirrored land pattern, for opposite reasons.**
 
@@ -21,7 +21,7 @@ pin for pin (§6). `power_mon` differs in exactly four net groups, all intended 
 
 | Sheet | Parts | Renamed | Circuit |
 | --- | --- | --- | --- |
-| `epd` | 11 | 0 | panel connectors `J6` (50p) and `J3` (16p) + 7 caps — `J3` deleted 2026-08-15, so 10 parts now (§7) |
+| `epd` | 11 | 0 | panel connectors `J1000` (50p) and `J3` (16p) + 7 caps — `J3` deleted 2026-08-15, so 10 parts now (§7) |
 | `epd_power` | 85 | 23 | EPD HV chain: 2× `LGS5145`, 2× `LGS6302B5`, 2× `TPS22914`, VCOM DAC buffer + `LM321` sense |
 | `power_mon` | 32 | 2 | 3× `INA3221`, eight 20 mΩ shunts, five HV measurement dividers |
 
@@ -31,9 +31,9 @@ already issued are renamed, by a fixed offset so the R1 number stays readable in
 | Rule | Applies to |
 | --- | --- |
 | `C`, `R` → **+200** | `C32,33,41,42,44,45,46,49` and `R13,17,18,19,24–30,34` on `epd_power`; `R7,R8` on `power_mon` |
-| `U`, `L` → **+20** | `U11`→`U31`, `L10`→`L30`, `L12`→`L32` on `epd_power` |
+| `U`, `L` → **+20** | `U11`→`U1107`, `L300`→`L1102`, `L302`→`L1103` on `epd_power` |
 
-So R1's `C41` is R2's `C241`, R1's `U11` is R2's `U31`, and everything else is unchanged. `epd` needed
+So R1's `C401` is R2's `C1124`, R1's `U11` is R2's `U1107`, and everything else is unchanged. `epd` needed
 no renames at all.
 
 Five other mechanical transforms, and nothing else:
@@ -60,13 +60,13 @@ later with a one-line change since the content already sits in the top-left of a
 
 ## 2. What the port revealed — `EPD_PWR_EN` needs a series resistor
 
-R1 puts **1 kΩ (its `R22`) in series between the MCU pin and `EPD_PWR_EN`**, and that is not
-decoration. `power_mon`'s `U21` has its open-drain `CRITICAL` output on the same net: an `INA3221`
+R1 puts **1 kΩ (its `R302`) in series between the MCU pin and `EPD_PWR_EN`**, and that is not
+decoration. `power_mon`'s `U1200` has its open-drain `CRITICAL` output on the same net: an `INA3221`
 over-current trip must be able to pull the EPD rail's enable low **while the MCU is driving it
 high**. Without the resistor the two fight and the protection does nothing.
 
 WP3 drove `EPD_PWR_EN` straight from `PB0`. **`mcu.kicad_sch` has been changed** to match R1: `PB0`
-now carries `EPD_PWR_EN_MCU`, and `R45` (1 kΩ) bridges to `EPD_PWR_EN`. The fight current is
+now carries `EPD_PWR_EN_MCU`, and `R405` (1 kΩ) bridges to `EPD_PWR_EN`. The fight current is
 3.3 mA. A bonus falls out of it: `PB0` can be read back as an input to see the trip.
 
 ## 3. `power_mon` — the only sheet whose nets changed
@@ -77,15 +77,15 @@ through three of the shunts, which is a net-name edit:
 
 | INA | Addr | ch | R1 | R2 | Why |
 | --- | --- | --- | --- | --- | --- |
-| `U21` | 0x40 | 1 | `+5V_EPD` → `+5V_ES` | unchanged | |
-| `U21` | | 2 | `+5V_EPD` → `+5V_EG` | unchanged | |
-| `U21` | | 3 | `+3V3_DCDC` → `+3V3` | unchanged | |
-| `U22` | 0x41 | 1 | `+1V8_DCDC` → `+1V8_VID` | **`+5V_DCDC` → `+5V_SOM`** | video rail gone; the SoM's input current is the biggest unknown in the whole budget |
-| `U22` | | 2 | `+3V3_DCDC` → `+3V3_VID` | **`+3V3_AON_DCDC` → `+3V3_AON`** | video rail gone; closes `power.md` §9's first open item |
-| `U22` | | 3 | `+5V_DCDC` → `+5V2_FL` | **`+VSYS` → `+VSYS_FL`** | the frontlight runs from the cell in R2, not from 5 V |
-| `U27` | 0x43 | 1 | `+1V5_DCDC` → `+1V5` | unchanged | |
-| `U27` | | 2 | `+1V2_DCDC` → `+1V2_FPGA` | unchanged | |
-| `U27` | | 3 | unused, tied to GND | unchanged | R1 left it spare; so does R2 |
+| `U1200` | 0x40 | 1 | `+5V_EPD` → `+5V_ES` | unchanged | |
+| `U1200` | | 2 | `+5V_EPD` → `+5V_EG` | unchanged | |
+| `U1200` | | 3 | `+3V3_DCDC` → `+3V3` | unchanged | |
+| `U1201` | 0x41 | 1 | `+1V8_DCDC` → `+1V8_VID` | **`+5V_DCDC` → `+5V_SOM`** | video rail gone; the SoM's input current is the biggest unknown in the whole budget |
+| `U1201` | | 2 | `+3V3_DCDC` → `+3V3_VID` | **`+3V3_AON_DCDC` → `+3V3_AON`** | video rail gone; closes `power.md` §9's first open item |
+| `U1201` | | 3 | `+5V_DCDC` → `+5V2_FL` | **`+VSYS` → `+VSYS_FL`** | the frontlight runs from the cell in R2, not from 5 V |
+| `U1202` | 0x43 | 1 | `+1V5_DCDC` → `+1V5` | unchanged | |
+| `U1202` | | 2 | `+1V2_DCDC` → `+1V2_FPGA` | unchanged | |
+| `U1202` | | 3 | unused, tied to GND | unchanged | R1 left it spare; so does R2 |
 
 **All three `INA3221`s move from `+3V3_DCDC` to `+3V3_AON`.** Two reasons, and the second is the one
 that matters:
@@ -95,13 +95,13 @@ that matters:
    where it gets fixed.
 2. It is the only way to measure the always-on domain at all. Power-down `IQ` is **0.5 µA typ,
    2 µA max** ‡ (`ina3221.pdf`), so three of them cost ~1.5 µA typ — against a 10 mW standby target,
-   nothing. `U22` ch2's shunt sits upstream of everything including the `INA3221`s' own supply, so
+   nothing. `U1201` ch2's shunt sits upstream of everything including the `INA3221`s' own supply, so
    that channel measures the whole always-on domain honestly, itself included.
 
-`U22`'s `A0` address strap also moves from `+3V3` to `+3V3_AON` — otherwise the address is undefined
+`U1201`'s `A0` address strap also moves from `+3V3` to `+3V3_AON` — otherwise the address is undefined
 whenever the switched rail is down, which is exactly when the part is supposed to be readable.
 
-> **One change is needed in `power.kicad_sch` and I have not made it.** `U22` ch2 measures
+> **One change is needed in `power.kicad_sch` and I have not made it.** `U1201` ch2 measures
 > `+3V3_AON_DCDC` → `+3V3_AON`, so the LDO `U10`'s output net must be renamed from `+3V3_AON` to
 > **`+3V3_AON_DCDC`** — one power symbol, matching the `*_DCDC` convention every other rail already
 > follows. That sheet is out for review, so it is left for the reviewer rather than edited
@@ -117,7 +117,7 @@ the JLCPCB and LCSC catalogue entries for `C5123971`; the manufacturer's own PDF
 from this machine, so treat the number as catalogue-sourced rather than datasheet-verified).
 
 R1 runs both `LGS5145`s as **inverting buck-boosts** — the IC's `GND` pin sits on the negative output
-(`U9`'s on `-VGL`, `U26`'s on `-VN`), so in steady state it sees `VIN − VOUT` ≈ 25 V, comfortably
+(`U1103`'s on `-VGL`, `U1106`'s on `-VN`), so in steady state it sees `VIN − VOUT` ≈ 25 V, comfortably
 inside range even from a 3.0 V cell. **But at startup the negative rail is at 0 V**, so the part sees
 `+VSYS` alone. At 3.0 V that is below the 4.5 V minimum and the converter never starts. The 5 V feed
 stays.
@@ -125,8 +125,8 @@ stays.
 ### 4.2 How R1 measures negative rails — `mcu.md` §9 is closed
 
 `mcu.md` flagged that a plain divider cannot present a negative rail to an ADC. R1's answer: divide
-between the negative rail and **`+3V3_DCDC`**, not to ground. `R115` 1 MΩ from `-VN` and `R116`
-100 kΩ up to the rail; same for `-VGL` via `R117`/`R118`.
+between the negative rail and **`+3V3_DCDC`**, not to ground. `R1212` 1 MΩ from `-VN` and `R1213`
+100 kΩ up to the rail; same for `-VGL` via `R1214`/`R1215`.
 
 ```
 V_node = V_3V3 + (V_neg − V_3V3) × 100k/1100k
@@ -137,7 +137,7 @@ V_node = V_3V3 + (V_neg − V_3V3) × 100k/1100k
 Both land mid-range. **Kept exactly as R1 has it**, with one firmware consequence: in R1 the divider
 reference and the ADC reference were the same rail, and in R2 they are not — `VREF+` is `+3V3_AON`
 (`mcu.md` §5.2) while the divider references `+3V3_DCDC`. Firmware must therefore read the `+3V3`
-bus voltage from `U21` ch3 to interpret `VN_MEA`/`VGL_MEA`. That is a measurement it takes anyway,
+bus voltage from `U1200` ch3 to interpret `VN_MEA`/`VGL_MEA`. That is a measurement it takes anyway,
 it costs nothing, and it keeps standby draw at zero — referencing the dividers to `+3V3_AON` instead
 would have been simpler arithmetic but would leak ~6 µA continuously.
 
@@ -153,7 +153,7 @@ Rails cross as power symbols, which are global in KiCad and need no label: `+5V_
 `+5V_ES`, `+5V_EG`, `+3V3`, `+3V3_AON`, `+VSYS`, `+VBUS`, `+VP`, `+VGH`, `-VN`, `-VGL`, `-VCOM`,
 `+1V5`, `+1V2_FPGA`, `+VSYS_FL`.
 
-`EPD_PWR_EN` is declared **bidirectional** on `power_mon` because `U21` drives it as well as
+`EPD_PWR_EN` is declared **bidirectional** on `power_mon` because `U1200` drives it as well as
 listening — §2.
 
 ## 6. Verification — what was actually run
@@ -176,7 +176,7 @@ listening — §2.
   164 `isolated_pin_label`, 91 `pin_not_connected`, 15 `power_pin_not_driven`. Then 8
   `four_way_junction`, 3 `pin_not_driven`, 1 `pin_to_pin`, 1 `multiple_net_names`, 1
   `footprint_link_issues`.
-- **The 8 `four_way_junction` warnings are R1's drawing**, on `epd_power` (`L6`, `L32`, `R78`/`R79`
+- **The 8 `four_way_junction` warnings are R1's drawing**, on `epd_power` (`L1101`, `L1103`, `R1105`/`R1106`
   and five more). R1's own ERC reports none because its KiCad 8 project file does not enable that
   check; R2's KiCad 10 defaults do. Carried over deliberately — changing them would change R1's
   geometry.
@@ -205,19 +205,19 @@ from — but only in R1's rail context.
   replaced the frontlight rail with a constant-current driver, so `+5V2_FL` no longer exists as a
   source anywhere. `J6.7`/`J6.44` and `C147` still carry the name on this frozen sheet and are now
   **unused pins with no driver**, which is intended and needs no edit: the bonded frontlight reaches
-  the board on its own connector, `J24`. `frontlight.md` §7.1. The same applies to `FL_PWM2` on
+  the board on its own connector, `J1300`. `frontlight.md` §7.1. The same applies to `FL_PWM2` on
   `J6.42`, which the LM3630A does not use.
-- **`epd`'s `J6` pinout was carried pin-for-pin and not re-checked** against the panel.
+- **`epd`'s `J1000` pinout was carried pin-for-pin and not re-checked** against the panel.
   `NOTES-R2-plan.md`'s verification list asks for that diff explicitly — it is a WP-E task, not a
   port task, but it is still owed. (`J3` no longer needs checking; it is gone.)
 - ~~**`J3` (the 16-pin connector) is probably dead weight for R2, and dropping it is free only until
   the panel is chosen.** It carries nothing but `EPDC_D8`–`D11`, a clock pair and six grounds — the
-  width/LVDS extension (§9.3). An 8- or 16-bit reader panel needs `J6` alone. Decide with the
+  width/LVDS extension (§9.3). An 8- or 16-bit reader panel needs `J1000` alone. Decide with the
   panel.~~ **Closed 2026-08-15 — deleted** by the owner, `tools/patch_drop_j3.py`. `fpga.md` §15.2
   has the reasoning and what moved; §9.3 below is what it was decided from. `epd.kicad_sch` is
   therefore no longer a pin-for-pin port of R1's, and its title-block caption says so.
 - ~~**Layout guidelines are still owed for these three sheets.**~~ **Written 2026-08-15 — §11.**
-  The headline is §11.1: `U9` and `U26` are inverting buck-boosts whose `GND` pin sits on `-VGL`
+  The headline is §11.1: `U1103` and `U1106` are inverting buck-boosts whose `GND` pin sits on `-VGL`
   and `-VN`, so each needs a local copper island at −20 V / −15 V with the plane cut away beneath
   it. Confirmed from the exported netlist rather than from the drawing.
 - **The root sheet is still unwired**, so most of §6's ERC count is noise and cross-sheet
@@ -282,7 +282,7 @@ So: it is not because it is a dev kit. It is because the dev kit's job is to dri
 
 ### 9.2 What R2 inherited, and what I recommend — **superseded 2026-08-30, see §9.5**
 
-R2 carries the same bus, ported unchanged: `J6` = `FPC-05F-50PH20` (50-pin, 0.5 mm, horizontal) and
+R2 carries the same bus, ported unchanged: `J1000` = `FPC-05F-50PH20` (50-pin, 0.5 mm, horizontal) and
 `J3` = `FPC-05F-16PH20` (16-pin). So R2 is on the adapter model today by inheritance, not by
 decision.
 
@@ -323,7 +323,7 @@ stays permanently.
 
 
 Reading the exported netlist, `J3`'s sixteen pins carry **only** `EPDC_D8P/N`, `D9P/N`, `D10P/N`,
-`D11P/N`, `EPDC_CLKP/N` and six grounds. Everything a normal panel needs is on `J6`: `EPDC_D0`–`D7`,
+`D11P/N`, `EPDC_CLKP/N` and six grounds. Everything a normal panel needs is on `J1000`: `EPDC_D0`–`D200`,
 the gate strobes (`GDCLK`, `GDOE`, `GDSP`), the source strobes (`SDCE0`, `SDLE`, `SDOE`, `SE_CLK`),
 all five HV rails (`+VGH`, `+VP`, `-VCOM`, `-VGL`, `-VN`), `+3V3`, the frontlight (`+5V2_FL`,
 `FL_EN`, `FL_PWM1/2`) and ten grounds — with five pins spare.
@@ -383,12 +383,12 @@ Adapter**, where the owner test-fitted this exact tail on 2026-08-30. The old `F
 
 - **`+5V2_FL` is deleted, and it was already dead** — the netlist had exactly three nodes on it
   (`C147.1`, `J6.7`, `J6.44`) and nothing driving them. `frontlight.md` records that the provisional
-  `TPS61022` and `+5V2_FL` went when the `LM3630A` design landed; `J6` is where the remains sat.
+  `TPS61022` and `+5V2_FL` went when the `LM3630A` design landed; `J1000` is where the remains sat.
   **`C147` (100 nF 0402) is deleted with it.**
 - **`FL_PWM2` loses its last consumer.** It was `U20.61` + `J6.42`; it is now a one-node net, so
   **`PB7` is free** — which is the donor `mcu.md` §9 wants for `FL_INT#`. That decision is still
   open, and until it is taken ERC reports four `isolated_pin_label` warnings on `FL_PWM2`.
-- **`FL_PWM1` and `FL_EN` lose their `J6` stubs** and keep their real paths to `U53` and `U20`. One
+- **`FL_PWM1` and `FL_EN` lose their `J1000` stubs** and keep their real paths to `U1300` and `U400`. One
   less discontinuity on two PWM lines.
 - Eight of eleven `GND` contacts and one of two `+3V3` contacts go. That is the panel's choice, not
   ours: three `GND` contacts at 500 mA each return the whole HV chain plus logic.
@@ -397,7 +397,7 @@ The root sheet's `epd` sheet pins for `FL_EN`/`FL_PWM1`/`FL_PWM2` and their stub
 the same script, or ERC reports `hier_label_mismatch`.
 
 **Verification.** `tools/patch_j6_40pin.py` is idempotent and prints what it changed. After it:
-all 34 connected `J6` pins match the table above, `MP` is `GND`, `C147` is gone and the other six
+all 34 connected `J1000` pins match the table above, `MP` is `GND`, `C147` is gone and the other six
 caps remain, and ERC goes from 43 violations to 47 — **no errors either side**; the delta is
 −1 `power_pin_not_driven` (`+5V2_FL` gone), +4 `isolated_pin_label` (`FL_PWM2`, above) and
 +1 `lib_symbol_mismatch` (the generated `Conn_01x40_MountingPin` against a system library that is
@@ -405,17 +405,17 @@ not installed here — the same class as the three that predate this change).
 
 ### 9.6 Board side and pin order — settled on the bench, 2026-08-30
 
-**Side: `B.Cu`.** `X2` and the SoM are on `F.Cu`, which §1.1 of `layout.md` fixes as the face
+**Side: `B.Cu`.** `X500` and the SoM are on `F.Cu`, which §1.1 of `layout.md` fixes as the face
 *away* from the panel — so `B.Cu` is the panel-facing side, and the tails land on the face they
-arrive from instead of wrapping the board edge. `J6` and `J24` were both moved there by the owner.
+arrive from instead of wrapping the board edge. `J1000` and `J1300` were both moved there by the owner.
 
 **Pin order: the two tails run opposite ways, and so do the two stock footprints.** This is the fact
 worth carrying, because "do the same to both connectors" is wrong here.
 
 | | tail's pin 1, as folded | footprint's pin 1 (local x) | as placed on `B.Cu` rot −90 | verdict |
 | --- | --- | --- | --- | --- |
-| `J24` frontlight | **top** | `HC-FPC-05-09-8RLTAG`: **+1.75** | pin 1 at the bottom | mismatch |
-| `J6` panel TTL | **bottom** | `Omron XF2M-4015-1A`: **−9.75** | pin 1 at the top | mismatch |
+| `J1300` frontlight | **top** | `HC-FPC-05-09-8RLTAG`: **+1.75** | pin 1 at the bottom | mismatch |
+| `J1000` panel TTL | **bottom** | `Omron XF2M-4015-1A`: **−9.75** | pin 1 at the top | mismatch |
 
 Both needed correcting, but they started from opposite ends. The owner read each tail against the
 placed footprint in Pcbnew; the transform used to compute the tables above was validated against
@@ -426,8 +426,8 @@ generates both into the project-local `r2.pretty` (not the `pcb_common` submodul
 
 | Ref | Footprint |
 | --- | --- |
-| `J24` | `r2:HC-FPC-05-09-8RLTAG_Mirrored` |
-| `J6` | `r2:Omron_XF2M-4015-1A_1x40-1MP_P0.5mm_Horizontal_Mirrored` |
+| `J1300` | `r2:HC-FPC-05-09-8RLTAG_Mirrored` |
+| `J1000` | `r2:Omron_XF2M-4015-1A_1x40-1MP_P0.5mm_Horizontal_Mirrored` |
 
 It mirrors the **numbered pads only**. Both parts carry two *symmetric* mechanical pads (±2.75 mm
 and ±11.4 mm), so the land pattern is mechanically identical to the original — the same part solders
@@ -437,7 +437,7 @@ variants for the same reason.
 
 **Why not renumber the nets instead**, which is the obvious-looking fix:
 
-1. The schematic stays true to the source. `J6` pin 1 is `−VGL` in the panel drawing, in
+1. The schematic stays true to the source. `J1000` pin 1 is `−VGL` in the panel drawing, in
    `pcb/40p-adapter-ab`, and in §9.5's table. Renumbering would make every future cross-check
    require a silent mental reversal.
 2. The silkscreen pin-1 marker would stop meaning pin 1 — an assembly and rework trap.
@@ -446,7 +446,7 @@ variants for the same reason.
    wrong and `+VGH` (+28.5 V) lands on the panel's `−VN` while `−VGL` lands on `−VCOM` — the panel
    is destroyed on first power-up. The cheap-to-detect failure is the one to design for.
 
-Nothing electrical changed: the netlist's `J6` map is byte-identical before and after, and ERC is
+Nothing electrical changed: the netlist's `J1000` map is byte-identical before and after, and ERC is
 unchanged at 14 errors / 19 warnings (all errors are the pre-existing `power_pin_not_driven` class).
 
 ## 10. `VGH` for the `GDEP103TC2` — the one value the port has to change
@@ -456,16 +456,16 @@ Written 2026-08-17, when the panel was decided. **Designed, not yet applied to t
 `epd_power.kicad_sch` is a frozen, reviewed 1:1 port of R1. This is the only change the panel
 forces on it, and it is one resistor.
 
-> **APPLIED 2026-08-19**, owner-approved. `R225` is now `20.5K/1%`, LCSC **`C57105`**
+> **APPLIED 2026-08-19**, owner-approved. `R1117` is now `20.5K/1%`, LCSC **`C57105`**
 > (`0402WGF2052TCE`, UNI-ROYAL, 144 k in stock) — the same resistor family as the rest of the
 > board. Verified against LCSC's parametric table, not its part number. The netlist is unchanged:
 > 518 nets, identical pin membership, as expected for a value edit.
 >
-> Rendered and checked by eye: the divider reads `R224` 390 kΩ over `R225` 20.5 kΩ with `R213`
+> Rendered and checked by eye: the divider reads `R1116` 390 kΩ over `R1117` 20.5 kΩ with `R1112`
 > 100 kΩ injecting `VGH_DAC`, so 20.5 ∥ 100 = 17.01 kΩ and `VGH = 1.2 × (1 + 390/17.01)` =
 > **28.71 V** at DAC = 0 — matching §10.3's target exactly.
 >
-> `R88`/`R224` also changed part, though not value: `C25782` had **14 units** at LCSC against two
+> `R1107`/`R1116` also changed part, though not value: `C25782` had **14 units** at LCSC against two
 > per board. Now **`C54920667`** (`HRC0402F3903DNTO`, HWA CHN, 390 kΩ ±1 %, 20 k in stock).
 
 ### 10.1 The problem
@@ -478,17 +478,17 @@ That is below the panel's *minimum*, not merely below its typical.
 
 ### 10.2 The network, and a model that checks out
 
-From the exported netlist, `U24` (`LGS6302B5`) is the `VGH` boost: `+5V_VGH` → `L5` → `SW`, `D2` to
+From the exported netlist, `U1105` (`LGS6302B5`) is the `VGH` boost: `+5V_VGH` → `L1100` → `SW`, `D1101` to
 `+VGH`, and an FB node carrying four things:
 
 | Ref | Value | Role |
 | --- | --- | --- |
-| `R224` | 390 k | feedback top, from `+VGH` |
-| `R225` | **22 k** | feedback bottom, to `GND` |
-| `R213` | 100 k | injects `VGH_DAC` into FB — this is how the MCU trims `VGH` down |
-| `C241` | 18 pF | feedforward across `R224` |
+| `R1116` | 390 k | feedback top, from `+VGH` |
+| `R1117` | **22 k** | feedback bottom, to `GND` |
+| `R1112` | 100 k | injects `VGH_DAC` into FB — this is how the MCU trims `VGH` down |
+| `C1124` | 18 pF | feedforward across `R1116` |
 
-`lgs6302.pdf` ‡ gives `V_FB` = **1.2 V** (1.195/1.200/1.205). With the DAC at 0 V, `R213` is simply
+`lgs6302.pdf` ‡ gives `V_FB` = **1.2 V** (1.195/1.200/1.205). With the DAC at 0 V, `R1112` is simply
 a second resistor to ground:
 
 ```
@@ -509,12 +509,12 @@ against the tolerance corners rather than against the nominal. (`power.c`'s four
 12.26 V, disagrees with its own linear fit as well as with this model; the response is non-linear at
 the bottom of the range and it is outside the 22–27 V band the comment calls valid.)
 
-### 10.3 The change: `R225` 22 kΩ → **20.5 kΩ**, 1 %
+### 10.3 The change: `R1117` 22 kΩ → **20.5 kΩ**, 1 %
 
 Options weighed at the corners, applying the −1.05 % bias measured above, and stacking 1 % on all
 three resistors with `V_FB`'s ±0.4 %:
 
-| `R225` | Expected at DAC = 0 | Corners | Verdict |
+| `R1117` | Expected at DAC = 0 | Corners | Verdict |
 | ---: | ---: | --- | --- |
 | 22 k as drawn | 26.87 V | — | **below the 27 V minimum** |
 | 20.0 k | 28.97 V | 28.31 – 29.65 V | high corner is over the 29 V maximum |
@@ -522,21 +522,21 @@ three resistors with `V_FB`'s ±0.4 %:
 | 21.0 k | 27.87 V | 27.23 – 28.52 V | cannot reach 28 V typ — the DAC only pulls down |
 
 **Change the bottom resistor, not the top.** The DAC's authority is `R224/R213` = 3.90 V per volt of
-DAC output, which depends only on those two — so moving `R225` shifts the setpoint and **leaves the
+DAC output, which depends only on those two — so moving `R1117` shifts the setpoint and **leaves the
 gain untouched**. Firmware then needs its intercept changed and nothing else.
 
 The 20.5 k worst corner is 29.07 V, 0.07 V above the panel's operating maximum and still ~0.9 V
 inside its absolute maximum (`VGL` + 50 V ‡, i.e. 30 V at `VGL` = −20 V). If that is not comfortable,
-`R224`/`R225` at 0.5 % halves the band; it is not a different design.
+`R1116`/`R1117` at 0.5 % halves the band; it is not a different design.
 
 ### 10.4 What does *not* change, and why that is the useful result
 
-- **`VGH_MEA` needs nothing.** `R98` 1 M / `R97` 100 k puts 29 V at **2.64 V**, inside the 3.3 V ADC
+- **`VGH_MEA` needs nothing.** `R1211` 1 M / `R1210` 100 k puts 29 V at **2.64 V**, inside the 3.3 V ADC
   range — `mcu.md` §5.2's 2.45 V figure at 26.9 V is the same divider.
-- **`U24` is nowhere near a limit.** `lgs6302.pdf` ‡: 3.0–60 V range, 2 A peak switch. The panel
+- **`U1105` is nowhere near a limit.** `lgs6302.pdf` ‡: 3.0–60 V range, 2 A peak switch. The panel
   draws `I_GH` = 1.52 mA typ / 1.89 mA max ‡, so ≈ 13 mA in at 5 V.
-- **`D2`** is a 1N5819WS, 40 V ‡, against 29 V.
-- **`C241`/`C244`/`C62`** on `+VGH` are all 50 V rated.
+- **`D1101`** is a 1N5819WS, 40 V ‡, against 29 V.
+- **`C1124`/`C1126`/`C1002`** on `+VGH` are all 50 V rated.
 - **DAC resolution** stays 3.14 mV of `VGH` per LSB; the range becomes ≈ 15.8–28.7 V, still covering
   R1's 22–27 V band.
 - **`VGH − VGL` ≤ 50 V ‡** holds: 29 − (−20) = 49 V. At `VGL` = −21 V (the panel's own minimum ‡) it
@@ -579,7 +579,7 @@ Line up the three numbers:
 | | `VGH` | vs the window's 28.0 V ceiling |
 | --- | ---: | --- |
 | R1 as built | 26.87 V at DAC = 0 | inside, with 1.1 V to spare — which is why nobody hit this |
-| **R2 nominal**, after `R225` = 20.5 k | **28.41 V** | **0.41 V over. Fails.** |
+| **R2 nominal**, after `R1117` = 20.5 k | **28.41 V** | **0.41 V over. Fails.** |
 | R2 low corner | 27.76 V | inside |
 | R2 high corner | 29.07 V | 1.07 V over |
 
@@ -599,20 +599,20 @@ floor is left alone: it still catches "the boost never started", and the DAC leg
 `VGH` down into the low 20s in normal use.
 
 **But 30.0 V is tighter than it looks, and this is the number to check on the bench.** The high
-tolerance corner is 29.07 V, and it is *measured* through `R98`/`R97` at 1 % each into a 12-bit ADC
+tolerance corner is 29.07 V, and it is *measured* through `R1211`/`R1210` at 1 % each into a 12-bit ADC
 referenced to the `+3V3_AON` LDO — call it another 2 %, so a genuine 29.07 V board can report about
 29.6 V. That leaves 0.4 V, which is not much of a margin against a check whose failure mode is
 `fatal()`. Two ways out, both cheap, and the choice needs one bench measurement to make:
 
 - If the built boards land near 28.4 V nominal, **30.0 V is fine** and the corner is theoretical.
-- If they land high, either take `R224`/`R225` to 0.5 % (§10.3 — halves the band) or raise the check
+- If they land high, either take `R1116`/`R1117` to 0.5 % (§10.3 — halves the band) or raise the check
   to **31.0 V** and accept that it no longer catches a mild over-voltage, only a gross one.
 
 Do not raise it silently to "make the error go away" — 31.0 V is above what the panel is rated to
 survive, so it is a deliberate trade of protection for robustness, not a free fix.
 
-**Both changes are needed together.** Fitting `R225` = 20.5 k without touching the window turns a
-correct board into one that dies at every EPD power-up; changing the window without `R225` leaves
+**Both changes are needed together.** Fitting `R1117` = 20.5 k without touching the window turns a
+correct board into one that dies at every EPD power-up; changing the window without `R1117` leaves
 `VGH` below the panel's minimum. Neither has been tested — see the caveat above.
 
 `epd_neg_rails_good()` was checked at the same time and needs nothing: it wants `VN` ∈ [−16, −14]
@@ -620,7 +620,7 @@ and `VGL` ∈ [−21, −19], and the `GDEP103TC2` asks for `VGL` = −20 V ±1 
 
 ### 10.6 One observation the earlier review could not make
 
-`U24.4` (`EN`) and `U24.5` (`VIN`) are **both on `+5V_VGH`**, and `U23` is wired the same way.
+`U24.4` (`EN`) and `U24.5` (`VIN`) are **both on `+5V_VGH`**, and `U1104` is wired the same way.
 `lgs6302.pdf` Absolute Maximum Ratings ‡ give `EN`-to-`GND` as **−0.3 to 6 V**, and its application
 note says *"EN is a low-voltage pin. Use a voltage divider from VIN for proper operation."* A 5 V
 rail leaves 1 V of margin to the absolute maximum.
@@ -641,17 +641,17 @@ circuit on the board". It is, and for one reason that is invisible on the schema
 
 | Part | Pin 2, labelled `GND` | Sits on | Voltage relative to board ground |
 | --- | --- | --- | --- |
-| `U9` `LGS5145` | `GND` | **`-VGL`** | about **−20 V** |
-| `U26` `LGS5145` | `GND` | **`-VN`** | about **−15 V** |
-| `U23` `LGS6302B5` | `GND` | `GND` | 0 V — a normal boost |
-| `U24` `LGS6302B5` | `GND` | `GND` | 0 V — a normal boost |
+| `U1103` `LGS5145` | `GND` | **`-VGL`** | about **−20 V** |
+| `U1106` `LGS5145` | `GND` | **`-VN`** | about **−15 V** |
+| `U1104` `LGS6302B5` | `GND` | `GND` | 0 V — a normal boost |
+| `U1105` `LGS6302B5` | `GND` | `GND` | 0 V — a normal boost |
 
 Both `LGS5145`s are wired as **inverting buck-boosts** (`epd-port.md` §4.1): the IC's ground
 reference *is* the negative output. So each one needs its own **local copper island at −20 V or
 −15 V**, and that island must not touch the ground plane anywhere. The failure mode is not subtle
 — tie either to ground and the part sees its full input across the wrong terminals.
 
-Concretely, for `U9` and again for `U26`:
+Concretely, for `U1103` and again for `U1106`:
 
 - The island carries pin 2, the local input capacitor's "ground" end, the output capacitor's
   return, and the feedback divider's bottom. **Nothing else.**
@@ -665,24 +665,24 @@ Concretely, for `U9` and again for `U26`:
 Four converters here, and the two inverting ones have the hottest loops because their return is
 the negative rail rather than a plane.
 
-- **Input loop first**: for each of `U9`, `U26`, `U23`, `U24`, the input capacitor goes across the
+- **Input loop first**: for each of `U1103`, `U1106`, `U1104`, `U1105`, the input capacitor goes across the
   IC's `VIN` and its own reference pin with the shortest possible loop — this is the
   high-di/dt path, and it matters more than the inductor placement.
-- `L5`, `L6`, `L30`, `L32` (`WPN3012H4R7MT`, 4.7 µH): keep the **`SW` node copper small**. It is
+- `L1100`, `L1101`, `L1102`, `L1103` (`WPN3012H4R7MT`, 4.7 µH): keep the **`SW` node copper small**. It is
   the dv/dt aggressor and the only reason to make it wide is current, which at these currents is
   not a reason.
-- The catch diodes `D1`–`D6`, `D15`, `D17` (`1N5819WS`) belong **immediately** at their converter's
+- The catch diodes `D1100`–`D1105`, `D1106`, `D1107` (`1N5819WS`) belong **immediately** at their converter's
   `SW` node. A Schottky at the far end of a trace turns the trace into an antenna at every edge.
 - Keep all four converters' loops away from `VCOM_MEA` and the panel connector (§11.3, §11.4).
 
 ### 11.3 `VCOM` is measured, and the measurement is the point
 
 `VCOM_MEA` runs to the MCU's `ADC_IN6`, and R1's whole VCOM kick-back scheme depends on that
-reading being clean. `U31` (`LM321`) buffers it.
+reading being clean. `U1107` (`LM321`) buffers it.
 
 - Route `VCOM_MEA` as a **quiet analogue trace**: away from every `SW` node, guarded by ground on
   the same layer where it is convenient, and never over a switching-converter island.
-- `U6` (`MT9700`) and the `VCOM` divider network sit close to `U31`, not close to the converters.
+- `U1100` (`MT9700`) and the `VCOM` divider network sit close to `U1107`, not close to the converters.
 - The `-VCOM` rail itself goes to the panel and is comparatively low current; give it clearance,
   not width.
 
@@ -694,7 +694,7 @@ difference on this board is roughly **42 V**. IPC-2221B for 31–50 V external, 
 and no special HV spacing class is needed.
 
 **What does need care is not clearance but sequencing damage**: `+VGH` and `-VGL` are generated
-from `+5V_EG`/`+5V_ES`, which the `TPS22914`s (`U7`, `U8`) gate. Keep those load switches and their
+from `+5V_EG`/`+5V_ES`, which the `TPS22914`s (`U1101`, `U1102`) gate. Keep those load switches and their
 enables physically near the converters they feed, so the enable trace is short and cannot pick up
 the switching it is supposed to control.
 
@@ -712,7 +712,7 @@ a shunt sensed at the wrong end of its own pad measures the pad too.
 
 ### 11.6 The panel connector
 
-`J6` (`XF2M-4015-1A`, **40-pin** 0.5 mm — §9.5) is the board's edge interface and it carries five HV
+`J1000` (`XF2M-4015-1A`, **40-pin** 0.5 mm — §9.5) is the board's edge interface and it carries five HV
 rails, `+3V3` and the whole source/gate bus. The frontlight pair no longer passes through it.
 
 - **Place it first.** It is the one part whose position is fixed by the enclosure and the panel's
@@ -721,7 +721,7 @@ rails, `+3V3` and the whole source/gate bus. The frontlight pair no longer passe
   since these are not plane nets.
 - `EPDC_SE_CLK` and the source bus are the fastest signals here; keep them over continuous ground.
 - `J3` is **gone** (§7), so the 16-pin connector's board edge is free — worth remembering when the
-  outline is drawn, because that was ~13 mm of edge on R1. `J6` dropping 50 → 40 pins frees a
+  outline is drawn, because that was ~13 mm of edge on R1. `J1000` dropping 50 → 40 pins frees a
   further ~5 mm of that same edge.
 - **Orientation is not free.** `XF2M-4015-1A` has double-sided contacts, so the tail can arrive pads
   up or pads down — but the connector still faces one way, and the tail folds under the panel from

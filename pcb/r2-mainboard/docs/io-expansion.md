@@ -67,7 +67,7 @@ specifically was deliberate — they are the two with a capability the others la
 | `+3V3` → `+3V3_TOUCH` | `U1400` `TPS22914BYFPR`, enable `MCU_EN_TOUCH` |
 | `+3V3` → `+3V3_PEN` | `U1401` `TPS22914BYFPR`, enable `MCU_EN_PEN` |
 
-Same part, symbol and footprint as `U7`/`U8` on `epd_power` (`Power_Management:AP22914CN4`,
+Same part, symbol and footprint as `U1101`/`U1102` on `epd_power` (`Power_Management:AP22914CN4`,
 `Package_BGA:WLP-4_0.83x0.83mm_P0.4mm`) — no new line item, and active-high `EN` keeps the
 `MCU_EN_*` convention every other switched rail on this board uses.
 
@@ -273,8 +273,8 @@ Shapes are from this sheet's point of view: the interrupts leave it, the enables
 
 ## 7. Layout guidelines — for Stage D
 
-- **Both connectors are enclosure-fixed**, like `J6`. Their position comes from where the touch
-  layer's and digitizer's tails emerge, which comes from the panel — so they are placed with `J6`,
+- **Both connectors are enclosure-fixed**, like `J1000`. Their position comes from where the touch
+  layer's and digitizer's tails emerge, which comes from the panel — so they are placed with `J1000`,
   not around it.
 - The rails are DNP, so **the load switches sit next to their connectors**, not next to `power`.
   Populating one later should not mean routing a rail across the board.
@@ -302,12 +302,12 @@ Shapes are from this sheet's point of view: the interrupts leave it, the enables
 ## 7. The USB1 host port — added 2026-08-30
 
 Owner's decision. Closes `NOTES-R2-review-round-2.md` **D-3**, which had it as *"the cheap half of a
-port … it cannot be retrofitted"* — the four `USB1` pins were already on `J26` and cost nothing until
+port … it cannot be retrofitted"* — the four `USB1` pins were already on `J501` and cost nothing until
 the board was fabbed.
 
-**Host only, not dual-role.** The USB-C port `J1` is a permanent sink: `R1`/`R2` are fixed 5.1 kΩ Rd
+**Host only, not dual-role.** The USB-C port `J1` is a permanent sink: `R200`/`R201` are fixed 5.1 kΩ Rd
 on `CC1`/`CC2`, so it can never source. Making *that* port dual-role would need a CC controller, the
-`X_USB0_DRVVBUS` ball wired, and `C2` on `PMID` taken from 8.2 µF to 40 µF (`battery.md` §6). A
+`X_USB0_DRVVBUS` ball wired, and `C201` on `PMID` taken from 8.2 µF to 40 µF (`battery.md` §6). A
 second, source-only port needs none of that, and it does not touch the charge path.
 
 ### 7.1 The circuit
@@ -316,7 +316,7 @@ second, source-only port needs none of that, and it does not touch the charge pa
 | --- | --- | --- | --- |
 | `J1402` | `TYPE-C-31-M-12` | `C165948` | the same receptacle as `J1` — no new BOM line |
 | `U1402` | **`TPS2553DBVR`** SOT-23-6 | `C55266` | adjustable current limit, `EN` **active high** |
-| `U1403` | `USBLC6-2SC6` | `C7519` | same ESD part and same wiring as `U3` on `battery` |
+| `U1403` | `USBLC6-2SC6` | `C7519` | same ESD part and same wiring as `U202` on `battery` |
 | `R1400`, `R1401` | 56 kΩ | — | Rp on `CC1`/`CC2`: a source advertising *Default USB Power* |
 | `R1402` | 49.9 kΩ 1 % | — | `ILIM` |
 | `R1403` | 100 kΩ | — | pull-up on the open-drain `FAULT` |
@@ -340,7 +340,7 @@ reader is asleep.
 
 **The rail is `+5V_DCDC`, deliberately.** There is no net called `+5V` on this board: the boost
 output is `+5V_DCDC` and it splits into `+5V_SOM`, `+5V_EPD` and the rest *after* the `power_mon`
-shunts. Hanging the port on `+5V_SOM` would corrupt `U22` ch1's reading of the module. The cost is
+shunts. Hanging the port on `+5V_SOM` would corrupt `U1201` ch1's reading of the module. The cost is
 that USB current is not separately measured; `USB1_FAULT#` is the signal that something is wrong.
 
 ### 7.2 Control and fault
@@ -357,7 +357,7 @@ back out again, which is the best possible outcome for a spare.
 
 ### 7.3 ⚠ What this costs the `+5V` budget
 
-`power.md` §8.1 sized `L10` against a worst realistic case of **1.3 A** — the SoM's 1.0 A design
+`power.md` §8.1 sized `L300` against a worst realistic case of **1.3 A** — the SoM's 1.0 A design
 bound plus an EPD refresh — with 1.5 A the design point and 2.0 A the line where "margin is gone".
 The port's limit is 565 mA at its worst corner, so **worst case becomes 1.865 A**. That is inside
 2.0 A but it is the whole remaining margin, and it is why the limit is 49.9 kΩ and not something

@@ -32,9 +32,9 @@ page — then re-run it and confirm the file is unchanged.
 | `TPS62A02DRL` | buck | `gen_r2_symbols.py` | `datasheets/Power/tps62a01.pdf` | `power.md` §3 |
 | `TPS63802DLA` | buck-boost | `gen_r2_symbols.py` | `datasheets/Power/tps63802.pdf` | `power.md` §3 |
 | `TPS7A0233DBV` | LDO | `gen_r2_symbols.py` | `datasheets/Power/tps7a02.pdf` | `power.md` |
-| `USBLC6-2SC6` | USB ESD | `gen_r2_symbols.py` | ST datasheet | used on `U3`, `U1403` |
+| `USBLC6-2SC6` | USB ESD | `gen_r2_symbols.py` | ST datasheet | used on `U202`, `U1403` |
 | `LM3630A` | frontlight driver | `gen_frontlight.py` | `datasheets/Frontlight/lm3630a.pdf` | `frontlight.md` |
-| `BOM_ITEM` | placeholder for bought items with no pins (`X2`, `MK20`) | `gen_som.py` | — | `som.md` §10 |
+| `BOM_ITEM` | placeholder for bought items with no pins (`X500`, `MK500`) | `gen_som.py` | — | `som.md` §10 |
 | `BTH-060_AB` | SoM connector, module columns A+B | `gen_som_symbol.py` | `som_pinout.json` ← PHYTEC `L-1038e.A5` Tables 7–10 | `som.md` §10–11 |
 | `BTH-060_CD` | SoM connector, columns C+D | `gen_som_symbol.py` | same | `som.md` §10–11 |
 | **`TPS2553DBV`** | **USB current-limited switch** | **`gen_usb_host.py`** | **`datasheets/Power/tps2553.pdf` Pin Functions table** | **§4 below** |
@@ -44,13 +44,13 @@ page — then re-run it and confirm the file is unchanged.
 | Footprint | For | Generator | Derived from | Checked |
 | --- | --- | --- | --- | --- |
 | `Texas_DLA0010A_VSON-HR-10_2x3mm_P0.5mm` | `U13` `TPS63802` | `gen_power.py` | `tps63802.pdf` drawing **4223750/D** p.36 land pattern | `layout.md` §3.1 — two independent geometry assertions |
-| `Texas_YFQ0012_DSBGA-12_1.91x1.39mm_Layout3x4_P0.4mm` | `U53` `LM3630A` | `gen_yfq0012.py` | `lm3630a.pdf` mechanical drawing | `frontlight.md` §9.1 |
-| `BTH-060-01-L-D-A-K_AB` | `J26` | `gen_som_footprint.py` | PHYTEC DXF `PCM-071_1573-1.dxf` + Samtec drawing | `som.md` §11, `check_pcb_connectors.py` |
-| `BTH-060-01-L-D-A-K_CD` | `J27` | `gen_som_footprint.py` | same | same |
-| `PCM-071_Module` | `X2` — outline + 2× M2.5, **no pads** | `gen_som_footprint.py` | PHYTEC DXF, `BOARD_OUTLINE` layer | `som.md` §11 |
+| `Texas_YFQ0012_DSBGA-12_1.91x1.39mm_Layout3x4_P0.4mm` | `U1300` `LM3630A` | `gen_yfq0012.py` | `lm3630a.pdf` mechanical drawing | `frontlight.md` §9.1 |
+| `BTH-060-01-L-D-A-K_AB` | `J501` | `gen_som_footprint.py` | PHYTEC DXF `PCM-071_1573-1.dxf` + Samtec drawing | `som.md` §11, `check_pcb_connectors.py` |
+| `BTH-060-01-L-D-A-K_CD` | `J502` | `gen_som_footprint.py` | same | same |
+| `PCM-071_Module` | `X500` — outline + 2× M2.5, **no pads** | `gen_som_footprint.py` | PHYTEC DXF, `BOARD_OUTLINE` layer | `som.md` §11 |
 | `SolderPads_1x03_P3.50mm_Wire` | `J25` cell solder pads | `gen_solderpads.py` | drawn to spec, no datasheet | `battery.md` §9 |
-| **`HC-FPC-05-09-8RLTAG_Mirrored`** | **`J24` frontlight** | **`gen_mirrored_fpc.py`** | **mirror of `pcb_common`'s `HC-FPC-05-09-8RLTAG`** | **§4 below** |
-| **`Omron_XF2M-4015-1A_1x40-1MP_P0.5mm_Horizontal_Mirrored`** | **`J6` panel** | **`gen_mirrored_fpc.py`** | **mirror of KiCad's stock `Omron_XF2M-4015-1A…`** | **§4 below** |
+| **`HC-FPC-05-09-8RLTAG_Mirrored`** | **`J1300` frontlight** | **`gen_mirrored_fpc.py`** | **mirror of `pcb_common`'s `HC-FPC-05-09-8RLTAG`** | **§4 below** |
+| **`Omron_XF2M-4015-1A_1x40-1MP_P0.5mm_Horizontal_Mirrored`** | **`J1000` panel** | **`gen_mirrored_fpc.py`** | **mirror of KiCad's stock `Omron_XF2M-4015-1A…`** | **§4 below** |
 
 ## 4. The three added 2026-08-30/31, in more detail
 

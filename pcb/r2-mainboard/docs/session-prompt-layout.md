@@ -23,7 +23,7 @@ I'm laying out R2 in KiCad 10 myself and want you checking my work, not doing it
 **Where the board stands (update this section as it changes):**
 - 327 of 327 footprints imported and resolving; 322 of 327 have 3D models (`layout.md` §9.1 lists
   the five that don't and why).
-- The SoM is placed: `X2` + `J26` + `J27`, snapped and grouped so they move as one.
+- The SoM is placed: `X500` + `J501` + `J502`, snapped and grouped so they move as one.
 - Design settings imported from R1 and 9 net classes written —
   `tools/import_r1_settings.py`, `layout.md` §4.1.
 - `Edge.Cuts` holds a 185.5 × 95 mm placeholder rectangle, not the real ≈ 90 × 70 mm outline.
@@ -47,12 +47,12 @@ I'm laying out R2 in KiCad 10 myself and want you checking my work, not doing it
 
 **What's actually open, highest value first:**
 1. Draw the real board outline and mounting holes, then place in `layout.md` §6.3's order —
-   `J6` and the folded-flex connectors first, since the enclosure fixes them.
+   `J1000` and the folded-flex connectors first, since the enclosure fixes them.
 2. Confirm the `BTH-060` 3D model's rotation in the 3D viewer (`gen_som_footprint.py`'s
    `MODEL_CONN_ROT` is an unverified guess of `0,0,90` — flip to `-90` if the receptacles lie
    across their pads instead of along them).
 3. Before ordering: build Caster for the `-2` speed grade (`par/ise_flow.sh`, two `-ftg256-3` →
-   `-2`) — the DDR3 bus has 0.05 % margin at `U41`. Re-check `C3646540` stock. Confirm CPL
+   `-2`) — the DDR3 bus has 0.05 % margin at `U700`. Re-check `C3646540` stock. Confirm CPL
    rotation with JLCPCB (`som.md` §10.4).
 
 ---

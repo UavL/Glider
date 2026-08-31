@@ -143,7 +143,7 @@ when the switch was made. **WP7 and WP8 are unblocked.**
 | `VIN` | **5.0 V**, pins **A1, A2, A3**, draw 5 W (1 A) | L-1038e.A5 Table 12 |
 | `VBAT` | RTC backup, pin **B2**, 120 nW (40 nA) | L-1038e.A5 Table 12 |
 | Typical idle | **1.62 W** — corroborated by the measured 1485.7 mW, §4.6 | L-1038e.A5 Table 3 |
-| DPI | **Parallel MIPI DPI 2.0, RGB 16/18/24-bit with separate syncs**, full `X1` pin map in **Table 31** | L-1038e.A5 §8.1.1 |
+| DPI | **Parallel MIPI DPI 2.0, RGB 16/18/24-bit with separate syncs**, full `X900` pin map in **Table 31** | L-1038e.A5 §8.1.1 |
 | I/O voltage | `X_VOUT0_*` default **3.3 V**, solder-jumper selectable to 1.8 V (§4.7) — matches Caster's `LVCMOS33`, no level shifting | L-1038e.A5 Table 31 note 1 |
 | PCB cut-out | **not required** — the advantage of the connectorised part; `PCL-071` needs a ~14.4 × 22.4 mm hole | L-1041e.A3 Fig. 11 NOTE 2 |
 | Price | **€250.00 @ 1–9 pcs**, variant `PCM-071-5432DE11I`, PHYTEC order code `C618992` | PHYTEC (Emma Tholey) mail, 2026-08-18 |
@@ -182,11 +182,11 @@ the video port drives **`DATA[17:0]` only**, packed as `data[17:12]` = red, `dat
 `data[5:0]` = blue (Fig. 12-472 shows 24-bit using `DATA[23:0]`, which is the case that would have
 used all eight strap pins). So:
 
-| Caster net | TRM bit | `VOUT0_` | `X1` | strap |
+| Caster net | TRM bit | `VOUT0_` | `X900` | strap |
 | --- | --- | --- | --- | --- |
 | `DPI_R7` (MSB) | `data[17]` = R5 | `DATA17` | D4 | **`BOOTMODE_9`**, 100 K pull-up |
 | `DPI_R6` | `data[16]` = R4 | `DATA16` | D2 | **`BOOTMODE_8`**, 100 K pull-up |
-| `DPI_R5`…`R2` | `data[15:12]` | `DATA15`…`12` | A13 A12 A10 A8 | — |
+| `DPI_R5`…`R201` | `data[15:12]` | `DATA15`…`12` | A13 A12 A10 A8 | — |
 | `DPI_G7`…`G2` | `data[11:6]` | `DATA11`…`6` | A11 A16 B14 B15 B9 B11 | — |
 | `DPI_B7`…`B2` | `data[5:0]` | `DATA5`…`0` | B10 B7 B5 B4 B6 B12 | — |
 
@@ -369,7 +369,7 @@ multiple uses of Suspend-2-RAM."
 The report wakes the module from Suspend-to-RAM with BTN1 on the carrier, and the kernel reports
 `ti-sci 44043000.system-controller: ti_sci: wakeup source:0x80, pin:0x75, mode:0x0` with two
 `WAKEUPGPIO` interrupt lines. So the *mechanism* — a GPIO edge waking Deep Sleep — is proven on
-this module. **Which `X1` pin BTN1 reaches is not in the report**, so `docs/mcu.md` §5.5's
+this module. **Which `X900` pin BTN1 reaches is not in the report**, so `docs/mcu.md` §5.5's
 conclusion (buttons stay on the MCU) is unchanged: the route exists but its pin number does not.
 
 ---
@@ -441,7 +441,7 @@ Its `J3` is that board's own 35-pin panel connector (`X03A10L35G`), **not** the 
 **No adapter in this repo uses the mainboard's 16-pin connector at all.** Grepping all ten
 adapter projects — `34p-adapter-a/b`, `35p-adapter-a`, `39p-adapter-b/c`, `40p-adapter-ab`,
 `50p-adapter-b/c`, `mega_adapter`, `u133_adapter` — finds zero 16-pin FPC parts; every one of
-them mates with the 50-pin `J6` alone. So the 16-pin connector was unused by the entire
+them mates with the 50-pin `J1000` alone. So the 16-pin connector was unused by the entire
 adapter ecosystem that shipped with R1, which is the fifth independent line of evidence that
 deleting it costs nothing for any panel these adapters support.
 
