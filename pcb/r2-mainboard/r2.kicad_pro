@@ -611,7 +611,7 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "DDR3_CLK",
-        "pcb_color": "rgb(15, 255, 243)",
+        "pcb_color": "rgb(0, 255, 255)",
         "priority": 5,
         "schematic_color": "rgb(15, 255, 243)",
         "track_width": 0.127,
@@ -629,7 +629,7 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "DPI",
-        "pcb_color": "rgb(255, 236, 58)",
+        "pcb_color": "rgb(255, 255, 0)",
         "priority": 6,
         "schematic_color": "rgb(255, 236, 58)",
         "track_width": 0.15,
@@ -647,7 +647,7 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "EPD",
-        "pcb_color": "rgb(255, 156, 23)",
+        "pcb_color": "rgb(255, 153, 0)",
         "priority": 7,
         "schematic_color": "rgb(255, 156, 23)",
         "track_width": 0.11,
@@ -659,7 +659,7 @@
       {
         "line_style": 0,
         "name": "GND",
-        "pcb_color": "rgb(64, 64, 64)",
+        "pcb_color": "rgb(0, 132, 0)",
         "priority": 2,
         "schematic_color": "rgb(64, 64, 64)",
         "tuning_profile": ""
@@ -673,7 +673,7 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "HV",
-        "pcb_color": "rgb(220, 28, 14)",
+        "pcb_color": "rgb(255, 0, 0)",
         "priority": 8,
         "schematic_color": "rgb(220, 28, 14)",
         "track_width": 0.3,
@@ -685,7 +685,7 @@
       {
         "line_style": 0,
         "name": "I2C",
-        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "pcb_color": "rgb(0, 0, 255)",
         "priority": 1,
         "schematic_color": "rgb(123, 133, 181)",
         "tuning_profile": ""
@@ -699,7 +699,7 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "MMC1",
-        "pcb_color": "rgb(255, 166, 240)",
+        "pcb_color": "rgb(194, 0, 194)",
         "priority": 9,
         "schematic_color": "rgb(255, 166, 240)",
         "track_width": 0.15,
@@ -717,7 +717,7 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "PWR",
-        "pcb_color": "rgb(164, 75, 63)",
+        "pcb_color": "rgb(194, 0, 0)",
         "priority": 10,
         "schematic_color": "rgb(164, 75, 63)",
         "track_width": 0.6,
@@ -732,7 +732,7 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "Signals_NET",
-        "pcb_color": "rgb(185, 85, 255)",
+        "pcb_color": "rgb(72, 0, 72)",
         "priority": 3,
         "schematic_color": "rgb(185, 85, 255)",
         "track_width": 0.2,
@@ -743,7 +743,7 @@
       {
         "line_style": 0,
         "name": "TX/RX",
-        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "pcb_color": "rgb(0, 0, 132)",
         "priority": 0,
         "schematic_color": "rgb(141, 41, 82)",
         "tuning_profile": ""
@@ -757,7 +757,7 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "USB",
-        "pcb_color": "rgb(56, 255, 12)",
+        "pcb_color": "rgb(255, 229, 191)",
         "priority": 11,
         "schematic_color": "rgb(56, 255, 12)",
         "track_width": 0.11,
@@ -787,7 +787,7 @@
       },
       {
         "netclass": "USB",
-        "pattern": "/battery/USB*"
+        "pattern": "/*/USB*"
       },
       {
         "netclass": "I2C",
@@ -844,6 +844,26 @@
       {
         "netclass": "PWR",
         "pattern": "/*/-*"
+      },
+      {
+        "netclass": "Signals_NET",
+        "pattern": "/PG*"
+      },
+      {
+        "netclass": "Signals_NET",
+        "pattern": "/MCU_EN_PEN"
+      },
+      {
+        "netclass": "Signals_NET",
+        "pattern": "/PEN_INT#"
+      },
+      {
+        "netclass": "Signals_NET",
+        "pattern": "/TO*"
+      },
+      {
+        "netclass": "Signals_NET",
+        "pattern": "/SOM*"
       }
     ]
   },
@@ -1001,7 +1021,7 @@
         "uuid": "dee825bf-c2f1-415d-afdf-cf702072a6e8"
       }
     ],
-    "used_designators": "SW1,D7,R37,#PWR45",
+    "used_designators": "U4,SW1,D7,R37,#PWR45",
     "variants": []
   },
   "sheets": [

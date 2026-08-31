@@ -19,6 +19,10 @@ on, so no firmware change can fix it. Read in this order:
   the layout guidelines for that circuit. Read the sheet's doc before touching its `.kicad_sch`.
 - **`NOTES-R2-hardware-facts.md`** — the evidence base: every verified fact with its source
   (TI TRM/app notes, PHYTEC manuals, LCSC catalogue, this repo).
+- **`pcb/r2-mainboard/docs/libraries.md`** — every symbol and footprint made for R2, what it was
+  derived from, which `tools/` script emits it, and what was checked. `pcb_common` is never modified.
+- **`NOTES-production-costing.md`** — what 1 000 units would cost and what a campaign would need to
+  raise. Planning, not a quote; the SoM price is the dominant unknown.
 - **`NOTES-STATUS.md`** — R1's state: what is flashed on the board, the measured power budget,
   what is verified vs. inferred vs. untested. Still current for anything hands-on with the
   existing hardware. `NOTES-power-analysis.md` is the 1500-line chronological record behind it

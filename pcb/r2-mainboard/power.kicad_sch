@@ -4551,7 +4551,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0fe1d9bb-6bc7-468a-ab8d-aba8036ce0d3")
-		(property "Reference" "U13"
+		(property "Reference" "U302"
 			(at 85.09 176.53 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4672,7 +4672,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/3c7f0f04-b337-4425-b9f6-94d0a6934c0f"
-					(reference "U13")
+					(reference "U302")
 					(unit 1)
 				)
 			)
@@ -5314,7 +5314,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "247148cf-b504-4b43-9d1f-ecde5621fb25")
-		(property "Reference" "U15"
+		(property "Reference" "U304"
 			(at 312.42 149.86 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5423,7 +5423,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/3c7f0f04-b337-4425-b9f6-94d0a6934c0f"
-					(reference "U15")
+					(reference "U304")
 					(unit 1)
 				)
 			)
@@ -6950,7 +6950,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "69d704ea-c8c7-413d-b21b-7932bcc99d6b")
-		(property "Reference" "U14"
+		(property "Reference" "U303"
 			(at 200.66 149.86 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7059,7 +7059,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/3c7f0f04-b337-4425-b9f6-94d0a6934c0f"
-					(reference "U14")
+					(reference "U303")
 					(unit 1)
 				)
 			)
@@ -9009,7 +9009,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "cc2e1c7d-c502-4dfe-9c19-6b42cd2c8e7f")
-		(property "Reference" "U12"
+		(property "Reference" "U301"
 			(at 233.68 96.52 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9121,7 +9121,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/3c7f0f04-b337-4425-b9f6-94d0a6934c0f"
-					(reference "U12")
+					(reference "U301")
 					(unit 1)
 				)
 			)
@@ -9985,7 +9985,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e1739b0f-3be7-4085-a4f2-19a29c9204eb")
-		(property "Reference" "U10"
+		(property "Reference" "U300"
 			(at 62.23 52.07 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10091,7 +10091,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/3c7f0f04-b337-4425-b9f6-94d0a6934c0f"
-					(reference "U10")
+					(reference "U300")
 					(unit 1)
 				)
 			)
