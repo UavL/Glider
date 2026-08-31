@@ -656,7 +656,9 @@ Neither of these blocks the schematic, and both are why the fork exists.
    config pins and the `N12`/`P12` `PULLUP`s differ from R1, and ISE's UCF has no preprocessor.
 
 And three bitgen changes that the config NOR needs to be worth having (§4.2; the file they live
-in is named in §4.2.1):
+in is named in §4.2.1) — **all three applied by the owner 2026-08-31** in
+`Caster/rtl/spartan6/par/ise_bitgen.txt`: `ConfigRate 2 → 22`, `Binary no → yes`,
+`SPI_buswidth 1 → 4`. Self-boot goes from 1866 ms to ~42 ms typical. Not yet rebuilt or measured:
 
 3. **`-g ConfigRate: 2 → 22`.** At 2 MHz self-boot takes 1.9 s, five times worse than R1.
 4. **`-g Binary: no → yes`**, so there is a flash image to program.

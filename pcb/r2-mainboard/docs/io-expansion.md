@@ -183,6 +183,82 @@ Three ways to close it, in order of preference:
 I have drawn (1)'s shape with (2)'s risk. **It is the owner's call**, and it is the last open
 decision in Stage C.
 
+### 5.2 DECIDED 2026-08-31 — I²C, hand-wired for the prototype
+
+Good Display answered on 2026-08-31 and it closes two of the three branches:
+
+> "About the driving board with touch, it was designed by one customer. We can't supply any
+> development files for the board. … If your order quantity for the displays exceeds 1,000 units per
+> batch, we recommend developing a newly-molded custom touch panel. You will be able to select the
+> communication interface and touch IC of your choice. Tooling charge of touch panel is US$750,
+> MOQ is 1K pcs/lot."
+
+**What that kills.** Putting a `GT9110H` on R2 and driving the panel's ITO tail directly is not
+available at prototype scale: the tail's channel map is panel-specific, the vendor board that
+embodies it is another customer's IP, and Goodix's own channel data is NDA'd. Not a design problem —
+a supply-chain one, and no amount of layout work gets past it.
+
+**What it opens, and it is worth writing down.** The production answer is now *priced*:
+**US$750 tooling, MOQ 1 000/lot**, for a custom-moulded panel with the interface and touch IC of our
+choosing. That is less than one respin. If Glider ever reaches that volume, R2's `J22` is already the
+right connector for it and the mainboard needs no change beyond the pad order.
+
+**The decision for board 1: option C — I²C on `J22`, hand-wired to the vendor board's test points.**
+Good Display's own `EN-DEJA-TC103.pdf` §4.4.2 says the board "already provides IIC test points for
+connection" and that the adapter "can be designed independently". Owner, 2026-08-31: *"for the
+prototype I would solder I2C myself."*
+
+USB was the alternative and was rejected. It would have worked with no soldering and a stock HID
+multitouch driver, but the SoM has exactly two USB ports, `USB0` is the charge port and `USB1` is now
+the host port (§7) — so USB touch would have needed a hub, and it would have cost touch-to-wake
+permanently (the AM62x PHY has to stay powered to see a device). Rejected 2026-08-31 in favour of
+keeping `USB1` for the host port and touch on the always-on I²C bus.
+
+**Touch-to-wake is a firmware choice, in both directions.** That is the property I²C buys and USB
+cannot. The hardware supports it and nothing forces it:
+
+| To have it | To disable it |
+| --- | --- |
+| arm `EXTI9` on `PD9` (`TOUCH_INT#`, `U20.41`) and hold `MCU_EN_TOUCH` (`PC6`) high through STOP | leave `EXTI9` unarmed — the line is simply not a wake source |
+| — | or drop `MCU_EN_TOUCH`, so `U54` cuts `+3V3_TOUCH` and the controller is unpowered: no interrupt to have, and the leakage goes too |
+| — | or put the `GT9110` to sleep over I²C and leave the rail up |
+
+The middle row is the one that saves power, and it is also the default a first build should ship
+with: `NOTES-R2-plan.md`'s wake path lists button *and* touch, so this is a knob, not a redesign.
+
+**`J22`'s pad order stops mattering.** The adapter is hand-made, so it can be wired to whatever the
+pads turn out to be — the one situation where a provisional pin order costs nothing. Owner,
+2026-08-31.
+
+### 5.3 ⚠ The vendor board exposes no `RST` pad
+
+Read off the board by the owner, 2026-08-31. The exposed test points are:
+
+**`SDA`, `SCL`, `VDD`, `GND`, `DBG`, `INT`, `DP`** — and that is all of them.
+
+| `J22` | Net | Vendor pad | |
+| ---: | --- | --- | --- |
+| 1 | `+3V3_TOUCH` | `VDD` | ✓ |
+| 2 | `GND` | `GND` | ✓ |
+| 3 | `SCL_AON` | `SCL` | ✓ |
+| 4 | `SDA_AON` | `SDA` | ✓ |
+| 5 | `TOUCH_INT#` | `INT` | ✓ |
+| 6 | `TOUCH_RST#` | **— none —** | ✗ |
+
+`DP` is the USB `D+` single-ended test point (`J3` pin 3) and is no use to us; `DBG` is
+undocumented. Three consequences, none of them blocking:
+
+1. **`TOUCH_RST#` (`PC3`, `U20.16`) has nowhere to land.** Leave `J22.6` wired anyway — it costs
+   nothing, and a custom panel (§5.2) would use it. Just do not populate that wire in the adapter.
+2. **Reset becomes a power cycle**, and the board already supports it: `MCU_EN_TOUCH` (`PC6`) gates
+   `+3V3_TOUCH` through `U54`, so firmware recovers a hung controller by dropping the rail. That is
+   also the disable-touch-to-wake path in §5.2, so it is a mechanism we want anyway.
+3. ⚠ **The I²C address is not ours to choose.** Goodix `GT911`/`GT9110` latch their address from the
+   `INT` level during reset — `0x5D` or `0x14`. Without `RST` we cannot run that sequence, so the
+   address is whatever the vendor board's own reset circuit selects. **Scan the bus at bring-up**
+   rather than assuming; both addresses are free on `SCL_AON`/`SDA_AON` (the charger is `0x6B`, the
+   gauge `0x36`, the `INA3221`s `0x40`/`0x41`/`0x43`, the `LM3630A` `0x36`… see `battery.md` §7).
+
 ## 6. Sheet interface
 
 | Name | Shape |
