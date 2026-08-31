@@ -3460,7 +3460,7 @@
 		)
 		(uuid "ca954e41-fdd8-48c7-a5d9-ad320c6da4bc")
 	)
-	(label "USB1_+"
+	(label "USB1_D+"
 		(at 364.49 166.37 0)
 		(effects
 			(font
