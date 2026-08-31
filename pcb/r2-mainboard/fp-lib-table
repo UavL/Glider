@@ -2,6 +2,5 @@
 	(version 7)
 	(lib (name "footprints") (type "KiCad") (uri "${KIPRJMOD}/../pcb_common/footprints.pretty") (options "") (descr ""))
 	(lib (name "r2") (type "KiCad") (uri "${KIPRJMOD}/r2.pretty") (options "") (descr "R2 project footprints"))
-	(lib (name "library") (type "KiCad") (uri "${KIPRJMOD}/library.pretty") (options "") (descr ""))
 	(lib (name "Reflow") (type "KiCad") (uri "${KIPRJMOD}/library/Reflow.pretty") (options "") (descr ""))
 )

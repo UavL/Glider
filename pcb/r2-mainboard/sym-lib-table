@@ -2,4 +2,5 @@
   (version 7)
   (lib (name "symbols")(type "KiCad")(uri "${KIPRJMOD}/../pcb_common/symbols.kicad_sym")(options "")(descr ""))
   (lib (name "r2")(type "KiCad")(uri "${KIPRJMOD}/r2.kicad_sym")(options "")(descr "R2 project symbols"))
+  (lib (name "Reflow")(type "KiCad")(uri "${KIPRJMOD}/library/Reflow.kicad_sym")(options "")(descr "Owner library -- symbols made for R2"))
 )
