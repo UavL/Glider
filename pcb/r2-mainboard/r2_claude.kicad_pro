@@ -976,7 +976,7 @@
         },
         {
           "group_by": false,
-          "label": "Qté",
+          "label": "Qt\u00e9",
           "name": "${QUANTITY}",
           "show": false
         },

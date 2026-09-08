@@ -554,6 +554,21 @@ does *not* get to spend the DRAM's headroom: treat this bus as a bus with no mar
 controller, match it properly, and keep it over one continuous plane. The relaxed numbers below are
 what the *geometry* tolerates, not slack to give away.
 
+**Which signals are which** — DDR3 has exactly two differential signal types, the clock and the
+data strobes, so a x16 device has three pairs and everything else is single-ended. The UCF confirms
+it independently: `Caster/rtl/spartan6/constraint.ucf` carries exactly six `DIFF_SSTL15_II` nets and
+puts everything else at `SSTL15_II`.
+
+| | Nets | Target |
+| --- | --- | --- |
+| **Differential, 100 Ω** | `DRAM_CKP`/`CKN`, `DRAM_LDQSP`/`LDQSN`, `DRAM_UDQSP`/`UDQSN` | 100 Ω differential |
+| Data, single-ended | `DRAM_DATA0…15`, `DRAM_LDM`, `DRAM_UDM` | 50 Ω nominal, §11.1.1 |
+| Address/command, single-ended | `DRAM_ADDR0…12`, `DRAM_BA0…2`, `DRAM_RASB`, `DRAM_CASB`, `DRAM_WEB`, `DRAM_CKE`, `DRAM_ODT`, `DRAM_RST` | 50 Ω nominal, §11.1.1 |
+| Not transmission lines at all | `DRAM_CSB` (tied low through `R801`), `DRAM_ADDR13`/`14` (inert both ends), `+DRAM_VREF`, `RZQ`/`ZQ`, `ZIO` | — |
+
+The single-ended nets are *pseudo*-differential: an `SSTL15_II` receiver compares them against
+`+DRAM_VREF` at half-rail, which is why §11.3's quiet island matters as much as the trace does.
+
 - **Match within a byte lane**, tightly: `DQ[7:0]` + `LDM` + `LDQS`/`LDQS#` as one group,
   `DQ[15:8]` + `UDM` + `UDQS`/`UDQS#` as the other. The two lanes need not match each other —
   the MCB deskews per lane (`Phase 2: DQS Centering`, UG388 ch. 4).
@@ -568,8 +583,153 @@ what the *geometry* tolerates, not slack to give away.
   the matched set (owner's decision to keep them, §15.3).
 - **`DRAM_CKP`/`CKN`** carry `R800`, 100 Ω differential termination, at the DRAM end. Route as a
   proper differential pair with the two halves matched to each other before anything else.
-- Keep the whole bus over one continuous reference plane. A split under the DDR bus is the classic
-  way to lose the margin the low data rate just handed you.
+- **Keep the whole bus over one continuous GROUND plane, and the data group specifically.** UG388
+  p.42 is explicit: "A data group should be referenced to a GROUND plane," while address and control
+  "can be referenced to a POWER plane if a GROUND plane is not next to this group of signals in the
+  PCB stack-up." A split under the DDR bus is the classic way to lose the margin the low data rate
+  just handed you — see `layout.md` §7.2 for which plane is actually adjacent to which layer.
+- **UG388's own spacing numbers, which are routing numbers and not net-class clearances:** trace
+  spacing three times the trace width between DDR traces, and 20 mil between the differential
+  clocks/strobes and any other signal, serpentines included. Both live in `r2.kicad_dru` as
+  track-only rules; `layout.md` §4.3 explains why they cannot be class clearances. CK-to-DQS spacing
+  is the one part of that not machine-checked, because both halves of every pair share a net class —
+  keep them apart by placement.
+
+#### 11.1.1 The matching budget, and what this stackup's impedance actually is
+
+UG388 p.41–42 states every budget in picoseconds first and mils second, assuming 165 ps per inch.
+The board routes DDR on outer-layer microstrip, where the propagation delay is **≈ 6.1 ps/mm
+(155 ps/in)** on the 1.0 mm stack-up of `layout.md` §4.1.1 *(inferred — Hammerstad-Jensen, not a field
+solver)*. A picosecond budget therefore buys slightly more millimetres than UG388's mil figure, so
+**hold the mil figure; it is the conservative one.**
+
+| Rule (UG388 p. 41–42) | Spec | Hold |
+| --- | --- | --- |
+| DQ/DM → its own DQS | ±25 ps (±150 mil) | **±3.81 mm** |
+| Inside a pair — CK/CK#, DQS/DQS# | ±10 mil | **±0.25 mm** |
+| `LDQS` pair ↔ `UDQS` pair | ±25 ps (±150 mil) | ±3.81 mm |
+| Address/control → CK pair | ±50 ps (±300 mil) | **±7.62 mm** |
+| CK ↔ DQS | ±250 mil | ±6.35 mm |
+| Max total length | 3 in | 76 mm |
+| Trace width | 3–5 mil | 0.076–0.127 mm |
+| Max vias per net | 2, or 3 with external termination | R1 averages 2 |
+
+⚠ **50 Ω single-ended is a target this board does not hit, and should not chase.** On the
+`layout.md` §4.1.1 stack-up a 0.127 mm microstrip is **≈ 73 Ω**; 50 Ω would need **0.30 mm**, which
+is geometrically impossible in either BGA escape and would blow the 76 mm length budget. The
+mismatch into the MCB's `UNTUNED_50` driver is Γ ≈ 19 %, against ≈ 12 % on R1, which runs this same
+bus at ≈ 64 Ω and works. **Route 0.127 mm through the escapes and widen to 0.20–0.25 mm (61–55 Ω) in
+the open channel between `U700` and `U800`** — `layout.md` §4.1.1 has the full table and the reason
+UG388's own 3–5 mil width guidance cannot produce 50 Ω on any four-layer outer layer. **The
+differential pairs do hit their target**: 0.15 mm wide on a 0.11 mm gap is ≈ 100 Ω. R1 used 0.11 mm
+for both `CK` and `DQS` (measured off `r1_glider.kicad_pcb`: `DQ`/address at 0.127 mm,
+`CK`/`DQS` at 0.11 mm), but that was a different dielectric — do not copy the number across.
+
+#### 11.1.2 Package delay — there is none to compensate, and that is verified
+
+Every FPGA ball has its own die-pad-to-ball delay, and on the families where Xilinx publishes it you
+are expected to subtract it from the PCB length. **Xilinx never published it for Spartan-6**, so
+UG388's tolerances above are PCB trace length only and there is nothing to look up.
+
+What exists is one aggregate number: **DS162 Table 79, `TPKGSKEW`, which for LX16 in FT(G)256 is
+71 ps**, defined in note 1 as "the worst-case skew between any two SelectIO resources in the
+package: shortest delay to longest delay from Pad to Ball." DS162's revision history records that
+v1.12 (2011-02-11) *removed* the note saying per-pin package delay data was available for deskewing,
+and nothing since re-added it. UG385, the packaging and pinout spec, contains no trace-length data
+at all.
+
+**Confirmed on the tools, 2026-09-03** (verified, not inferred). ISE's `partgen` emits a package file
+with a `tracelength (um)` column, and for this part it writes:
+
+```
+package xc6slx16ftg256
+# Trace-length data does not apply to this package type or is not yet available.
+#   Values will be listed as N.A.
+```
+
+All 256 pins are `N.A.` A sweep of **all 26 Spartan-6 device/package combinations in ISE 14.7**
+returns zero populated rows. The mechanism is not broken — in the same install Virtex-5 and Virtex-6
+are fully populated (`xc6vlx75tff484`: 308 pins, e.g. 5703 µm), and Kintex-7 is empty because that
+data moved to Vivado. Reproduce with:
+
+```bash
+ssh ise@192.168.56.102
+source /opt/Xilinx/14.7/ISE_DS/settings64.sh
+mkdir -p ~/pkg && cd ~/pkg && partgen -v xc6slx16 && head -5 xc6slx16ftg256.pkg
+```
+
+Two consequences worth keeping: 71 ps is a bound across the *whole* package, while a byte lane lands
+on adjacent balls in one bank on one die edge, so the real spread inside a matched group is a
+fraction of it; and the MCB re-centres each lane at every calibration (`Phase 2: DQS Centering`),
+which is why the two byte lanes need not match each other. KiCad has a per-pad "pad to die length"
+field (`die_length`) that would hold this data — leave it at 0.
+
+#### 11.1.3 What can and cannot be moved — asked and answered, 2026-09-05
+
+**The DDR pinout is silicon and cannot be changed.** UG388, "Memory Device Interface": *"All these
+signals (Table 2-9) have **predefined pin locations** in Spartan-6 devices… RZQ is a required pin,
+but its location can be moved within the MCB bank… The ZIO location can also be moved."* `R806`
+(`RZQ`, `M4`) and `ZIO` (`M5`) are the only two balls on this bus a layout may relocate, and only
+within bank 3. The interface occupies the whole **left edge of the FTG256, columns 1–6** — lane 0 in
+rows F–K, lane 1 in rows L–R, address/command in rows A–L.
+
+**Placement is already optimal; leave it.** Sweeping all eight orientations of `U800` with both
+centres held (straight-line ball-to-ball, summed over the 49 shared nets):
+
+| `U800` orientation | Total |
+| --- | --- |
+| **rot 180, as-is — current** | **673 mm** |
+| rot 180 mirrored | 676 mm |
+| rot 270 either way | 682–685 mm |
+| rot 90 either way | 710–713 mm |
+| rot 0 either way | 746–749 mm |
+
+Max net is 18.1 mm against UG388's 76 mm limit, so length never binds here — only matching does.
+
+**The one pinout change that is allowed, and it is worth taking.** UG388 p.42: *"DQ bit swapping at
+the memory interface is permitted to facilitate layout. Swapping should only be done within a data
+group."* It costs nothing in gateware — the FPGA writes bit *i* down whichever wire it is on and
+reads it back through the same wire, so any within-lane permutation is self-consistent, and the MCB
+deskews per bit at every calibration.
+
+| Lane | Worst deviation from its DQS now | After the optimal swap | Budget |
+| --- | --- | --- | --- |
+| 0 (`DQ0-7`) | 3.44 mm | **2.69 mm** | ±3.81 mm |
+| 1 (`DQ8-15`) | 4.57 mm | **2.86 mm** | ±3.81 mm |
+
+```
+lane 0:  FPGA DQ 0->1, 1->3, 2->0, 3->5, 4->2, 5->4, 6->6, 7->7
+lane 1:  FPGA DQ 0->3, 1->5, 2->1, 3->7, 4->0, 5->2, 6->4, 7->6   (indices within the lane)
+```
+
+**Lane 1 moves from outside its budget to inside it on the swap alone**, with no serpentines. Taking
+it means a surgical edit to `fpga_ddr.kicad_sch` and a netlist re-import — that sheet has been opened
+in Eeschema, so it is patched, never regenerated.
+
+⚠ **What must not be swapped:** `LDM`/`UDM` and the DQS pairs are fixed to their lane; nothing ever
+moves across lanes; and **address/command must not be permuted at all** — MIG does not allow it, and
+it does not need it (below).
+
+**Where the bus stands as placed** *(straight-line ball-to-ball as a proxy for routed length — it
+ignores detours, so read it as ranking, not as absolute)*:
+
+| Group | Worst deviation | Budget | |
+| --- | --- | --- | --- |
+| Address/command vs `CK` | 4.46 mm | ±7.62 mm | slack — the reason it needs no attention |
+| Lane 0 incl. `LDM` | 5.19 mm | ±3.81 mm | tuning needed; `LDM` is the outlier and cannot be swapped |
+| Lane 1 | 4.57 mm | ±3.81 mm | closed by the swap above |
+| Intra-pair `CK`/`LDQS`/`UDQS` | 1.26 / 1.27 / 1.66 mm | ±0.25 mm | ball geometry; one short serpentine each |
+
+**And where the pinout freedom on this board actually lives: the DPI bus.** All 22 `DPI_*` signals
+sit in **bank 1** as general-purpose I/O — their ball names carry MCB1 alternates (`M1DQ12`,
+`M1UDQS`…), but MCB1 is unused, and UG388 is explicit that *"all predefined pins revert to
+general-purpose I/Os when an MCB is unused."* So the DPI pin order is set by `constraint.ucf`, not by
+silicon, and all 18 pixel bits plus `DE`/`HS`/`VS` can be reordered freely to suit the routing. One
+constraint: `DPI_PCLK` is on `J13` = `GCLK9` and must stay on a clock-capable ball — bank 1 offers
+`GCLK5`, `GCLK7`, `GCLK8` and `GCLK10` as alternatives. The cost is an ISE rebuild, which §1.1 owes
+anyway for the `-2` speed grade. **The SoM side is not a lever**: the BTH-060 signal-to-pin mapping
+is PHYTEC's. The AM62x pinmux (<https://pinmux.phytec.com/>) can move some functions to other balls,
+but only where PHYTEC routes that ball to the connector — a per-signal lookup, not a free hand.
 
 ### 11.2 `RZQ`, `ZIO` and `ZQ` — three different things, one of which must not be routed
 
@@ -602,6 +762,59 @@ what the *geometry* tolerates, not slack to give away.
   longer slow, either.
 - `R905` (100 Ω) in the SoM's `NOR_CS` path is a fault-current limiter, so it belongs near the
   contention point, not near the SoM.
+
+#### 11.4.1 ⚠ `CCLK` wants **parallel** termination, not a series resistor — 2026-09-05
+
+Checked because the owner had heard that a QSPI flash clock should carry a series resistor at the
+driver. Half right: a series resistor belongs on that interface, but **not on the clock**, and
+Xilinx specifies the opposite there.
+
+**UG380 p.56–57, "Board Layout for Configuration Clock (CCLK)"** — verified, quoted:
+
+> "The Spartan-6 FPGA configuration I/Os use the LVCMOS **slow slew rate 8 mA** I/O standard. This
+> requires more attention to PCB trace routing and termination for proper signal integrity. These
+> basic guidelines **must** be followed:
+> - Route the CCLK net as a 50Ω controlled impedance transmission line.
+> - Always route the CCLK net **without any branching**; do not use a star topology.
+> - **Stubs, if necessary, must be shorter than 8 mm (0.3 inches).**
+> - Terminate the end of the CCLK transmission line with a **parallel termination of 100Ω to VCCO
+>   and 100Ω to GND** (the Thevenin equivalent of VCCO/2, assuming a 50Ω trace)."
+
+Figure 2-22 — one CCLK output (master FPGA) into one CCLK input (flash) — shows exactly that
+Thevenin pair at the **receiver**, and **no series resistor at the source**. The likely reason it
+does not want one: an 8 mA slow-slew LVCMOS driver already has an output impedance in the same
+ballpark as a 50 Ω line, so 33 Ω in series over-damps it *(inferred, not from UG380)*.
+
+**Where a series resistor does belong**, from the note under UG380's Master SPI connection figure:
+
+> "A series resistor should be considered for the **datapath from the flash to the FPGA** to minimize
+> overshoot. The proper resistor value can be determined from simulation."
+
+That is `U902`'s `DO`/`IO1` output into the FPGA's `DIN` ball `P10`, with the resistor at the **flash**
+end — the same rule as `R903` above, source termination sits at whatever is driving.
+
+**Three things about this board specifically, and none of them is decided.**
+
+1. **There is currently nothing on `CCLK` at all.** `/FPGA_SCLK` on ball `R11` has no termination and
+   no series element, and §11.4 above never mentioned it. This is a genuine gap, not a deliberate
+   choice.
+2. ⚠ **The Thevenin pair costs 54 mW, continuously.** 100 Ω + 100 Ω across `VCCO_2` = `+3V3` draws
+   **16.5 mA** whenever the rail is up. Against a reading floor of ~1.0–1.3 W and a 128.6 mW SoM
+   suspend that is not noise, and **UG380 names this exact trade itself**: *"Because the Master CCLK
+   goes to high impedance at the end of the configuration sequence, the examples using parallel
+   termination can be less desirable than other termination options because more power is
+   dissipated."* Configuration runs for tens of milliseconds; the termination would burn for the whole
+   session. **Owner decision, and it is a real one.**
+3. ⚠ **This net is not point-to-point, so Figure 2-22 does not apply cleanly.** §4.1's table has
+   `CCLK` shared three ways — FPGA `R11` drives it while configuring, it is the CSR `SCK` **input**
+   from the SoM while running, and the SoM drives it during a NOR write. Two drivers at opposite ends
+   means a source-series resistor only terminates for whichever end it sits beside, and Figure 2-23's
+   multi-drop rules apply instead: flyby, no star, **every stub under 8 mm**. That last one is a
+   placement constraint on `U902` and on wherever the SoM's `SCK` taps in, and it is the cheapest of
+   the three to satisfy.
+
+UG380's "drive the pin to a logic level so it does not float after configuration" note does **not**
+apply here — `CCLK` becomes the SoM-driven CSR `SCK` the moment configuration ends.
 
 ### 11.5 Decoupling placement, and the one open PDS question
 

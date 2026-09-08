@@ -256,9 +256,12 @@ python3 tools/import_r1_settings.py            # dry run, prints every change
 python3 tools/import_r1_settings.py --write
 ```
 
-**R2's stackup is byte-identical to R1's** — same 0.127 mm prepreg, 0.6 mm core, 0.035 mm outer
-copper, ENIG — so every geometry R1 proved at DDR3-666 on a Spartan-6 transfers with its impedance
-intact. That is the whole justification for copying rather than calculating.
+~~**R2's stackup is byte-identical to R1's**~~ — that was the justification for copying R1's
+geometry rather than calculating it, and **it stopped being true on 2026-09-03**, when the owner
+chose a 1.0 mm four-layer stack-up (`datasheets/PCB/4-layers PCB.pdf`) and moved to a
+**sig / gnd / gnd / sig** arrangement. §4.1.1 has the new numbers. The track widths in the table
+below still stand — they are what the BGA escapes and the 76 mm length budget allow — but the
+*impedance* they produce has changed, so the copied-from-R1 reasoning no longer carries them.
 
 | Class | Track | Clearance | Via | Pair (W/gap) | Where the number comes from |
 | --- | --- | --- | --- | --- | --- |
@@ -272,6 +275,14 @@ intact. That is the whole justification for copying rather than calculating.
 | `HV` | 0.30 | 0.11 | 0.6/0.3 | — | handling and etch tolerance, not ampacity |
 | `PWR` | **0.60** | 0.11 | 0.8/0.35 | — | a **floor**, not a target — see below |
 
+⚠ **The table above is the import, not the file.** As of 2026-09-03 `r2.kicad_pro` has drifted:
+`DDR3` and `DDR3_CLK` are at 0.10 mm clearance with 0.6/0.3 vias, `DDR3_CLK` has no pattern and is
+dead, and a new `DDR_DIFF` class (patterns `/fpga_ddr*P` and `/fpga_ddr*N`, which correctly catch
+exactly the six differential nets and nothing else) carries the three pairs. Classes `Signals_NET`,
+`TX/RX` and `I2C` were added by hand and are not described here at all; `HV <- /EPD*` is putting EPD
+signals into the 0.3 mm HV class, which looks unintended. §4.3 covers what to change in `DDR_DIFF`.
+Read the file, not this table, before relying on a number.
+
 **Two of these are easy to misread.**
 
 `PWR`'s 0.60 mm is the narrowest a rail may ever neck down to, not the width to draw. `power.md`
@@ -284,6 +295,104 @@ rail is a mistake waiting to be found with a thermal camera.
 tracks — because a net-class clearance is *also* checked pad-to-pad inside a footprint, and `+VGH`
 lands on a 0.5 mm-pitch VSON-HR-10 whose own pads sit 0.25 mm apart. Raising the class clearance
 would produce DRC errors that no amount of routing can clear.
+
+### 4.1.1 The 1.0 mm stack-up, and sig/gnd/gnd/sig — owner, 2026-09-03
+
+`datasheets/PCB/4-layers PCB.pdf`, verbatim: 1.0 mm finished, prepreg **7628 RC46 %, 0.1960 mm
+pressed to 0.1855 mm, DK 4.74**, core **0.43 mm, DK 4.6** (0.5 mm with copper), inner copper 1 oz,
+**outer 0.5 oz base plated to 1 oz (0.0348 mm)**, 70 % inner residual copper ratio.
+
+⚠ **This file was replaced on 2026-09-03 and the numbers moved a long way.** The first version was
+2116 RC58 % (0.1125 mm pressed, DK 4.45) with **2 oz** outer copper. 2 oz was the disqualifier —
+§4.1.2 — so the owner took the 1 oz option, and it comes with 7628 prepreg instead: **65 % more
+dielectric height and a higher DK**. Anything quoting 0.1125 mm or DK 4.45 predates that swap.
+
+**The plane arrangement changes with it.** R2 inherited R1's sig / pwr / gnd / sig, which put
+`In1.Cu` — the layer 0.1125 mm under `F.Cu`, and therefore the reference for everything routed
+there — on **`+3V3`**, not ground. UG388 p.42 requires the DDR data group to reference a **GROUND**
+plane, and `U700` and `U800` are both on `F.Cu`. The owner's decision is **sig / gnd / gnd / sig**:
+`In1.Cu` and `In2.Cu` both solid ground, power distributed as pours on `F.Cu`/`B.Cu`.
+
+Why it is the right call for this board specifically, rather than as general advice:
+
+- It is the only arrangement that satisfies UG388 for a top-side DDR bus, and the bus has 0.05 % of
+  timing margin at the MCB (§7.2). It removes the need for any layer change on the data group —
+  breakout vias only, inside UG388's two-via budget.
+- A signal hopping `F.Cu` → `B.Cu` gets a stitching via to return through. Across a GND/PWR pair the
+  return has to cross through decoupling capacitors instead, which is what quietly costs margin.
+- Almost nothing is given up: the interplane capacitance of a GND/PWR pair across a **0.6 mm** core
+  is negligible, so it was never doing decoupling work.
+
+⚠ **Three conditions come with it.**
+
+1. **Keep `In1.Cu` and `In2.Cu` both solid.** Carving power into `In2.Cu` puts everything on `B.Cu`
+   back to a power reference. If some has to go there, confine it to the battery/charger/buck corner,
+   which is spatially clear of the FPGA/DDR corner, and keep `B.Cu` signals out of those regions.
+   The `-VGL`/`-VN` island cut-outs of §7.1 remain deliberate local breaks in both grounds.
+2. **Stitch the two grounds** around the DDR group, the SoM, and every signal via. Two ground planes
+   that are not well tied are worse than one.
+3. **The PDN gets harder, not easier.** `fpga.md` §11.5 already has the bulk-substitution question
+   open; losing the `+3V3` plane raises the inductance from bulk to ball. The 470 nF parts hard
+   against their balls with their own vias stops being a preference.
+
+**Impedance on the new geometry** *(inferred — Hammerstad-Jensen with thickness correction, no field
+solver, solder mask ignored, ±5 %; check against the fab's own calculator before ordering)*:
+
+Use the **finished** outer copper, 0.0348 mm, not the 0.0175 mm base foil — plating adds copper to
+the outer layers and the field sees what is there at the end. Entering the base foil over-estimates
+Z0 and sends the width 5 % wide (0.313 mm instead of 0.298 mm).
+
+| At 0.127 mm width | R1 (proven) | 2116, superseded | **7628, current** |
+| --- | --- | --- | --- |
+| Z0 single-ended | ≈ 64 Ω | 59 Ω | **73 Ω** |
+| Γ into the MCB's 50 Ω driver | 12 % | 8 % | **19 %** |
+| Width for 50 Ω | 0.19 mm | 0.18 mm | **0.30 mm** |
+| §4.3's 0.38 mm spacing, in units of h | 3.0 × h | 3.4 × h | **2.0 × h** |
+| Pair geometry for 100 Ω | 0.11 / 0.11 | 0.11 / 0.11 | **0.15 / 0.11** |
+| Delay | — | 6.04 ps/mm | 6.11 ps/mm |
+
+Three things follow, and only the first is obvious.
+
+1. **0.30 mm is geometrically impossible on this bus.** The FTG256 leaves 0.60 mm between adjacent
+   pads (§4.3), so a 0.30 mm trace at the 0.1 mm floor needs 0.5 mm — exactly one trace fits between
+   two balls, and the 3×-width spacing rule is violated everywhere. 43 signals at that width will not
+   fit the corner, let alone inside the 76 mm length budget.
+2. **Crosstalk is worse on this stack-up at the same spacing**, because coupling scales with s/h, not
+   with s. The 0.38 mm rule is 3.4 × h on 2116 and 2.0 × h on 7628 — same rule, roughly twice the
+   coupling. The return loop area grows with h too, which erodes part of what §4.1.1's plane change
+   was bought for.
+3. **The differential pairs get easier.** 0.15 mm on a 0.11 mm gap lands on 100 Ω here, where the
+   2116 stack wanted 0.11 / 0.11.
+
+**So: route 0.127 mm through both BGA escapes, where there is no choice, then widen to 0.20–0.25 mm
+(61–55 Ω) in the open channel between `U700` and `U800`.** The escape stub is short compared with the
+edge rate, and this puts the impedance where it matters over most of the length. R1 runs this bus at
+≈ 64 Ω and works — 50 Ω is a target, not a requirement, and it is not the budget that binds here.
+
+⚠ Worth knowing so the tension does not read as an error: **UG388's own "trace widths should be 3 to
+5 mils" cannot produce 50 Ω on any four-layer outer layer.** Xilinx wrote it assuming internal-layer
+stripline, which is also why p.41 says to route memory on internal layers — something this stack-up
+cannot do. Micron's 50 Ω and Xilinx's 3–5 mil are already in conflict on a board like this, and the
+width wins, because the BGA escape enforces it.
+
+### 4.1.2 ⚠ Two things to settle before the fab order
+
+~~**2 oz outer copper is probably wrong for this board.**~~ **Closed 2026-09-03** — the owner took
+PCBWay's 1 oz option. The reasoning stands for the record: 2 oz finished outer raises a fab's minimum
+track/space to roughly 0.15–0.2 mm and worsens the etch factor, and this board routes DDR3 at
+0.127 mm, `EPD` and `USB` at 0.11 mm, with a 0.125 mm pad gap on the BQ25792 (§4.2).
+
+**Open, and worth one email: ask PCBWay for 2116 prepreg with 1 oz finished outer.** The two options
+in front of the owner were 2116-with-2 oz and 7628-with-1 oz, and each is disqualified by its second
+term. A 1.0 mm four-layer with 2116 prepreg *and* 1 oz outer is not exotic — 2116 is a stock
+prepreg, and impedance-controlled orders are routinely built to a requested stack; the configurator's
+list is what is pre-canned, not what the factory can build. The payoff is large: 59 Ω at the existing
+0.127 mm width instead of 73 Ω, half the crosstalk coupling, and a tighter return path. Send both
+PDF revisions and ask for the hybrid.
+
+**KiCad's stackup still describes the old board.** Board Setup → Physical Stackup says 0.127 mm
+prepreg, εr 4.2, 0.035 mm outer copper. Until it matches the PDF, every impedance and length-tuning
+number KiCad reports is computed from the wrong dielectric.
 
 ### 4.2 ⚠ Why clearance is 0.11 mm and not 0.2 mm
 
@@ -303,6 +412,41 @@ eight packages on the day of import, with no fix available short of lowering it 
 clears every one of them — and is what a board this dense was always going to need.
 
 The DRC *floor* (Board Setup → Constraints → minimum clearance) stays at R1's 0.1 mm.
+
+### 4.3 ⚠ Why the DDR spacings are DRC rules and not net-class clearances
+
+UG388 p.41 asks for two spacings on the memory bus: three times the trace width between DDR traces,
+and 20 mil between the differential clocks/strobes and any other signal, serpentines included. Both
+are **routing** numbers, and neither can be a net-class clearance — KiCad checks a class clearance
+**pad-to-track** as well as track-to-track, and this bus escapes two BGAs:
+
+| Part | Pitch / pad | Gap between adjacent pads | A 0.127 mm track needs |
+| --- | --- | --- | --- |
+| `U700` FTG256 | 1.0 / 0.4 mm | 0.60 mm | 2 × clearance + 0.127 |
+| `U800` BGA-96 | 0.8 / 0.4 mm | 0.40 mm | 2 × clearance + 0.127 |
+
+At 0.38 mm that is **0.887 mm** and nothing leaves either part; at the 0.1 mm class floor it is
+0.327 mm and both escape. Setting 0.38 mm on the `DDR_DIFF` class is what stopped the FPGA fanout on
+2026-09-03. The fix is the same one §4.1's `HV` row uses: leave the class at the floor and put the
+spacing in `r2.kicad_dru` with `A.Type != 'Pad' && B.Type != 'Pad'`. Both rules are in that file.
+
+**Two riders.**
+
+- The strobe rule carries `B.NetClass != 'DDR_DIFF'`, without which it fires between `DRAM_CKP` and
+  `DRAM_CKN` and forbids the 0.11 mm intra-pair gap that sets the differential impedance. The cost is
+  that CK-to-DQS spacing is not machine-checked; they run to different parts of the bus, so it is a
+  placement matter.
+- **16 of the 18 violations these rules raise sit inside the FTG256 body**, at 0.343 mm — the
+  geometric best available in the fanout. When that becomes noise, draw a rule area named
+  `BGA_escape` over the escape and append `&& !A.insideArea('BGA_escape')` to both conditions. The
+  two violations outside it — at ≈ (202.7, 76.2), in the channel between the two parts, one of them
+  at 0.11 mm — are real and are worth fixing by hand.
+
+**`DDR_DIFF`'s via is 0.6/0.3 and will not fit `U800`.** On an 0.8 mm pitch a via dropped between
+four balls sits 0.566 mm from each ball centre, leaving 0.566 − 0.3 − 0.2 = **0.066 mm**, under the
+0.1 mm floor. R1's 0.45/0.3 leaves 0.141 mm. It clears under the FTG256 (0.207 mm), but the DRAM is
+the part that binds. Also: `DDR_DIFF` has **no diff-pair width or gap set**, so it inherits Default's
+0.2/0.2 — ≈ 87 Ω, not 100. §4.1.1 has the geometry to enter.
 
 ## 5. Placement order
 
@@ -411,7 +555,13 @@ The DRAM's 1066 rating is irrelevant — you do not get to spend its headroom.
 
 Match within a byte lane (`DQ[7:0]`+`LDM`+`LDQS`/`#`, then `DQ[15:8]`+`UDM`+`UDQS`/`#`); the two
 lanes need not match each other. Address/command matched to the clock pair. **Keep the whole bus
-over one continuous `In1.Cu`** — a split under it is the classic way to lose the margin.
+over one continuous GROUND plane** — a split under it is the classic way to lose the margin.
+
+⚠ **This sentence used to say `In1.Cu`, and that was wrong.** `In1.Cu` was the `+3V3` "Power Plane"
+zone, so a top-side DDR trace referenced +3V3, against UG388 p.42's "a data group should be
+referenced to a GROUND plane." The owner's 2026-09-03 move to sig / gnd / gnd / sig (§4.1.1) makes
+both inner layers ground and settles it — but check the zone nets before believing any layer name
+here, because R1 has the old arrangement and this document was written from it.
 
 ⚠ **`DRAM_ADDR13`/`ADDR14` must be excluded from the matched set.** They are inert at both ends and
 look exactly like address lines to a net-class rule; matching them drags the real group around.

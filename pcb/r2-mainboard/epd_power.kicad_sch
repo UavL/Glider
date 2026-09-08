@@ -3469,16 +3469,6 @@
 	)
 	(wire
 		(pts
-			(xy 129.54 111.76) (xy 129.54 116.84)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1b56c6d6-c4c4-4345-9464-bdfa23191efb")
-	)
-	(wire
-		(pts
 			(xy 132.08 157.48) (xy 132.08 165.1)
 		)
 		(stroke
@@ -4199,6 +4189,16 @@
 	)
 	(wire
 		(pts
+			(xy 129.54 111.76) (xy 129.54 116.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9ac7023a-c0e3-495f-86f4-981d699f833f")
+	)
+	(wire
+		(pts
 			(xy 104.14 33.02) (xy 104.14 35.56)
 		)
 		(stroke
@@ -4639,6 +4639,16 @@
 	)
 	(wire
 		(pts
+			(xy 123.19 111.76) (xy 129.54 111.76)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d05f80ee-91be-47ab-b341-2355e6121193")
+	)
+	(wire
+		(pts
 			(xy 53.34 157.48) (xy 53.34 160.02)
 		)
 		(stroke
@@ -4879,16 +4889,6 @@
 	)
 	(wire
 		(pts
-			(xy 123.19 111.76) (xy 129.54 111.76)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fcaec13d-f765-4e99-bfa2-27732e718e48")
-	)
-	(wire
-		(pts
 			(xy 139.7 165.1) (xy 149.86 165.1)
 		)
 		(stroke
@@ -4967,6 +4967,36 @@
 		)
 		(uuid "48cd93f2-0651-42c3-9828-3e17b456559c")
 	)
+	(label "FB_VP"
+		(at 132.08 43.18 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "59cc0afd-888f-4098-89fe-a1c1c79778b4")
+	)
+	(label "FB_VGH"
+		(at 132.08 137.16 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "60dafa32-fa7d-4dc1-a34c-85a73b2cd7d5")
+	)
+	(label "FB_-VN"
+		(at 135.89 83.82 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "79baf68a-189f-415e-b09e-d68c97079f6c")
+	)
 	(label "+5V_VGH"
 		(at 93.98 111.76 0)
 		(effects
@@ -4987,6 +5017,16 @@
 		)
 		(uuid "b5e37bf0-c5f2-45ef-b147-4b3909b4af59")
 	)
+	(label "SW_VGH"
+		(at 129.54 115.57 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b9a0769e-325e-4f1c-ade6-f2f13b0721c9")
+	)
 	(label "SHDN"
 		(at 66.04 38.1 0)
 		(effects
@@ -4996,6 +5036,16 @@
 			(justify left bottom)
 		)
 		(uuid "cb281ea1-ebf1-4cc6-ac89-68b0ad94586f")
+	)
+	(label "SW_VP"
+		(at 129.54 38.1 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "da2fcdd4-8c0f-4357-a6db-1dd644f2a356")
 	)
 	(label "EN_VN"
 		(at 93.98 81.28 0)

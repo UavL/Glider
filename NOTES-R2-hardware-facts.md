@@ -450,9 +450,71 @@ Suppliers, for the touch/frontlight/digitizer enquiry when that becomes live: **
 frontlight already bonded and quotes small quantities; **Unisystem** (Poland) is the EU-shipping
 alternative; E Ink's own kit shop is a price reference.
 
+## 7. The DDR3 bus — impedance targets and package delay
+
+### 7.1 Spartan-6 has no per-pin package delay, and this is verified on the tools
+
+**Claim:** every FPGA ball has its own die-pad-to-ball delay, and on families where the vendor
+publishes it you subtract it from the PCB trace length. **For Spartan-6 that data does not exist.**
+
+**Published evidence.** DS162 v3.1.1 Table 79 gives one aggregate number per device/package,
+`TPKGSKEW`; for **LX16 in FT(G)256 it is 71 ps**, defined by the table's note 1 as "the worst-case
+skew between any two SelectIO resources in the package: shortest delay to longest delay from Pad to
+Ball." DS162's revision history records that **v1.12 (2011-02-11) removed** the note reading
+"Package delay information is available for these device/package combinations. This information can
+be used to deskew the package from Table 79," and no later revision re-added it. **UG385**, the
+Spartan-6 packaging and pinout specification, contains no trace-length or delay data at all —
+grepped, zero hits.
+
+**Verified on the tools, 2026-09-03**, on the ISE VM at `192.168.56.102`. ISE's `partgen` emits a
+package file whose last column is `tracelength (um)`. For this exact part it writes a header
+reading *"Trace-length data does not apply to this package type or is not yet available. Values
+will be listed as N.A."*, and all 256 pins are `N.A.` A sweep of **all 26 Spartan-6 device/package
+combinations in ISE 14.7 returns zero populated rows**. The mechanism is not broken: in the same
+install **Virtex-5 and Virtex-6 are fully populated** (`xc6vlx75tff484`, 308 pins, e.g. 5703 µm),
+and Kintex-7 is empty because that data moved to Vivado.
+
+```bash
+ssh ise@192.168.56.102
+source /opt/Xilinx/14.7/ISE_DS/settings64.sh
+mkdir -p ~/pkg && cd ~/pkg && partgen -v xc6slx16 && head -5 xc6slx16ftg256.pkg
+```
+
+**Consequence, and it is the useful part:** UG388's matching tolerances are PCB trace length only,
+with no package compensation assumed. 71 ps is a bound across the *whole* package while a byte lane
+lands on adjacent balls in one bank on one die edge, and the MCB re-centres each lane at every
+calibration — which is why UG388 says the two byte lanes need not match each other.
+`pcb/r2-mainboard/docs/fpga.md` §11.1.2 carries this for layout.
+
+### 7.2 Which DDR3 signals are differential — three pairs, six nets
+
+DDR3 has exactly two differential signal types, the clock and the data strobes, so a x16 device has
+three pairs. **Verified against `Caster/rtl/spartan6/constraint.ucf`**, which carries exactly six
+`DIFF_SSTL15_II` nets — `DDR_CK_P/N`, `DDR_LDQS_P/N`, `DDR_UDQS_P/N` — and puts all 43 others at
+`SSTL15_II`. On the R2 schematic those are `DRAM_CKP`/`CKN`, `DRAM_LDQSP`/`LDQSN`,
+`DRAM_UDQSP`/`UDQSN`. The single-ended nets are pseudo-differential, referenced to `+DRAM_VREF` at
+half rail.
+
+### 7.3 What R1 actually built, measured off `r1_glider.kicad_pcb`
+
+The proven board is the strongest evidence available for geometry, since it runs this same bus at
+666 MT/s. Counted from its track segments:
+
+| Group | Width | Layers | Vias |
+| --- | --- | --- | --- |
+| `DQ` + `DM` | 0.127 mm | F.Cu 443 / B.Cu 384 | 36 over 18 nets |
+| `DQS` pairs | **0.11 mm** | F.Cu 42 / B.Cu 182 | 8 |
+| `CK` pair | **0.11 mm** | F.Cu 34 / B.Cu 85 | 4 |
+| Address/command | 0.127 mm | F.Cu 674 / B.Cu 836 | 50 over 24 nets |
+
+Two facts fall out. R1 routes the whole bus on **outer layers**, against UG388's "only internal PCB
+layers should be used" — and works; and it averages **two vias per net**, which is UG388's limit.
+R1's inner layers are `In1.Cu` split across `+3V3`/`+1V2_FPGA`/`+1V35`/`+VBUS` and `In2.Cu` solid
+`GND`, so its top-side DDR references a power plane. R2 departs from this — `docs/layout.md` §4.1.1.
+
 ---
 
-## 7. Sources
+## 8. Sources
 
 - **TI, *AM62x Sitara Processors Technical Reference Manual*, SPRUIV7C** (rev. Nov 2025) —
   §12.9.1.2.1 DSS Parallel Interface, Table 12-361 (`DSS_DPI2_*` signals, **165 MHz max**),
@@ -474,7 +536,15 @@ alternative; E Ink's own kit shop is a price reference.
 - PHYTEC block diagram (shows `DPI` and `OLDI/LVDS` as separate lines to the connector) and
   pin-mux tool <https://pinmux.phytec.com/>.
 - Xilinx, *Spartan-6 FPGA Data Sheet: DC and Switching Characteristics*, DS162 v1.11 — Table 3
-  (`CIN`, LVDS receivers on `VCCAUX` with on-die 100 Ω termination), Table 25.
+  (`CIN`, LVDS receivers on `VCCAUX` with on-die 100 Ω termination), Table 25. v3.1.1 (30 Jan 2015)
+  — **Table 79 `TPKGSKEW`** (LX16/FT(G)256 = 71 ps) and the revision history for v1.12.
+- **Xilinx, *Spartan-6 FPGA Memory Controller User Guide*, UG388 v2.3** (9 Aug 2010) — "PCB Layout
+  Considerations" pp. 41–42: the trace-length matching budgets, 3× width spacing, 20 mil around
+  strobes and clocks, "a data group should be referenced to a GROUND plane", two-via limit, and the
+  165 ps/inch assumption. In the repo at `pcb/r2-mainboard/datasheets/FPGA/ug388.pdf`.
+- Xilinx, *Spartan-6 FPGA Packaging and Pinout Specification*, UG385 — checked for package
+  trace-length data; it has none.
+- Xilinx ISE 14.7 `partgen` package files, generated on the ISE VM 2026-09-03 (§7.1).
 - Toradex, *Verdin AM62 Power Consumption* — measured 59.7 mW module suspend.
 - JLCPCB, *How to consign parts* and *Consignment Part Terms & Conditions*.
 - This repo: `Caster/rtl/spartan6/{vin.v,vin_dpi.v,top.v,constraint.ucf}`,

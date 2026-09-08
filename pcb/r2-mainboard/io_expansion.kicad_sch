@@ -2742,6 +2742,12 @@
 		(color 0 0 0 0)
 		(uuid "be1ab41c-df77-48ad-aa4b-e685b2d6e7ae")
 	)
+	(junction
+		(at 115.57 68.58)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "be5887c9-d5c3-4af3-a396-23fd98a0e16c")
+	)
 	(no_connect
 		(at 323.85 101.6)
 		(uuid "07fc280e-5bb9-4530-a790-21443b6d4e3f")
@@ -2749,6 +2755,16 @@
 	(no_connect
 		(at 323.85 104.14)
 		(uuid "962a3cb2-2201-405e-a0ac-54af671b4d8a")
+	)
+	(wire
+		(pts
+			(xy 115.57 68.58) (xy 127 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "00b652bd-b37a-45b9-a9aa-238fed05a79d")
 	)
 	(wire
 		(pts
@@ -3399,6 +3415,16 @@
 			(justify left)
 		)
 		(uuid "707b5941-b00e-4c04-aa67-d4c69abad3aa")
+	)
+	(label "+3V3_TOUCH"
+		(at 127 68.58 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "8989fc47-24c2-4a1e-ac9b-43154adfbc36")
 	)
 	(label "+3V3_PEN"
 		(at 101.6 152.4 0)
@@ -6865,31 +6891,5 @@
 				)
 			)
 		)
-	)
-	(wire
-		(pts
-			(xy 115.57 68.58) (xy 127 68.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "00b652bd-b37a-45b9-a9aa-238fed05a79d")
-	)
-	(junction
-		(at 115.57 68.58)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "be5887c9-d5c3-4af3-a396-23fd98a0e16c")
-	)
-	(label "+3V3_TOUCH"
-		(at 127 68.58 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "8989fc47-24c2-4a1e-ac9b-43154adfbc36")
 	)
 )

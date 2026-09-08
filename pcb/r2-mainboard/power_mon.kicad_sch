@@ -4187,7 +4187,7 @@
 				)
 			)
 		)
-		(property "Value" "+3V3_DCDC"
+		(property "Value" "+3V3_AON"
 			(at 240.03 93.9799 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6123,7 +6123,7 @@
 				)
 			)
 		)
-		(property "Value" "+3V3_DCDC"
+		(property "Value" "+3V3_AON"
 			(at 240.03 78.7399 90)
 			(show_name no)
 			(do_not_autoplace no)

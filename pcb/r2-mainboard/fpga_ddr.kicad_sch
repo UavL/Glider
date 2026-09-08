@@ -7447,6 +7447,12 @@
 		(uuid "208ef333-3521-4815-a8d6-02b3548beb96")
 	)
 	(junction
+		(at 185.42 33.02)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "268abd96-4993-431d-b4d9-54495a5d4637")
+	)
+	(junction
 		(at 299.72 87.63)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -7499,12 +7505,6 @@
 		(diameter 0.9144)
 		(color 0 0 0 0)
 		(uuid "46074077-9c25-46af-9637-dc81d5ba6211")
-	)
-	(junction
-		(at 185.42 33.02)
-		(diameter 0.9144)
-		(color 0 0 0 0)
-		(uuid "4a6dd4b9-fea8-4f91-95be-d9b50a0f42f1")
 	)
 	(junction
 		(at 353.06 161.29)
@@ -7753,7 +7753,7 @@
 		(uuid "948d8862-e89e-4969-9d4e-e5ef939e2278")
 	)
 	(junction
-		(at 175.26 33.02)
+		(at 167.64 33.02)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "95bac25c-52c8-48f1-be6f-110830e0075f")
@@ -7849,7 +7849,7 @@
 		(uuid "b5a4d3d8-98e9-4ccf-959a-5decb4933ff2")
 	)
 	(junction
-		(at 175.26 40.64)
+		(at 167.64 40.64)
 		(diameter 0.9144)
 		(color 0 0 0 0)
 		(uuid "c1b6bbc1-7537-4bb0-8175-709599cedf17")
@@ -8074,7 +8074,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 33.02) (xy 185.42 33.02)
+			(xy 167.64 33.02) (xy 185.42 33.02)
 		)
 		(stroke
 			(width 0)
@@ -8784,6 +8784,16 @@
 	)
 	(wire
 		(pts
+			(xy 248.92 40.64) (xy 233.68 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5c7cd035-c9eb-4e98-9e54-2c741258f91d")
+	)
+	(wire
+		(pts
 			(xy 193.04 66.04) (xy 208.28 66.04)
 		)
 		(stroke
@@ -9454,16 +9464,6 @@
 	)
 	(wire
 		(pts
-			(xy 233.68 40.64) (xy 248.92 40.64)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9e083ed2-7c43-4d6a-b6ca-0ea8b6d685a2")
-	)
-	(wire
-		(pts
 			(xy 170.18 162.56) (xy 180.34 162.56)
 		)
 		(stroke
@@ -10044,7 +10044,7 @@
 	)
 	(wire
 		(pts
-			(xy 185.42 40.64) (xy 175.26 40.64)
+			(xy 167.64 40.64) (xy 185.42 40.64)
 		)
 		(stroke
 			(width 0)
@@ -10373,7 +10373,7 @@
 		(uuid "01efb7ec-3133-4a68-a69c-0a93fc1f7038")
 	)
 	(label "DRAM_DATA11"
-		(at 248.92 43.18 180)
+		(at 248.92 33.02 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10473,7 +10473,7 @@
 		(uuid "1d32b52b-ed5b-43e6-883c-2abb8eafad24")
 	)
 	(label "DRAM_DATA15"
-		(at 248.92 33.02 180)
+		(at 248.92 40.64 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10803,7 +10803,7 @@
 		(uuid "855bf4da-c776-4ee8-81b8-498479598fe7")
 	)
 	(label "DRAM_DATA13"
-		(at 248.92 38.1 180)
+		(at 248.92 45.72 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10893,7 +10893,7 @@
 		(uuid "a67b3aca-dee9-4435-97a5-41ce8c97d983")
 	)
 	(label "DRAM_DATA12"
-		(at 248.92 40.64 180)
+		(at 248.92 48.26 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10903,7 +10903,7 @@
 		(uuid "a68307fc-293a-4881-9e92-d18d67040b1f")
 	)
 	(label "DRAM_DATA10"
-		(at 248.92 45.72 180)
+		(at 248.92 38.1 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -11153,7 +11153,7 @@
 		(uuid "dcb5e797-529f-4bfa-867f-36f76f1e012f")
 	)
 	(label "DRAM_DATA9"
-		(at 248.92 48.26 180)
+		(at 248.92 43.18 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -12332,7 +12332,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 175.26 36.83 0)
+		(at 167.64 36.83 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -12342,7 +12342,7 @@
 		(dnp no)
 		(uuid "1f9aedb3-21f1-4260-9e36-75a7e356721c")
 		(property "Reference" "C804"
-			(at 178.181 35.6616 0)
+			(at 170.561 35.6616 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12353,7 +12353,7 @@
 			)
 		)
 		(property "Value" "470nF/25V"
-			(at 178.181 37.973 0)
+			(at 170.561 37.973 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12364,7 +12364,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-			(at 176.2252 40.64 0)
+			(at 168.6052 40.64 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12375,7 +12375,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 175.26 36.83 0)
+			(at 167.64 36.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12386,7 +12386,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 175.26 36.83 0)
+			(at 167.64 36.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12397,7 +12397,7 @@
 			)
 		)
 		(property "Ref.Price" "0.0036"
-			(at 175.26 36.83 0)
+			(at 167.64 36.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12408,7 +12408,7 @@
 			)
 		)
 		(property "desc" ""
-			(at 175.26 36.83 0)
+			(at 167.64 36.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12419,7 +12419,7 @@
 			)
 		)
 		(property "LCSC" "C6119801"
-			(at 175.26 36.83 0)
+			(at 167.64 36.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12430,7 +12430,7 @@
 			)
 		)
 		(property "Manufacturer" "HRE"
-			(at 0 0 0)
+			(at -7.62 0 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12441,7 +12441,7 @@
 			)
 		)
 		(property "MPN" "CGA0402X5R474K250GT"
-			(at 0 0 0)
+			(at -7.62 0 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14250,7 +14250,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 175.26 40.64 0)
+		(at 167.64 40.64 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -14260,7 +14260,7 @@
 		(dnp no)
 		(uuid "624a7c0f-56e3-45fe-9527-6cb15ddf216b")
 		(property "Reference" "#PWR0234"
-			(at 175.26 46.99 0)
+			(at 167.64 46.99 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14271,7 +14271,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 175.387 45.0342 0)
+			(at 167.767 45.0342 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14281,7 +14281,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 175.26 40.64 0)
+			(at 167.64 40.64 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14292,7 +14292,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 175.26 40.64 0)
+			(at 167.64 40.64 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14303,7 +14303,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 175.26 40.64 0)
+			(at 167.64 40.64 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15817,7 +15817,7 @@
 	)
 	(symbol
 		(lib_id "symbols:+V")
-		(at 175.26 33.02 0)
+		(at 167.64 33.02 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -15827,7 +15827,7 @@
 		(dnp no)
 		(uuid "8b25297f-1abe-4516-8d38-04afced57839")
 		(property "Reference" "#PWR0100"
-			(at 175.26 36.83 0)
+			(at 167.64 36.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15838,7 +15838,7 @@
 			)
 		)
 		(property "Value" "+DRAM_VREF"
-			(at 175.26 27.94 0)
+			(at 167.64 27.94 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -15848,7 +15848,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 175.26 33.02 0)
+			(at 167.64 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15859,7 +15859,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 175.26 33.02 0)
+			(at 167.64 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15870,7 +15870,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 175.26 33.02 0)
+			(at 167.64 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

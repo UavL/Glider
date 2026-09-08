@@ -5987,7 +5987,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "47db6d82-d5e5-4422-a19b-cc7b36b34923")
-		(property "Reference" "L300"
+		(property "Reference" "L301"
 			(at 241.3 43.815 270)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6082,7 +6082,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/3c7f0f04-b337-4425-b9f6-94d0a6934c0f"
-					(reference "L300")
+					(reference "L301")
 					(unit 1)
 				)
 			)
@@ -6838,8 +6838,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "64415d3c-26e6-4f46-b8a7-b09ba28137d4")
-		(property "Reference" "L302"
-			(at 233.934 148.336 270)
+		(property "Reference" "L303"
+			(at 233.934 148.336 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6933,7 +6933,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/3c7f0f04-b337-4425-b9f6-94d0a6934c0f"
-					(reference "L302")
+					(reference "L303")
 					(unit 1)
 				)
 			)
@@ -7957,8 +7957,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "9ea1d99f-6d9e-47ef-96ee-105a095af743")
-		(property "Reference" "L303"
-			(at 342.9 151.765 270)
+		(property "Reference" "L304"
+			(at 342.9 151.765 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8052,7 +8052,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/3c7f0f04-b337-4425-b9f6-94d0a6934c0f"
-					(reference "L303")
+					(reference "L304")
 					(unit 1)
 				)
 			)
@@ -9219,8 +9219,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "cf632cbb-9f4a-4cc1-a402-b547f0171c1f")
-		(property "Reference" "L301"
-			(at 76.2 131.445 270)
+		(property "Reference" "L302"
+			(at 76.2 131.445 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9314,7 +9314,7 @@
 		(instances
 			(project "r2"
 				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8/3c7f0f04-b337-4425-b9f6-94d0a6934c0f"
-					(reference "L301")
+					(reference "L302")
 					(unit 1)
 				)
 			)

@@ -17,3 +17,38 @@
 (rule "HV track separation"
 	(constraint clearance (min 0.4mm))
 	(condition "A.NetClass == 'HV' && B.NetClass != 'HV' && A.Type != 'Pad' && B.Type != 'Pad'"))
+
+# --- DDR3 routing spacing -----------------------------------------------------
+#
+# UG388 p.41 ("PCB Layout Considerations") asks for two spacings on the memory
+# bus: trace spacing three times the trace width between DDR traces, and 20 mil
+# between the differential clocks/strobes and any other signal, serpentine
+# routing included.
+#
+# Both are ROUTING numbers and neither can be a net-class clearance, for exactly
+# the reason the HV rule above is a rule: KiCad checks a class clearance
+# pad-to-track as well as track-to-track, and the DDR bus escapes two BGAs.
+#
+#   part            pitch / pad     gap between pads   0.127 mm track needs
+#   U700 FTG256     1.0 / 0.4 mm         0.60 mm       2*c + 0.127
+#   U800 BGA-96     0.8 / 0.4 mm         0.40 mm       2*c + 0.127
+#
+# At c = 0.38 mm that is 0.887 mm and no track leaves either part; at the 0.1 mm
+# class floor it is 0.327 mm and both escape. Setting 0.38 mm on the DDR_DIFF
+# class is what stopped the FPGA fanout on 2026-09-03. Excluding pads keeps the
+# check on the copper actually drawn and leaves the escape to the class floor.
+#
+# The B.NetClass term in the second rule is load-bearing: without it the rule
+# fires between DRAM_CKP and DRAM_CKN and forbids the 0.11 mm intra-pair gap that
+# sets the 100 ohm differential impedance. The cost is that CK-to-DQS spacing is
+# not machine-checked -- they run to different parts of the bus, so it is a
+# placement matter, and docs/fpga.md 11.1 carries it.
+
+#(rule "DDR3 track spacing"
+#	(constraint clearance (min 0.38mm))
+#	(condition "A.NetClass == 'DDR3' && A.Type != 'Pad' && B.Type != 'Pad'"))
+#
+#(rule "DDR3 strobe and clock isolation"
+#	(constraint clearance (min 0.5mm))
+#	(condition "A.NetClass == 'DDR_DIFF' && B.NetClass != 'DDR_DIFF' && A.Type != 'Pad' && B.Type != 'Pad'"))
+#

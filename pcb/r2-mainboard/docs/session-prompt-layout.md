@@ -27,8 +27,15 @@ I'm laying out R2 in KiCad 10 myself and want you checking my work, not doing it
 - Design settings imported from R1 and 9 net classes written —
   `tools/import_r1_settings.py`, `layout.md` §4.1.
 - `Edge.Cuts` holds a 185.5 × 95 mm placeholder rectangle, not the real ≈ 90 × 70 mm outline.
-- **Nothing is routed.** 0 track segments, 0 vias, 499 unconnected items.
-- Placement is untouched since import, so all 33 proximity rules fail. That's expected, not a bug.
+- **The DDR3 fanout is being routed** (2026-09-03): 530 track segments — 496 on `F.Cu`, 34 on
+  `B.Cu` — 54 vias, copper on 30 of the 49 DRAM nets. 157 DRC violations, 499 unconnected items.
+- **Stack-up changed 2026-09-03** to a 1.0 mm four-layer, **sig / gnd / gnd / sig**
+  (`datasheets/PCB/4-layers PCB.pdf`, `layout.md` §4.1.1). KiCad's Physical Stackup has **not** been
+  updated to match yet, and the 2 oz outer copper in the PDF is an open question (§4.1.2).
+- `r2.kicad_dru` now carries the two DDR3 spacing rules; `layout.md` §4.3 says why they are rules and
+  not net-class clearances, and lists what still needs changing in the `DDR_DIFF` class.
+- Placement is untouched since import outside the FPGA/DRAM corner, so most of the 33 proximity rules
+  still fail. That's expected, not a bug.
 
 **How I want you to work:**
 - `python3 tools/check_pcb.py` after every session of mine — it's the machine-checkable half of
