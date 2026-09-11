@@ -1,0 +1,3277 @@
+{
+ "source": "datasheets/SiC OSD62x-PM/OSD62x-PM-Datasheet.pdf",
+ "revision": "Rev. 2.0, 2026-01-16",
+ "package": "9 x 14 mm, 18 rows (A-V, no I/O/Q/S) x 28 columns, 0.5 mm pitch, corners A1/A28/V1/V28 depopulated",
+ "amc_note": "amc_ball is the AM62x AMC-package ball; PHYTEC som_pinout.json uses ALW -- do not compare balls across them",
+ "checks": {
+  "balls": 500,
+  "map_vs_description_mismatches": 0
+ },
+ "counts": {
+  "VSS": 104,
+  "NC": 93,
+  "VDD_CORE": 18,
+  "VDDS_DDR": 10,
+  "VDDR_CORE": 8,
+  "VDDSHV_CANUART": 2,
+  "VDDSHV_MCU": 2,
+  "VDDSHV5": 2,
+  "VDDSHV6": 2,
+  "VDDSHV0": 2,
+  "VDDSHV1": 2,
+  "VDDSHV3": 2,
+  "VDDSHV2": 2,
+  "VDDSHV4": 2,
+  "MCU_UART0_RTSN": 1,
+  "MCU_SPI0_CLK": 1,
+  "MCU_SPI0_D1": 1,
+  "MCU_SPI0_CS1": 1,
+  "MCU_I2C0_SCL": 1,
+  "WKUP_I2C0_SCL": 1,
+  "UART0_CTSN": 1,
+  "UART0_RXD": 1,
+  "MCAN0_RX": 1,
+  "I2C0_SCL": 1,
+  "I2C1_SCL": 1,
+  "VMON_VSYS": 1,
+  "MCASP0_AXR3": 1,
+  "MCASP0_AXR1": 1,
+  "MCASP0_ACLKX": 1,
+  "MCASP0_AFSR": 1,
+  "MMC1_DAT2": 1,
+  "MMC1_CMD": 1,
+  "MMC1_DAT0": 1,
+  "MMC1_SDCD": 1,
+  "OSPI0_CLK": 1,
+  "OSPI0_D1": 1,
+  "OSPI0_D3": 1,
+  "MCU_UART0_RXD": 1,
+  "MCU_UART0_TXD": 1,
+  "MCU_UART0_CTSN": 1,
+  "MCU_SPI0_D0": 1,
+  "MCU_SPI0_CS0": 1,
+  "MCU_I2C0_SDA": 1,
+  "WKUP_I2C0_SDA": 1,
+  "UART0_RTSN": 1,
+  "UART0_TXD": 1,
+  "MCAN0_TX": 1,
+  "I2C0_SDA": 1,
+  "I2C1_SDA": 1,
+  "VMON_3P3_SOC": 1,
+  "MCASP0_AXR2": 1,
+  "MCASP0_AXR0": 1,
+  "MCASP0_AFSX": 1,
+  "MCASP0_ACLKR": 1,
+  "MMC1_DAT3": 1,
+  "MMC1_CLK": 1,
+  "MMC1_DAT1": 1,
+  "MMC1_SDWP": 1,
+  "OSPI0_D0": 1,
+  "OSPI0_D2": 1,
+  "OSPI0_D4": 1,
+  "OSPI0_D5": 1,
+  "WKUP_UART0_TXD": 1,
+  "WKUP_UART0_RXD": 1,
+  "MCU_RESETZ": 1,
+  "MCU_RESETSTATZ": 1,
+  "WKUP_CLKOUT0": 1,
+  "EMU1": 1,
+  "TRSTN": 1,
+  "TMS": 1,
+  "SPI0_CLK": 1,
+  "SPI0_D1": 1,
+  "SPI0_CS1": 1,
+  "VMON_1P8_SOC": 1,
+  "VPP": 1,
+  "EXTINTN": 1,
+  "RESETSTATZ": 1,
+  "USB0_DRVVBUS": 1,
+  "MMC2_SDWP": 1,
+  "MMC2_DAT3": 1,
+  "MMC2_DAT1": 1,
+  "MMC2_CMD": 1,
+  "OSPI0_CSN3": 1,
+  "OSPI0_CSN1": 1,
+  "OSPI0_LBCLKO": 1,
+  "OSPI0_D6": 1,
+  "OSPI0_D7": 1,
+  "WKUP_UART0_CTSN": 1,
+  "WKUP_UART0_RTSN": 1,
+  "PMIC_LPM_EN0": 1,
+  "MCU_PORZ": 1,
+  "MCU_ERRORN": 1,
+  "EMU0": 1,
+  "TCK": 1,
+  "TDI": 1,
+  "TDO": 1,
+  "SPI0_D0": 1,
+  "SPI0_CS0": 1,
+  "VDDS_OSC0": 1,
+  "EXT_REFCLK1": 1,
+  "RESET_REQZ": 1,
+  "PORZ_OUT": 1,
+  "USB1_DRVVBUS": 1,
+  "MMC2_SDCD": 1,
+  "MMC2_DAT2": 1,
+  "MMC2_DAT0": 1,
+  "MMC2_CLK": 1,
+  "OSPI0_CSN2": 1,
+  "OSPI0_CSN0": 1,
+  "OSPI0_DQS": 1,
+  "GPMC0_AD7": 1,
+  "GPMC0_AD6": 1,
+  "MCU_MCAN0_RX": 1,
+  "MCU_MCAN0_TX": 1,
+  "GPMC0_CSN3": 1,
+  "GPMC0_CSN2": 1,
+  "GPMC0_AD5": 1,
+  "GPMC0_AD4": 1,
+  "MCU_MCAN1_RX": 1,
+  "MCU_MCAN1_TX": 1,
+  "AM62X_RSVD1": 1,
+  "AM62X_RSVD0": 1,
+  "AM62X_RSVD2": 1,
+  "AM62X_RSVD8": 1,
+  "AM62X_RSVD4": 1,
+  "AM62X_RSVD5": 1,
+  "DDR_RSVD0": 1,
+  "VDDA_MCU": 1,
+  "VDDA_PLL2": 1,
+  "GPMC0_CSN1": 1,
+  "GPMC0_CSN0": 1,
+  "GPMC0_AD3": 1,
+  "GPMC0_AD2": 1,
+  "MCU_OSC0_XI": 1,
+  "MCU_OSC0_XO": 1,
+  "VDD_CANUART": 1,
+  "GPMC0_DIR": 1,
+  "GPMC0_WPN": 1,
+  "GPMC0_AD1": 1,
+  "GPMC0_AD0": 1,
+  "WKUP_LFOSC0_XI": 1,
+  "WKUP_LFOSC0_XO": 1,
+  "GPMC0_ADVN_ALE": 1,
+  "GPMC0_OEN_REN": 1,
+  "GPMC0_AD15": 1,
+  "GPMC0_AD14": 1,
+  "MMC0_CLK": 1,
+  "GPMC0_WEN": 1,
+  "GPMC0_BE0N_CLE": 1,
+  "GPMC0_AD13": 1,
+  "GPMC0_AD12": 1,
+  "MMC0_CMD": 1,
+  "MMC0_DAT0": 1,
+  "GPMC0_BE1N": 1,
+  "GPMC0_CLK": 1,
+  "GPMC0_AD10": 1,
+  "GPMC0_AD11": 1,
+  "MMC0_DAT1": 1,
+  "MMC0_DAT2": 1,
+  "GPMC0_WAIT0": 1,
+  "GPMC0_WAIT1": 1,
+  "GPMC0_AD8": 1,
+  "GPMC0_AD9": 1,
+  "MMC0_DAT3": 1,
+  "MMC0_DAT4": 1,
+  "VDDA_CORE_USB": 1,
+  "VDDA_CORE_CSIRX0": 1,
+  "AM62X_RSVD6": 1,
+  "VOUT0_DATA3": 1,
+  "VOUT0_DATA4": 1,
+  "VOUT0_DATA14": 1,
+  "VOUT0_DATA15": 1,
+  "MMC0_DAT5": 1,
+  "MMC0_DAT6": 1,
+  "VDDA_3P3_USB": 1,
+  "DDR_VPP": 1,
+  "VDDA_TEMP": 1,
+  "VDDA_PLL0": 1,
+  "VDDA_PLL1": 1,
+  "AM62X_RSVD3": 1,
+  "AM62X_RSVD7": 1,
+  "VOUT0_DATA1": 1,
+  "VOUT0_DATA2": 1,
+  "VOUT0_DATA12": 1,
+  "VOUT0_DATA13": 1,
+  "MMC0_DAT7": 1,
+  "OLDI0_A0N": 1,
+  "VDDA_1P8_OLDI0": 1,
+  "VDDA_1P8_USB": 1,
+  "VDDA_1P8_CSIRX0": 1,
+  "VOUT0_HSYNC": 1,
+  "VOUT0_DATA0": 1,
+  "VOUT0_DATA10": 1,
+  "VOUT0_DATA11": 1,
+  "OLDI0_A0P": 1,
+  "OLDI0_A1N": 1,
+  "RGMII2_TXC": 1,
+  "RGMII2_TD3": 1,
+  "RGMII2_TD1": 1,
+  "RGMII2_RXC": 1,
+  "RGMII2_RD3": 1,
+  "RGMII2_RD1": 1,
+  "VOUT0_DE": 1,
+  "VOUT0_VSYNC": 1,
+  "VOUT0_DATA8": 1,
+  "VOUT0_DATA9": 1,
+  "OLDI0_A1P": 1,
+  "OLDI0_A2N": 1,
+  "RGMII2_TX_CTL": 1,
+  "RGMII2_TD2": 1,
+  "RGMII2_TD0": 1,
+  "RGMII2_RX_CTL": 1,
+  "RGMII2_RD2": 1,
+  "RGMII2_RD0": 1,
+  "VOUT0_PCLK": 1,
+  "VOUT0_DATA6": 1,
+  "VOUT0_DATA7": 1,
+  "OLDI0_A2P": 1,
+  "OLDI0_A3N": 1,
+  "OLDI0_A4N": 1,
+  "OLDI0_A5N": 1,
+  "OLDI0_A6N": 1,
+  "OLDI0_A7N": 1,
+  "OLDI0_CLK0N": 1,
+  "OLDI0_CLK1N": 1,
+  "USB1_DM": 1,
+  "USB1_VBUS": 1,
+  "USB0_DM": 1,
+  "CSI0_RXN3": 1,
+  "CSI0_RXN2": 1,
+  "CSI0_RXP1": 1,
+  "CSI0_RXP0": 1,
+  "CSI0_RXCLKP": 1,
+  "RGMII1_RXC": 1,
+  "RGMII1_RD2": 1,
+  "RGMII1_RD0": 1,
+  "RGMII1_TXC": 1,
+  "RGMII1_TD2": 1,
+  "RGMII1_TD0": 1,
+  "MDIO0_MDIO": 1,
+  "VOUT0_DATA5": 1,
+  "OLDI0_A3P": 1,
+  "OLDI0_A4P": 1,
+  "OLDI0_A5P": 1,
+  "OLDI0_A6P": 1,
+  "OLDI0_A7P": 1,
+  "OLDI0_CLK0P": 1,
+  "OLDI0_CLK1P": 1,
+  "USB1_DP": 1,
+  "USB0_VBUS": 1,
+  "USB0_DP": 1,
+  "CSI0_RXP3": 1,
+  "CSI0_RXP2": 1,
+  "CSI0_RXN1": 1,
+  "CSI0_RXN0": 1,
+  "CSI0_RXCLKN": 1,
+  "RGMII1_RX_CTL": 1,
+  "RGMII1_RD3": 1,
+  "RGMII1_RD1": 1,
+  "RGMII1_TX_CTL": 1,
+  "RGMII1_TD3": 1,
+  "RGMII1_TD1": 1,
+  "MDIO0_MDC": 1
+ },
+ "pins": {
+  "A2": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 1
+  },
+  "A3": {
+   "name": "MCU_UART0_RTSN",
+   "am62x_name": null,
+   "amc_ball": "D7",
+   "ring": 1
+  },
+  "A4": {
+   "name": "MCU_SPI0_CLK",
+   "am62x_name": null,
+   "amc_ball": "B7",
+   "ring": 1
+  },
+  "A5": {
+   "name": "MCU_SPI0_D1",
+   "am62x_name": null,
+   "amc_ball": "D8",
+   "ring": 1
+  },
+  "A6": {
+   "name": "MCU_SPI0_CS1",
+   "am62x_name": null,
+   "amc_ball": "C8",
+   "ring": 1
+  },
+  "A7": {
+   "name": "MCU_I2C0_SCL",
+   "am62x_name": null,
+   "amc_ball": "B9",
+   "ring": 1
+  },
+  "A8": {
+   "name": "WKUP_I2C0_SCL",
+   "am62x_name": null,
+   "amc_ball": "E9",
+   "ring": 1
+  },
+  "A9": {
+   "name": "UART0_CTSN",
+   "am62x_name": null,
+   "amc_ball": "B14",
+   "ring": 1
+  },
+  "A10": {
+   "name": "UART0_RXD",
+   "am62x_name": null,
+   "amc_ball": "A13",
+   "ring": 1
+  },
+  "A11": {
+   "name": "MCAN0_RX",
+   "am62x_name": null,
+   "amc_ball": "A15",
+   "ring": 1
+  },
+  "A12": {
+   "name": "I2C0_SCL",
+   "am62x_name": null,
+   "amc_ball": "E12",
+   "ring": 1
+  },
+  "A13": {
+   "name": "I2C1_SCL",
+   "am62x_name": null,
+   "amc_ball": "A17",
+   "ring": 1
+  },
+  "A14": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 1
+  },
+  "A15": {
+   "name": "VMON_VSYS",
+   "am62x_name": "Voltage",
+   "amc_ball": "F6",
+   "ring": 1
+  },
+  "A16": {
+   "name": "MCASP0_AXR3",
+   "am62x_name": null,
+   "amc_ball": "B18",
+   "ring": 1
+  },
+  "A17": {
+   "name": "MCASP0_AXR1",
+   "am62x_name": null,
+   "amc_ball": "A18",
+   "ring": 1
+  },
+  "A18": {
+   "name": "MCASP0_ACLKX",
+   "am62x_name": null,
+   "amc_ball": "C17",
+   "ring": 1
+  },
+  "A19": {
+   "name": "MCASP0_AFSR",
+   "am62x_name": null,
+   "amc_ball": "D15",
+   "ring": 1
+  },
+  "A20": {
+   "name": "MMC1_DAT2",
+   "am62x_name": null,
+   "amc_ball": "B20",
+   "ring": 1
+  },
+  "A21": {
+   "name": "MMC1_CMD",
+   "am62x_name": null,
+   "amc_ball": "C18",
+   "ring": 1
+  },
+  "A22": {
+   "name": "MMC1_DAT0",
+   "am62x_name": null,
+   "amc_ball": "A19",
+   "ring": 1
+  },
+  "A23": {
+   "name": "MMC1_SDCD",
+   "am62x_name": null,
+   "amc_ball": "C15",
+   "ring": 1
+  },
+  "A24": {
+   "name": "OSPI0_CLK",
+   "am62x_name": null,
+   "amc_ball": "G19",
+   "ring": 1
+  },
+  "A25": {
+   "name": "OSPI0_D1",
+   "am62x_name": null,
+   "amc_ball": "G17",
+   "ring": 1
+  },
+  "A26": {
+   "name": "OSPI0_D3",
+   "am62x_name": null,
+   "amc_ball": "F20",
+   "ring": 1
+  },
+  "A27": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 1
+  },
+  "B1": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 1
+  },
+  "B2": {
+   "name": "MCU_UART0_RXD",
+   "am62x_name": null,
+   "amc_ball": "A8",
+   "ring": 2
+  },
+  "B3": {
+   "name": "MCU_UART0_TXD",
+   "am62x_name": null,
+   "amc_ball": "B6",
+   "ring": 2
+  },
+  "B4": {
+   "name": "MCU_UART0_CTSN",
+   "am62x_name": null,
+   "amc_ball": "B8",
+   "ring": 2
+  },
+  "B5": {
+   "name": "MCU_SPI0_D0",
+   "am62x_name": null,
+   "amc_ball": "E8",
+   "ring": 2
+  },
+  "B6": {
+   "name": "MCU_SPI0_CS0",
+   "am62x_name": null,
+   "amc_ball": "E7",
+   "ring": 2
+  },
+  "B7": {
+   "name": "MCU_I2C0_SDA",
+   "am62x_name": null,
+   "amc_ball": "A10",
+   "ring": 2
+  },
+  "B8": {
+   "name": "WKUP_I2C0_SDA",
+   "am62x_name": null,
+   "amc_ball": "A9",
+   "ring": 2
+  },
+  "B9": {
+   "name": "UART0_RTSN",
+   "am62x_name": null,
+   "amc_ball": "C13",
+   "ring": 2
+  },
+  "B10": {
+   "name": "UART0_TXD",
+   "am62x_name": null,
+   "amc_ball": "E11",
+   "ring": 2
+  },
+  "B11": {
+   "name": "MCAN0_TX",
+   "am62x_name": null,
+   "amc_ball": "B13",
+   "ring": 2
+  },
+  "B12": {
+   "name": "I2C0_SDA",
+   "am62x_name": null,
+   "amc_ball": "D14",
+   "ring": 2
+  },
+  "B13": {
+   "name": "I2C1_SDA",
+   "am62x_name": null,
+   "amc_ball": "A16",
+   "ring": 2
+  },
+  "B14": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 2
+  },
+  "B15": {
+   "name": "VMON_3P3_SOC",
+   "am62x_name": "Voltage",
+   "amc_ball": "K11",
+   "ring": 2
+  },
+  "B16": {
+   "name": "MCASP0_AXR2",
+   "am62x_name": null,
+   "amc_ball": "B17",
+   "ring": 2
+  },
+  "B17": {
+   "name": "MCASP0_AXR0",
+   "am62x_name": null,
+   "amc_ball": "D18",
+   "ring": 2
+  },
+  "B18": {
+   "name": "MCASP0_AFSX",
+   "am62x_name": null,
+   "amc_ball": "C16",
+   "ring": 2
+  },
+  "B19": {
+   "name": "MCASP0_ACLKR",
+   "am62x_name": null,
+   "amc_ball": "D16",
+   "ring": 2
+  },
+  "B20": {
+   "name": "MMC1_DAT3",
+   "am62x_name": null,
+   "amc_ball": "C19",
+   "ring": 2
+  },
+  "B21": {
+   "name": "MMC1_CLK",
+   "am62x_name": null,
+   "amc_ball": "A20",
+   "ring": 2
+  },
+  "B22": {
+   "name": "MMC1_DAT1",
+   "am62x_name": null,
+   "amc_ball": "B19",
+   "ring": 2
+  },
+  "B23": {
+   "name": "MMC1_SDWP",
+   "am62x_name": null,
+   "amc_ball": "B15",
+   "ring": 2
+  },
+  "B24": {
+   "name": "OSPI0_D0",
+   "am62x_name": null,
+   "amc_ball": "F18",
+   "ring": 2
+  },
+  "B25": {
+   "name": "OSPI0_D2",
+   "am62x_name": null,
+   "amc_ball": "F21",
+   "ring": 2
+  },
+  "B26": {
+   "name": "OSPI0_D4",
+   "am62x_name": null,
+   "amc_ball": "G21",
+   "ring": 2
+  },
+  "B27": {
+   "name": "OSPI0_D5",
+   "am62x_name": null,
+   "amc_ball": "H21",
+   "ring": 2
+  },
+  "B28": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 1
+  },
+  "C1": {
+   "name": "WKUP_UART0_TXD",
+   "am62x_name": null,
+   "amc_ball": "C6",
+   "ring": 1
+  },
+  "C2": {
+   "name": "WKUP_UART0_RXD",
+   "am62x_name": null,
+   "amc_ball": "B5",
+   "ring": 2
+  },
+  "C3": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "C4": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "C5": {
+   "name": "MCU_RESETZ",
+   "am62x_name": null,
+   "amc_ball": "C9",
+   "ring": 3
+  },
+  "C6": {
+   "name": "MCU_RESETSTATZ",
+   "am62x_name": null,
+   "amc_ball": "A12",
+   "ring": 3
+  },
+  "C7": {
+   "name": "WKUP_CLKOUT0",
+   "am62x_name": null,
+   "amc_ball": "B12",
+   "ring": 3
+  },
+  "C8": {
+   "name": "EMU1",
+   "am62x_name": null,
+   "amc_ball": "B10",
+   "ring": 3
+  },
+  "C9": {
+   "name": "TRSTN",
+   "am62x_name": null,
+   "amc_ball": "A11",
+   "ring": 3
+  },
+  "C10": {
+   "name": "TMS",
+   "am62x_name": null,
+   "amc_ball": "B11",
+   "ring": 3
+  },
+  "C11": {
+   "name": "SPI0_CLK",
+   "am62x_name": null,
+   "amc_ball": "D12",
+   "ring": 3
+  },
+  "C12": {
+   "name": "SPI0_D1",
+   "am62x_name": null,
+   "amc_ball": "A14",
+   "ring": 3
+  },
+  "C13": {
+   "name": "SPI0_CS1",
+   "am62x_name": null,
+   "amc_ball": "D13",
+   "ring": 3
+  },
+  "C14": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "C15": {
+   "name": "VMON_1P8_SOC",
+   "am62x_name": "Voltage",
+   "amc_ball": "H9",
+   "ring": 3
+  },
+  "C16": {
+   "name": "VPP",
+   "am62x_name": "eFuse",
+   "amc_ball": "F7",
+   "ring": 3
+  },
+  "C17": {
+   "name": "EXTINTN",
+   "am62x_name": null,
+   "amc_ball": "B16",
+   "ring": 3
+  },
+  "C18": {
+   "name": "RESETSTATZ",
+   "am62x_name": null,
+   "amc_ball": "E14",
+   "ring": 3
+  },
+  "C19": {
+   "name": "USB0_DRVVBUS",
+   "am62x_name": null,
+   "amc_ball": "D17",
+   "ring": 3
+  },
+  "C20": {
+   "name": "MMC2_SDWP",
+   "am62x_name": null,
+   "amc_ball": "C20",
+   "ring": 3
+  },
+  "C21": {
+   "name": "MMC2_DAT3",
+   "am62x_name": null,
+   "amc_ball": "E20",
+   "ring": 3
+  },
+  "C22": {
+   "name": "MMC2_DAT1",
+   "am62x_name": null,
+   "amc_ball": "D21",
+   "ring": 3
+  },
+  "C23": {
+   "name": "MMC2_CMD",
+   "am62x_name": null,
+   "amc_ball": "C21",
+   "ring": 3
+  },
+  "C24": {
+   "name": "OSPI0_CSN3",
+   "am62x_name": null,
+   "amc_ball": "E18",
+   "ring": 3
+  },
+  "C25": {
+   "name": "OSPI0_CSN1",
+   "am62x_name": null,
+   "amc_ball": "F17",
+   "ring": 3
+  },
+  "C26": {
+   "name": "OSPI0_LBCLKO",
+   "am62x_name": null,
+   "amc_ball": "G18",
+   "ring": 3
+  },
+  "C27": {
+   "name": "OSPI0_D6",
+   "am62x_name": null,
+   "amc_ball": "G20",
+   "ring": 2
+  },
+  "C28": {
+   "name": "OSPI0_D7",
+   "am62x_name": null,
+   "amc_ball": "J21",
+   "ring": 1
+  },
+  "D1": {
+   "name": "WKUP_UART0_CTSN",
+   "am62x_name": null,
+   "amc_ball": "A7",
+   "ring": 1
+  },
+  "D2": {
+   "name": "WKUP_UART0_RTSN",
+   "am62x_name": null,
+   "amc_ball": "B4",
+   "ring": 2
+  },
+  "D3": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "D4": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "D5": {
+   "name": "PMIC_LPM_EN0",
+   "am62x_name": null,
+   "amc_ball": "C7",
+   "ring": 4
+  },
+  "D6": {
+   "name": "MCU_PORZ",
+   "am62x_name": null,
+   "amc_ball": "B2",
+   "ring": 4
+  },
+  "D7": {
+   "name": "MCU_ERRORN",
+   "am62x_name": null,
+   "amc_ball": "B1",
+   "ring": 4
+  },
+  "D8": {
+   "name": "EMU0",
+   "am62x_name": null,
+   "amc_ball": "D9",
+   "ring": 4
+  },
+  "D9": {
+   "name": "TCK",
+   "am62x_name": null,
+   "amc_ball": "C10",
+   "ring": 4
+  },
+  "D10": {
+   "name": "TDI",
+   "am62x_name": null,
+   "amc_ball": "D10",
+   "ring": 4
+  },
+  "D11": {
+   "name": "TDO",
+   "am62x_name": null,
+   "amc_ball": "E10",
+   "ring": 4
+  },
+  "D12": {
+   "name": "SPI0_D0",
+   "am62x_name": null,
+   "amc_ball": "C12",
+   "ring": 4
+  },
+  "D13": {
+   "name": "SPI0_CS0",
+   "am62x_name": null,
+   "amc_ball": "C11",
+   "ring": 4
+  },
+  "D14": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "D15": {
+   "name": "VDDS_OSC0",
+   "am62x_name": "MCU_OSC0",
+   "amc_ball": "J7",
+   "ring": 4
+  },
+  "D16": {
+   "name": "EXT_REFCLK1",
+   "am62x_name": null,
+   "amc_ball": "C14",
+   "ring": 4
+  },
+  "D17": {
+   "name": "RESET_REQZ",
+   "am62x_name": null,
+   "amc_ball": "E15",
+   "ring": 4
+  },
+  "D18": {
+   "name": "PORZ_OUT",
+   "am62x_name": null,
+   "amc_ball": "E13",
+   "ring": 4
+  },
+  "D19": {
+   "name": "USB1_DRVVBUS",
+   "am62x_name": null,
+   "amc_ball": "E16",
+   "ring": 4
+  },
+  "D20": {
+   "name": "MMC2_SDCD",
+   "am62x_name": null,
+   "amc_ball": "D20",
+   "ring": 4
+  },
+  "D21": {
+   "name": "MMC2_DAT2",
+   "am62x_name": null,
+   "amc_ball": "E19",
+   "ring": 4
+  },
+  "D22": {
+   "name": "MMC2_DAT0",
+   "am62x_name": null,
+   "amc_ball": "B21",
+   "ring": 4
+  },
+  "D23": {
+   "name": "MMC2_CLK",
+   "am62x_name": null,
+   "amc_ball": "E21",
+   "ring": 4
+  },
+  "D24": {
+   "name": "OSPI0_CSN2",
+   "am62x_name": null,
+   "amc_ball": "E17",
+   "ring": 4
+  },
+  "D25": {
+   "name": "OSPI0_CSN0",
+   "am62x_name": null,
+   "amc_ball": "F19",
+   "ring": 4
+  },
+  "D26": {
+   "name": "OSPI0_DQS",
+   "am62x_name": null,
+   "amc_ball": "H20",
+   "ring": 3
+  },
+  "D27": {
+   "name": "GPMC0_AD7",
+   "am62x_name": null,
+   "amc_ball": "M20",
+   "ring": 2
+  },
+  "D28": {
+   "name": "GPMC0_AD6",
+   "am62x_name": null,
+   "amc_ball": "L18",
+   "ring": 1
+  },
+  "E1": {
+   "name": "MCU_MCAN0_RX",
+   "am62x_name": null,
+   "amc_ball": "C4",
+   "ring": 1
+  },
+  "E2": {
+   "name": "MCU_MCAN0_TX",
+   "am62x_name": null,
+   "amc_ball": "C5",
+   "ring": 2
+  },
+  "E3": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "E4": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "E5": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E6": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E7": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E8": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E9": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E10": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E11": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E12": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E13": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E14": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E15": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E16": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E17": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E18": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E19": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E20": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E21": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E22": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E23": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E24": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "E25": {
+   "name": "GPMC0_CSN3",
+   "am62x_name": null,
+   "amc_ball": "H19",
+   "ring": 4
+  },
+  "E26": {
+   "name": "GPMC0_CSN2",
+   "am62x_name": null,
+   "amc_ball": "H18",
+   "ring": 3
+  },
+  "E27": {
+   "name": "GPMC0_AD5",
+   "am62x_name": null,
+   "amc_ball": "L17",
+   "ring": 2
+  },
+  "E28": {
+   "name": "GPMC0_AD4",
+   "am62x_name": null,
+   "amc_ball": "M21",
+   "ring": 1
+  },
+  "F1": {
+   "name": "MCU_MCAN1_RX",
+   "am62x_name": null,
+   "amc_ball": "D6",
+   "ring": 1
+  },
+  "F2": {
+   "name": "MCU_MCAN1_TX",
+   "am62x_name": null,
+   "amc_ball": "D5",
+   "ring": 2
+  },
+  "F3": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "F4": {
+   "name": "AM62X_RSVD1",
+   "am62x_name": "Reserved",
+   "amc_ball": "C3",
+   "ring": 4
+  },
+  "F5": {
+   "name": "AM62X_RSVD0",
+   "am62x_name": "Reserved",
+   "amc_ball": "B3",
+   "ring": 5
+  },
+  "F6": {
+   "name": "AM62X_RSVD2",
+   "am62x_name": "Reserved",
+   "amc_ball": "E6",
+   "ring": 6
+  },
+  "F7": {
+   "name": "AM62X_RSVD8",
+   "am62x_name": "Reserved",
+   "amc_ball": "M5",
+   "ring": 6
+  },
+  "F8": {
+   "name": "AM62X_RSVD4",
+   "am62x_name": "Reserved",
+   "amc_ball": "R6",
+   "ring": 6
+  },
+  "F9": {
+   "name": "AM62X_RSVD5",
+   "am62x_name": "Reserved",
+   "amc_ball": "T13",
+   "ring": 6
+  },
+  "F10": {
+   "name": "DDR_RSVD0",
+   "am62x_name": "Reserved",
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F11": {
+   "name": "VDDSHV_CANUART",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F12": {
+   "name": "VDDSHV_MCU",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F13": {
+   "name": "VDDA_MCU",
+   "am62x_name": "and",
+   "amc_ball": "H10",
+   "ring": 6
+  },
+  "F14": {
+   "name": "VDDA_PLL2",
+   "am62x_name": "ARM0",
+   "amc_ball": "K12",
+   "ring": 6
+  },
+  "F15": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F16": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F17": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F18": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F19": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F20": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F21": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F22": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F23": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "F24": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "F25": {
+   "name": "GPMC0_CSN1",
+   "am62x_name": null,
+   "amc_ball": "H17",
+   "ring": 4
+  },
+  "F26": {
+   "name": "GPMC0_CSN0",
+   "am62x_name": null,
+   "amc_ball": "J18",
+   "ring": 3
+  },
+  "F27": {
+   "name": "GPMC0_AD3",
+   "am62x_name": null,
+   "amc_ball": "L21",
+   "ring": 2
+  },
+  "F28": {
+   "name": "GPMC0_AD2",
+   "am62x_name": null,
+   "amc_ball": "L20",
+   "ring": 1
+  },
+  "G1": {
+   "name": "MCU_OSC0_XI",
+   "am62x_name": null,
+   "amc_ball": "A5",
+   "ring": 1
+  },
+  "G2": {
+   "name": "MCU_OSC0_XO",
+   "am62x_name": null,
+   "amc_ball": "A6",
+   "ring": 2
+  },
+  "G3": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "G4": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "G5": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "G6": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "G7": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G8": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G9": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G10": {
+   "name": "VDDSHV_CANUART",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G11": {
+   "name": "VDDSHV_MCU",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G12": {
+   "name": "VDD_CANUART",
+   "am62x_name": "CANUART",
+   "amc_ball": "H8",
+   "ring": 7
+  },
+  "G13": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G14": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G15": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G16": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G17": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G18": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G19": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G20": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G21": {
+   "name": "VDDSHV5",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G22": {
+   "name": "VDDSHV5",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "G23": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "G24": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "G25": {
+   "name": "GPMC0_DIR",
+   "am62x_name": null,
+   "amc_ball": "J19",
+   "ring": 4
+  },
+  "G26": {
+   "name": "GPMC0_WPN",
+   "am62x_name": null,
+   "amc_ball": "J20",
+   "ring": 3
+  },
+  "G27": {
+   "name": "GPMC0_AD1",
+   "am62x_name": null,
+   "amc_ball": "L19",
+   "ring": 2
+  },
+  "G28": {
+   "name": "GPMC0_AD0",
+   "am62x_name": null,
+   "amc_ball": "K19",
+   "ring": 1
+  },
+  "H1": {
+   "name": "WKUP_LFOSC0_XI",
+   "am62x_name": null,
+   "amc_ball": "A2",
+   "ring": 1
+  },
+  "H2": {
+   "name": "WKUP_LFOSC0_XO",
+   "am62x_name": null,
+   "amc_ball": "A3",
+   "ring": 2
+  },
+  "H3": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "H4": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "H5": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "H6": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "H7": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "H8": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H9": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H10": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H11": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H12": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H13": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H14": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H15": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H16": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H17": {
+   "name": "VDDR_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H18": {
+   "name": "VDDR_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H19": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H20": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H21": {
+   "name": "VDDSHV6",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "H22": {
+   "name": "VDDSHV6",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "H23": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "H24": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "H25": {
+   "name": "GPMC0_ADVN_ALE",
+   "am62x_name": null,
+   "amc_ball": "K20",
+   "ring": 4
+  },
+  "H26": {
+   "name": "GPMC0_OEN_REN",
+   "am62x_name": null,
+   "amc_ball": "K21",
+   "ring": 3
+  },
+  "H27": {
+   "name": "GPMC0_AD15",
+   "am62x_name": null,
+   "amc_ball": "P20",
+   "ring": 2
+  },
+  "H28": {
+   "name": "GPMC0_AD14",
+   "am62x_name": null,
+   "amc_ball": "P19",
+   "ring": 1
+  },
+  "J1": {
+   "name": "MMC0_CLK",
+   "am62x_name": "Y1",
+   "amc_ball": "Y1",
+   "ring": 1
+  },
+  "J2": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 2
+  },
+  "J3": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "J4": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "J5": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "J6": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "J7": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "J8": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "J9": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J10": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J11": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J12": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J13": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J14": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J15": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J16": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J17": {
+   "name": "VDDR_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J18": {
+   "name": "VDDR_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J19": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J20": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "J21": {
+   "name": "VDDSHV0",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "J22": {
+   "name": "VDDSHV0",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "J23": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "J24": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "J25": {
+   "name": "GPMC0_WEN",
+   "am62x_name": null,
+   "amc_ball": "J17",
+   "ring": 4
+  },
+  "J26": {
+   "name": "GPMC0_BE0N_CLE",
+   "am62x_name": null,
+   "amc_ball": "K17",
+   "ring": 3
+  },
+  "J27": {
+   "name": "GPMC0_AD13",
+   "am62x_name": null,
+   "amc_ball": "N19",
+   "ring": 2
+  },
+  "J28": {
+   "name": "GPMC0_AD12",
+   "am62x_name": null,
+   "amc_ball": "N17",
+   "ring": 1
+  },
+  "K1": {
+   "name": "MMC0_CMD",
+   "am62x_name": null,
+   "amc_ball": "V3",
+   "ring": 1
+  },
+  "K2": {
+   "name": "MMC0_DAT0",
+   "am62x_name": null,
+   "amc_ball": "V2",
+   "ring": 2
+  },
+  "K3": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "K4": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "K5": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "K6": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "K7": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "K8": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "K9": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K10": {
+   "name": "VDDS_DDR",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K11": {
+   "name": "VDDS_DDR",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K12": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K13": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K14": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K15": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K16": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K17": {
+   "name": "VDDR_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K18": {
+   "name": "VDDR_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K19": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K20": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 9
+  },
+  "K21": {
+   "name": "VDDSHV1",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "K22": {
+   "name": "VDDSHV1",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "K23": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "K24": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "K25": {
+   "name": "GPMC0_BE1N",
+   "am62x_name": null,
+   "amc_ball": "K18",
+   "ring": 4
+  },
+  "K26": {
+   "name": "GPMC0_CLK",
+   "am62x_name": null,
+   "amc_ball": "M19",
+   "ring": 3
+  },
+  "K27": {
+   "name": "GPMC0_AD10",
+   "am62x_name": null,
+   "amc_ball": "M17",
+   "ring": 2
+  },
+  "K28": {
+   "name": "GPMC0_AD11",
+   "am62x_name": null,
+   "amc_ball": "N18",
+   "ring": 1
+  },
+  "L1": {
+   "name": "MMC0_DAT1",
+   "am62x_name": null,
+   "amc_ball": "V1",
+   "ring": 1
+  },
+  "L2": {
+   "name": "MMC0_DAT2",
+   "am62x_name": "W2",
+   "amc_ball": "W2",
+   "ring": 2
+  },
+  "L3": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "L4": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "L5": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "L6": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "L7": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "L8": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L9": {
+   "name": "VDDS_DDR",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L10": {
+   "name": "VDDS_DDR",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L11": {
+   "name": "VDDS_DDR",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L12": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L13": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L14": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L15": {
+   "name": "VDD_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L16": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L17": {
+   "name": "VDDR_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L18": {
+   "name": "VDDR_CORE",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L19": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L20": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L21": {
+   "name": "VDDSHV3",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 8
+  },
+  "L22": {
+   "name": "VDDSHV3",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "L23": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "L24": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "L25": {
+   "name": "GPMC0_WAIT0",
+   "am62x_name": null,
+   "amc_ball": "P21",
+   "ring": 4
+  },
+  "L26": {
+   "name": "GPMC0_WAIT1",
+   "am62x_name": null,
+   "amc_ball": "P17",
+   "ring": 3
+  },
+  "L27": {
+   "name": "GPMC0_AD8",
+   "am62x_name": null,
+   "amc_ball": "N20",
+   "ring": 2
+  },
+  "L28": {
+   "name": "GPMC0_AD9",
+   "am62x_name": null,
+   "amc_ball": "N21",
+   "ring": 1
+  },
+  "M1": {
+   "name": "MMC0_DAT3",
+   "am62x_name": "W1",
+   "amc_ball": "W1",
+   "ring": 1
+  },
+  "M2": {
+   "name": "MMC0_DAT4",
+   "am62x_name": "Y2",
+   "amc_ball": "Y2",
+   "ring": 2
+  },
+  "M3": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "M4": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "M5": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "M6": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "M7": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M8": {
+   "name": "VDDS_DDR",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M9": {
+   "name": "VDDS_DDR",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M10": {
+   "name": "VDDS_DDR",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M11": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M12": {
+   "name": "VDDA_CORE_USB",
+   "am62x_name": "USB0",
+   "amc_ball": "P11",
+   "ring": 7
+  },
+  "M13": {
+   "name": "VDDA_CORE_CSIRX0",
+   "am62x_name": "CSIRX0",
+   "amc_ball": "P12",
+   "ring": 7
+  },
+  "M14": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M15": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M16": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M17": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M18": {
+   "name": "AM62X_RSVD6",
+   "am62x_name": "Reserved",
+   "amc_ball": "T14",
+   "ring": 7
+  },
+  "M19": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M20": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M21": {
+   "name": "VDDSHV2",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M22": {
+   "name": "VDDSHV2",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 7
+  },
+  "M23": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "M24": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "M25": {
+   "name": "VOUT0_DATA3",
+   "am62x_name": null,
+   "amc_ball": "R19",
+   "ring": 4
+  },
+  "M26": {
+   "name": "VOUT0_DATA4",
+   "am62x_name": null,
+   "amc_ball": "R20",
+   "ring": 3
+  },
+  "M27": {
+   "name": "VOUT0_DATA14",
+   "am62x_name": null,
+   "amc_ball": "U18",
+   "ring": 2
+  },
+  "M28": {
+   "name": "VOUT0_DATA15",
+   "am62x_name": null,
+   "amc_ball": "V20",
+   "ring": 1
+  },
+  "N1": {
+   "name": "MMC0_DAT5",
+   "am62x_name": "W3",
+   "amc_ball": "W3",
+   "ring": 1
+  },
+  "N2": {
+   "name": "MMC0_DAT6",
+   "am62x_name": "W4",
+   "amc_ball": "W4",
+   "ring": 2
+  },
+  "N3": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "N4": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "N5": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "N6": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N7": {
+   "name": "VDDA_3P3_USB",
+   "am62x_name": "USB0",
+   "amc_ball": "R10",
+   "ring": 6
+  },
+  "N8": {
+   "name": "VDDS_DDR",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N9": {
+   "name": "VDDS_DDR",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N10": {
+   "name": "DDR_VPP",
+   "am62x_name": "DRAM",
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N11": {
+   "name": "VDDSHV4",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N12": {
+   "name": "VDDA_TEMP",
+   "am62x_name": "TEMP",
+   "amc_ball": "M7",
+   "ring": 6
+  },
+  "N13": {
+   "name": "VDDA_PLL0",
+   "am62x_name": "MAIN",
+   "amc_ball": "N10",
+   "ring": 6
+  },
+  "N14": {
+   "name": "VDDA_PLL1",
+   "am62x_name": "PER0",
+   "amc_ball": "P14",
+   "ring": 6
+  },
+  "N15": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N16": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N17": {
+   "name": "AM62X_RSVD3",
+   "am62x_name": "Reserved",
+   "amc_ball": "F8",
+   "ring": 6
+  },
+  "N18": {
+   "name": "AM62X_RSVD7",
+   "am62x_name": "Reserved",
+   "amc_ball": "M4",
+   "ring": 6
+  },
+  "N19": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N20": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N21": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N22": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N23": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 6
+  },
+  "N24": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "N25": {
+   "name": "VOUT0_DATA1",
+   "am62x_name": null,
+   "amc_ball": "P18",
+   "ring": 4
+  },
+  "N26": {
+   "name": "VOUT0_DATA2",
+   "am62x_name": null,
+   "amc_ball": "R18",
+   "ring": 3
+  },
+  "N27": {
+   "name": "VOUT0_DATA12",
+   "am62x_name": null,
+   "amc_ball": "U19",
+   "ring": 2
+  },
+  "N28": {
+   "name": "VOUT0_DATA13",
+   "am62x_name": null,
+   "amc_ball": "V21",
+   "ring": 1
+  },
+  "P1": {
+   "name": "MMC0_DAT7",
+   "am62x_name": null,
+   "amc_ball": "V4",
+   "ring": 1
+  },
+  "P2": {
+   "name": "OLDI0_A0N",
+   "am62x_name": "AA2",
+   "amc_ball": "AA2",
+   "ring": 2
+  },
+  "P3": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "P4": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "P5": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P6": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P7": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P8": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P9": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P10": {
+   "name": "VDDSHV4",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P11": {
+   "name": "VDDA_1P8_OLDI0",
+   "am62x_name": "OLDI0",
+   "amc_ball": "P9",
+   "ring": 5
+  },
+  "P12": {
+   "name": "VDDA_1P8_USB",
+   "am62x_name": "USB0",
+   "amc_ball": "R11",
+   "ring": 5
+  },
+  "P13": {
+   "name": "VDDA_1P8_CSIRX0",
+   "am62x_name": "CSIRX0",
+   "amc_ball": "R12",
+   "ring": 5
+  },
+  "P14": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P15": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P16": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P17": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P18": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P19": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P20": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P21": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P22": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P23": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P24": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 5
+  },
+  "P25": {
+   "name": "VOUT0_HSYNC",
+   "am62x_name": "W21",
+   "amc_ball": "W21",
+   "ring": 4
+  },
+  "P26": {
+   "name": "VOUT0_DATA0",
+   "am62x_name": null,
+   "amc_ball": "R21",
+   "ring": 3
+  },
+  "P27": {
+   "name": "VOUT0_DATA10",
+   "am62x_name": null,
+   "amc_ball": "T18",
+   "ring": 2
+  },
+  "P28": {
+   "name": "VOUT0_DATA11",
+   "am62x_name": null,
+   "amc_ball": "U20",
+   "ring": 1
+  },
+  "R1": {
+   "name": "OLDI0_A0P",
+   "am62x_name": "AA3",
+   "amc_ball": "AA3",
+   "ring": 1
+  },
+  "R2": {
+   "name": "OLDI0_A1N",
+   "am62x_name": null,
+   "amc_ball": "V5",
+   "ring": 2
+  },
+  "R3": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "R4": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R5": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R6": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R7": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R8": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R9": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R10": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R11": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R12": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R13": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R14": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R15": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R16": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R17": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R18": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 4
+  },
+  "R19": {
+   "name": "RGMII2_TXC",
+   "am62x_name": "Y18",
+   "amc_ball": "Y18",
+   "ring": 4
+  },
+  "R20": {
+   "name": "RGMII2_TD3",
+   "am62x_name": null,
+   "amc_ball": "V16",
+   "ring": 4
+  },
+  "R21": {
+   "name": "RGMII2_TD1",
+   "am62x_name": null,
+   "amc_ball": "U15",
+   "ring": 4
+  },
+  "R22": {
+   "name": "RGMII2_RXC",
+   "am62x_name": null,
+   "amc_ball": "V18",
+   "ring": 4
+  },
+  "R23": {
+   "name": "RGMII2_RD3",
+   "am62x_name": "W20",
+   "amc_ball": "W20",
+   "ring": 4
+  },
+  "R24": {
+   "name": "RGMII2_RD1",
+   "am62x_name": "Y20",
+   "amc_ball": "Y20",
+   "ring": 4
+  },
+  "R25": {
+   "name": "VOUT0_DE",
+   "am62x_name": null,
+   "amc_ball": "T17",
+   "ring": 4
+  },
+  "R26": {
+   "name": "VOUT0_VSYNC",
+   "am62x_name": null,
+   "amc_ball": "T16",
+   "ring": 3
+  },
+  "R27": {
+   "name": "VOUT0_DATA8",
+   "am62x_name": null,
+   "amc_ball": "U21",
+   "ring": 2
+  },
+  "R28": {
+   "name": "VOUT0_DATA9",
+   "am62x_name": null,
+   "amc_ball": "R17",
+   "ring": 1
+  },
+  "T1": {
+   "name": "OLDI0_A1P",
+   "am62x_name": null,
+   "amc_ball": "V6",
+   "ring": 1
+  },
+  "T2": {
+   "name": "OLDI0_A2N",
+   "am62x_name": null,
+   "amc_ball": "U7",
+   "ring": 2
+  },
+  "T3": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T4": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T5": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T6": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T7": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T8": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T9": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T10": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T11": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T12": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T13": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T14": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T15": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T16": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T17": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T18": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T19": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 3
+  },
+  "T20": {
+   "name": "RGMII2_TX_CTL",
+   "am62x_name": "Y21",
+   "amc_ball": "Y21",
+   "ring": 3
+  },
+  "T21": {
+   "name": "RGMII2_TD2",
+   "am62x_name": "W17",
+   "amc_ball": "W17",
+   "ring": 3
+  },
+  "T22": {
+   "name": "RGMII2_TD0",
+   "am62x_name": "AA20",
+   "amc_ball": "AA20",
+   "ring": 3
+  },
+  "T23": {
+   "name": "RGMII2_RX_CTL",
+   "am62x_name": "W19",
+   "amc_ball": "W19",
+   "ring": 3
+  },
+  "T24": {
+   "name": "RGMII2_RD2",
+   "am62x_name": "Y19",
+   "amc_ball": "Y19",
+   "ring": 3
+  },
+  "T25": {
+   "name": "RGMII2_RD0",
+   "am62x_name": "W18",
+   "amc_ball": "W18",
+   "ring": 3
+  },
+  "T26": {
+   "name": "VOUT0_PCLK",
+   "am62x_name": null,
+   "amc_ball": "U17",
+   "ring": 3
+  },
+  "T27": {
+   "name": "VOUT0_DATA6",
+   "am62x_name": null,
+   "amc_ball": "T21",
+   "ring": 2
+  },
+  "T28": {
+   "name": "VOUT0_DATA7",
+   "am62x_name": null,
+   "amc_ball": "T19",
+   "ring": 1
+  },
+  "U1": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 1
+  },
+  "U2": {
+   "name": "OLDI0_A2P",
+   "am62x_name": null,
+   "amc_ball": "U6",
+   "ring": 2
+  },
+  "U3": {
+   "name": "OLDI0_A3N",
+   "am62x_name": "W6",
+   "amc_ball": "W6",
+   "ring": 2
+  },
+  "U4": {
+   "name": "OLDI0_A4N",
+   "am62x_name": "AA4",
+   "amc_ball": "AA4",
+   "ring": 2
+  },
+  "U5": {
+   "name": "OLDI0_A5N",
+   "am62x_name": "AA6",
+   "amc_ball": "AA6",
+   "ring": 2
+  },
+  "U6": {
+   "name": "OLDI0_A6N",
+   "am62x_name": "AA10",
+   "amc_ball": "AA10",
+   "ring": 2
+  },
+  "U7": {
+   "name": "OLDI0_A7N",
+   "am62x_name": "AA8",
+   "amc_ball": "AA8",
+   "ring": 2
+  },
+  "U8": {
+   "name": "OLDI0_CLK0N",
+   "am62x_name": null,
+   "amc_ball": "V7",
+   "ring": 2
+  },
+  "U9": {
+   "name": "OLDI0_CLK1N",
+   "am62x_name": "Y7",
+   "amc_ball": "Y7",
+   "ring": 2
+  },
+  "U10": {
+   "name": "USB1_DM",
+   "am62x_name": "W8",
+   "amc_ball": "W8",
+   "ring": 2
+  },
+  "U11": {
+   "name": "USB1_VBUS",
+   "am62x_name": null,
+   "amc_ball": "U9",
+   "ring": 2
+  },
+  "U12": {
+   "name": "USB0_DM",
+   "am62x_name": "AA11",
+   "amc_ball": "AA11",
+   "ring": 2
+  },
+  "U13": {
+   "name": "CSI0_RXN3",
+   "am62x_name": "W12",
+   "amc_ball": "W12",
+   "ring": 2
+  },
+  "U14": {
+   "name": "CSI0_RXN2",
+   "am62x_name": null,
+   "amc_ball": "U12",
+   "ring": 2
+  },
+  "U15": {
+   "name": "CSI0_RXP1",
+   "am62x_name": null,
+   "amc_ball": "V12",
+   "ring": 2
+  },
+  "U16": {
+   "name": "CSI0_RXP0",
+   "am62x_name": "Y12",
+   "amc_ball": "Y12",
+   "ring": 2
+  },
+  "U17": {
+   "name": "CSI0_RXCLKP",
+   "am62x_name": "AA13",
+   "amc_ball": "AA13",
+   "ring": 2
+  },
+  "U18": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 2
+  },
+  "U19": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 2
+  },
+  "U20": {
+   "name": "RGMII1_RXC",
+   "am62x_name": "AA16",
+   "amc_ball": "AA16",
+   "ring": 2
+  },
+  "U21": {
+   "name": "RGMII1_RD2",
+   "am62x_name": "AA17",
+   "amc_ball": "AA17",
+   "ring": 2
+  },
+  "U22": {
+   "name": "RGMII1_RD0",
+   "am62x_name": "W15",
+   "amc_ball": "W15",
+   "ring": 2
+  },
+  "U23": {
+   "name": "RGMII1_TXC",
+   "am62x_name": "W16",
+   "amc_ball": "W16",
+   "ring": 2
+  },
+  "U24": {
+   "name": "RGMII1_TD2",
+   "am62x_name": "Y17",
+   "amc_ball": "Y17",
+   "ring": 2
+  },
+  "U25": {
+   "name": "RGMII1_TD0",
+   "am62x_name": null,
+   "amc_ball": "U14",
+   "ring": 2
+  },
+  "U26": {
+   "name": "MDIO0_MDIO",
+   "am62x_name": null,
+   "amc_ball": "U16",
+   "ring": 2
+  },
+  "U27": {
+   "name": "VOUT0_DATA5",
+   "am62x_name": null,
+   "amc_ball": "T20",
+   "ring": 2
+  },
+  "U28": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 1
+  },
+  "V2": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 1
+  },
+  "V3": {
+   "name": "OLDI0_A3P",
+   "am62x_name": "W5",
+   "amc_ball": "W5",
+   "ring": 1
+  },
+  "V4": {
+   "name": "OLDI0_A4P",
+   "am62x_name": "Y5",
+   "amc_ball": "Y5",
+   "ring": 1
+  },
+  "V5": {
+   "name": "OLDI0_A5P",
+   "am62x_name": "AA5",
+   "amc_ball": "AA5",
+   "ring": 1
+  },
+  "V6": {
+   "name": "OLDI0_A6P",
+   "am62x_name": "Y9",
+   "amc_ball": "Y9",
+   "ring": 1
+  },
+  "V7": {
+   "name": "OLDI0_A7P",
+   "am62x_name": "Y8",
+   "amc_ball": "Y8",
+   "ring": 1
+  },
+  "V8": {
+   "name": "OLDI0_CLK0P",
+   "am62x_name": null,
+   "amc_ball": "V8",
+   "ring": 1
+  },
+  "V9": {
+   "name": "OLDI0_CLK1P",
+   "am62x_name": "AA7",
+   "amc_ball": "AA7",
+   "ring": 1
+  },
+  "V10": {
+   "name": "USB1_DP",
+   "am62x_name": "W9",
+   "amc_ball": "W9",
+   "ring": 1
+  },
+  "V11": {
+   "name": "USB0_VBUS",
+   "am62x_name": null,
+   "amc_ball": "V10",
+   "ring": 1
+  },
+  "V12": {
+   "name": "USB0_DP",
+   "am62x_name": "Y10",
+   "amc_ball": "Y10",
+   "ring": 1
+  },
+  "V13": {
+   "name": "CSI0_RXP3",
+   "am62x_name": "W11",
+   "amc_ball": "W11",
+   "ring": 1
+  },
+  "V14": {
+   "name": "CSI0_RXP2",
+   "am62x_name": null,
+   "amc_ball": "U11",
+   "ring": 1
+  },
+  "V15": {
+   "name": "CSI0_RXN1",
+   "am62x_name": null,
+   "amc_ball": "V13",
+   "ring": 1
+  },
+  "V16": {
+   "name": "CSI0_RXN0",
+   "am62x_name": "Y13",
+   "amc_ball": "Y13",
+   "ring": 1
+  },
+  "V17": {
+   "name": "CSI0_RXCLKN",
+   "am62x_name": "AA14",
+   "amc_ball": "AA14",
+   "ring": 1
+  },
+  "V18": {
+   "name": "NC",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 1
+  },
+  "V19": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 1
+  },
+  "V20": {
+   "name": "RGMII1_RX_CTL",
+   "am62x_name": "W14",
+   "amc_ball": "W14",
+   "ring": 1
+  },
+  "V21": {
+   "name": "RGMII1_RD3",
+   "am62x_name": "Y15",
+   "amc_ball": "Y15",
+   "ring": 1
+  },
+  "V22": {
+   "name": "RGMII1_RD1",
+   "am62x_name": "Y16",
+   "amc_ball": "Y16",
+   "ring": 1
+  },
+  "V23": {
+   "name": "RGMII1_TX_CTL",
+   "am62x_name": null,
+   "amc_ball": "V15",
+   "ring": 1
+  },
+  "V24": {
+   "name": "RGMII1_TD3",
+   "am62x_name": "AA18",
+   "amc_ball": "AA18",
+   "ring": 1
+  },
+  "V25": {
+   "name": "RGMII1_TD1",
+   "am62x_name": "AA19",
+   "amc_ball": "AA19",
+   "ring": 1
+  },
+  "V26": {
+   "name": "MDIO0_MDC",
+   "am62x_name": null,
+   "amc_ball": "V17",
+   "ring": 1
+  },
+  "V27": {
+   "name": "VSS",
+   "am62x_name": null,
+   "amc_ball": null,
+   "ring": 1
+  }
+ }
+}

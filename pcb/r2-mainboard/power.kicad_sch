@@ -4022,7 +4022,7 @@
 				)
 			)
 		)
-		(property "Description" "4.7 µF 10 V X7R 0805 — TPS62A02 input cap, tps62a01.pdf Table 8-2"
+		(property "Description" "Unpolarized capacitor"
 			(at 160.02 162.56 0)
 			(hide yes)
 			(show_name no)
@@ -4103,7 +4103,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 347.98 163.83 0)
 			(hide yes)
 			(show_name no)
@@ -4183,7 +4183,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 284.48 87.63 0)
 			(hide yes)
 			(show_name no)
@@ -4261,7 +4261,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 297.18 78.74 0)
 			(hide yes)
 			(show_name no)
@@ -4440,7 +4440,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 275.59 172.72 0)
 			(hide yes)
 			(show_name no)
@@ -4517,7 +4517,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 208.28 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -4595,7 +4595,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "2A buck-boost, 1.3-5.5V in, 1.8-5.2V out, 11uA Iq, true shutdown with load disconnect, VSON-HR-10"
 			(at 76.2 158.75 0)
 			(hide yes)
 			(show_name no)
@@ -4733,7 +4733,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 152.4 66.04 0)
 			(hide yes)
 			(show_name no)
@@ -4836,7 +4836,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 236.22 163.83 0)
 			(hide yes)
 			(show_name no)
@@ -4917,7 +4917,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 284.48 78.74 0)
 			(hide yes)
 			(show_name no)
@@ -5020,7 +5020,7 @@
 				)
 			)
 		)
-		(property "Description" "22 µF 10 V X7R/X5R 0805 — TPS62A02 output cap, tps62a01.pdf Table 8-3"
+		(property "Description" "Unpolarized capacitor"
 			(at 360.68 163.83 0)
 			(hide yes)
 			(show_name no)
@@ -5123,7 +5123,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 63.5 175.26 0)
 			(hide yes)
 			(show_name no)
@@ -5203,7 +5203,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 76.2 185.42 0)
 			(hide yes)
 			(show_name no)
@@ -5280,7 +5280,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 302.26 175.26 0)
 			(hide yes)
 			(show_name no)
@@ -5358,7 +5358,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "2A synchronous buck, 2.5-5.5V in, 0.6V ref, power save mode, power good, SOT-563"
 			(at 320.04 158.75 0)
 			(hide yes)
 			(show_name no)
@@ -5483,7 +5483,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 224.79 88.9 0)
 			(hide yes)
 			(show_name no)
@@ -5561,7 +5561,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 156.21 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -5795,7 +5795,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Special symbol for telling ERC where power comes from"
 			(at 224.79 243.84 0)
 			(hide yes)
 			(show_name no)
@@ -5872,7 +5872,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 190.5 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -5950,7 +5950,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 347.98 176.53 0)
 			(hide yes)
 			(show_name no)
@@ -6029,7 +6029,7 @@
 				)
 			)
 		)
-		(property "Description" "1 µH power inductor, 1210 — Isat 4.8 A / Irms 3.8 A / 32 mΩ (Murata DFE322512F-1R0M, LCSC C3224227)"
+		(property "Description" "Inductor"
 			(at 241.3 48.26 270)
 			(hide yes)
 			(show_name no)
@@ -6220,7 +6220,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 259.08 78.74 0)
 			(hide yes)
 			(show_name no)
@@ -6300,7 +6300,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 297.18 87.63 0)
 			(hide yes)
 			(show_name no)
@@ -6455,7 +6455,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 224.79 199.39 0)
 			(hide yes)
 			(show_name no)
@@ -6536,7 +6536,7 @@
 				)
 			)
 		)
-		(property "Description" "22 µF 10 V X7R/X5R 0805 — TPS62A02 output cap, tps62a01.pdf Table 8-3"
+		(property "Description" "Unpolarized capacitor"
 			(at 248.92 163.83 0)
 			(hide yes)
 			(show_name no)
@@ -6639,7 +6639,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 302.26 166.37 0)
 			(hide yes)
 			(show_name no)
@@ -6720,7 +6720,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 236.22 176.53 0)
 			(hide yes)
 			(show_name no)
@@ -6801,7 +6801,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 34.29 66.04 0)
 			(hide yes)
 			(show_name no)
@@ -6880,7 +6880,7 @@
 				)
 			)
 		)
-		(property "Description" "1 µH power inductor, 1210 — Isat 4.8 A / Irms 3.8 A / 32 mΩ (Murata DFE322512F-1R0M, LCSC C3224227)"
+		(property "Description" "Inductor"
 			(at 231.14 156.21 270)
 			(hide yes)
 			(show_name no)
@@ -6994,7 +6994,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "2A synchronous buck, 2.5-5.5V in, 0.6V ref, power save mode, power good, SOT-563"
 			(at 208.28 158.75 0)
 			(hide yes)
 			(show_name no)
@@ -7196,7 +7196,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 55.88 177.8 0)
 			(hide yes)
 			(show_name no)
@@ -7350,7 +7350,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 160.02 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -7427,7 +7427,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 63.5 184.15 0)
 			(hide yes)
 			(show_name no)
@@ -7505,7 +7505,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 114.3 161.29 0)
 			(hide yes)
 			(show_name no)
@@ -7607,7 +7607,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 152.4 74.93 0)
 			(hide yes)
 			(show_name no)
@@ -7685,7 +7685,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 92.71 66.04 0)
 			(hide yes)
 			(show_name no)
@@ -7766,7 +7766,7 @@
 				)
 			)
 		)
-		(property "Description" "4.7 µF 10 V X7R 0805 — TPS62A02 input cap, tps62a01.pdf Table 8-2"
+		(property "Description" "Unpolarized capacitor"
 			(at 275.59 163.83 0)
 			(hide yes)
 			(show_name no)
@@ -7923,7 +7923,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 360.68 172.72 0)
 			(hide yes)
 			(show_name no)
@@ -7999,7 +7999,7 @@
 				)
 			)
 		)
-		(property "Description" "1 µH power inductor, 1210 — Isat 4.8 A / Irms 3.8 A / 32 mΩ (Murata DFE322512F-1R0M, LCSC C3224227)"
+		(property "Description" "Inductor"
 			(at 342.9 156.21 270)
 			(hide yes)
 			(show_name no)
@@ -8344,7 +8344,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 259.08 92.71 0)
 			(hide yes)
 			(show_name no)
@@ -8424,7 +8424,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 347.98 185.42 0)
 			(hide yes)
 			(show_name no)
@@ -8501,7 +8501,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 101.6 186.69 0)
 			(hide yes)
 			(show_name no)
@@ -8579,7 +8579,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 337.82 199.39 0)
 			(hide yes)
 			(show_name no)
@@ -8813,7 +8813,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 320.04 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -8891,7 +8891,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 30.48 161.29 0)
 			(hide yes)
 			(show_name no)
@@ -8972,7 +8972,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 101.6 161.29 0)
 			(hide yes)
 			(show_name no)
@@ -9053,7 +9053,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "8A Boost Converter, 0.5-5.5 V input, 2.2-5.5V output, Texas RWU0007A VQFN-7"
 			(at 241.3 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -9182,7 +9182,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 120.65 187.96 0)
 			(hide yes)
 			(show_name no)
@@ -9261,7 +9261,7 @@
 				)
 			)
 		)
-		(property "Description" "470 nH power inductor, 1008 — Isat 7.4 A / Irms 4.9 A / 23 mΩ (Murata DFE252012F-R47M, LCSC C703140)"
+		(property "Description" "Inductor"
 			(at 76.2 135.89 270)
 			(hide yes)
 			(show_name no)
@@ -9375,7 +9375,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 190.5 165.1 0)
 			(hide yes)
 			(show_name no)
@@ -9455,7 +9455,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 30.48 170.18 0)
 			(hide yes)
 			(show_name no)
@@ -9533,7 +9533,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 224.79 80.01 0)
 			(hide yes)
 			(show_name no)
@@ -9614,7 +9614,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 271.78 78.74 0)
 			(hide yes)
 			(show_name no)
@@ -9694,7 +9694,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 34.29 74.93 0)
 			(hide yes)
 			(show_name no)
@@ -9771,7 +9771,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 69.85 74.93 0)
 			(hide yes)
 			(show_name no)
@@ -9848,7 +9848,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 209.55 74.93 0)
 			(hide yes)
 			(show_name no)
@@ -9926,7 +9926,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 209.55 66.04 0)
 			(hide yes)
 			(show_name no)
@@ -10029,7 +10029,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "200mA LDO, 25nA quiescent, fixed 3.3V, SOT-23-5"
 			(at 69.85 60.96 0)
 			(hide yes)
 			(show_name no)
@@ -10151,7 +10151,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 92.71 74.93 0)
 			(hide yes)
 			(show_name no)
@@ -10228,7 +10228,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 259.08 101.6 0)
 			(hide yes)
 			(show_name no)
@@ -10305,7 +10305,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 156.21 109.22 0)
 			(hide yes)
 			(show_name no)
@@ -10382,7 +10382,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Special symbol for telling ERC where power comes from"
 			(at 260.35 243.84 0)
 			(hide yes)
 			(show_name no)
@@ -10459,7 +10459,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 114.3 170.18 0)
 			(hide yes)
 			(show_name no)
@@ -10536,7 +10536,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 248.92 172.72 0)
 			(hide yes)
 			(show_name no)
@@ -10614,7 +10614,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 101.6 173.99 0)
 			(hide yes)
 			(show_name no)
@@ -10694,7 +10694,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 236.22 185.42 0)
 			(hide yes)
 			(show_name no)
@@ -10771,7 +10771,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 241.3 83.82 0)
 			(hide yes)
 			(show_name no)
@@ -10926,7 +10926,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 55.88 168.91 0)
 			(hide yes)
 			(show_name no)

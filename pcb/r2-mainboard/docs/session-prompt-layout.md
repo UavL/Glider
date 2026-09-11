@@ -19,21 +19,28 @@ I'm laying out R2 in KiCad 10 myself and want you checking my work, not doing it
    placement and routing order; §7 is the five things that destroy the board; §9 is troubleshooting.
 3. The per-sheet doc for whatever circuit I'm asking about — `docs/<sheet>.md`, §11 of each is its
    layout guidance. Don't answer a layout question about a circuit without reading its §11.
+4. **`NOTES-R2-osd62x-plan.md`** if the question touches the SoM corner, `som`, `dpi_in`, `power` or `mcu`
+   — the compute module is switching to Octavo's `OSD62x-PM` (owner, 2026-09-11).
 
 **Where the board stands (update this section as it changes):**
 - 327 of 327 footprints imported and resolving; 322 of 327 have 3D models (`layout.md` §9.1 lists
   the five that don't and why).
-- The SoM is placed: `X500` + `J501` + `J502`, snapped and grouped so they move as one.
+- **The SoM corner is frozen (2026-09-11).** The module is switching to Octavo's `OSD62x-PM`
+  (`NOTES-R2-osd62x-plan.md`); `X500`/`J501`/`J502` are still on the board but will be deleted — don't
+  route to them.
 - Design settings imported from R1 and 9 net classes written —
   `tools/import_r1_settings.py`, `layout.md` §4.1.
 - `Edge.Cuts` holds a 185.5 × 95 mm placeholder rectangle, not the real ≈ 90 × 70 mm outline.
-- **The DDR3 fanout is being routed** (2026-09-03): 530 track segments — 496 on `F.Cu`, 34 on
-  `B.Cu` — 54 vias, copper on 30 of the 49 DRAM nets. 157 DRC violations, 499 unconnected items.
-- **Stack-up changed 2026-09-03** to a 1.0 mm four-layer, **sig / gnd / gnd / sig**
-  (`datasheets/PCB/4-layers PCB.pdf`, `layout.md` §4.1.1). KiCad's Physical Stackup has **not** been
-  updated to match yet, and the 2 oz outer copper in the PDF is an open question (§4.1.2).
-- `r2.kicad_dru` now carries the two DDR3 spacing rules; `layout.md` §4.3 says why they are rules and
-  not net-class clearances, and lists what still needs changing in the `DDR_DIFF` class.
+- **Routing is under way** (2026-09-10): 1649 segments on `F.Cu`, 279 on `B.Cu`, 77 on `In2.Cu`, 119 on
+  `In3.Cu`; 323 vias. DRC after the 2026-09-10 rule and net-class changes: 365 violations — 147 errors,
+  218 warnings — including **4 real shorts** (`In3.Cu` tracks across through-vias) and **39 HV-separation**
+  hits; 492 unconnected items.
+- **Six-layer, 0.8 mm** — owner-confirmed 2026-09-11 (`datasheets/PCB/6-layers PCB_3313.pdf`,
+  `layout.md` §4.1.1): `F.Cu` sig / `In1.Cu` GND / `In2.Cu` power / `In3.Cu` sig / `In4.Cu` GND / `B.Cu` sig.
+  The four-layer plan of 2026-09-03 is superseded.
+- `r2.kicad_dru` and the net classes were rewritten 2026-09-10 (region-tiered DDR3 rules, HV, diff-pair
+  gap; derivation in the file's comments). **They get in the way of interactive routing — open, to be
+  revisited** (`NOTES-R2-osd62x-plan.md` §7).
 - Placement is untouched since import outside the FPGA/DRAM corner, so most of the 33 proximity rules
   still fail. That's expected, not a bug.
 
@@ -55,9 +62,8 @@ I'm laying out R2 in KiCad 10 myself and want you checking my work, not doing it
 **What's actually open, highest value first:**
 1. Draw the real board outline and mounting holes, then place in `layout.md` §6.3's order —
    `J1000` and the folded-flex connectors first, since the enclosure fixes them.
-2. Confirm the `BTH-060` 3D model's rotation in the 3D viewer (`gen_som_footprint.py`'s
-   `MODEL_CONN_ROT` is an unverified guess of `0,0,90` — flip to `-90` if the receptacles lie
-   across their pads instead of along them).
+2. ~~Confirm the `BTH-060` 3D model's rotation in the 3D viewer~~ — moot: the connectors are being
+   removed with the `OSD62x-PM` switch.
 3. Before ordering: build Caster for the `-2` speed grade (`par/ise_flow.sh`, two `-ftg256-3` →
    `-2`) — the DDR3 bus has 0.05 % margin at `U700`. Re-check `C3646540` stock. Confirm CPL
    rotation with JLCPCB (`som.md` §10.4).

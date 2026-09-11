@@ -110,6 +110,11 @@ a device-tree property, not a board change.
 
 ## 3. The compute module
 
+> ⚠ **2026-09-11: being replaced.** The owner confirmed a switch to Octavo's `OSD62x-PM`
+> (`NOTES-R2-osd62x-plan.md`). Everything in this section stays true *of the `PCM-071`* — which is what it
+> records — but no longer describes R2's module. `OSD62x-PM` facts enter this file only once re-read from
+> the vendor documents (plan task E1), tagged as usual.
+
 **Chosen: PHYTEC `PCM-071`, phyCORE-AM62x** — the **connectorised** variant. Changed 2026-08-13
 by the hardware owner; `PCL-071` (solder-down) was the previous choice and is now the *second
 revision* target. `NOTES-R2-plan.md` constraint 1 carries the reasoning; in short, PHYTEC quoted
@@ -238,6 +243,188 @@ one machine-assembled board with nothing plugged on — are still real; they wer
 €1 405 minimum order and a consignment shipment for a prototype that needs one module.
 
 ---
+
+### 3.3 `OSD62x-PM` + `TPS6521903` — verified 2026-09-11
+
+The module R2 is switching to (owner, 2026-09-11; `NOTES-R2-osd62x-plan.md`). Everything here was
+read from the document named, on this date. Inferences are marked *(inferred)*; nothing here has
+been measured on hardware.
+
+**Sources, all in the repo:** `datasheets/SiC OSD62x-PM/OSD62x-PM-Datasheet.pdf` (Octavo, Rev. 2.0,
+2026-01-16) · `datasheets/SiC OSD62x-PM/am623.pdf`, which is **TI `SPRSP58C`**, the AM62x datasheet
+(AM625/AM623/AM620, Oct 2025) despite its file name · `datasheets/SiC OSD62x-PM/OSD62-PM-BRK-3.zip`
+(Octavo's reference board, Eagle) · Octavo's app notes, saved as web pages in the same folder ·
+`datasheets/Power/tps65219.pdf` (`SLVSGA0D`, Rev. D) · `datasheets/Power/tps6521903_nvm_SLVUCJ2A.pdf` ·
+`datasheets/Power/tps6521901_nvm_SLVUCH3.pdf` · `datasheets/Power/am62x_with_tps65219_SLVAFD0C.pdf` ·
+`datasheets/Power/tps22965.pdf`, `tps22918.pdf`.
+⚠ `datasheets/Power/tps6521901.pdf` is **not** a `…01` document — it is `SLVSGA0A`, an older revision
+of the TPS65219 datasheet. The `…01` NVM manual is `tps6521901_nvm_SLVUCH3.pdf`.
+
+**AM62x power sequencing (`SPRSP58C`):**
+
+| Fact | Where |
+| --- | --- |
+| Every supply slews **< 18 mV/µs** (a 1.8 V rail takes > 100 µs) | §6.12.2.1, p. 103 |
+| Power-up order: **A** `VSYS`/`VMON_VSYS` → **B** 3.3 V IO (`VDDSHV_CANUART`, `_MCU`, `0`–`3` at 3.3 V, `VDDA_3P3_USB`, `VMON_3P3_SOC`) → **C** 1.8 V (`VDDA_*`, `VDDS_OSC0`, `VMON_1P8_SOC`) → **D** `VDDSHV4/5/6` (no dependency — note 7) → **E** `VDDS_DDR` → **G** core group → **H** `VDDR_CORE` → **J** `MCU_PORz` → **K** oscillator | Table 6-5, Fig. 6-5, pp. 105–107 |
+| At a 0.75 V core, `VDD_CORE` ramps before and drops after `VDDR_CORE`, never more than 0.18 V apart | note 12, p. 106 |
+| All rails below **300 mV** before any new power-up | notes, pp. 105, 108 |
+| `VPP` floating or grounded except while programming eFuses | note 13, p. 106 |
+| `MCU_PORz` held low **≥ 9.5 ms** after supplies valid with a **crystal**; ≥ 1.2 µs after clock-stable with an LVCMOS oscillator | Table 6-8, p. 111 |
+| `BOOTMODE00`–`15` are the `GPMC0_AD0`–`15` balls — AMC `K19`…`P20` in both `SPRSP58C` Table 5-53 and Octavo Table 5-7 | pp. 78–79 |
+| Boot pins are latched at `MCU_PORz` release | Octavo, Boot Chain and Debug note |
+| MCU_OSC0 crystal: **25 MHz**, ±100 ppm (no RGMII/RMII), **CL 6–12 pF**, CL1+PCB and CL2+PCB 12–24 pF, Cshunt ≤ 7 pF at ESR 30 Ω, ≤ 5 pF at 40–50 Ω | Table 6-22, p. 120 |
+| `WKUP_LFOSC0` unused: `XI` to ground, `XO` open | Fig. 6-25, p. 127 |
+| USB VBUS sense: **16.5 kΩ + 3.48 kΩ + 10 kΩ (±1 %) and a 6.8 V Zener** (BZX84C6V8); VBUS may reach 20 V with PD | §8.2.3, Fig. 8-4, p. 241 |
+| `VMON_VSYS` trips at **0.45 V ±3 %**; input leakage 10 nA–2.5 µA | §8.2.4, p. 241 |
+
+**IO supply of the signals R2 uses** (`SPRSP58C` pin attributes): `SPI0_*`, `UART0_*`, `USB1_DRVVBUS`,
+`MMC1_SDWP`, `RESETSTATz`, `RESET_REQz`, `PORz_OUT` → `VDDSHV0` · `MMC1_CLK/CMD/DAT` → `VDDSHV5` ·
+`MCU_MCAN0_RX` (`SOM_WAKE#`), `MCU_RESETz` → `VDDSHV_MCU` · `MCU_MCAN1_TX`, `PMIC_LPM_EN0` →
+`VDDSHV_CANUART` · `MCU_PORz`, `MCU_OSC0`, `WKUP_LFOSC0` → `VDDS_OSC0` (**1.8 V**). `VOUT0_*` and
+`GPMC0_*` could not be resolved from the table's text. It does not matter to the design: Octavo ties
+every `VDDSHV` except `VDDSHV5` to one switched 3.3 V rail (Power Design and Budgeting note).
+
+**`TPS6521903` NVM (`SLVUCJ2A`)** — TI's target: AM62/AM64, 0.75 V core, DDR4, `VSYS` = `PVIN` = 3.3 V.
+
+| Rail | Setting | Power-up slot | Power-down slot |
+| --- | --- | --- | --- |
+| `GPO2` | on (drives the 3.3 V IO load switch) | **0** (10 ms) | 2 |
+| `BUCK2` | 1.800 V | 2 (3 ms) | 2 |
+| `LDO1` | 3.300 V, **bypass**, `VSEL_SD` picks 3.3/1.8 V | 2 | 2 |
+| `LDO3` | 1.800 V, slow ramp | 2 | 2 |
+| `LDO4` | 2.500 V, slow ramp (`DDR_VPP`) | 2 | 2 |
+| `BUCK3` | 1.200 V (`VDDS_DDR`) | 3 (1.5 ms) | **0** |
+| `BUCK1` | 0.750 V (core group) | 4 (1.5 ms) | 2 |
+| `LDO2` | 0.850 V (`VDDR_CORE`) | 5 (1.5 ms) | **0** |
+| `nRSTOUT` | → `MCU_PORz` | **8** (after 6: 10 ms, 7: 1.5 ms) | **0** |
+
+All seven rails and `GPO2` **stay on in STBY**; `GPO1`/`GPIO` off. UV thresholds −5 %. `EN/PB/VSENSE` =
+push-button, long deglitch, **First Supply Detection on** (powers up when `VSYS` rises past POR).
+I²C `0x30`. Active discharge is on by default (not NVM), and a power-up only starts after every rail
+has discharged below the short-circuit threshold. **Checked against `SPRSP58C`:** the order is
+B → C/D → E → G → H → J; `MCU_PORz` releases 11.5 ms after the last rail (more than the 9.5 ms a
+crystal needs); `DDR_VPP` (slot 2) rises before and falls after `VDDS_DDR`, as Octavo's Table 7-1
+note 3 requires.
+
+**`TPS6521901` (`SLVUCH3`) differs** in exactly what matters for a battery board: `VSYS`/`PVIN` **5 V**,
+`BUCK2` **3.3 V** (the IO rail), `GPO1` enables an **external 1.8 V buck**, `GPO2` off, `EN` as a level
+enable. `BUCK1`/`BUCK3`/`LDO2`/`LDO4` are the same as `…03`.
+
+**TPS65219 datasheet (`SLVSGA0D`):** `PVIN_B1`, `PVIN_LDO1` (and the other PVINs) *"must not exceed
+voltage on VSYS"* (pin table) · LDO1/LDO2 bypass input **1.5–3.4 V** (§7.1.2; §3.1.13 says 3.6 V) ·
+LDO dropout 150 mV typ / 300 mV max at 400 mA, 400 mA max · VSYS POR 2.2–2.5 V rising, UVLO
+2.175–2.25 V falling · push-button: 600 ms low = ON request, **8 s low = OFF** · the "if not used"
+column applies only to rails that are **permanently disabled**.
+
+**Octavo's OSD62-PM-BRK (Eagle schematic, `OSD62-PM-BRK-3.zip`):** PMIC is **`TPS6521903RHB`**, all
+PVINs and `VSYS` from 3.3 V (`TLV62595` buck from 5 V) · `GPO2` → `TPS22965` (CT not fitted) → the
+switched 3.3 V `VIN-3P3-LS` for every `VDDSHV` except 5 · `LDO1` → `VDDSHV5` with `MMC1_SDWP` →
+`VSEL_SD`, `TPS22918` card switch · `nRSTOUT` → `MCU_PORz` (10 k to 1.8 V) · `MODE/STBY` ←
+`PMIC_LPM_EN0`, `nINT` → `EXTINTn`, `MODE/RESET` ← `RESETSTATz` (10 k pull-ups to the switched
+3.3 V) · I²C0 4.7 k · 25 MHz and 32.768 kHz **oscillators**, `XO` pins grounded · VBUS dividers
+20 k/10 k (not TI's clamp circuit) · 0.47 µH on all three bucks. **Boot straps** (10 k up/down),
+`GPMC0_AD0`…`15` = `1 1 0 0 0 0 1 0 0 1 1 1 0 1 0 0`.
+
+**Octavo power budget** (Power Design and Budgeting, mA): worst case `BUCK1` 2710, `BUCK2` 150,
+`BUCK3` 800, `LDO1` 30, `LDO2` 150, `LDO3` 155, `LDO4` 60; nominal 913, 10, 147, 10, 10, 72, 10. The BRK's
+Deep Sleep is ~50 mA at 5 V, on a board "not designed for low power" (handoff).
+
+**Caster's CSR SPI drives MISO all the time:** `csr.v` makes `spi_miso` an `output reg`, and
+`spartan6/top.v` wires it straight to pin `T10` — no tri-state. So a configured FPGA drives the
+SoC's `SPI0_D1` whenever it is powered.
+
+**KiCad 10.0.4 (plan E8):** a custom-rule `via_diameter`/`hole_size` constraint **overrides** the
+board-setup minimums — a 0.25/0.15 mm via passed DRC with the rule and failed both minimums without it.
+
+**Fab limits for the SiP's 0.5 mm pitch — the published tables, read 2026-09-11** (plan E7). Neither
+fab has been asked yet. PCBWay: `pcbway.com` capabilities page, "advanced" column. JLCPCB:
+`jlcpcb.com/capabilities/pcb-capabilities`.
+
+| | PCBWay | JLCPCB |
+| --- | --- | --- |
+| Trace/space, outer, 18 µm base copper | 4/4 mil — "Local 3.5/3.5mil, only the distance from the BGA chip area line to the PAD" | 3.5/3.5 mil on multilayer boards; "3 mil is acceptable in BGA fan-outs" |
+| Trace/space, inner, 35 µm | 4/4 mil | 3.5/3.5 mil (1 oz) |
+| Via | CNC drill ≥ 0.15 mm, "smaller than 0.2mm will be subject to extra charges"; outer via ring ("weld ring") ≥ **4 mil** (5 mil standard) | "0.15 mm hole size / 0.25 mm via diameter"; "0.15mm hole size with any size via diameter, and 0.2mm or 0.25mm hole size with via diameter less than 0.45mm, will cost more" |
+| BGA land | ENIG ≥ **8 mil** (0.203 mm; 11 mil standard); HASL ≥ 10 mil | "0.2mm — 0.2mm-0.25mm BGA pad diameter requires ENIG" |
+| Hole to hole, vias ≤ 0.45 mm | ≥ 11 mil | — |
+| Blind/buried vias | HDI offered | "Not supported" |
+
+R2's stack-up (`datasheets/PCB/6-layers PCB_3313.pdf`) is 0.5 oz outer base copper plated to 1 oz and
+1 oz inner layers, so PCBWay's 18 µm outer and 35 µm inner rows are the ones that apply.
+
+**What fits between four balls** — geometry, not a vendor figure. A via centred among four balls sits
+0.3536 mm from each, so its diameter is at most 2 × (0.3536 − land/2 − spacing). With the footprint's
+0.20 mm lands that is **0.304 mm at 4 mil, 0.329 mm at 3.5 mil, 0.355 mm at 3 mil**. Octavo's layout
+guide gives the same figures (its Table 3.2). The guide's Table 3.1: one trace between two balls
+needs a 0.20 mm land at 3.5/3.5 mil, or 0.17 mm at 4/4 mil. It recommends a 0.2 mm land, a 10 mil
+(0.254 mm) via and 3.2/3.2 mil. Its BRK used a 4 mil laser drill with a 3 mil ring, and it notes
+other fabs trade a "6mil (0.1524mm) Drill Size and 2mil (0.0508 mm) Annular Ring".
+
+What follows:
+
+- **A 0.2 mm drill fits only with a 2–2.5 mil ring** (a 0.30–0.33 mm via).
+- **Nothing in PCBWay's published table fits between the balls.** Their 4 mil via ring makes a 0.2 mm
+  drill 0.40 mm across. Even their 0.15 mm drill becomes 0.353 mm, which fits only at 3 mil spacing.
+- **JLCPCB's published 0.15/0.25 mm via fits**, with 5 mil to the lands. A 0.2/0.30 mm via uses the
+  same 0.05 mm ring and fits at 4 mil [I — their table lists only the minimum pair]. At JLCPCB, both
+  sizes carry the small-via surcharge.
+- **A 0.17 mm land is below both fabs' BGA-land minimum.** The footprint's 0.20 mm sits at both
+  limits.
+
+**eMMC boot (`SPRUIV7C` §5.3.1, §5.4.4, pp. 441–460):**
+
+- **The mode.** `BOOTMODE[6:3]` = `1001` is "eMMC Boot" from the boot partition. It "does not have any
+  extra bootmode configuration fields", so bits 9:7 are ignored.
+- **The port.** eMMC boot is "only available on Port 0 … not available on Port1 (MMCSD1) or MMCSD2".
+  MMCSD0's IOs "support both 1.8V and 3.3V eMMC operation".
+- **Pulls.** The ROM enables pull-ups on `MMC0_DAT1`–`7`, and none on `DAT0`, `CLK` or `CMD`
+  (Table 5-21).
+- **As a backup.** Backup `B12:B10` = `101` is MMCSD, with `B13` = port. As a backup, "only User Data
+  Area (UDA) in filesystem mode is supported … 1-bit mode" (Table 5-5, §5.4.4.1).
+- **Warm reset.** "The reset line must be connected to the eMMC flash input reset pin", and
+  `ext_csd[162]` `RST_n_ENABLE` must be written to `0x1`; the default is `0x0`, "temporarily
+  disabled" (§5.4.4.2, Table 5-22).
+- **Octavo's checklist.** 8-bit eMMC must use MMC0. MMC0 is in `VDDSHV4`. Power `VDDSHV4` and the
+  eMMC's `VCCQ` from the same rail.
+- **The balls.** On the SiP, MMC0 sits on the left edge, rings 1–2 (`osd62x_pm_pinout.json`): `CLK J1`,
+  `CMD K1`, `DAT0 K2`, `DAT1 L1`, `DAT2 L2`, `DAT3 M1`, `DAT4 M2`, `DAT5 N1`, `DAT6 N2`, `DAT7 P1`.
+- **The IO domain.** `VDDSHV4` powers **exactly those ten signals** and nothing else — counted in
+  `SPRSP58C`'s pin table, which marks ten pins `VDDSHV4`, all `MMC0_*`. It supports "power-up,
+  power-down, or dynamic voltage switching independent of other power rails" (TI `SPRAD21I`
+  §7.3.2.1.1.1; Octavo's power note lists `VDDSHV4/5/6` as the 1.8 V **and** 3.3 V rails). So the
+  MMC0 rail can be moved to 1.8 V later without touching anything else.
+
+**The eMMC part — Samsung `KLM8G1GETF-B041`, datasheet Rev. 1.21** (`datasheets/Storage/samsung_emmc.pdf`;
+one document for the 8/16/32/64 GB family, one ball map for all four):
+
+- **`VCCQ` is dual-voltage, and the datasheet contradicts itself.** §2 Key Features and §9.4 Table 35
+  (Supply Voltage) give `VCCQ` **1.70–1.95 V** only; the overview (§ intro, "1.8V or 3V dual supply
+  voltage … is supported for the MMC controller"), Table 1 ("VDD (1.70V ~ 1.95V or 2.7V ~ 3.6V)"),
+  the OCR register (bit [7] = the 1.70–1.95 window, bits [23:15] = 2.7–3.6, both advertised) and
+  `DEVICE_TYPE` bit 2 ("High-Speed Dual Data Rate eMMC @ 52MHz — **1.8V or 3V I/O** — Support") all
+  say dual. **LCSC and JLCPCB both list "Controller Operating Voltage (VCCQ): 1.7V~1.95V; 2.7V~3.6V"**
+  — checked 2026-09-12. Table 35 lists the 1.8 V window alone because HS200/HS400 require it
+  (`DEVICE_TYPE` bits 4 and 6 are 1.8 V only). `VCC` is 2.7–3.6 V in every source.
+- **Current** (Table 32, 8 GB, x8 at HS400, max RMS over 100 ms): `VCCQ` **180 mA**, `VCC` **50 mA**.
+  Standby (Table 33): 120 µA + 40 µA at 25 °C, 400 µA + 85 µA at 85 °C. Sleep (Table 34): `VCCQ`
+  120 µA, `VCC` 0 — "in sleep mode VCC power can be turned off".
+- **Bus load** (Table 36): `CHOST + CBUS` "should be under 20pF"; device 12 pF; `RCMD` 4.7–100 kΩ,
+  `RDAT` 10–100 kΩ, internal `DAT1`–`7` pull-ups 10–150 kΩ; max signal line inductance 16 nH at
+  ≤ 52 MHz. Table 37 (HS400): data-strobe pull-down 10–100 kΩ.
+- **`VDDI`** is the controller's internal regulator node ("to stabilize regulator output to controller
+  core logics"); the block diagram shows a capacitor `CReg` on it but **no value is given anywhere**.
+- **`RFU` balls:** "Reserved for future use, do not use for any usage".
+
+**TI's eMMC design rules (`SPRAD21I` §7.3.2.1, §5.2.1.7, §6.1.4):** 0 Ω series on `MMC0_CLK` at the
+processor, "adjust to match the PCB trace impedance" · **10 kΩ pull-down on `MMC0_CLK` at the attached
+device's clock input** · **47 kΩ pull-ups on `MMC0_DAT0` and `MMC0_CMD` only**, close to the eMMC;
+pull-ups on `DAT[7:1]` are "optional (delete or DNI)" because the device turns its own on until the
+bus widens · a pull-down with test point on `DS` · reset by **ANDing a processor GPIO with
+`RESETSTATz`**, or `RESETSTATz` alone if the IO levels match (a level translator or a carefully chosen
+divider otherwise). Octavo's checklist agrees and adds: `62_EMMC_6` decoupling "1x2.2uF, 2x0.1uF" on
+`VCC` and `VCCQ`; `62_EMMC_7` a 22 Ω footprint on `MMC_CLK` at the SiP; `62_EMMC_9` "RESETSTATz alone
+can be used". TI's own SK EVM (`PROC142A` p. 18) instead drives the eMMC reset from an **IO-expander
+GPIO**, with the eMMC on `VCC_3V3_SYS` + `VCC_1V8`.
 
 ## 4. Power — what is measured, and by whom
 

@@ -62,11 +62,11 @@
           "hatch_smoothing_value": 0.1,
           "hatch_thickness": 1.0,
           "min_clearance": 0.2,
-          "min_island_area": 0.0013161349,
+          "min_island_area": 10.0,
           "min_thickness": 0.25,
-          "pad_connection": 2,
-          "remove_islands": 0,
-          "thermal_relief_gap": 0.5,
+          "pad_connection": 1,
+          "remove_islands": 1,
+          "thermal_relief_gap": 0.4,
           "thermal_relief_spoke_width": 0.5
         }
       },
@@ -178,20 +178,20 @@
         "allow_blind_buried_vias": false,
         "allow_microvias": false,
         "max_error": 0.005,
-        "min_clearance": 0.1,
+        "min_clearance": 0.11,
         "min_connection": 0.0,
         "min_copper_edge_clearance": 0.3,
         "min_groove_width": 0.0,
-        "min_hole_clearance": 0.15,
+        "min_hole_clearance": 0.2,
         "min_hole_to_hole": 0.25,
         "min_microvia_diameter": 0.2,
         "min_microvia_drill": 0.1,
         "min_resolved_spokes": 2,
         "min_silk_clearance": 0.0,
-        "min_text_height": 0.7,
-        "min_text_thickness": 0.08,
+        "min_text_height": 1.0,
+        "min_text_thickness": 0.16,
         "min_through_hole_diameter": 0.3,
-        "min_track_width": 0.1,
+        "min_track_width": 0.11,
         "min_via_annular_width": 0.05,
         "min_via_diameter": 0.45,
         "solder_mask_to_copper_clearance": 0.005,
@@ -260,6 +260,7 @@
         1.0,
         1.5,
         2.0,
+        2.75,
         3.5
       ],
       "tuning_pattern_settings": {
@@ -295,6 +296,10 @@
         },
         {
           "diameter": 0.45,
+          "drill": 0.3
+        },
+        {
+          "diameter": 0.5,
           "drill": 0.3
         },
         {
@@ -578,7 +583,7 @@
     "classes": [
       {
         "bus_width": 12,
-        "clearance": 0.11,
+        "clearance": 0.22,
         "diff_pair_gap": 0.2,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -589,9 +594,9 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 2147483647,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.2,
+        "track_width": 0.15,
         "tuning_profile": "",
-        "via_diameter": 0.6,
+        "via_diameter": 0.5,
         "via_drill": 0.3,
         "wire_width": 6
       },
@@ -611,8 +616,8 @@
       },
       {
         "bus_width": 12,
-        "clearance": 0.1,
-        "diff_pair_gap": 0.11,
+        "clearance": 0.11,
+        "diff_pair_gap": 0.17,
         "diff_pair_width": 0.11,
         "line_style": 0,
         "microvia_diameter": 0.3,
@@ -621,16 +626,16 @@
         "pcb_color": "rgb(255, 126, 244)",
         "priority": 8,
         "schematic_color": "rgb(9, 255, 144)",
-        "track_width": 0.127,
+        "track_width": 0.11,
         "tuning_profile": "",
-        "via_diameter": 0.6,
+        "via_diameter": 0.5,
         "via_drill": 0.3,
         "wire_width": 6
       },
       {
         "bus_width": 12,
-        "clearance": 0.1,
-        "diff_pair_gap": 0.11,
+        "clearance": 0.11,
+        "diff_pair_gap": 0.17,
         "diff_pair_width": 0.11,
         "line_style": 0,
         "microvia_diameter": 0.3,
@@ -639,36 +644,36 @@
         "pcb_color": "rgb(155, 79, 255)",
         "priority": 9,
         "schematic_color": "rgb(15, 255, 243)",
-        "track_width": 0.127,
+        "track_width": 0.11,
         "tuning_profile": "",
-        "via_diameter": 0.6,
+        "via_diameter": 0.5,
         "via_drill": 0.3,
         "wire_width": 6
       },
       {
         "clearance": 0.11,
-        "diff_pair_gap": 0.11,
+        "diff_pair_gap": 0.17,
         "diff_pair_width": 0.11,
         "name": "DDR_D0",
         "pcb_color": "rgb(173, 255, 47)",
         "priority": 3,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.127,
+        "track_width": 0.11,
         "tuning_profile": "DDR_LDQ",
-        "via_diameter": 0.45,
+        "via_diameter": 0.5,
         "via_drill": 0.3
       },
       {
         "clearance": 0.11,
-        "diff_pair_gap": 0.11,
+        "diff_pair_gap": 0.17,
         "diff_pair_width": 0.11,
         "name": "DDR_D1",
         "pcb_color": "rgb(67, 255, 182)",
         "priority": 2,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.127,
+        "track_width": 0.11,
         "tuning_profile": "DDR_UDQ",
-        "via_diameter": 0.45,
+        "via_diameter": 0.5,
         "via_drill": 0.3
       },
       {
@@ -680,12 +685,48 @@
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "DPI",
-        "pcb_color": "rgb(255, 255, 0)",
+        "pcb_color": "rgb(190, 190, 0)",
         "priority": 10,
         "schematic_color": "rgb(255, 236, 58)",
         "track_width": 0.15,
         "tuning_profile": "",
-        "via_diameter": 0.45,
+        "via_diameter": 0.5,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.11,
+        "diff_pair_gap": 0.2,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "EPD_CTRL",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 18,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.15,
+        "tuning_profile": "",
+        "via_diameter": 0.5,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.11,
+        "diff_pair_gap": 0.17,
+        "diff_pair_width": 0.11,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "EPD_DATA",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 17,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.11,
+        "tuning_profile": "",
+        "via_diameter": 0.5,
         "via_drill": 0.3,
         "wire_width": 6
       },
@@ -703,11 +744,30 @@
         "schematic_color": "rgb(255, 156, 23)",
         "track_width": 0.11,
         "tuning_profile": "",
-        "via_diameter": 0.45,
+        "via_diameter": 0.5,
         "via_drill": 0.3,
         "wire_width": 6
       },
       {
+        "bus_width": 12,
+        "clearance": 0.11,
+        "diff_pair_gap": 0.2,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "FPGA_CFG",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 16,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.15,
+        "tuning_profile": "",
+        "via_diameter": 0.5,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "clearance": 0.22,
         "line_style": 0,
         "name": "GND",
         "pcb_color": "rgb(0, 132, 0)",
@@ -729,17 +789,21 @@
         "schematic_color": "rgb(220, 28, 14)",
         "track_width": 0.3,
         "tuning_profile": "",
-        "via_diameter": 0.6,
+        "via_diameter": 0.5,
         "via_drill": 0.3,
         "wire_width": 6
       },
       {
+        "clearance": 0.3,
         "line_style": 0,
         "name": "I2C",
         "pcb_color": "rgb(0, 0, 255)",
         "priority": 5,
         "schematic_color": "rgb(123, 133, 181)",
-        "tuning_profile": ""
+        "track_width": 0.15,
+        "tuning_profile": "",
+        "via_diameter": 0.5,
+        "via_drill": 0.3
       },
       {
         "bus_width": 12,
@@ -755,7 +819,25 @@
         "schematic_color": "rgb(255, 166, 240)",
         "track_width": 0.15,
         "tuning_profile": "",
-        "via_diameter": 0.45,
+        "via_diameter": 0.5,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.22,
+        "diff_pair_gap": 0.2,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "PWR",
+        "pcb_color": "rgb(194, 0, 0)",
+        "priority": 19,
+        "schematic_color": "rgb(164, 75, 63)",
+        "track_width": 0.6,
+        "tuning_profile": "",
+        "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
       },
@@ -767,14 +849,14 @@
         "line_style": 0,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
-        "name": "PWR",
-        "pcb_color": "rgb(194, 0, 0)",
-        "priority": 14,
-        "schematic_color": "rgb(164, 75, 63)",
-        "track_width": 0.6,
+        "name": "SW_NODE",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 15,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.5,
         "tuning_profile": "",
-        "via_diameter": 0.8,
-        "via_drill": 0.35,
+        "via_diameter": 0.5,
+        "via_drill": 0.3,
         "wire_width": 6
       },
       {
@@ -788,32 +870,36 @@
         "schematic_color": "rgb(185, 85, 255)",
         "track_width": 0.2,
         "tuning_profile": "",
-        "via_diameter": 0.6,
+        "via_diameter": 0.5,
         "via_drill": 0.3
       },
       {
+        "clearance": 0.3,
         "line_style": 0,
         "name": "TX/RX",
         "pcb_color": "rgb(0, 0, 132)",
         "priority": 4,
         "schematic_color": "rgb(141, 41, 82)",
-        "tuning_profile": ""
+        "track_width": 0.15,
+        "tuning_profile": "",
+        "via_diameter": 0.5,
+        "via_drill": 0.3
       },
       {
         "bus_width": 12,
         "clearance": 0.11,
-        "diff_pair_gap": 0.11,
-        "diff_pair_width": 0.25,
+        "diff_pair_gap": 0.15,
+        "diff_pair_width": 0.127,
         "line_style": 0,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "USB",
         "pcb_color": "rgb(201, 180, 151)",
-        "priority": 15,
+        "priority": 14,
         "schematic_color": "rgb(56, 255, 12)",
         "track_width": 0.11,
         "tuning_profile": "",
-        "via_diameter": 0.45,
+        "via_diameter": 0.5,
         "via_drill": 0.3,
         "wire_width": 6
       }
@@ -951,6 +1037,78 @@
       {
         "netclass": "3V3",
         "pattern": "+3V3"
+      },
+      {
+        "netclass": "DDR_D0",
+        "pattern": "/fpga_ddr/DRAM_LDM"
+      },
+      {
+        "netclass": "DDR_D1",
+        "pattern": "/fpga_ddr/DRAM_UDM"
+      },
+      {
+        "netclass": "DDR3_CLK",
+        "pattern": "/fpga_ddr/DRAM_CK(N|P)"
+      },
+      {
+        "netclass": "DDR3",
+        "pattern": "/fpga_ddr/DRAM_(CKE|ODT|RST)"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "/*/+*"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "/*/-*"
+      },
+      {
+        "netclass": "MMC1",
+        "pattern": "/som/SD_*"
+      },
+      {
+        "netclass": "EPD_DATA",
+        "pattern": "/EPDC_D(0|1|2|3|4|5|6|7)(P|N)"
+      },
+      {
+        "netclass": "EPD_CTRL",
+        "pattern": "/EPDC_(GDOE|GDCLK|GDSP|SDCE0|SDLE|SDOE|SE_CLK)"
+      },
+      {
+        "netclass": "FPGA_CFG",
+        "pattern": "/FPGA_*"
+      },
+      {
+        "netclass": "SW_NODE",
+        "pattern": "/power/1V2_SW"
+      },
+      {
+        "netclass": "SW_NODE",
+        "pattern": "/power/1V5_SW"
+      },
+      {
+        "netclass": "SW_NODE",
+        "pattern": "/battery/CHG_SW"
+      },
+      {
+        "netclass": "SW_NODE",
+        "pattern": "/epd_power/SW_VGH"
+      },
+      {
+        "netclass": "SW_NODE",
+        "pattern": "/epd_power/SW_VP"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "+VGH"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "-VGL"
+      },
+      {
+        "netclass": "Default",
+        "pattern": "/EPD_POS_EN|/FL_EN|/mcu/EPD_PWR_EN_MCU|/MCU_EN_3V3|/MCU_EN_5V|/MCU_EN_DDR|/USB1_FAULT#|/VBUS_MEA|/VCOM_EN|/VCOM_MEA|/VCOM_MEA_EN|/VGH_MEA|/VGL_MEA|/VN_MEA|/VP_MEA"
       }
     ]
   },
@@ -1108,7 +1266,7 @@
         "uuid": "dee825bf-c2f1-415d-afdf-cf702072a6e8"
       }
     ],
-    "used_designators": "U4,SW1,D7,R37,#PWR45",
+    "used_designators": "IC1,U1,U4,SW1,D7,R37,#PWR45",
     "variants": []
   },
   "sheets": [
@@ -1167,6 +1325,10 @@
     [
       "bfb4a282-c959-4a7b-92d0-a4a500453c0c",
       "io_expansion"
+    ],
+    [
+      "767172a6-43e9-4684-bdc5-5dc2ecddbb44",
+      "sic"
     ]
   ],
   "text_variables": {},
@@ -1203,11 +1365,45 @@
             "signal_layer": "F.Cu",
             "top_reference_layer": "UNDEFINED",
             "width": 110000
+          },
+          {
+            "bottom_reference_layer": "UNDEFINED",
+            "delay": 5592700,
+            "diff_pair_gap": 0,
+            "signal_layer": "B.Cu",
+            "top_reference_layer": "In4.Cu",
+            "width": 110000
           }
         ],
         "profile_name": "DDR_UDQ",
         "target_impedance": 50.0,
         "type": 0,
+        "via_overrides": [],
+        "via_prop_delay": 6000000
+      },
+      {
+        "enable_time_domain_tuning": true,
+        "layer_entries": [
+          {
+            "bottom_reference_layer": "In1.Cu",
+            "delay": 5805900,
+            "diff_pair_gap": 170000,
+            "signal_layer": "F.Cu",
+            "top_reference_layer": "UNDEFINED",
+            "width": 110000
+          },
+          {
+            "bottom_reference_layer": "UNDEFINED",
+            "delay": 5925200,
+            "diff_pair_gap": 170000,
+            "signal_layer": "B.Cu",
+            "top_reference_layer": "In4.Cu",
+            "width": 110000
+          }
+        ],
+        "profile_name": "DDR3_CLK",
+        "target_impedance": 100.0,
+        "type": 1,
         "via_overrides": [],
         "via_prop_delay": 6000000
       }

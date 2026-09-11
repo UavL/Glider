@@ -21,41 +21,28 @@
 			(on_board yes)
 			(in_pos_files yes)
 			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "J1"
-				(at -15.24 26.67 0)
+			(property "Reference" "J"
+				(at 0 22.225 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
-			(property "Value" "USB-C 16P"
-				(at -15.24 24.13 0)
+			(property "Value" "USB_C_Receptacle_USB2.0_16P"
+				(at 0 19.685 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
-			(property "Footprint" "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Datasheet" ""
-				(at 0 0 0)
+			(property "Footprint" ""
+				(at 3.81 0 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(hide yes)
@@ -65,8 +52,8 @@
 					)
 				)
 			)
-			(property "Description" ""
-				(at 0 0 0)
+			(property "Datasheet" "https://www.usb.org/sites/default/files/documents/usb_type-c.zip"
+				(at 3.81 0 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(hide yes)
@@ -76,30 +63,8 @@
 					)
 				)
 			)
-			(property "LCSC" "C165948"
+			(property "Description" "USB 2.0-only 16P Type-C Receptacle connector"
 				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "MPN" "TYPE-C-31-M-12"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Manufacturer" "Korean Hroparts Elec"
-				(at -43.18 88.9 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(hide yes)
@@ -502,7 +467,7 @@
 				(pin bidirectional line
 					(at 15.24 -2.54 180)
 					(length 5.08)
-					(name "USBD+"
+					(name "D+"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -520,7 +485,7 @@
 				(pin bidirectional line
 					(at 15.24 2.54 180)
 					(length 5.08)
-					(name "USBD-"
+					(name "D-"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -650,7 +615,7 @@
 				(pin bidirectional line
 					(at 15.24 -5.08 180)
 					(length 5.08)
-					(name "USBD+"
+					(name "D+"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -668,7 +633,7 @@
 				(pin bidirectional line
 					(at 15.24 0 180)
 					(length 5.08)
-					(name "USBD-"
+					(name "D-"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2798,7 +2763,7 @@
 	)
 	(wire
 		(pts
-			(xy 328.93 93.98) (xy 334.01 93.98)
+			(xy 328.93 93.98) (xy 349.25 93.98)
 		)
 		(stroke
 			(width 0)
@@ -2845,6 +2810,16 @@
 			(type default)
 		)
 		(uuid "16c613db-d38b-4494-aab7-44f6b7f577ac")
+	)
+	(wire
+		(pts
+			(xy 344.17 91.44) (xy 344.17 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1cda12a9-c369-4376-9a2a-9d28eefe888e")
 	)
 	(wire
 		(pts
@@ -2968,16 +2943,6 @@
 	)
 	(wire
 		(pts
-			(xy 349.25 166.37) (xy 344.17 166.37)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "41aa1876-3eab-4b16-af94-7768f2da9f0d")
-	)
-	(wire
-		(pts
 			(xy 68.58 157.48) (xy 48.26 157.48)
 		)
 		(stroke
@@ -3008,7 +2973,7 @@
 	)
 	(wire
 		(pts
-			(xy 349.25 163.83) (xy 344.17 163.83)
+			(xy 349.25 91.44) (xy 344.17 91.44)
 		)
 		(stroke
 			(width 0)
@@ -3178,13 +3143,23 @@
 	)
 	(wire
 		(pts
-			(xy 354.33 158.75) (xy 354.33 156.21)
+			(xy 354.33 86.36) (xy 354.33 83.82)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "a814efea-79dc-4714-a462-9f938ce34f6b")
+	)
+	(wire
+		(pts
+			(xy 285.75 166.37) (xy 285.75 162.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "adee7b46-dd79-4883-92a2-c1443a0d98bf")
 	)
 	(wire
 		(pts
@@ -3198,6 +3173,16 @@
 	)
 	(wire
 		(pts
+			(xy 280.67 166.37) (xy 285.75 166.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b8bf26d7-3a28-40da-9d2d-5684938edd76")
+	)
+	(wire
+		(pts
 			(xy 68.58 152.4) (xy 55.88 152.4)
 		)
 		(stroke
@@ -3208,7 +3193,7 @@
 	)
 	(wire
 		(pts
-			(xy 359.41 163.83) (xy 364.49 163.83)
+			(xy 359.41 91.44) (xy 364.49 91.44)
 		)
 		(stroke
 			(width 0)
@@ -3218,7 +3203,7 @@
 	)
 	(wire
 		(pts
-			(xy 328.93 88.9) (xy 334.01 88.9)
+			(xy 328.93 88.9) (xy 344.17 88.9)
 		)
 		(stroke
 			(width 0)
@@ -3278,7 +3263,7 @@
 	)
 	(wire
 		(pts
-			(xy 359.41 166.37) (xy 364.49 166.37)
+			(xy 359.41 93.98) (xy 364.49 93.98)
 		)
 		(stroke
 			(width 0)
@@ -3377,7 +3362,7 @@
 		(uuid "2943aeed-d61d-471f-aad2-625b865b47ee")
 	)
 	(label "USB1_VBUS"
-		(at 354.33 156.21 90)
+		(at 354.33 83.82 90)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3436,16 +3421,6 @@
 		)
 		(uuid "a519eb7a-7354-48d0-a27a-db2e81a46e80")
 	)
-	(label "USB1_D-"
-		(at 344.17 163.83 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "b2b2cb2c-28ab-413e-a7b3-6c0fb126aafb")
-	)
 	(label "USB1_D+"
 		(at 334.01 93.98 0)
 		(effects
@@ -3455,16 +3430,6 @@
 			(justify left)
 		)
 		(uuid "b6062aa6-3883-4548-a1fa-b27d6a605fd5")
-	)
-	(label "USB1_D+"
-		(at 344.17 166.37 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "bd4d6dea-fbf6-43bf-ab4e-9ce34be5c95c")
 	)
 	(label "USB1_VBUS"
 		(at 344.17 138.43 0)
@@ -3487,7 +3452,7 @@
 		(uuid "ca954e41-fdd8-48c7-a5d9-ad320c6da4bc")
 	)
 	(label "USB1_D+"
-		(at 364.49 166.37 0)
+		(at 364.49 93.98 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3497,7 +3462,7 @@
 		(uuid "d0e5c55f-bc14-4cb0-af88-7f113d5405cb")
 	)
 	(label "USB1_D-"
-		(at 364.49 163.83 0)
+		(at 364.49 91.44 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3714,7 +3679,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 115.57 86.36 0)
 			(hide yes)
 			(show_name no)
@@ -3770,7 +3735,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_BGA:WLP-4_0.83x0.83mm_P0.4mm"
+		(property "Footprint" "Package_CSP:WLCSP-4_0.89x0.89mm_Layout2x2_P0.5mm"
 			(at 78.74 154.94 0)
 			(hide yes)
 			(show_name no)
@@ -3792,7 +3757,7 @@
 				)
 			)
 		)
-		(property "Description" "DNP. Gates +3V3_PEN off +3V3. Same part as U7/U8 on epd_power; DNP here, so it uses none of the thin stock."
+		(property "Description" "Slew rate controlled load switch, WLCSP-4"
 			(at 78.74 154.94 0)
 			(hide yes)
 			(show_name no)
@@ -3911,7 +3876,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 137.16 77.47 0)
 			(hide yes)
 			(show_name no)
@@ -3989,7 +3954,7 @@
 				)
 			)
 		)
-		(property "Description" "DNP. +3V3_TOUCH output capacitor."
+		(property "Description" "Unpolarized capacitor"
 			(at 115.57 77.47 0)
 			(hide yes)
 			(show_name no)
@@ -4070,7 +4035,7 @@
 				)
 			)
 		)
-		(property "Description" "DNP. pen FPC, 6-pin 0.5 mm. *** The pin order is provisional -- see docs/io-expansion.md §5."
+		(property "Description" "Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
 			(at 187.96 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -4272,7 +4237,7 @@
 				)
 			)
 		)
-		(property "Description" "DNP. touch FPC, 6-pin 0.5 mm. *** The pin order is provisional -- see docs/io-expansion.md §5."
+		(property "Description" "Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
 			(at 189.23 67.31 0)
 			(hide yes)
 			(show_name no)
@@ -4388,7 +4353,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/tps2553.pdf"
 			(at 311.15 143.51 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4398,7 +4363,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Adjustable current-limited power-distribution switch, EN active high, SOT-23-6"
 			(at 311.15 143.51 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4470,7 +4435,7 @@
 	)
 	(symbol
 		(lib_id "symbols:+V")
-		(at 285.75 162.56 180)
+		(at 280.67 166.37 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4480,7 +4445,7 @@
 		(dnp no)
 		(uuid "43795088-135d-44fb-a6bc-7d30928dad24")
 		(property "Reference" "#PWR1223"
-			(at 283.21 163.83 0)
+			(at 283.21 165.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4492,7 +4457,7 @@
 			)
 		)
 		(property "Value" "+3V3"
-			(at 291.592 166.116 0)
+			(at 274.828 162.814 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4503,7 +4468,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 285.75 162.56 0)
+			(at 280.67 166.37 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4513,7 +4478,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 285.75 162.56 0)
+			(at 280.67 166.37 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4523,7 +4488,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 285.75 162.56 0)
+			(at 280.67 166.37 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4599,7 +4564,7 @@
 				)
 			)
 		)
-		(property "Description" "DNP. +3V3_PEN output capacitor."
+		(property "Description" "Unpolarized capacitor"
 			(at 114.3 161.29 0)
 			(hide yes)
 			(show_name no)
@@ -4680,7 +4645,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 300.99 111.76 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4756,7 +4721,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 144.78 163.83 0)
 			(hide yes)
 			(show_name no)
@@ -4909,7 +4874,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 78.74 168.91 0)
 			(hide yes)
 			(show_name no)
@@ -4934,7 +4899,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 354.33 171.45 0)
+		(at 354.33 99.06 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4945,7 +4910,7 @@
 		(fields_autoplaced yes)
 		(uuid "7a1e04d8-96e0-46d5-ac4f-7f09cad54b4f")
 		(property "Reference" "#PWR1227"
-			(at 356.87 170.18 0)
+			(at 356.87 97.79 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4957,7 +4922,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 356.87 172.72 0)
+			(at 356.87 100.33 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4968,7 +4933,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 354.33 171.45 0)
+			(at 354.33 99.06 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4978,7 +4943,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 354.33 171.45 0)
+			(at 354.33 99.06 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4987,8 +4952,8 @@
 				)
 			)
 		)
-		(property "Description" ""
-			(at 354.33 171.45 0)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 354.33 99.06 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5064,7 +5029,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 323.85 152.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5144,7 +5109,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 330.2 74.93 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5258,7 +5223,7 @@
 		(dnp no)
 		(uuid "8df1582a-5a9f-4dee-af90-3848870fb762")
 		(property "Reference" "R1403"
-			(at 292.862 160.528 0)
+			(at 295.402 160.782 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5300,7 +5265,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 285.75 158.75 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5379,7 +5344,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 137.16 163.83 0)
 			(hide yes)
 			(show_name no)
@@ -5456,7 +5421,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 331.47 146.05 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5533,7 +5498,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 290.83 130.81 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5686,7 +5651,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 290.83 134.62 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5766,7 +5731,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 323.85 156.21 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5821,7 +5786,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_BGA:WLP-4_0.83x0.83mm_P0.4mm"
+		(property "Footprint" "Package_CSP:WLCSP-4_0.89x0.89mm_Layout2x2_P0.5mm"
 			(at 80.01 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -5843,7 +5808,7 @@
 				)
 			)
 		)
-		(property "Description" "DNP. Gates +3V3_TOUCH off +3V3. Same part as U7/U8 on epd_power; DNP here, so it uses none of the thin stock."
+		(property "Description" "Slew rate controlled load switch, WLCSP-4"
 			(at 80.01 71.12 0)
 			(hide yes)
 			(show_name no)
@@ -5962,7 +5927,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 114.3 170.18 0)
 			(hide yes)
 			(show_name no)
@@ -6039,7 +6004,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 331.47 142.24 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6109,7 +6074,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.usb.org/sites/default/files/documents/usb_type-c.zip"
 			(at 308.61 88.9 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6119,7 +6084,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "USB 2.0-only 16P Type-C Receptacle connector"
 			(at 308.61 88.9 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6301,7 +6266,7 @@
 	)
 	(symbol
 		(lib_id "r2:USBLC6-2SC6")
-		(at 354.33 163.83 0)
+		(at 354.33 91.44 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6309,10 +6274,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "d2c3f294-e635-435e-a881-b1ec77eb1839")
 		(property "Reference" "U1403"
-			(at 356.87 162.56 0)
+			(at 358.902 82.55 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6323,7 +6287,7 @@
 			)
 		)
 		(property "Value" "USBLC6-2SC6"
-			(at 356.87 165.1 0)
+			(at 357.378 85.09 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6334,7 +6298,7 @@
 			)
 		)
 		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
-			(at 354.33 163.83 0)
+			(at 354.33 91.44 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6344,8 +6308,8 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
-			(at 354.33 163.83 0)
+		(property "Datasheet" "https://www.st.com/resource/en/datasheet/usblc6-2.pdf"
+			(at 354.33 91.44 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6354,8 +6318,8 @@
 				)
 			)
 		)
-		(property "Description" ""
-			(at 354.33 163.83 0)
+		(property "Description" "Very low capacitance ESD protection diode, 2 data-line, SOT-23-6"
+			(at 354.33 91.44 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6365,7 +6329,7 @@
 			)
 		)
 		(property "MPN" "USBLC6-2SC6"
-			(at 354.33 163.83 0)
+			(at 354.33 91.44 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6376,7 +6340,7 @@
 			)
 		)
 		(property "LCSC" "C7519"
-			(at 354.33 163.83 0)
+			(at 354.33 91.44 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6387,7 +6351,7 @@
 			)
 		)
 		(property "Manufacturer" "STMicroelectronics"
-			(at 354.33 163.83 0)
+			(at 354.33 91.44 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6479,7 +6443,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 339.09 142.24 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6559,7 +6523,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 308.61 111.76 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6635,7 +6599,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 80.01 85.09 0)
 			(hide yes)
 			(show_name no)
@@ -6713,7 +6677,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 340.36 74.93 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6793,7 +6757,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 339.09 146.05 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6870,7 +6834,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 311.15 153.67 0)
 			(show_name no)
 			(do_not_autoplace no)

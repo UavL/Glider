@@ -10553,7 +10553,7 @@
 		(uuid "408c2632-cf9d-4f73-a1a5-81951c312650")
 	)
 	(label "DRAM_DATA5"
-		(at 248.92 58.42 180)
+		(at 248.92 53.34 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10583,7 +10583,7 @@
 		(uuid "45358192-efd5-4134-ab40-67ad13fea0fb")
 	)
 	(label "DRAM_DATA8"
-		(at 248.92 50.8 180)
+		(at 248.92 48.26 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10643,7 +10643,7 @@
 		(uuid "50f097e0-addb-440e-a808-0d1c6aec3462")
 	)
 	(label "DRAM_DATA7"
-		(at 248.92 53.34 180)
+		(at 248.92 68.58 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10703,7 +10703,7 @@
 		(uuid "59146efe-5cd2-4cab-9cfa-a0ac8cf0af74")
 	)
 	(label "DRAM_DATA3"
-		(at 248.92 63.5 180)
+		(at 248.92 55.88 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10743,7 +10743,7 @@
 		(uuid "6ddbdd88-c91b-4075-849e-7f7b04b9a60e")
 	)
 	(label "DRAM_DATA1"
-		(at 248.92 68.58 180)
+		(at 248.92 63.5 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10803,7 +10803,7 @@
 		(uuid "855bf4da-c776-4ee8-81b8-498479598fe7")
 	)
 	(label "DRAM_DATA13"
-		(at 248.92 45.72 180)
+		(at 248.92 50.8 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10893,7 +10893,7 @@
 		(uuid "a67b3aca-dee9-4435-97a5-41ce8c97d983")
 	)
 	(label "DRAM_DATA12"
-		(at 248.92 48.26 180)
+		(at 248.92 45.72 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -10963,7 +10963,7 @@
 		(uuid "b206a8c5-8d20-48a1-8f4f-3b5c27ba80f7")
 	)
 	(label "DRAM_DATA6"
-		(at 248.92 55.88 180)
+		(at 248.92 60.96 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -11123,7 +11123,7 @@
 		(uuid "d6d1c10e-64e0-49d8-b853-995d9c48bd58")
 	)
 	(label "DRAM_DATA4"
-		(at 248.92 60.96 180)
+		(at 248.92 58.42 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -11377,7 +11377,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 184.15 93.98 0)
 			(hide yes)
 			(show_name no)
@@ -11513,7 +11513,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 248.92 140.97 0)
 			(hide yes)
 			(show_name no)
@@ -11649,7 +11649,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 391.16 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -11830,7 +11830,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 353.06 179.07 0)
 			(hide yes)
 			(show_name no)
@@ -12010,7 +12010,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 238.76 118.11 0)
 			(hide yes)
 			(show_name no)
@@ -12146,7 +12146,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 340.36 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -12249,7 +12249,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 190.5 158.75 0)
 			(hide yes)
 			(show_name no)
@@ -12385,7 +12385,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 167.64 36.83 0)
 			(hide yes)
 			(show_name no)
@@ -12521,7 +12521,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 177.8 118.11 0)
 			(hide yes)
 			(show_name no)
@@ -12657,7 +12657,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 264.16 153.67 0)
 			(hide yes)
 			(show_name no)
@@ -12793,7 +12793,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 378.46 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -12973,7 +12973,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 160.02 138.43 0)
 			(hide yes)
 			(show_name no)
@@ -13108,7 +13108,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 177.8 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -13185,7 +13185,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 307.34 134.62 0)
 			(hide yes)
 			(show_name no)
@@ -13263,7 +13263,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 170.18 138.43 0)
 			(hide yes)
 			(show_name no)
@@ -13399,7 +13399,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 187.96 118.11 0)
 			(hide yes)
 			(show_name no)
@@ -13534,7 +13534,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 160.02 142.24 0)
 			(hide yes)
 			(show_name no)
@@ -13612,7 +13612,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 180.34 138.43 0)
 			(hide yes)
 			(show_name no)
@@ -13748,7 +13748,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 111.76 49.53 0)
 			(hide yes)
 			(show_name no)
@@ -13884,7 +13884,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 327.66 179.07 0)
 			(hide yes)
 			(show_name no)
@@ -13987,7 +13987,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 220.98 158.75 0)
 			(hide yes)
 			(show_name no)
@@ -14123,7 +14123,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 340.36 179.07 0)
 			(hide yes)
 			(show_name no)
@@ -14302,7 +14302,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 167.64 40.64 0)
 			(hide yes)
 			(show_name no)
@@ -14380,7 +14380,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 314.96 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -14482,7 +14482,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 160.02 162.56 0)
 			(hide yes)
 			(show_name no)
@@ -14558,7 +14558,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 97.79 43.18 0)
 			(hide yes)
 			(show_name no)
@@ -14770,7 +14770,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 111.76 53.34 0)
 			(hide yes)
 			(show_name no)
@@ -14848,7 +14848,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 111.76 181.61 0)
 			(hide yes)
 			(show_name no)
@@ -14984,7 +14984,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 210.82 138.43 0)
 			(hide yes)
 			(show_name no)
@@ -15120,7 +15120,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 314.96 179.07 0)
 			(hide yes)
 			(show_name no)
@@ -15376,7 +15376,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 251.46 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -15430,7 +15430,7 @@
 				)
 			)
 		)
-		(property "Footprint" "footprints:BGA-96_9.0x14.0mm_P0.8mm"
+		(property "Footprint" "Package_BGA:BGA-96_9.0x13.0mm_Layout2x3x16_P0.8mm"
 			(at 220.98 17.78 0)
 			(hide yes)
 			(show_name no)
@@ -15947,7 +15947,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 365.76 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -16050,7 +16050,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 302.26 179.07 0)
 			(hide yes)
 			(show_name no)
@@ -16153,7 +16153,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 251.46 118.11 0)
 			(hide yes)
 			(show_name no)
@@ -16289,7 +16289,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 220.98 138.43 0)
 			(hide yes)
 			(show_name no)
@@ -16424,7 +16424,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 363.22 134.62 0)
 			(hide yes)
 			(show_name no)
@@ -16502,7 +16502,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 302.26 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -16605,7 +16605,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 248.92 153.67 0)
 			(hide yes)
 			(show_name no)
@@ -16740,7 +16740,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 353.06 193.04 0)
 			(hide yes)
 			(show_name no)
@@ -16816,7 +16816,7 @@
 				)
 			)
 		)
-		(property "Description" "Unit 6: core and auxiliary supply pins."
+		(property "Description" "Spartan 6 LX 16 XC6SLX16-FTG256"
 			(at 335.28 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -17658,7 +17658,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 218.44 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -17736,7 +17736,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 327.66 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -17839,7 +17839,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 210.82 158.75 0)
 			(hide yes)
 			(show_name no)
@@ -17975,7 +17975,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 200.66 158.75 0)
 			(hide yes)
 			(show_name no)
@@ -18111,7 +18111,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 200.66 138.43 0)
 			(hide yes)
 			(show_name no)
@@ -18246,7 +18246,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 187.96 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -19344,7 +19344,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 185.42 36.83 0)
 			(hide yes)
 			(show_name no)
@@ -19479,7 +19479,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 391.16 166.37 0)
 			(hide yes)
 			(show_name no)
@@ -19556,7 +19556,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 111.76 185.42 0)
 			(hide yes)
 			(show_name no)
@@ -19633,7 +19633,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 101.6 43.18 0)
 			(hide yes)
 			(show_name no)
@@ -19711,7 +19711,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 180.34 158.75 0)
 			(hide yes)
 			(show_name no)
@@ -19847,7 +19847,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 190.5 138.43 0)
 			(hide yes)
 			(show_name no)
@@ -19983,7 +19983,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 264.16 140.97 0)
 			(hide yes)
 			(show_name no)
@@ -20118,7 +20118,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 223.52 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -20196,7 +20196,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 170.18 158.75 0)
 			(hide yes)
 			(show_name no)
@@ -20332,7 +20332,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 353.06 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -20589,7 +20589,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 238.76 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -20724,7 +20724,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 238.76 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -20801,7 +20801,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 238.76 157.48 0)
 			(hide yes)
 			(show_name no)
@@ -20879,7 +20879,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 160.02 158.75 0)
 			(hide yes)
 			(show_name no)

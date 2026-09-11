@@ -1,8 +1,11 @@
 # Layout — R2 Stage D
 
-Status: **preparation done, placement blocked on ONE owner decision (§1) — where the SoM sits.**
-The panel and cell choices of 2026-08-17 closed the other two. Nothing has been placed;
-`r2.kicad_pcb` does not exist yet.
+Status (2026-09-11): **routing under way on a six-layer, 0.8 mm board** (§4.1.1, owner-confirmed).
+The DDR3 bus is being routed. **The SoM corner is frozen:** the compute module is switching from the
+`PCM-071` to Octavo's `OSD62x-PM` (`NOTES-R2-osd62x-plan.md`), so `J501`/`J502`/`X500` will be
+deleted; the sections below that place and escape the `PCM-071` are the record of that design.
+~~Preparation done, placement blocked on ONE owner decision (§1) — where the SoM sits. Nothing has
+been placed; `r2.kicad_pcb` does not exist yet.~~
 
 This is the board-level plan. The *circuit-level* rules live with their sheets, and they were
 written while each datasheet was open rather than reconstructed now:
@@ -41,6 +44,11 @@ would "fix" into failure.
    from decision 2.
 
 ### 1.1 The SoM goes top-right, beside the USB ports — owner, 2026-08-20
+
+> ⚠ **2026-09-11:** the module in this section is the `PCM-071`, being replaced by the `OSD62x-PM`
+> (`NOTES-R2-osd62x-plan.md`). The **position** reasoning carries over unchanged — the USB pair is still
+> why the SoC sits beside the ports. The **thickness** table does not: the SiP is 1.3 mm tall, not a
+> 5.0 mm stack, so the 7.0 mm cell becomes what sets the device's depth (inferred).
 
 From the owner's layout sketch and its covering note: *"The SoM should be located near the top right
 where I would place the USB ports."* Everything else on that sketch is recorded in §1.2.
@@ -259,7 +267,8 @@ python3 tools/import_r1_settings.py --write
 ~~**R2's stackup is byte-identical to R1's**~~ — that was the justification for copying R1's
 geometry rather than calculating it, and **it stopped being true on 2026-09-03**, when the owner
 chose a 1.0 mm four-layer stack-up (`datasheets/PCB/4-layers PCB.pdf`) and moved to a
-**sig / gnd / gnd / sig** arrangement. §4.1.1 has the new numbers. The track widths in the table
+**sig / gnd / gnd / sig** arrangement. §4.1.1a has those numbers — and **they were superseded in turn by the 0.8 mm six-layer
+board, §4.1.1**. The track widths in the table
 below still stand — they are what the BGA escapes and the 76 mm length budget allow — but the
 *impedance* they produce has changed, so the copied-from-R1 reasoning no longer carries them.
 
@@ -296,7 +305,59 @@ tracks — because a net-class clearance is *also* checked pad-to-pad inside a f
 lands on a 0.5 mm-pitch VSON-HR-10 whose own pads sit 0.25 mm apart. Raising the class clearance
 would produce DRC errors that no amount of routing can clear.
 
-### 4.1.1 The 1.0 mm stack-up, and sig/gnd/gnd/sig — owner, 2026-09-03
+### 4.1.1 The 0.8 mm six-layer stack-up — current, owner-confirmed 2026-09-11
+
+**R2 is a six-layer board.** The owner, 2026-09-11: *"It is definitely a 6-layer stack up."* Source:
+**`datasheets/PCB/6-layers PCB_3313.pdf`** (2026-09-06; the fab is not named in the PDF, but it uses
+the same template as the four-layer PDFs of §4.1.1a). **§4.1.1a — the four-layer decision of
+2026-09-03 — is superseded.**
+
+| Layer | Material | After lamination | Role on the board — `r2.kicad_pcb` zones and tracks, 2026-09-10 |
+| --- | --- | --- | --- |
+| L1 `F.Cu` | 0.5 oz plated to 1 oz | 0.0348 mm finished | signals; `U700`, `U800` |
+| prepreg | 3313 RC58 %, DK 4.45 | **0.0925** | |
+| L2 `In1.Cu` | 1 oz | 0.035 | **GND**, whole board (the zone is *named* "Power Plane" but its net is `GND`) |
+| core | DK 4.6 | 0.13 (0.2 with copper) | |
+| L3 `In2.Cu` | 1 oz | 0.035 | **power pours** — `VSYS`, `+3V3`, `+3V3_AON`, `+1V5`, `+1V2_FPGA` |
+| prepreg | 3313 RC58 %, DK 4.45 | 0.082 | |
+| L4 `In3.Cu` | 1 oz | 0.035 | signals (119 segments) |
+| core | DK 4.6 | 0.13 (0.2 with copper) | |
+| L5 `In4.Cu` | 1 oz | 0.035 | **GND**, whole board |
+| prepreg | 3313 RC58 %, DK 4.45 | 0.0925 | |
+| L6 `B.Cu` | 0.5 oz plated to 1 oz | 0.0348 finished | signals |
+
+0.8 mm finished, ENIG.
+
+**What it settles.**
+
+- **UG388's ground reference for the top-side DDR bus is met:** `F.Cu` sits 0.0925 mm over `In1.Cu`,
+  which is ground. That was the whole reason §4.1.1a gave up its power plane; six layers get it
+  without giving anything up.
+- **Impedance** *(inferred — the same Hammerstad–Jensen method as §4.1.1a, outer layers, h 0.0925 mm,
+  εr 4.45, t 0.0348 mm; check against the fab's calculator)*: 0.11 mm → 54 Ω · **0.127 mm → 50 Ω** ·
+  0.15 mm → 46 Ω · pair 0.11 / 0.17 → 99 Ω · pair 0.127 / 0.15 → 90 Ω. So the DDR bus's 0.127 mm is
+  already ~50 Ω, and §4.1.1a's "0.30 mm for 50 Ω is impossible" problem is gone.
+- **Crosstalk:** §4.3's 0.38 mm spacing is **4.1 × h** here, against 2.0 × h on the 7628 board.
+- **The `OSD62x-PM` swap relies on this stack-up** — `In2.Cu` carries its `VDD_CORE`/`VDDS_DDR`
+  island (`NOTES-R2-osd62x-plan.md`).
+
+**Three things to watch.**
+
+1. **`In3.Cu`'s nearest plane is `In2.Cu` — power, 0.082 mm away — not `In4.Cu` (GND, 0.13 mm).** A
+   signal on `In3.Cu` returns through whatever `In2.Cu` pour is above it, so keep those pours solid
+   under the route, decouple them to ground, and don't route `In3.Cu` across a pour boundary (inferred).
+2. **KiCad's Physical Stackup differs from the PDF in two small places:** dielectric 4 (the
+   `In3`–`In4` core) is 0.12 mm in KiCad and 0.13 mm in the PDF, and dielectric 5 has εr 4.5 against
+   the PDF's 4.45. Fix both in Board Setup; they move impedance and delay figures slightly.
+3. **Four real shorts** reported by DRC on 2026-09-10 are all `In3.Cu` tracks crossing through-vias of
+   other nets — worth a look before routing more on that layer.
+
+### 4.1.1a ~~The 1.0 mm stack-up, and sig/gnd/gnd/sig — owner, 2026-09-03~~ — superseded
+
+> Kept for the record. Its **reasoning** still applies — the DDR bus on `F.Cu` must reference ground
+> (it does: `In1.Cu`), and crosstalk scales with s/h — but its **numbers** belong to a board that will
+> not be built: the 7628 dielectric, the 73 Ω / "0.30 mm for 50 Ω" problem and the two-solid-grounds
+> arrangement are all gone. The current stack-up is §4.1.1.
 
 `datasheets/PCB/4-layers PCB.pdf`, verbatim: 1.0 mm finished, prepreg **7628 RC46 %, 0.1960 mm
 pressed to 0.1855 mm, DK 4.74**, core **0.43 mm, DK 4.6** (0.5 mm with copper), inner copper 1 oz,
@@ -377,6 +438,10 @@ width wins, because the BGA escape enforces it.
 
 ### 4.1.2 ⚠ Two things to settle before the fab order
 
+> ⚠ **2026-09-11: both items are moot on the six-layer board.** The 2116-versus-7628 question belonged to
+> the four-layer PDFs; the six-layer stack uses 3313. And KiCad's Physical Stackup now describes the
+> six-layer board, apart from the two small differences listed in §4.1.1.
+
 ~~**2 oz outer copper is probably wrong for this board.**~~ **Closed 2026-09-03** — the owner took
 PCBWay's 1 oz option. The reasoning stands for the record: 2 oz finished outer raises a fab's minimum
 track/space to roughly 0.15–0.2 mm and worsens the etch factor, and this board routes DDR3 at
@@ -414,6 +479,13 @@ clears every one of them — and is what a board this dense was always going to 
 The DRC *floor* (Board Setup → Constraints → minimum clearance) stays at R1's 0.1 mm.
 
 ### 4.3 ⚠ Why the DDR spacings are DRC rules and not net-class clearances
+
+> ⚠ **Superseded 2026-09-10.** The rules and classes described below (`DDR_DIFF`, two pad-excluding rules)
+> were replaced: `r2.kicad_dru` now carries region-tiered DDR3 rules keyed to the `U700`/`U800` courtyards,
+> an explicit diff-pair gap rule and a working HV rule, with the derivation in the file's own comments;
+> the net classes were rewritten the same day. **Owner, 2026-09-11: the new rules get in the way of
+> interactive routing — open, to be revisited** (`NOTES-R2-osd62x-plan.md` §7). The escape geometry in the
+> table below is still correct.
 
 UG388 p.41 asks for two spacings on the memory bus: three times the trace width between DDR traces,
 and 20 mil between the differential clocks/strobes and any other signal, serpentines included. Both

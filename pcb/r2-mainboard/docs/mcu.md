@@ -566,6 +566,12 @@ option bit", and §5.6 keeps it at the factory default, where the pin is ignored
 
 ### 5.8 The proposal — `A59` and `A60`, and one of them needs a FET
 
+> ⚠ **2026-09-11 — the SoM is being replaced** by Octavo's `OSD62x-PM` (`NOTES-R2-osd62x-plan.md`). §5.8 and
+> §5.9 describe the `PCM-071`'s pins: `A59`/`A60` disappear with the connectors (the SoC signals
+> `MCU_MCAN1_TX/RX` remain, on new balls), and `PG_SOM` has no direct equivalent — the `TPS65219` has
+> `nRSTOUT` and `nINT`, not a power-good pin. `SOM_RESET#` probably becomes a wire-AND onto the SoC's
+> fail-safe `MCU_PORz` (inferred). Rewritten in the plan's Phase 2.
+
 > **APPLIED 2026-08-19** by `tools/patch_som_mcu_recovery.py`. Three parts added to `mcu`:
 > **`Q400`** `AO3400A` (`Transistor_FET:Q_NMOS_GSD`, SOT-23, `C347475`), **`R406`** 100 kΩ gate
 > pull-down, **`R407`** 1 kΩ series. Two no-connects dropped on `som` (A59, A60) and two sheet pins

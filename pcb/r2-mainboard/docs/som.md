@@ -1,5 +1,10 @@
 # `som`, `dpi_in` — the PCM-071 module — R2 work packages 7 and 8
 
+> ⚠ **2026-09-11 — this module is being replaced.** The owner confirmed the switch to Octavo's
+> `OSD62x-PM` SiP; the plan is `NOTES-R2-osd62x-plan.md`. This document stays the record of the `PCM-071`
+> design — which is still what `som.kicad_sch` and the board carry until the swap lands. A new spec
+> replaces it in the plan's Phase 2; don't extend this one.
+
 Status: **drawn 2026-08-15 — `som.kicad_sch` and `dpi_in.kicad_sch` both exist, and the
 hierarchy has no dangling interfaces left.** Not yet reviewed by the owner. Companion to `power.md`, `mcu.md`, `fpga.md` and
 `epd-port.md`.

@@ -1,5 +1,12 @@
 # `power.kicad_sch` — rail tree — R2 work package 2
 
+> ⚠ **2026-09-11 — the SoM is being replaced** by Octavo's `OSD62x-PM` (`NOTES-R2-osd62x-plan.md`). Three
+> parts of this document describe the `PCM-071` and are rewritten in the plan's Phase 2: **§1** (the SoM
+> on `+5V_DCDC`; a `TPS65219` PMIC joins the tree), **§5.1** (the PHYTEC-driven rail order is replaced, not
+> edited — the PMIC sequences the SoC itself) and **§8.1** (`+5V_DCDC` loses the SoM's 1.0 A).
+> The refdes in this file predate the page scheme: `U10`/`U12`/`U13`/`U14`/`U15` are now
+> `U300`/`U301`/`U302`/`U303`/`U304`.
+
 Status: **reviewed once; review-1 fixes applied.** Last updated 2026-08-11.
 
 **§10 answers the points raised in `../manual-analysis/Analysis_power.md` and lists what changed in

@@ -38,6 +38,13 @@ page — then re-run it and confirm the file is unchanged.
 | `BTH-060_AB` | SoM connector, module columns A+B | `gen_som_symbol.py` | `som_pinout.json` ← PHYTEC `L-1038e.A5` Tables 7–10 | `som.md` §10–11 |
 | `BTH-060_CD` | SoM connector, columns C+D | `gen_som_symbol.py` | same | `som.md` §10–11 |
 | **`TPS2553DBV`** | **USB current-limited switch** | **`gen_usb_host.py`** | **`datasheets/Power/tps2553.pdf` Pin Functions table** | **§4 below** |
+| **`KLM8G1GETF-B041`** | **Samsung eMMC 5.1, 8 GB, 153-ball FBGA** | **`gen_emmc_symbol.py`** | **`datasheets/Storage/samsung_emmc.pdf` Rev. 1.21 [Table 2], parsed at run time, checked against a hand transcription of Figure 1** | **asserted by the generator: 153 pin numbers = the stock `LFBGA-153…` pads, names verbatim, types by rule, three units, no hidden pin, no two pins at one position, all on the 2.54 grid. Rendered with `kicad-cli sym export svg` and looked at. `sic.md` §6.1** |
+
+The eMMC's **footprint is not ours**: `Package_BGA:LFBGA-153_11.5x13mm_Layout14x14_P0.5mm` from
+KiCad's stock library, used as it is (JEDEC MO-276F, 153 lands of 0.24 mm at 0.5 mm pitch). It was
+checked against the Samsung drawing — 11.5 × 13 mm body, 0.30 mm balls — and every ball the
+datasheet names has a land. The board already places three other stock `Package_BGA` footprints, so
+nothing was copied into the project.
 
 ## 3. Footprints — `r2.pretty/`
 
@@ -112,3 +119,17 @@ For completeness, so the audit does not chase them:
   it by transforming the 50-pin variant already embedded in that sheet (drop pins 41–50, shift the
   rest by 12.7 mm). It is why ERC reports one `lib_symbol_mismatch` for it. **If you install KiCad's
   stock libraries, replace the embedded copy with the real one** and that warning goes away.
+
+## 6. The owner's `Reflow` library — entries the assistant generated or checked
+
+`library/Reflow.kicad_sym` and `library/Reflow.pretty/` are the owner's. Two entries arrived on
+2026-09-11 from the SamacSys model Mouser links to (`library/LIB_OSD6254-1G-IPM.zip`).
+
+| Entry | Part | Generator / origin | Derived from | Checked |
+| --- | --- | --- | --- | --- |
+| `OSD6254-1G-IPM` (symbol) | Octavo `OSD62x-PM` SiP | **`gen_osd62x_symbol.py`** — replaces SamacSys's single-unit import in place, same name | `datasheets/SiC OSD62x-PM/osd62x_pm_pinout.json` ← datasheet Rev. 2.0 Tables 5-1…5-7 (`parse_osd62x_pinout.py`), cross-checked against Octavo's own Eagle library in the BRK files, 500/500 | asserted by the generator: pin numbers = datasheet balls = footprint pads; names verbatim; types per `osd62x-symbol-guide.md` §3.3; 11 units, no hidden pin, no two pins at one position, all on the 2.54 grid; `VIDEO` = the 22 DPI balls. Rendered with `kicad-cli sym export svg` and looked at |
+| `BGA500C50P28X18_1400X900X130` (footprint) | same | SamacSys, KiCad-5 `(module …)` format, used as downloaded | SamacSys | 500 pads named exactly as the datasheet's balls; **0.20 mm round lands**; 0.5 mm pitch, 28 × 18; row A along the top (top view). **Not yet checked:** courtyard, fab and silk outline against the datasheet's p. 31 drawing. Its 3D model path is a bare `OSD6254-1G-IPM.stp`, which will not resolve |
+| `OSD62x-PM` (symbol) | — | the owner's | — | an empty stub — no pins, blank fields, used by no sheet. Left alone |
+
+The SamacSys originals stay as they arrived: `library/OSD6254-1G-IPM.kicad_sym` (one unit, 500 `passive`
+pins, names mangled where the datasheet wraps a line, e.g. `MCU__UART0_RTSN`) and the zip.

@@ -5,6 +5,8 @@
 #
 # Delete this file and the board still routes -- nothing here is load-bearing.
 
+# --- HV separation ------------------------------------------------------------
+#
 # The HV rails run to +28.4 V (+VGH) and down to -20 V (-VGL): 48 V between the
 # two extremes. IPC-2221 wants 0.13 mm between them under permanent solder mask,
 # so 0.4 mm is roughly 3x the requirement and costs nothing on a board with this
@@ -14,41 +16,119 @@
 # checked pad-to-pad INSIDE a footprint, and +VGH lands on a 0.5 mm-pitch
 # VSON-HR-10 whose own pads are 0.25 mm apart. Excluding pads keeps the check on
 # the copper we actually draw.
+#
+# WARNING, 2026-09-10: this rule currently matches NOTHING. The 'HV' net class
+# exists in r2.kicad_pro but has no netclass_pattern, so +VGH and -VGL are
+# resolved into 'PWR' by the '+*' / '-*' patterns and no net is ever in 'HV'.
+# The 48 V separation is UNENFORCED until HV gets a pattern -- see docs.
+# hasNetclass() is used rather than "NetClass ==" because once HV does get a
+# pattern those nets will be in BOTH PWR and HV, and KiCad reports a composite
+# name that an equality test would miss.
 (rule "HV track separation"
 	(constraint clearance (min 0.4mm))
-	(condition "A.NetClass == 'HV' && B.NetClass != 'HV' && A.Type != 'Pad' && B.Type != 'Pad'"))
+	(condition "A.hasNetclass('HV') && !B.hasNetclass('HV') && A.Type != 'Pad' && B.Type != 'Pad'"))
 
 # --- DDR3 routing spacing -----------------------------------------------------
 #
-# UG388 p.41 ("PCB Layout Considerations") asks for two spacings on the memory
-# bus: trace spacing three times the trace width between DDR traces, and 20 mil
-# between the differential clocks/strobes and any other signal, serpentine
-# routing included.
+# UG388 p.41 asks for trace spacing 3x the trace width between DDR traces, and
+# 20 mil between the differential clocks/strobes and any other signal.
 #
-# Both are ROUTING numbers and neither can be a net-class clearance, for exactly
-# the reason the HV rule above is a rule: KiCad checks a class clearance
-# pad-to-track as well as track-to-track, and the DDR bus escapes two BGAs.
+# BOTH ARE TARGETS, NOT FLOORS, and they are emitted here at (severity warning)
+# for that reason. R1 -- the shipped Modos board -- enforces only a flat 0.11 mm
+# clearance on every net class and has no custom rules at all. Measured on
+# pcb/mainboard/pcb.kicad_pcb: its DDR bus has a median different-net gap of
+# 0.649 mm, but 23 % of pairs sit below 3xW and 20 % of its clock/strobe pairs
+# sit below 20 mil, the tightest at 0.130 mm. Making either number a hard error
+# would reject a design that demonstrably works. As warnings they rank the bus
+# by how much crosstalk margin each pair gives up, which is the useful signal.
 #
-#   part            pitch / pad     gap between pads   0.127 mm track needs
-#   U700 FTG256     1.0 / 0.4 mm         0.60 mm       2*c + 0.127
-#   U800 BGA-96     0.8 / 0.4 mm         0.40 mm       2*c + 0.127
+# The escape tiers below exist for a different reason: a single clearance cannot
+# be both correct in open copper and possible under the BGAs.
 #
-# At c = 0.38 mm that is 0.887 mm and no track leaves either part; at the 0.1 mm
-# class floor it is 0.327 mm and both escape. Setting 0.38 mm on the DDR_DIFF
-# class is what stopped the FPGA fanout on 2026-09-03. Excluding pads keeps the
-# check on the copper actually drawn and leaves the escape to the class floor.
+# MEASURED FROM r2.kicad_pcb ON 2026-09-10 -- not rules of thumb:
 #
-# The B.NetClass term in the second rule is load-bearing: without it the rule
-# fires between DRAM_CKP and DRAM_CKN and forbids the 0.11 mm intra-pair gap that
-# sets the 100 ohm differential impedance. The cost is that CK-to-DQS spacing is
-# not machine-checked -- they run to different parts of the bus, so it is a
-# placement matter, and docs/fpga.md 11.1 carries it.
+#   U700  Xilinx FTG256  1.0 mm pitch, 0.4 mm ball, 16x16, courtyard 18.0x18.0 mm
+#   U800  BGA-96         0.8 mm pitch, 0.4 mm ball, columns 1-3 and 7-9 populated
+#                        (2.4 mm empty channel down the middle), ctyd 9.8x14.8 mm
+#
+#   escape geometry                                       clearance that fits
+#   U700 diagonal dogbone, 0.45 mm via at 0.707 mm             0.2821 mm
+#   U700 one 0.11 track centred between two balls              0.2450 mm
+#   U800 one 0.11 track centred between two balls              0.1450 mm
+#   U800 tightest via-to-ball as currently routed              0.1100 mm
+#
+# U700 is set to 0.22 mm: under both ceilings with margin (62 um on the dogbone,
+# 25 um on a centred track) while still 2x the 0.11 mm floor, so it catches
+# copper jammed hard against a ball. U800 gets the 0.11 mm floor -- at 0.8 mm
+# pitch there is nothing to give and the density belongs in the empty centre
+# columns, which is placement, not DRC.
+#
+# NOTE: every one of these numbers assumes 0.45 mm vias. At 0.5 mm the U700
+# dogbone tightens to 0.2571 mm (still fine) but the U800 escape drops to
+# 0.0850 mm, below the 0.11 mm floor -- measured, 20 new errors.
+#
+# The four rules are written so at most one can match any given pair: the escape
+# tiers require an item to touch a BGA courtyard, the two open-field rules
+# require that NEITHER item does, and clocks/strobes are excluded from "track
+# spacing" and owned by "clock and strobe isolation". The result does not depend
+# on KiCad's rule-precedence order.
+#
+# The bus is selected by NET NAME, not net class, on purpose: DRAM_CKE, DRAM_ODT
+# and DRAM_RST match no netclass_pattern in r2.kicad_pro and would otherwise be
+# checked at the Default floor. Both A and B are tested so the rules do not
+# depend on which item KiCad binds to A.
+#
+# AB.isCoupledDiffPair() keeps all four rules off the intra-pair gap of CKP/CKN
+# and the two DQS pairs -- that gap is 0.17 mm and sets the differential
+# impedance. Without the guard these rules forbid the coupling they exist to
+# protect. The pairs are still checked, by the netclass diff-pair gap; that is
+# where the 31 DQS violations at 0.110-0.165 mm are reported.
 
-#(rule "DDR3 track spacing"
-#	(constraint clearance (min 0.38mm))
-#	(condition "A.NetClass == 'DDR3' && A.Type != 'Pad' && B.Type != 'Pad'"))
+(rule "DDR3 escape - DRAM U800"
+	(constraint clearance (min 0.11mm))
+	(condition "(A.NetName == '/fpga_ddr/DRAM_*' || B.NetName == '/fpga_ddr/DRAM_*') && (A.intersectsCourtyard('U800') || B.intersectsCourtyard('U800')) && !AB.isCoupledDiffPair()"))
+
+(rule "DDR3 escape - FPGA U700"
+	(severity warning)
+	(constraint clearance (min 0.22mm))
+	(condition "(A.NetName == '/fpga_ddr/DRAM_*' || B.NetName == '/fpga_ddr/DRAM_*') && (A.intersectsCourtyard('U700') || B.intersectsCourtyard('U700')) && !A.intersectsCourtyard('U800') && !B.intersectsCourtyard('U800') && !AB.isCoupledDiffPair()"))
+
+# 3 x trace width at the widest DDR trace on the board (DDR_D0/DDR_D1 are
+# 0.127 mm; DDR3/DDR3_CLK are 0.11 mm). Clocks and strobes are excluded and
+# handled by the next rule, so the two can never both match the same pair.
+(rule "DDR3 track spacing"
+	(severity warning)
+	(constraint clearance (min 0.38mm))
+	(condition "(A.NetName == '/fpga_ddr/DRAM_*' || B.NetName == '/fpga_ddr/DRAM_*') && !A.intersectsCourtyard('U700') && !B.intersectsCourtyard('U700') && !A.intersectsCourtyard('U800') && !B.intersectsCourtyard('U800') && !AB.isCoupledDiffPair() && A.NetName != '/fpga_ddr/DRAM_CKP' && B.NetName != '/fpga_ddr/DRAM_CKP' && A.NetName != '/fpga_ddr/DRAM_CKN' && B.NetName != '/fpga_ddr/DRAM_CKN' && A.NetName != '/fpga_ddr/DRAM_LDQSP' && B.NetName != '/fpga_ddr/DRAM_LDQSP' && A.NetName != '/fpga_ddr/DRAM_LDQSN' && B.NetName != '/fpga_ddr/DRAM_LDQSN' && A.NetName != '/fpga_ddr/DRAM_UDQSP' && B.NetName != '/fpga_ddr/DRAM_UDQSP' && A.NetName != '/fpga_ddr/DRAM_UDQSN' && B.NetName != '/fpga_ddr/DRAM_UDQSN'"))
+
+# UG388's 20 mil (0.508 mm) between a differential clock/strobe and any other
+# signal. Outside the BGA courtyards only -- under the parts the escape geometry
+# above governs and there is no room for it.
+(rule "DDR3 clock and strobe isolation"
+	(severity warning)
+	(constraint clearance (min 0.5mm))
+	(condition "(A.NetName == '/fpga_ddr/DRAM_CKP' || B.NetName == '/fpga_ddr/DRAM_CKP' || A.NetName == '/fpga_ddr/DRAM_CKN' || B.NetName == '/fpga_ddr/DRAM_CKN' || A.NetName == '/fpga_ddr/DRAM_LDQSP' || B.NetName == '/fpga_ddr/DRAM_LDQSP' || A.NetName == '/fpga_ddr/DRAM_LDQSN' || B.NetName == '/fpga_ddr/DRAM_LDQSN' || A.NetName == '/fpga_ddr/DRAM_UDQSP' || B.NetName == '/fpga_ddr/DRAM_UDQSP' || A.NetName == '/fpga_ddr/DRAM_UDQSN' || B.NetName == '/fpga_ddr/DRAM_UDQSN') && !A.intersectsCourtyard('U700') && !B.intersectsCourtyard('U700') && !A.intersectsCourtyard('U800') && !B.intersectsCourtyard('U800') && !AB.isCoupledDiffPair()"))
+
+# --- Differential pair gap ----------------------------------------------------
 #
-#(rule "DDR3 strobe and clock isolation"
-#	(constraint clearance (min 0.5mm))
-#	(condition "A.NetClass == 'DDR_DIFF' && B.NetClass != 'DDR_DIFF' && A.Type != 'Pad' && B.Type != 'Pad'"))
+# KiCad CLAMPS its built-in diff-pair check to the net class's ordinary
+# clearance: the effective gap it tests is min(clearance, diff_pair_gap).
+# Measured 2026-09-10 -- with DDR_D0 clearance at 0.28 mm the DQS pairs were
+# checked at 0.17 mm and 31 segments failed; dropping the class clearance to the
+# 0.11 mm floor (correct, because the rules above now own DDR spacing) silenced
+# every one of them. The routing did not improve, the check got looser.
 #
+# So the intra-pair gap is asserted here instead, where no class clearance can
+# weaken it. 0.17 mm with a 0.11 mm trace is ~99 ohm differential on the outer
+# layers of the stackup as entered (h = 0.0925 mm to In1/In4, er 4.45).
+#
+# This is the one rule that SHOULD fire on a coupled pair, so it is the only one
+# without the !AB.isCoupledDiffPair() guard -- it is exactly complementary to
+# the four rules above and can never overlap them.
+#
+# USB is deliberately not included: its pair is 0.127/0.15 mm for 90 ohm, a
+# different target. Add a second rule if that bus ever needs machine-checking.
+(rule "Differential pair gap - DDR3 and EPDC"
+	(severity warning)
+	(constraint clearance (min 0.17mm))
+	(condition "AB.isCoupledDiffPair() && (A.hasNetclass('DDR3_CLK') || A.hasNetclass('DDR_D0') || A.hasNetclass('DDR_D1') || A.hasNetclass('EPD_DATA'))"))

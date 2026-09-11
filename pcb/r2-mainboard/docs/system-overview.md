@@ -1,5 +1,11 @@
 # System overview — what the blocks are, how they connect, and how each one gets programmed
 
+> ⚠ **2026-09-11 — the compute module is being replaced** by Octavo's `OSD62x-PM`
+> (`NOTES-R2-osd62x-plan.md`). Where this document says "the module" or relies on the `PCM-071`'s own
+> eMMC, QSPI NOR, PMIC or demo image, it describes the old design. The FPGA, NOR, MCU and panel paths are
+> unchanged. §6's provisioning still works if the board gains an eMMC or keeps the SD slot, but the board
+> now ships blank.
+
 Written 2026-08-18 to answer four owner questions in one place: how a bare board from the fab
 becomes a working product, whether the SoM's DDR4 can serve the FPGA, what the SPI NOR flash
 actually does, and what the whole system looks like as one picture.

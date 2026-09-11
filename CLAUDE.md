@@ -14,6 +14,9 @@ work hit a hardware wall — 82 % of the idle draw sits on bucks whose enable pi
 on, so no firmware change can fix it. Read in this order:
 - **`NOTES-R2-plan.md`** — what R2 is and what to do next. Start here; its "Stage C progress"
   table says which sheets are drawn, which are reviewed, and what is waiting on the owner.
+- **`NOTES-R2-osd62x-plan.md`** — **the compute module is switching** from PHYTEC's `PCM-071` to Octavo's
+  `OSD62x-PM` SiP (owner, 2026-09-11). Read it before touching `som`, `dpi_in`, `power`, `mcu` or the SoM
+  corner of the board; docs that still describe the `PCM-071` are the record of the old design.
 - **`pcb/r2-mainboard/docs/<sheet>.md`** — one spec per schematic sheet: part choices with LCSC
   codes, values with the arithmetic shown, the sheet's hierarchical interface, review answers and
   the layout guidelines for that circuit. Read the sheet's doc before touching its `.kicad_sch`.

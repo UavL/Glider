@@ -1,0 +1,2 @@
+!function(){var e={p:"//static.hsappstatic.net/whisper-core/static-1.10225/"};(e=>{const t=document.createElement("script"),n=()=>document.head.removeChild(t);t.src=e;t.crossOrigin="anonymous";t.onload=n;t.onerror=n;document.head.appendChild(t)})(`${e.p}whisper-core-entry.js`)}();
+//# sourceMappingURL=//static.hsappstatic.net/whisper-core/static-1.10225/whisper-core.js.map

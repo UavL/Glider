@@ -12,6 +12,13 @@ real numbers rather than argued about.
 
 ## 1. The two facts that dominate everything
 
+> **2026-09-11 — the SoM line changes.** The owner confirmed the switch to Octavo's `OSD62x-PM`
+> (`NOTES-R2-osd62x-plan.md`). The module becomes `OSD6254-1G-IPM` at **$22.50 list** (web handoff, not
+> re-verified) plus a `TPS65219` PMIC (**$3.12–4.14** on LCSC, 2026-09-10), a load switch, a crystal and
+> boot storage (unpriced); the two `BTH-060` receptacles (**$12.98**) disappear. That lands at or below
+> §4.2's **€60 row — a goal of ≈ €400 k** — *inferred, not recomputed*. The board also went to six layers,
+> which the PCBA line in §3 does not reflect. §3–§4 have not been redone.
+
 **The SoM costs more than the display.** `som.md` §9: PHYTEC quoted `PCM-071` at **€250.00 @ 1–9 pcs**
 (2026-08-18, order code `C618992`). The display is €140 at single quantity.
 

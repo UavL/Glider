@@ -8336,7 +8336,7 @@
 				)
 			)
 		)
-		(property "Description" "Page-turn tact switch — 1.6 N, 1.5 mm travel, 500 k cycles, 4.9×4.9 mm J-lead (Panasonic EVQPLHA15, LCSC C79172). Chosen for cycle life: the 100 k-cycle TS-1187A is ~1.4 years at 200 turns/day"
+		(property "Description" "Push button switch, generic, two pins"
 			(at 165.1 246.38 0)
 			(hide yes)
 			(show_name no)
@@ -8449,7 +8449,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 347.98 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -8526,7 +8526,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 149.86 264.16 0)
 			(hide yes)
 			(show_name no)
@@ -8604,7 +8604,7 @@
 				)
 			)
 		)
-		(property "Description" "LSE load capacitor for Y20 — 18 pF assumes a 12.5 pF crystal and ~3 pF stray (docs/mcu.md §5.4). Y20's actual CL is unconfirmed; AN2867 is the selection reference named by Table 43"
+		(property "Description" "Unpolarized capacitor"
 			(at 48.26 133.35 0)
 			(hide yes)
 			(show_name no)
@@ -8706,7 +8706,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 101.6 81.28 0)
 			(hide yes)
 			(show_name no)
@@ -8784,7 +8784,7 @@
 				)
 			)
 		)
-		(property "Description" "1 µF on VREF+ — stm32g0b1.pdf Figure 15 p.65 (100 nF + 1 µF)"
+		(property "Description" "Unpolarized capacitor"
 			(at 88.9 69.85 0)
 			(hide yes)
 			(show_name no)
@@ -8865,7 +8865,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "STMicroelectronics Arm Cortex-M0+ MCU, 256KB flash, 144KB RAM, 64 MHz, 1.7-3.6V, 60 GPIO, LQFP64"
 			(at 152.4 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -9165,7 +9165,7 @@
 				)
 			)
 		)
-		(property "Description" "32.768 kHz LSE crystal for the RTC (Epson FC-135, LCSC C32346, JLC Basic). This is the LSE, not the HSE: no HSE is fitted, and the 8 MHz in stm32g0b1.pdf Table 42 / Figure 20 is fOSC_IN typ for the HSE. LSE spec is Table 43 p.85; tSU 2 s. CL unconfirmed — see §9"
+		(property "Description" "Two pin crystal"
 			(at 60.96 129.54 0)
 			(hide yes)
 			(show_name no)
@@ -9356,7 +9356,7 @@
 				)
 			)
 		)
-		(property "Description" "4.7 µF bulk for VDD/VDDA (pin 8) and VBAT (pin 6), which share +3V3_AON — stm32g0b1.pdf Figure 15 p.65: 1 × 100 nF + 1 × 4.7 µF"
+		(property "Description" "Unpolarized capacitor"
 			(at 25.4 49.53 0)
 			(hide yes)
 			(show_name no)
@@ -9436,7 +9436,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 38.1 60.96 0)
 			(hide yes)
 			(show_name no)
@@ -9513,7 +9513,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 48.26 144.78 0)
 			(hide yes)
 			(show_name no)
@@ -9590,7 +9590,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 110.49 195.58 0)
 			(hide yes)
 			(show_name no)
@@ -9667,7 +9667,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 152.4 207.01 0)
 			(hide yes)
 			(show_name no)
@@ -9743,7 +9743,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 327.66 243.84 0)
 			(hide yes)
 			(show_name no)
@@ -9934,7 +9934,7 @@
 				)
 			)
 		)
-		(property "Description" "Ferrite bead 120 Ω @ 100 MHz, DCR 190 mΩ, 550 mA, 0402 (Murata BLM15AG121SN1D, LCSC C85812). Isolates VREF+ from the digital rail. The low DCR is the load-bearing spec: stm32g0b1.pdf Table 21 caps VREF+ at min(VDD + 0.4, 4.0) V, so nothing with real series impedance may sit here — a resistor would be a hazard, this is <0.2 mV at 1 mA. Not required by Figure 15; see docs/mcu.md §12.2"
+		(property "Description" "Ferrite bead"
 			(at 76.2 49.53 0)
 			(hide yes)
 			(show_name no)
@@ -10048,7 +10048,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 339.09 187.96 270)
 			(hide yes)
 			(show_name no)
@@ -10205,7 +10205,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 205.74 264.16 0)
 			(hide yes)
 			(show_name no)
@@ -10283,7 +10283,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 261.62 256.54 0)
 			(hide yes)
 			(show_name no)
@@ -10440,7 +10440,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 25.4 60.96 0)
 			(hide yes)
 			(show_name no)
@@ -10517,7 +10517,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 231.14 254 0)
 			(hide yes)
 			(show_name no)
@@ -10594,7 +10594,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 175.26 254 0)
 			(hide yes)
 			(show_name no)
@@ -10670,7 +10670,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "N-MOSFET transistor, gate/source/drain"
 			(at 345.44 236.22 0)
 			(hide yes)
 			(show_name no)
@@ -10864,7 +10864,7 @@
 				)
 			)
 		)
-		(property "Description" "100 nF decoupling at VDD/VDDA pin 8 — stm32g0b1.pdf Figure 15 p.65. With C40 this is the whole of ST's scheme for this pin pair; no separate VBAT capacitor is called for"
+		(property "Description" "Unpolarized capacitor"
 			(at 38.1 49.53 0)
 			(hide yes)
 			(show_name no)
@@ -10943,7 +10943,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 335.28 219.71 270)
 			(hide yes)
 			(show_name no)
@@ -11056,7 +11056,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 261.62 264.16 0)
 			(hide yes)
 			(show_name no)
@@ -11134,7 +11134,7 @@
 				)
 			)
 		)
-		(property "Description" "Page-turn tact switch — 1.6 N, 1.5 mm travel, 500 k cycles, 4.9×4.9 mm J-lead (Panasonic EVQPLHA15, LCSC C79172). Chosen for cycle life: the 100 k-cycle TS-1187A is ~1.4 years at 200 turns/day"
+		(property "Description" "Push button switch, generic, two pins"
 			(at 220.98 246.38 0)
 			(hide yes)
 			(show_name no)
@@ -11247,7 +11247,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 88.9 81.28 0)
 			(hide yes)
 			(show_name no)
@@ -11324,7 +11324,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 378.46 241.3 0)
 			(hide yes)
 			(show_name no)
@@ -11402,7 +11402,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 205.74 256.54 0)
 			(hide yes)
 			(show_name no)
@@ -11482,7 +11482,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 33.02 205.74 0)
 			(hide yes)
 			(show_name no)
@@ -11560,7 +11560,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 33.02 194.31 0)
 			(hide yes)
 			(show_name no)
@@ -11641,7 +11641,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 205.74 233.68 0)
 			(hide yes)
 			(show_name no)
@@ -11722,7 +11722,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 149.86 256.54 0)
 			(hide yes)
 			(show_name no)
@@ -11803,7 +11803,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 261.62 229.87 0)
 			(hide yes)
 			(show_name no)
@@ -11961,7 +11961,7 @@
 				)
 			)
 		)
-		(property "Description" "LSE load capacitor for Y20 — 18 pF assumes a 12.5 pF crystal and ~3 pF stray (docs/mcu.md §5.4). Y20's actual CL is unconfirmed; AN2867 is the selection reference named by Table 43"
+		(property "Description" "Unpolarized capacitor"
 			(at 73.66 133.35 0)
 			(hide yes)
 			(show_name no)
@@ -12064,7 +12064,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Light emitting diode"
 			(at 33.02 271.78 0)
 			(hide yes)
 			(show_name no)
@@ -12099,6 +12099,17 @@
 		)
 		(property "MPN" "LTST-C191KGKT"
 			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 33.02 271.78 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12177,7 +12188,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 327.66 247.65 0)
 			(hide yes)
 			(show_name no)
@@ -12334,7 +12345,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 73.66 144.78 0)
 			(hide yes)
 			(show_name no)
@@ -12410,7 +12421,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 378.46 237.49 0)
 			(hide yes)
 			(show_name no)
@@ -12523,7 +12534,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 287.02 254 0)
 			(hide yes)
 			(show_name no)
@@ -12601,7 +12612,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 44.45 271.78 270)
 			(hide yes)
 			(show_name no)
@@ -12680,7 +12691,7 @@
 				)
 			)
 		)
-		(property "Description" "Combined debug footprint, pads only. R1's J5 order with pin 10 given to MCU_NRST. Mates a stock 2x6 1.27 mm cable."
+		(property "Description" "Generic connector, double row, 02x06, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"
 			(at 88.9 198.12 0)
 			(hide yes)
 			(show_name no)
@@ -12790,7 +12801,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 99.06 248.92 0)
 			(hide yes)
 			(show_name no)
@@ -12868,7 +12879,7 @@
 				)
 			)
 		)
-		(property "Description" "100 nF on VREF+ — stm32g0b1.pdf Figure 15 p.65 (100 nF + 1 µF)"
+		(property "Description" "Unpolarized capacitor"
 			(at 101.6 69.85 0)
 			(hide yes)
 			(show_name no)
@@ -12949,7 +12960,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 149.86 233.68 0)
 			(hide yes)
 			(show_name no)
@@ -13030,7 +13041,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 99.06 237.49 0)
 			(hide yes)
 			(show_name no)

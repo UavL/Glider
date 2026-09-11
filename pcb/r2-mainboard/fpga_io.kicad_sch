@@ -8624,7 +8624,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Light emitting diode"
 			(at 204.47 162.56 0)
 			(hide yes)
 			(show_name no)
@@ -8670,6 +8670,17 @@
 		)
 		(property "MPN" "XL-1608UGC-04"
 			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 204.47 162.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8748,7 +8759,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 213.36 162.56 0)
 			(hide yes)
 			(show_name no)
@@ -8902,7 +8913,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 194.31 162.56 0)
 			(hide yes)
 			(show_name no)

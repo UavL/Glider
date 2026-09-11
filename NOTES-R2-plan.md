@@ -2,6 +2,12 @@
 
 Branch `Board-Design`. Last updated **2026-08-21**.
 
+> **2026-09-11 — the compute module is changing.** The owner confirmed the switch from the `PCM-071`
+> to Octavo's **`OSD62x-PM`** SiP (`OSD6254-1G-IPM`). **`NOTES-R2-osd62x-plan.md` is the plan for it** and
+> supersedes everything below that assumes the PHYTEC module — the architecture box, the PHYTEC
+> enquiry, the module rows of "What is still open". The board is also now **six layers, 0.8 mm**
+> (`docs/layout.md` §4.1.1) and routing is under way; the status paragraphs below predate both.
+
 **Stage C (capture) is complete** — all 14 sheets drawn, `frontlight` last, and the root wired.
 WP6–WP8 are drawn but not yet reviewed by the owner; see **Stage C progress** below.
 **Stage D (layout) is under way and is the owner's own work** — the assistant reviews, it does not
@@ -83,6 +89,10 @@ high-refresh drive.
 
 ## Architecture
 
+> ⚠ **Superseded 2026-09-11 for the compute module:** the box below is the `PCM-071`. With the
+> `OSD62x-PM` the SoC and its DDR4 sit in a 9 × 14 mm BGA soldered to the board, with our own PMIC —
+> `NOTES-R2-osd62x-plan.md`. The FPGA, DDR3, EPD and housekeeping blocks are unchanged.
+
 ```
    ┌───────────────────────────────┐
    │  phyCORE-AM62x (PCM-071)      │  plugged in, 43×32 mm, ~7.6 mm mated
@@ -116,6 +126,9 @@ J6 pin-for-pin (J3 deleted 2026-08-15), DDR3L, and all three INA3221s — every 
 connector, `STM32H750VBT6` (overkill once the FPGA self-boots from its own flash).
 
 ### Three board-level consequences of the DSC footprint
+
+> ⚠ **Stale since 2026-08-13** — the `PCM-071` replaced the DSC footprint, so there is no cut-out — and
+> doubly so since the 2026-09-11 switch to the `OSD62x-PM`. Kept for the record; the RGB666 point holds.
 
 - **A cut-out is required** — ~14.4 × 22.4 mm, R1.2, because the module has bottom-side
   components. Both JLCPCB and PCBWay mill internal cut-outs. **This must be in the floorplan from
