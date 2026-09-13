@@ -214,7 +214,8 @@ p. 31 drawing, its 3D model path, and the PMIC footprint.
 *Exit:* every ball in the symbol maps to the pin-map table, no ball is claimed twice, and the 48
 functional nets land on the balls E3 listed.
 
-**Phase 4 — capture.** Replace the `som` page as D9 decides; edit `power`, `mcu` and `dpi_in`. Run
+**Phase 4 — capture.** **Step-by-step: `pcb/r2-mainboard/docs/sic-capture-guide.md`** (2026-09-12).
+Replace the `som` page as D9 decides; edit `power`, `mcu` and `dpi_in`. Run
 ERC. Diff the netlist against the pre-swap one: the only changes should be the SoC side of the 48
 nets and the new parts. `check_ucf.py` must still report 0 failures. Retire the `J501`/`J502`
 assertions in `check_pcb_connectors.py` in favour of a SiP placement check.

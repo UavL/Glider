@@ -8881,7 +8881,7 @@
 				)
 			)
 		)
-		(property "Value" "10K/1%"
+		(property "Value" "10k/1%"
 			(at 194.31 165.1 90)
 			(show_name no)
 			(do_not_autoplace no)

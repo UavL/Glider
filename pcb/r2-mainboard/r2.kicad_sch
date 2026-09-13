@@ -6009,6 +6009,52 @@
 		)
 	)
 	(sheet
+		(at 320.04 231.14)
+		(size 30.48 17.78)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "68965aa3-f875-4983-bfe4-45769510f3ca")
+		(property "Sheetname" "nc"
+			(at 320.04 230.4284 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "nc.kicad_sch"
+			(at 320.04 249.5046 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "r2"
+				(path "/dee825bf-c2f1-415d-afdf-cf702072a6e8"
+					(page "16")
+				)
+			)
+		)
+	)
+	(sheet
 		(at 320.04 193.04)
 		(size 55.88 30.48)
 		(exclude_from_sim no)

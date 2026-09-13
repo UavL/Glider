@@ -8470,7 +8470,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "47k"
+		(property "Value" "47k/1%"
 			(at 213.36 213.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8551,7 +8551,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "47k"
+		(property "Value" "47k/1%"
 			(at 269.24 213.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8709,7 +8709,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10u"
+		(property "Value" "10uF/25V"
 			(at 292.1 213.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8790,7 +8790,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22u"
+		(property "Value" "22uF/25V"
 			(at 35.56 213.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10820,7 +10820,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "47k"
+		(property "Value" "47k/1%"
 			(at 255.27 213.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10901,7 +10901,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "47k"
+		(property "Value" "47k/1%"
 			(at 227.33 213.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11268,7 +11268,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22u"
+		(property "Value" "22uF/25V"
 			(at 45.72 213.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11349,7 +11349,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "47k"
+		(property "Value" "47k/1%"
 			(at 241.3 213.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12129,7 +12129,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100n"
+		(property "Value" "100nF/50V"
 			(at 55.88 213.36 0)
 			(show_name no)
 			(do_not_autoplace no)

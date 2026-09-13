@@ -5155,7 +5155,7 @@
 				)
 			)
 		)
-		(property "Value" "22uF/10V"
+		(property "Value" "22uF/25V"
 			(at 96.52 40.64 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5366,7 +5366,7 @@
 				)
 			)
 		)
-		(property "Value" "100K/1%"
+		(property "Value" "100k/1%"
 			(at 125.73 134.62 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5781,7 +5781,7 @@
 				)
 			)
 		)
-		(property "Value" "100K/1%"
+		(property "Value" "100k/1%"
 			(at 243.84 71.12 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6931,7 +6931,7 @@
 				)
 			)
 		)
-		(property "Value" "22uF/10V"
+		(property "Value" "22uF/25V"
 			(at 78.74 68.58 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7395,7 +7395,7 @@
 				)
 			)
 		)
-		(property "Value" "22uF/10V"
+		(property "Value" "22uF/25V"
 			(at 63.5 68.58 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7931,7 +7931,7 @@
 				)
 			)
 		)
-		(property "Value" "22uF/10V"
+		(property "Value" "22uF/25V"
 			(at 63.5 91.44 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9509,7 +9509,7 @@
 				)
 			)
 		)
-		(property "Value" "390K/1%"
+		(property "Value" "390k/1%"
 			(at 144.78 81.28 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9709,7 +9709,7 @@
 				)
 			)
 		)
-		(property "Value" "22K/1%"
+		(property "Value" "22k/1%"
 			(at 144.78 88.9 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10938,7 +10938,7 @@
 				)
 			)
 		)
-		(property "Value" "5.1K/1%"
+		(property "Value" "5.1k/1%"
 			(at 233.68 78.74 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11478,7 +11478,7 @@
 				)
 			)
 		)
-		(property "Value" "22uF/10V"
+		(property "Value" "22uF/25V"
 			(at 78.74 91.44 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11689,7 +11689,7 @@
 				)
 			)
 		)
-		(property "Value" "100K/1%"
+		(property "Value" "100k/1%"
 			(at 243.84 55.88 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11936,7 +11936,7 @@
 				)
 			)
 		)
-		(property "Value" "10K/1%"
+		(property "Value" "10k/1%"
 			(at 251.46 101.6 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12059,7 +12059,7 @@
 				)
 			)
 		)
-		(property "Value" "390K/1%"
+		(property "Value" "390k/1%"
 			(at 142.24 118.11 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12459,7 +12459,7 @@
 				)
 			)
 		)
-		(property "Value" "10K/1%"
+		(property "Value" "10k/1%"
 			(at 144.78 170.18 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12469,7 +12469,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 141.478 168.91 90)
 			(hide yes)
 			(show_name no)
@@ -12582,7 +12582,7 @@
 				)
 			)
 		)
-		(property "Value" "240K/1%"
+		(property "Value" "240k/1%"
 			(at 144.78 162.56 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12706,7 +12706,7 @@
 				)
 			)
 		)
-		(property "Value" "22K/1%"
+		(property "Value" "22k/1%"
 			(at 251.46 127 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13184,7 +13184,7 @@
 				)
 			)
 		)
-		(property "Value" "4.7uF/6.3V"
+		(property "Value" "4.7uF/10V"
 			(at 254 142.24 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13679,7 +13679,7 @@
 				)
 			)
 		)
-		(property "Value" "10K/1%"
+		(property "Value" "10k/1%"
 			(at 83.82 170.18 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14280,7 +14280,7 @@
 				)
 			)
 		)
-		(property "Value" "150K/1%"
+		(property "Value" "150k/1%"
 			(at 142.24 39.37 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14404,7 +14404,7 @@
 				)
 			)
 		)
-		(property "Value" "22uF/10V"
+		(property "Value" "22uF/25V"
 			(at 48.26 68.58 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14650,7 +14650,7 @@
 				)
 			)
 		)
-		(property "Value" "20.5K/1%"
+		(property "Value" "20.5k/1%"
 			(at 142.24 124.46 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14975,7 +14975,7 @@
 				)
 			)
 		)
-		(property "Value" "22uF/10V"
+		(property "Value" "22uF/25V"
 			(at 46.99 156.21 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15837,7 +15837,7 @@
 				)
 			)
 		)
-		(property "Value" "100K/1%"
+		(property "Value" "100k/1%"
 			(at 264.16 55.88 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16162,7 +16162,7 @@
 				)
 			)
 		)
-		(property "Value" "13K/1%"
+		(property "Value" "13k/1%"
 			(at 142.24 45.72 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16285,7 +16285,7 @@
 				)
 			)
 		)
-		(property "Value" "5.1K/1%"
+		(property "Value" "5.1k/1%"
 			(at 231.14 86.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17248,7 +17248,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22K/1%"
+		(property "Value" "22k/1%"
 			(at 193.04 137.1599 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17372,7 +17372,7 @@
 				)
 			)
 		)
-		(property "Value" "100K/1%"
+		(property "Value" "100k/1%"
 			(at 264.16 71.12 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18079,7 +18079,7 @@
 				)
 			)
 		)
-		(property "Value" "22uF/10V"
+		(property "Value" "22uF/25V"
 			(at 48.26 91.44 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18215,7 +18215,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100K/1%"
+		(property "Value" "100k/1%"
 			(at 193.04 129.5399 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18570,7 +18570,7 @@
 				)
 			)
 		)
-		(property "Value" "22uF/10V"
+		(property "Value" "22uF/25V"
 			(at 96.52 119.38 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18705,7 +18705,7 @@
 				)
 			)
 		)
-		(property "Value" "100K/1%"
+		(property "Value" "100k/1%"
 			(at 233.68 119.38 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18828,7 +18828,7 @@
 				)
 			)
 		)
-		(property "Value" "100K/1%"
+		(property "Value" "100k/1%"
 			(at 208.28 71.12 0)
 			(show_name no)
 			(do_not_autoplace no)

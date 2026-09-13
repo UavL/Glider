@@ -5830,7 +5830,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10k"
+		(property "Value" "10k/1%"
 			(at 130.81 179.832 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6591,7 +6591,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5.1k"
+		(property "Value" "5.1k/1%"
 			(at 77.47 103.632 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7405,7 +7405,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10k"
+		(property "Value" "10k/1%"
 			(at 151.13 179.832 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7884,7 +7884,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1k"
+		(property "Value" "1k/1%"
 			(at 210.82 227.3299 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8273,7 +8273,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "100k/1%"
 			(at 129.54 207.772 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9876,7 +9876,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10k"
+		(property "Value" "10k/1%"
 			(at 110.49 179.832 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10038,7 +10038,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100nF/16V"
+		(property "Value" "100nF/50V"
 			(at 328.93 80.772 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10119,7 +10119,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5.1k"
+		(property "Value" "5.1k/1%"
 			(at 97.79 103.632 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10752,7 +10752,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "4.7uF/16V"
+		(property "Value" "4.7uF/25V"
 			(at 217.17 145.542 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10763,7 +10763,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 214.63 143.51 0)
 			(hide yes)
 			(show_name no)
@@ -11068,7 +11068,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "2.2k"
+		(property "Value" "2.2k/1%"
 			(at 191.77 179.832 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11461,7 +11461,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10k"
+		(property "Value" "10k/1%"
 			(at 325.12 137.922 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11703,7 +11703,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "100k/1%"
 			(at 109.22 207.772 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12339,7 +12339,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10k"
+		(property "Value" "10k/1%"
 			(at 361.95 137.922 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12651,7 +12651,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "2.2k"
+		(property "Value" "2.2k/1%"
 			(at 171.45 179.832 0)
 			(show_name no)
 			(do_not_autoplace no)

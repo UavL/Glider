@@ -2593,7 +2593,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "100k/1%"
 			(at 129.54 101.092 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3137,7 +3137,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100nF/16V"
+		(property "Value" "100nF/50V"
 			(at 114.3 68.072 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3354,7 +3354,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "4.7uF/10V"
+		(property "Value" "4.7uF/25V"
 			(at 99.06 68.072 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3365,7 +3365,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 96.52 66.04 0)
 			(hide yes)
 			(show_name no)
@@ -3435,7 +3435,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10k"
+		(property "Value" "10k/1%"
 			(at 180.34 101.092 0)
 			(show_name no)
 			(do_not_autoplace no)

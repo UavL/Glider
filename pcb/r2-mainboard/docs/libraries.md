@@ -130,6 +130,13 @@ For completeness, so the audit does not chase them:
 | `OSD6254-1G-IPM` (symbol) | Octavo `OSD62x-PM` SiP | **`gen_osd62x_symbol.py`** — replaces SamacSys's single-unit import in place, same name | `datasheets/SiC OSD62x-PM/osd62x_pm_pinout.json` ← datasheet Rev. 2.0 Tables 5-1…5-7 (`parse_osd62x_pinout.py`), cross-checked against Octavo's own Eagle library in the BRK files, 500/500 | asserted by the generator: pin numbers = datasheet balls = footprint pads; names verbatim; types per `osd62x-symbol-guide.md` §3.3; 11 units, no hidden pin, no two pins at one position, all on the 2.54 grid; `VIDEO` = the 22 DPI balls. Rendered with `kicad-cli sym export svg` and looked at |
 | `BGA500C50P28X18_1400X900X130` (footprint) | same | SamacSys, KiCad-5 `(module …)` format, used as downloaded | SamacSys | 500 pads named exactly as the datasheet's balls; **0.20 mm round lands**; 0.5 mm pitch, 28 × 18; row A along the top (top view). **Not yet checked:** courtyard, fab and silk outline against the datasheet's p. 31 drawing. Its 3D model path is a bare `OSD6254-1G-IPM.stp`, which will not resolve |
 | `OSD62x-PM` (symbol) | — | the owner's | — | an empty stub — no pins, blank fields, used by no sheet. Left alone |
+| **`TPS6521903`** (symbol) | **TI `TPS65219` PMIC — `U1501`** | **`gen_pmic_symbol.py`** — the owner created the container (name, Value, Description, an **embedded copy of the datasheet**); the script supplies pins, body and fields and writes the embedded block back verbatim | **`datasheets/Power/tps65219.pdf` (`SLVSGA0D`) Table 5-1**, transcribed and re-parsed from the PDF at run time | asserted by the generator: 29 of 33 rows re-parse and match the transcription (the other four defeat pdftotext's columns — the script asserts *which* four); pin numbers 1–33 = the stock footprint's pads; names verbatim; no hidden pin, no two pins at one position, all on the 2.54 grid; the embedded datasheet kept. Rendered and looked at |
+
+The PMIC's **footprint is not ours** either: `Package_DFN_QFN:Texas_RHB0032E_VQFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm_ThermalVias`
+from KiCad's stock library. The datasheet's package is **`RHB0032W`** (5 × 5 mm, 0.5 mm pitch, exposed
+pad 3.5 mm), so the stock `…E` land pattern is 0.05 mm under on the pad; the `_ThermalVias` variant
+already carries the ≥ 9 vias the datasheet requires under the power pad. `RHB0032M` is wrong — its
+pad is 1.4 mm too small.
 
 The SamacSys originals stay as they arrived: `library/OSD6254-1G-IPM.kicad_sym` (one unit, 500 `passive`
 pins, names mangled where the datasheet wraps a line, e.g. `MCU__UART0_RTSN`) and the zip.

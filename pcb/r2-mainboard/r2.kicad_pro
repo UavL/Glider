@@ -1109,6 +1109,18 @@
       {
         "netclass": "Default",
         "pattern": "/EPD_POS_EN|/FL_EN|/mcu/EPD_PWR_EN_MCU|/MCU_EN_3V3|/MCU_EN_5V|/MCU_EN_DDR|/USB1_FAULT#|/VBUS_MEA|/VCOM_EN|/VCOM_MEA|/VCOM_MEA_EN|/VGH_MEA|/VGL_MEA|/VN_MEA|/VP_MEA"
+      },
+      {
+        "netclass": "SW_NODE",
+        "pattern": "/sic/B1_SW"
+      },
+      {
+        "netclass": "SW_NODE",
+        "pattern": "/sic/B2_SW"
+      },
+      {
+        "netclass": "SW_NODE",
+        "pattern": "/sic/B3_SW"
       }
     ]
   },
@@ -1266,7 +1278,7 @@
         "uuid": "dee825bf-c2f1-415d-afdf-cf702072a6e8"
       }
     ],
-    "used_designators": "IC1,U1,U4,SW1,D7,R37,#PWR45",
+    "used_designators": "IC1,U1-2,U4,SW1,D7,R37,Y1,#PWR22,#PWR38,#PWR45-46,#PWR53,#PWR64,#PWR69-71,#PWR73-74,#PWR80,#PWR247,#PWR1810",
     "variants": []
   },
   "sheets": [
@@ -1329,6 +1341,10 @@
     [
       "767172a6-43e9-4684-bdc5-5dc2ecddbb44",
       "sic"
+    ],
+    [
+      "68965aa3-f875-4983-bfe4-45769510f3ca",
+      "nc"
     ]
   ],
   "text_variables": {},

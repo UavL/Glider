@@ -7884,7 +7884,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF/6.3V"
+		(property "Value" "22uF/25V"
 			(at 209.55 86.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7895,7 +7895,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 209.2452 88.9 0)
 			(hide yes)
 			(show_name no)
@@ -8905,7 +8905,7 @@
 				)
 			)
 		)
-		(property "Value" "1K/1%"
+		(property "Value" "1k/1%"
 			(at 190.5 36.83 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9039,7 +9039,7 @@
 				)
 			)
 		)
-		(property "Value" "100nF/16V"
+		(property "Value" "100nF/50V"
 			(at 118.364 167.132 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9197,7 +9197,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF/6.3V"
+		(property "Value" "22uF/25V"
 			(at 196.85 147.32 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9208,7 +9208,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 196.5452 149.86 0)
 			(hide yes)
 			(show_name no)
@@ -9333,7 +9333,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF/6.3V"
+		(property "Value" "22uF/25V"
 			(at 209.55 127 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9344,7 +9344,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 209.2452 129.54 0)
 			(hide yes)
 			(show_name no)
@@ -9547,7 +9547,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "4.7uF/6.3V"
+		(property "Value" "4.7uF/10V"
 			(at 224.79 147.32 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9683,7 +9683,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF/6.3V"
+		(property "Value" "22uF/25V"
 			(at 196.85 127 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9694,7 +9694,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 196.5452 129.54 0)
 			(hide yes)
 			(show_name no)
@@ -9819,7 +9819,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF/6.3V"
+		(property "Value" "22uF/25V"
 			(at 209.55 106.68 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9830,7 +9830,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 209.2452 109.22 0)
 			(hide yes)
 			(show_name no)
@@ -10243,7 +10243,7 @@
 				)
 			)
 		)
-		(property "Value" "5.1K/1%"
+		(property "Value" "5.1k/1%"
 			(at 179.07 36.83 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10456,7 +10456,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "4.7uF/6.3V"
+		(property "Value" "4.7uF/10V"
 			(at 224.79 86.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10728,7 +10728,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF/6.3V"
+		(property "Value" "22uF/25V"
 			(at 196.85 86.36 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10739,7 +10739,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 196.5452 88.9 0)
 			(hide yes)
 			(show_name no)
@@ -11077,7 +11077,7 @@
 				)
 			)
 		)
-		(property "Value" "100R"
+		(property "Value" "100R/1%"
 			(at 36.83 180.34 270)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11370,7 +11370,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF/6.3V"
+		(property "Value" "22uF/25V"
 			(at 209.55 147.32 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11381,7 +11381,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 209.2452 149.86 0)
 			(hide yes)
 			(show_name no)
@@ -11506,7 +11506,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "4.7uF/6.3V"
+		(property "Value" "4.7uF/10V"
 			(at 224.79 127 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11642,7 +11642,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF/6.3V"
+		(property "Value" "22uF/25V"
 			(at 196.85 106.68 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11653,7 +11653,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 196.5452 109.22 0)
 			(hide yes)
 			(show_name no)
@@ -11778,7 +11778,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10k"
+		(property "Value" "10k/1%"
 			(at 116.84 99.06 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11858,7 +11858,7 @@
 				)
 			)
 		)
-		(property "Value" "4.7k"
+		(property "Value" "4.7k/1%"
 			(at 134.62 160.02 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12217,7 +12217,7 @@
 				)
 			)
 		)
-		(property "Value" "10k"
+		(property "Value" "10k/1%"
 			(at 49.53 179.07 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12297,7 +12297,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10k"
+		(property "Value" "10k/1%"
 			(at 142.24 99.06 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12514,7 +12514,7 @@
 				)
 			)
 		)
-		(property "Value" "5.1K/1%"
+		(property "Value" "5.1k/1%"
 			(at 179.07 68.58 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12941,7 +12941,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "4.7uF/6.3V"
+		(property "Value" "4.7uF/10V"
 			(at 224.79 106.68 0)
 			(show_name no)
 			(do_not_autoplace no)

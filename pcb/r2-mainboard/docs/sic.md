@@ -2,7 +2,8 @@
 
 Status: **draft 2026-09-11; the owner's decisions of the same day are folded in** (Phase 2 of
 `NOTES-R2-osd62x-plan.md`). This is
-the spec the owner captures from in Phase 4. It replaces everything the `PCM-071` did on `som` (page 5)
+the spec the owner captures from in Phase 4 — **the order of operations is
+`docs/sic-capture-guide.md`**. It replaces everything the `PCM-071` did on `som` (page 5)
 and changes parts of `power`, `mcu` and `dpi_in`.
 
 **Tags:** **[B]** read from a source on 2026-09-11 — every one is collected with its page number in
@@ -19,23 +20,32 @@ proposed. **D6 — the fab — is open** (§12). §1 still needs TI to confirm L
 units sit here, or `U600` if its `VIDEO` unit goes on `dpi_in` (a shared part takes its lowest page).
 Every other part below is `…15xx` either way.
 
+**Net naming.** The rails are `…_SIC`, not `…_SOC`: that is what the owner drew on page 15 on
+2026-09-12 and the schematic is the authority. `VMON_1P8_SOC` and `VMON_3P3_SOC` keep their names —
+they are the SiP's *pin* names, not nets.
+
+**Passive values are normalised board-wide** (2026-09-13): one BOM line per part, and the
+better-rated part in each line — 100 nF is 50 V X7R, 1 µF is 25 V, the 4.7/10/22 µF bulk parts are
+25 V, and every resistor is `<value>/1%`. `tools/normalise_passives.py` holds the mapping and the
+reasoning; it changed 206 parts and no net.
+
 ---
 
 ## 1. The power architecture — rests on D1
 
 ```
-+VSYS 3.0-4.4 V ──U1503 TPS22965 (ON = MCU_EN_SOC)──► +VSYS_SOC
++VSYS 3.0-4.4 V ──U1503 TPS22965 (ON = MCU_EN_SOC)──► +VSYS_SIC
                                                         │
       U1501 TPS6521903 ◄── VSYS, PVIN_B1/B2/B3, PVIN_LDO34
-        BUCK1 0.75 V ──► +0V75_SOC   VDD_CORE, VDD_CANUART, VDDA_CORE_CSIRX0, VDDA_CORE_USB
-        BUCK2 1.8 V  ──► +1V8_SOC    VMON_1P8_SOC, PVIN_LDO2, PVIN_LDO1
-        BUCK3 1.2 V  ──► +1V2_SOC    VDDS_DDR
-        LDO2  0.85 V ──► +0V85_SOC   VDDR_CORE
-        LDO3  1.8 V  ──► +1V8A_SOC   VDDA_1P8_*, VDDA_PLL0-2, VDDA_MCU, VDDA_TEMP, VDDS_OSC0
-        LDO4  2.5 V  ──► +2V5_SOC    DDR_VPP
+        BUCK1 0.75 V ──► +0V75_SIC   VDD_CORE, VDD_CANUART, VDDA_CORE_CSIRX0, VDDA_CORE_USB
+        BUCK2 1.8 V  ──► +1V8_SIC    VMON_1P8_SOC, PVIN_LDO2, PVIN_LDO1
+        BUCK3 1.2 V  ──► +1V2_SIC    VDDS_DDR
+        LDO2  0.85 V ──► +0V85_SIC   VDDR_CORE
+        LDO3  1.8 V  ──► +1V8A_SIC   VDDA_1P8_*, VDDA_PLL0-2, VDDA_MCU, VDDA_TEMP, VDDS_OSC0
+        LDO4  2.5 V  ──► +2V5_SIC    DDR_VPP
         LDO1         ──► unloaded (2.2 µF only)
         GPO2 ────────► ON of U1502
-+3V3_DCDC (U302) ──U1502 TPS22965 (CT 1000 pF)──► +3V3_SOC   every VDDSHV incl. VDDSHV5,
++3V3_DCDC (U302) ──U1502 TPS22965 (CT 1000 pF)──► +3V3_SIC   every VDDSHV incl. VDDSHV5,
                                                                VDDA_3P3_USB, VMON_3P3_SOC, SD card,
                                                                the page's pull-ups
 ```
@@ -55,41 +65,41 @@ The new net names all start with `+`, so `r2.kicad_pro`'s `PWR` pattern `+*` pic
 
 | SiP balls | Net | Source | Max current [B] | Decoupling [B, Octavo Table 4-3] |
 | --- | --- | --- | ---: | --- |
-| `VDD_CORE` ×18, `VDD_CANUART`, `VDDA_CORE_CSIRX0`, `VDDA_CORE_USB` | `+0V75_SOC` | BUCK1 | 2710 mA (worst) | one net, so note 1 applies: **10 µF + 6 × 100 nF** |
-| `VDDR_CORE` ×8 | `+0V85_SOC` | LDO2 | 150 mA | 3 × 100 nF |
-| `VDDS_DDR` ×10 | `+1V2_SOC` | BUCK3 | 600 mA (datasheet Table 7-3) | 3 × 100 nF |
-| `DDR_VPP` | `+2V5_SOC` | LDO4 | 60 mA | 100 nF |
-| `VDDA_1P8_OLDI0`, `_CSIRX0`, `_USB`, `VDDA_PLL0`–`2`, `VDDA_MCU`, `VDDA_TEMP`, `VDDS_OSC0` | `+1V8A_SOC` | LDO3 | 155 mA group | one net, so note 2 applies: **1 µF + 100 nF** (OLDI0), **4.7 µF + 100 nF** (CSIRX0), **+ 1 µF** |
-| `VMON_1P8_SOC` | `+1V8_SOC` | BUCK2 | — | as the BRK |
-| `VDDSHV0`–`6`, `VDDSHV_MCU`, `VDDSHV_CANUART` (×2 each) | `+3V3_SOC` | U1502 | 150 mA group + SD card | 100 nF per ball pair + 10 µF bulk [I] |
-| `VDDA_3P3_USB` | `+3V3_SOC` | U1502 | 50 mA | 100 nF |
-| `VMON_3P3_SOC` | `+3V3_SOC` | U1502 | — | — |
+| `VDD_CORE` ×18, `VDD_CANUART`, `VDDA_CORE_CSIRX0`, `VDDA_CORE_USB` | `+0V75_SIC` | BUCK1 | 2710 mA (worst) | one net, so note 1 applies: **10 µF + 6 × 100 nF** |
+| `VDDR_CORE` ×8 | `+0V85_SIC` | LDO2 | 150 mA | 3 × 100 nF |
+| `VDDS_DDR` ×10 | `+1V2_SIC` | BUCK3 | 600 mA (datasheet Table 7-3) | 3 × 100 nF |
+| `DDR_VPP` | `+2V5_SIC` | LDO4 | 60 mA | 100 nF |
+| `VDDA_1P8_OLDI0`, `_CSIRX0`, `_USB`, `VDDA_PLL0`–`2`, `VDDA_MCU`, `VDDA_TEMP`, `VDDS_OSC0` | `+1V8A_SIC` | LDO3 | 155 mA group | one net, so note 2 applies: **1 µF + 100 nF** (OLDI0), **4.7 µF + 100 nF** (CSIRX0), **+ 1 µF** |
+| `VMON_1P8_SOC` | `+1V8_SIC` | BUCK2 | — | as the BRK |
+| `VDDSHV0`–`6`, `VDDSHV_MCU`, `VDDSHV_CANUART` (×2 each) | `+3V3_SIC` | U1502 | 150 mA group + SD card | 100 nF per ball pair + 10 µF bulk [I] |
+| `VDDA_3P3_USB` | `+3V3_SIC` | U1502 | 50 mA | 100 nF |
+| `VMON_3P3_SOC` | `+3V3_SIC` | U1502 | — | — |
 | `VMON_VSYS` | divider, §7 | — | — | — |
 | `VPP` | **not connected** | — | — | "floating or grounded except while programming eFuses" |
 
 The PMIC's own output capacitors and inductors follow the BRK [B]: **47 µF + 10 µF** at each buck
 output, **10 µF** at each LDO output, **2.2 µF** on `VDD1P8`, **0.47 µH** on all three bucks. R2
 already stocks a suitable 0.47 µH: `DFE252012F-R47M` (`C703140`, 4.9 A saturation, `power.md` §3.2).
-Put ≥ 4.7 µF on `PVIN_B1` and the BRK's input bank on `+VSYS_SOC`: 3 × 10 µF + 2 × 22 µF.
+Put ≥ 4.7 µF on `PVIN_B1` and the BRK's input bank on `+VSYS_SIC`: 3 × 10 µF + 2 × 22 µF.
 
 ## 3. The PMIC — `U1501`, `TPS6521903RHBR` (`C18716455`)
 
 | Pin | R2 connection | BRK | Note |
 | --- | --- | --- | --- |
-| `VSYS`, `PVIN_B1_1/_2`, `PVIN_B2`, `PVIN_B3`, `PVIN_LDO34` | `+VSYS_SOC` | 3.3 V | D1 |
-| `PVIN_LDO2` | `+1V8_SOC` (BUCK2) | same | |
-| `PVIN_LDO1` | **`+1V8_SOC` (BUCK2)** | 3.3 V | **R2 deviation**, §1 |
+| `VSYS`, `PVIN_B1_1/_2`, `PVIN_B2`, `PVIN_B3`, `PVIN_LDO34` | `+VSYS_SIC` | 3.3 V | D1 |
+| `PVIN_LDO2` | `+1V8_SIC` (BUCK2) | same | |
+| `PVIN_LDO1` | **`+1V8_SIC` (BUCK2)** | 3.3 V | **R2 deviation**, §1 |
 | `VLDO1` | 2.2 µF to GND, nothing else | → `VDDSHV5` | unloaded |
 | `LX_B1_1/_2`, `LX_B2`, `LX_B3` | 0.47 µH each | same | |
 | `FB_B1`, `FB_B2`, `FB_B3` | sensed at the SiP's balls | | |
-| `EN/PB/VSENSE` | 10 kΩ to `+VSYS_SOC`; optional DNP 0 Ω to an MCU spare pin | 10 kΩ to VIN | First Supply Detection starts the PMIC; a push-button input is 8 s low = OFF |
-| `MODE/STBY` | ← `PMIC_LPM_EN0`, 10 kΩ to `+3V3_SOC` | same | low = standby auto-PFM (Deep Sleep) |
+| `EN/PB/VSENSE` | 10 kΩ to `+VSYS_SIC`; optional DNP 0 Ω to an MCU spare pin | 10 kΩ to VIN | First Supply Detection starts the PMIC; a push-button input is 8 s low = OFF |
+| `MODE/STBY` | ← `PMIC_LPM_EN0`, 10 kΩ to `+3V3_SIC` | same | low = standby auto-PFM (Deep Sleep) |
 | `MODE/RESET` | ← `RESETSTATZ` | same | |
-| `VSEL_SD/VSEL_DDR` | 10 kΩ to `+3V3_SOC`; **`MMC1_SDWP` not connected** | ← `MMC1_SDWP` | no UHS-I (D5) |
-| `nINT` | → `EXTINTN`, 10 kΩ to `+3V3_SOC` | same | |
-| `nRSTOUT` | → `MCU_PORZ`, 10 kΩ to `+1V8A_SOC` | same (to LDO3) | `MCU_PORz` is a 1.8 V, fail-safe input |
-| `SDA`, `SCL` | ↔ `I2C0_SDA`/`I2C0_SCL`, 4.7 kΩ to `+3V3_SOC` | same | address **0x30** |
-| `GPO2` | → U1502 `ON`, 10 kΩ to `+VSYS_SOC` | same (to VIN) | open-drain |
+| `VSEL_SD/VSEL_DDR` | 10 kΩ to `+3V3_SIC`; **`MMC1_SDWP` not connected** | ← `MMC1_SDWP` | no UHS-I (D5) |
+| `nINT` | → `EXTINTN`, 10 kΩ to `+3V3_SIC` | same | |
+| `nRSTOUT` | → `MCU_PORZ`, 10 kΩ to `+1V8A_SIC` | same (to LDO3) | `MCU_PORz` is a 1.8 V, fail-safe input |
+| `SDA`, `SCL` | ↔ `I2C0_SDA`/`I2C0_SCL`, 4.7 kΩ to `+3V3_SIC` | same | address **0x30** |
+| `GPO2` | → U1502 `ON`, 10 kΩ to `+VSYS_SIC` | same (to VIN) | open-drain |
 | `GPO1`, `GPIO` | floating | | disabled in the NVM |
 | `VDD1P8` | 2.2 µF | same | |
 | `AGND`, thermal pad | GND, with vias | same | |
@@ -104,8 +114,8 @@ VPP (slot 2) → DDR 1.2 V (slot 3) → core 0.75 V (slot 4) → `VDDR_CORE` 0.8
 
 | Ref | Part | In | Out | Control | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `U1503` | `TPS22965DSGR` (`C122837`) | `+VSYS` (and `VBIAS`) | `+VSYS_SOC` | `ON` = `MCU_EN_SOC`, 100 kΩ pull-down (default off) | 4 A, 16 mΩ; quick output discharge. Worst case ~1.5 A at 3.0 V [I] |
-| `U1502` | `TPS22965DSGR` (`C122837`) | `+3V3_DCDC` (and `VBIAS`) | `+3V3_SOC` | `ON` = PMIC `GPO2` | **CT = 1000 pF** (the BRK leaves it empty): ~2–2.5 ms rise — under 18 mV/µs, inside the 10 ms slot 0, inside Spartan-6's 0.2–50 ms ramp if a `VCCO` ever moves here [B] |
+| `U1503` | `TPS22965DSGR` (`C122837`) | `+VSYS` (and `VBIAS`) | `+VSYS_SIC` | `ON` = `MCU_EN_SOC`, 100 kΩ pull-down (default off) | 4 A, 16 mΩ; quick output discharge. Worst case ~1.5 A at 3.0 V [I] |
+| `U1502` | `TPS22965DSGR` (`C122837`) | `+3V3_DCDC` (and `VBIAS`) | `+3V3_SIC` | `ON` = PMIC `GPO2` | **CT = 1000 pF** (the BRK leaves it empty): ~2–2.5 ms rise — under 18 mV/µs, inside the 10 ms slot 0, inside Spartan-6's 0.2–50 ms ramp if a `VCCO` ever moves here [B] |
 
 **No SD-card switch** (the BRK has a `TPS22918`): with `VDDSHV5` fixed at 3.3 V the card never enters
 1.8 V signalling, so the residual-voltage trap it guards against cannot happen. The card is
@@ -126,7 +136,7 @@ power-cycled with the SoC [I]. Add the `TPS22918` (`C131941`) back if UHS-I ever
 
 ## 6. Boot straps — `BOOTMODE[15:0]` = `GPMC0_AD0`…`15`
 
-Each pin gets **10 kΩ** to `+3V3_SOC` (the TRM asks for `VDDSHV3`'s rail) or to GND; none may float
+Each pin gets **10 kΩ** to `+3V3_SIC` (the TRM asks for `VDDSHV3`'s rail) or to GND; none may float
 (TRM §5.3.1) [B]. They are latched when `MCU_PORz` releases [B].
 
 | Bit | Ball | Field (TRM Tables 5-2…5-5, 5-18, 5-29) | R2 | BRK |
@@ -163,18 +173,18 @@ rest boot from the SD card, and nothing else changes on them.
 | | |
 | --- | --- |
 | Port | **MMC0, 8-bit.** The ROM boots eMMC from no other port, and 8-bit eMMC must use MMC0 [B TRM §5.4.4.1; Octavo `62_EMMC_1/2`]. The balls sit on the SiP's left edge in rings 1–2 — `CLK J1`, `CMD K1`, `DAT0 K2`, `DAT1 L1`, `DAT2 L2`, `DAT3 M1`, `DAT4 M2`, `DAT5 N1`, `DAT6 N2`, `DAT7 P1` [B] — so they escape on `F.Cu` without vias |
-| Supply | `VCC` (flash) and `VCCQ` (controller) both from **`+3V3_SOC`**, the rail that already feeds `VDDSHV4`. Octavo `62_EMMC_3` and TI `SPRAD21I` §7.3.2.1.1.1 both ask for the eMMC's IO supply and `VDDSHV4` on one source [B]. **The part is dual-voltage** — LCSC and JLCPCB both list `VCCQ` as *1.7–1.95 V and 2.7–3.6 V*, the datasheet's Table 1 says the same, and its OCR advertises both windows [B]; §9.4's Table 35 lists only the 1.8 V window, because that is what HS200/HS400 need. **Confirm 3.3 V `VCCQ` with the vendor before a production order** |
+| Supply | `VCC` (flash) and `VCCQ` (controller) both from **`+3V3_SIC`**, the rail that already feeds `VDDSHV4`. Octavo `62_EMMC_3` and TI `SPRAD21I` §7.3.2.1.1.1 both ask for the eMMC's IO supply and `VDDSHV4` on one source [B]. **The part is dual-voltage** — LCSC and JLCPCB both list `VCCQ` as *1.7–1.95 V and 2.7–3.6 V*, the datasheet's Table 1 says the same, and its OCR advertises both windows [B]; §9.4's Table 35 lists only the 1.8 V window, because that is what HS200/HS400 need. **Confirm 3.3 V `VCCQ` with the vendor before a production order** |
 | Speed | **DDR52 — 52 MHz, 8-bit, ≈100 MB/s** [B, `DEVICE_TYPE` bit 2: "52 MHz DDR — 1.8V **or 3V** I/O — Support"]. HS200/HS400 need 1.8 V signalling on both sides; `VDDSHV4` switches independently of the other rails [B, Octavo power note], so that upgrade costs a 1.8 V rail for `VDDSHV4` + `VCCQ` and a level-matched reset — not worth it for a reader |
 | Part | Samsung **`KLM8G1GETF-B041`**, 8 GB, 153-ball FBGA, 11.5 × 13 mm, 0.5 mm pitch — `C499918`, 148 in stock, $24.79 [B, LCSC 2026-09-11]. Any JEDEC 153-ball part fits the same land pattern |
 | Footprint | KiCad's stock **`Package_BGA:LFBGA-153_11.5x13mm_Layout14x14_P0.5mm`** — 153 lands of 0.24 mm on a 14 × 14 grid at 0.5 mm, JEDEC MO-276F [B]. Checked against the datasheet: 11.5 × 13 mm body, 0.30 mm balls (0.24 mm is the usual 80 % NSMD land), and every ball [Table 2] names has a land. **Referenced from the stock library, not copied** — the board already places three other stock `Package_BGA` footprints |
 | Symbol | **`r2:KLM8G1GETF-B041`** — none exists in KiCad's stock libraries, so `tools/gen_emmc_symbol.py` generates it from the datasheet's [Table 2] (2026-09-12). Three units: **`MEM`** (`CLK`, `CMD`, `Data_Strobe`, `RSTN`, `DAT0`–`7`), **`PWR`** (`VCC` ×4, `VCCQ` ×5, `VDDI`, `VSS` ×11), **`NC`** (the 120 RFU and unused balls, all `no_connect`). `VDDI` is a `power_out` — it drives its own capacitor and must never be tied to a rail. `libraries.md` §2 |
 | Reset | **`RST_n` ← `RESETSTATZ` directly**, with a 0 Ω series provision. Octavo `62_EMMC_9`: "Either an AND logic gate with RESETSTATz and IO output (pulled up) or **RESETSTATz alone** can be used to reset eMMC. Make sure that IO voltage level for the device is matched" — here both sides are 3.3 V, so no translator [B]. TI `SPRAD21I` §7.3.2.1.1.3 prefers ANDing a processor GPIO with `RESETSTATz` so software can reset the part too, and TI's own SK EVM drives it from an **IO-expander GPIO** (`GPIO_eMMC_RSTn`, `PROC142A` p. 18) [B]. R2 takes the simple path: nothing else needs to reset the eMMC, and `RESETSTATZ` is push-pull, so it cannot be wire-ANDed. The TRM still requires `ext_csd[162]` `RST_n_ENABLE` = `0x1`, written once from Linux (`mmc rstn enable`) and permanent once set [B] |
-| Pulls and termination | Every value from TI `SPRAD21I` §7.3.2.1.1.2, each inside Samsung's Table 36 limits [B]: **47 kΩ pull-ups to `+3V3_SOC` on `CMD` and `DAT0` only**, placed at the eMMC (Samsung allows 4.7–100 kΩ on `CMD`, 10–100 kΩ on `DAT`) · **no pull-ups on `DAT1`–`7`** — the device holds its own 10–150 kΩ internal ones until the bus widens, and an external pull fights them (Octavo `62_EMMC_8` agrees) · **10 kΩ pull-down on `CLK` at the eMMC's clock input**, holding the line low while the SoC's buffers are off (Octavo `62_EMMC_5`) · **10 kΩ pull-down on `Data_Strobe`** with a test point — unused below HS400 (Samsung Table 37: 10–100 kΩ) · **series resistor at the SiP's `CLK` ball: 0 Ω fitted, footprint for 22 Ω** — TI says start at 0 Ω and match the trace, Octavo `62_EMMC_7` says 22 Ω may be needed |
+| Pulls and termination | Every value from TI `SPRAD21I` §7.3.2.1.1.2, each inside Samsung's Table 36 limits [B]: **47 kΩ pull-ups to `+3V3_SIC` on `CMD` and `DAT0` only**, placed at the eMMC (Samsung allows 4.7–100 kΩ on `CMD`, 10–100 kΩ on `DAT`) · **no pull-ups on `DAT1`–`7`** — the device holds its own 10–150 kΩ internal ones until the bus widens, and an external pull fights them (Octavo `62_EMMC_8` agrees) · **10 kΩ pull-down on `CLK` at the eMMC's clock input**, holding the line low while the SoC's buffers are off (Octavo `62_EMMC_5`) · **10 kΩ pull-down on `Data_Strobe`** with a test point — unused below HS400 (Samsung Table 37: 10–100 kΩ) · **series resistor at the SiP's `CLK` ball: 0 Ω fitted, footprint for 22 Ω** — TI says start at 0 Ω and match the trace, Octavo `62_EMMC_7` says 22 Ω may be needed |
 | Decoupling | **2.2 µF + 2 × 100 nF on `VCC`, and the same on `VCCQ`** — Octavo `62_EMMC_6` [B]. **`VDDI`: 100 nF and nothing else** — it is the controller's internal regulator output (the datasheet's block diagram shows a capacitor `CReg` there but **states no value**), and it must never be tied to a rail [B for the role, I for the value] |
 | Strap | **`AD3` (`F27`) is the only change:** pulled **down** = SD boot (`1000`), pulled **up** = eMMC boot from the boot partition (`1001`). `1001` carries no configuration bits, so `AD9`/`DPI_R7` and every other strap stay as they are [B]. Lay out both resistors, fit one |
 | The first image | a blank eMMC fails primary boot and the ROM falls back to **USB DFU** (D11): a PC sends U-Boot, which writes the eMMC. Or boot the same board from SD with `AD3` down, write the eMMC from Linux, then move the strap [I] |
 
-**What it costs `+3V3_SOC`** [B, datasheet Tables 32–34, the 8 GB row]: **180 mA `VCCQ` + 50 mA `VCC`**
+**What it costs `+3V3_SIC`** [B, datasheet Tables 32–34, the 8 GB row]: **180 mA `VCCQ` + 50 mA `VCC`**
 worst case (x8 at HS400, RMS averaged over 100 ms — our DDR52 draw is lower), **120 µA + 40 µA** in
 standby at 25 °C, and 120 µA in sleep, where `VCC` may be switched off entirely. So budget ~230 mA of
 writing current on top of §10's figures, and nothing that matters while reading.
@@ -188,14 +198,14 @@ does **not** fit at 3.5 mil [I, geometry] — and **`CHOST` + `CBUS` must stay u
 
 | Signal | R2 | Source |
 | --- | --- | --- |
-| `MCU_PORZ` | PMIC `nRSTOUT` + 10 kΩ to `+1V8A_SOC`, **wire-ANDed with MCU `PA15`** (was `SOM_RESET#`), open-drain only — it is a 1.8 V net | [B] BRK; [I] the wire-AND |
+| `MCU_PORZ` | PMIC `nRSTOUT` + 10 kΩ to `+1V8A_SIC`, **wire-ANDed with MCU `PA15`** (was `SOM_RESET#`), open-drain only — it is a 1.8 V net | [B] BRK; [I] the wire-AND |
 | `RESETSTATZ` | → PMIC `MODE/RESET` **and → MCU `PC8`** (was `PG_SOM`) as "SoC is running", 3.3 V (`VDDSHV0`). `R408`'s 1 MΩ pull-down stays and reads "off" | [B] BRK, `mcu.md` §5.9 |
 | `EXTINTN` | ← PMIC `nINT` | [B] |
 | `PMIC_LPM_EN0` | → PMIC `MODE/STBY` | [B] |
 | `MCU_RESETZ`, `RESET_REQZ`, `MCU_ERRORN`, `TRSTN`, `EMU0/1`, `TCK/TDI/TMS/TDO` | **no trace** — the internal pulls hold them (checklist `62_CONFIG_1/3/4`, `62_RESET_4/6`) | [B] |
 | `PORZ_OUT`, `MCU_RESETSTATZ` | not connected (erratum i2407: never reset other parts with `MCU_RESETSTATz`) | [B] |
-| `VMON_VSYS` | `+VSYS_SOC` → **100 kΩ / 16.9 kΩ, 1 %** → trips at ≈ 3.11 V (0.45 V ±3 % threshold); 0.64 V at 4.4 V | [B] threshold; [I] trip point — the owner's to choose |
-| `VMON_1P8_SOC`, `VMON_3P3_SOC` | `+1V8_SOC`, `+3V3_SOC` | [B] BRK |
+| `VMON_VSYS` | `+VSYS_SIC` → **100 kΩ / 16.9 kΩ, 1 %** → trips at ≈ 3.11 V (0.45 V ±3 % threshold); 0.64 V at 4.4 V | [B] threshold; [I] trip point — the owner's to choose |
+| `VMON_1P8_SOC`, `VMON_3P3_SOC` | `+1V8_SIC`, `+3V3_SIC` | [B] BRK |
 | `USB0_VBUS` | `J200` VBUS → TI's clamp divider: **16.5 kΩ + 3.48 kΩ over 10 kΩ, 1 %, 6.8 V Zener** (`BZX84C6V8`, `C12746`). The BRK's 20 k/10 k is not enough: R2's charger accepts 9–12 V inputs | [B] `SPRSP58C` Fig. 8-4 |
 | `USB1_VBUS` | the host port's VBUS, same circuit. The PHYTEC module did this internally; now it is ours | [B] |
 | `VPP` | not connected | [B] |
@@ -206,7 +216,7 @@ All 48 signals, by AM62x name, onto the balls in `osd62x-symbol-guide.md` §6. C
 
 - `SOM_RESET#` → the `MCU_PORz` wire-AND (§7). `X_nRESET_IN` existed only on PHYTEC's module.
 - `PG_SOM` → `RESETSTATz` (§7). `X_PGOOD` existed only on PHYTEC's module.
-- **microSD `J500`:** its supply and its pull-ups (`R500`–`R504`, 47 kΩ) move to `+3V3_SOC`, which is
+- **microSD `J500`:** its supply and its pull-ups (`R500`–`R504`, 47 kΩ) move to `+3V3_SIC`, which is
   now `VDDSHV5`. Add **22 Ω in series with `MMC1_CLK`** at the SiP, as the BRK does (`R33`) [B].
 - **USB VBUS sensing** is now on this page (§7).
 - **Removed:** `J501`, `J502`, `X500`, and `+5V_DCDC`'s role as the SoM supply — the boost now feeds
@@ -219,21 +229,21 @@ All 48 signals, by AM62x name, onto the balls in `osd62x-symbol-guide.md` §6. C
 
 **Power-on**
 1. `MCU_EN_3V3` → `U302` → `+3V3_DCDC`. Hold `FPGA_PROG#` **low**; keep the UART TX low or Hi-Z.
-2. `MCU_EN_SOC` → `U1503` → `+VSYS_SOC`. First Supply Detection starts the PMIC: ~2.3 ms of EEPROM
+2. `MCU_EN_SOC` → `U1503` → `+VSYS_SIC`. First Supply Detection starts the PMIC: ~2.3 ms of EEPROM
    load, then the NVM sequence, and `MCU_PORz` releases ~40 ms later [B].
 3. Wait for `RESETSTATz` high; time out and report after ~200 ms [I].
 4. Release `FPGA_PROG#` — the FPGA configures from the NOR (**D10**).
 5. Enable the UART TX and the `SOM_WAKE#`/`SOM_IRQ#` handshake.
 
 **Reading state:** the SoC enters Deep Sleep and drops `PMIC_LPM_EN0`, and the PMIC goes to auto-PFM.
-Every rail, **`+3V3_SOC` included**, stays up, so the FPGA and the panel keep running — the retain
+Every rail, **`+3V3_SIC` included**, stays up, so the FPGA and the panel keep running — the retain
 model [B NVM; H for the power figure].
 
 **Power-off**
 1. Ask the SoC to shut down; its poweroff sends the PMIC an OFF request over I²C [I — **H**].
 2. Pull `FPGA_PROG#` **low** and park the UART TX *before* the SoC's rails fall (**D10**).
 3. Wait for `RESETSTATz` low, then ≥ 30 ms — the PMIC's two 10 ms power-down slots plus margin [B/I].
-4. `MCU_EN_SOC` low; `U1503`'s discharge drains `+VSYS_SOC`.
+4. `MCU_EN_SOC` low; `U1503`'s discharge drains `+VSYS_SIC`.
 5. `MCU_EN_3V3` low if nothing else needs it.
 
 **Forced off**, for a hung SoC: pull `MCU_PORz` low, then `MCU_EN_SOC` low — the equivalent of pulling
@@ -269,7 +279,7 @@ at the input voltage [I]):
 Running LDO3 and LDO4 from the cell instead of 3.3 V costs up to ~0.2 W more loss at the top of the
 charge (4.4 V) in the worst case [I]. Budget the PMIC's thermal pad for ~1 W of dissipation [I].
 
-**`+3V3_SOC` adds to `U302`:** ≤ ~0.3 A of SoC IO (`VDDSHV` groups + `VDDA_3P3_USB`) plus the SD
+**`+3V3_SIC` adds to `U302`:** ≤ ~0.3 A of SoC IO (`VDDSHV` groups + `VDDA_3P3_USB`) plus the SD
 card [B/I]. **`+5V_DCDC` loses the SoM's 1.0 A.** **The gap:** R2 has no `+3V3_DCDC` budget, so
 `U302`'s 2 A cannot yet be shown sufficient — it needs the FPGA's power estimate.
 
@@ -278,19 +288,27 @@ card [B/I]. **`+5V_DCDC` loses the SoM's 1.0 A.** **The gap:** R2 has no `+3V3_D
 | Ref | Part | LCSC | Stock (checked) |
 | --- | --- | --- | --- |
 | `U1500` (or `U600`) | `OSD6254-1G-IPM` | — (DigiKey/Mouser) | 100+ (owner, 2026-09-11) |
-| `U1501` | `TPS6521903RHBR` | `C18716455` | **6** (2026-09-10) — check DigiKey/Mouser |
+| `U1501` | `TPS6521903RHBR` — symbol `Reflow:TPS6521903`, footprint `Package_DFN_QFN:Texas_RHB0032E_VQFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm_ThermalVias` (`libraries.md` §6) | `C18716455` | **6** (2026-09-10) — check DigiKey/Mouser |
 | `U1502`, `U1503` | `TPS22965DSGR` | `C122837` | 24 086 |
 | `U1504` | `KLM8G1GETF-B041` eMMC 8 GB — **fitted on 1–2 boards** (§6.1) | `C499918` | 148 (2026-09-11) |
 | `Y1500` | `SX3B25.000F1010F30` | `C2901684` | 6 605 |
 | `D1500`, `D1501` | `BZX84C6V8` | `C12746` | 35 309 |
 | `L1500`–`L1502` | `DFE252012F-R47M` 0.47 µH | `C703140` | already on R2 |
-| — | resistors and capacitors per §2–§7 | | |
+| `C1500`–`C1529` | the SiP's decoupling, §2 — 100 nF / 1 µF / 4.7 µF / 10 µF | | captured 2026-09-12 |
+| `C1530`–`C1548` | the PMIC's input bank, buck and LDO output capacitors, `VDD1P8`, `VLDO1`, `U1502`'s `CT` | | captured 2026-09-12 |
+| `R1500`–`R1507` | the PMIC's pull-ups: `EN` 10 k, `MODE/STBY` 10 k, `VSEL` 10 k, `nINT` 10 k, `nRSTOUT` 10 k to `+1V8A_SIC`, I²C 4.7 k ×2, `GPO2` 10 k | | captured 2026-09-12 |
+| `R1508` | 100 kΩ pull-down on `MCU_EN_SOC`, so the SoC stays off until the MCU asks | | captured 2026-09-12 |
+| `R1509`, `R1510` | 100 kΩ / 16.9 kΩ 1 % — the `VMON_VSYS` divider, trips at 3.11 V (§7) | | captured 2026-09-13 |
+| `R1511`–`R1524` | 10 kΩ boot straps, bits 0–7 and 10–15 (§6) | | captured 2026-09-13 |
+| `R600`, `R601` | the other two straps — bits 8/9 are `DPI_R6`/`DPI_R7`, so they sit on `dpi_in` | | captured 2026-09-13 |
+| `Y1500`, `C1552`, `C1553` | 25 MHz crystal + 2 × 18 pF C0G (§5) | `C2901684` | captured 2026-09-13 |
+| `C1549`–`C1551` | the second 22 µF per buck output — replaces the 47 µF/1206, which LCSC does not stock | | captured 2026-09-13 |
 
 ## 12. Layout notes, for Phase 5
 
 - The SiP goes in the SoM corner, next to `J200`, so the USB0 pair stays short (`layout.md` §1.1).
 - Put the PMIC beside the SiP's core and DDR supply balls — BUCK1 carries up to 2.7 A. Pour
-  `+0V75_SOC` and `+1V2_SOC` as islands on `In2.Cu` (`layout.md` §4.1.1).
+  `+0V75_SIC` and `+1V2_SIC` as islands on `In2.Cu` (`layout.md` §4.1.1).
 - **Vias between the balls** (facts §3.3). With the footprint's 0.20 mm lands a via may be at most
   **0.329 mm at 3.5 mil** spacing, or 0.304 mm at 4 mil. JLCPCB's published 0.15/0.25 mm via fits with
   5 mil to spare; **PCBWay's published 4 mil via ring fits no drill at all** (0.2 mm → 0.40 mm,

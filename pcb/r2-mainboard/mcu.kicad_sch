@@ -8751,7 +8751,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1uF/16V"
+		(property "Value" "1uF/25V"
 			(at 91.44 71.882 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9711,7 +9711,7 @@
 				)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "100k/1%"
 			(at 332.74 243.84 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10015,7 +10015,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1k"
+		(property "Value" "1k/1%"
 			(at 339.852 185.166 270)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10250,7 +10250,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "100nF/16V"
+		(property "Value" "100nF/50V"
 			(at 259.08 258.572 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10831,7 +10831,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100nF/16V"
+		(property "Value" "100nF/50V"
 			(at 40.64 51.562 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10911,7 +10911,7 @@
 				)
 			)
 		)
-		(property "Value" "1k"
+		(property "Value" "1k/1%"
 			(at 335.28 224.79 270)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11369,7 +11369,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "100nF/16V"
+		(property "Value" "100nF/50V"
 			(at 203.2 258.572 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11527,7 +11527,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100nF/16V"
+		(property "Value" "100nF/50V"
 			(at 35.56 196.342 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11608,7 +11608,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "100k/1%"
 			(at 203.2 235.712 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11689,7 +11689,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "100nF/16V"
+		(property "Value" "100nF/50V"
 			(at 147.32 258.572 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11770,7 +11770,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "1k"
+		(property "Value" "1k/1%"
 			(at 259.08 231.902 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12389,7 +12389,7 @@
 				)
 			)
 		)
-		(property "Value" "1M"
+		(property "Value" "1M/1%"
 			(at 383.54 238.76 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12579,7 +12579,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1k"
+		(property "Value" "1k/1%"
 			(at 44.45 278.13 270)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12846,7 +12846,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100nF/16V"
+		(property "Value" "100nF/50V"
 			(at 104.14 71.882 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12927,7 +12927,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "100k/1%"
 			(at 147.32 235.712 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13008,7 +13008,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10k"
+		(property "Value" "10k/1%"
 			(at 101.6 239.522 0)
 			(show_name no)
 			(do_not_autoplace no)
